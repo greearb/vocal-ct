@@ -1,4 +1,4 @@
-# $Id: Makefile.osarch,v 1.3 2004/11/19 22:06:03 greear Exp $
+# $Id: Makefile.osarch,v 1.4 2004/11/20 00:05:54 greear Exp $
 
 ######################################################################
 
@@ -44,10 +44,7 @@ ifeq ($(OSTYPE),Linux)
 	VOCAL_USE_SYSTEM_LIBSNDFILE := false
     endif
 
-    SOBJS_HACK := `if $(CC) --version | grep "gcc (GCC) 3.4" > /dev/null; then echo -n "NOP"; fi`;
-    ifneq ($(SOBJS_HACK),NOP)
-        MKSHLIB_LIBS += -lgcc_s
-    endif
+    MKSHLIB_LIBS += `if $(CC) --version | grep "gcc (GCC) 3.4" > /dev/null; then echo -n " "; else echo -n "-lgcc_s"; fi`
 
 endif
 
