@@ -53,7 +53,7 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MediaController.hxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -81,165 +81,132 @@ namespace UA
     parties. The Controller provide interfaces for managing various
     media devices and allocate network resources for a given session. 
 
-<pre>
-    app_main()
-    {
-        int myMinRtpPort = 10000, maxRtpPort = 12000;
-        MediaController::instance(10000, 12000);
-   
-        //offering a SDP (UAC)
-        SdpSession localSdp = MediaController::instance().createSession(); 
-        unsigned sessionId = localSdp.getSessionId();
-        //save the sessionId for later use
-        //send the request with localSdp 
-        //wait for response  
-        ...
-        ...
-        //When the answer comes with remoteSdp
-        MediaController::instance().addToSession(localSdp, remoteSdp);
-
-        Sptr<MediaDevice> mDevice = //Create a media device
-        MediaController::instance().addDeviceToSession(sessionId, mDevice);
-        MediaController::instance().startSession(sessionId); 
-        //Session started
-        ...
-        ...
-
-        //At the end of the session
-        MediaController::instance().freeSession(sessionId);
-    }
-</pre>
  */
 class MediaController
 {
-    public:
-      ///Interface to access the Singelton object.
-      static MediaController& instance();
+public:
+   ///Interface to access the Singelton object.
+   static MediaController& instance();
 
-      /**Interface to initialize the Controller. The interface should be called
-        *by the application only once to create and intialize the Controller object.
-        * @param local_ip  Local IP to bind to, use "" for system default.
-        * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-        * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
-        *   the priority map, then it will not be used at all.
-        */
-      static void initialize(const string& local_ip,
-                             const string& local_dev_to_bind_to,
-                             int minRtpPort, int maxRtpPort,
-                             map<VCodecType, int>& prio_map);
+   /**Interface to initialize the Controller. The interface should be called
+    *by the application only once to create and intialize the Controller object.
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
+    *   the priority map, then it will not be used at all.
+    */
+   static void initialize(const string& local_ip,
+                          const string& local_dev_to_bind_to,
+                          int minRtpPort, int maxRtpPort,
+                          map<VCodecType, int>& prio_map);
 
-      ///
-      string className() { return "MediaController"; }
+   ///
+   string className() { return "MediaController"; }
 
-      /** Virtual destructor
-       */
-      virtual ~MediaController();
+   /** Virtual destructor
+    */
+   virtual ~MediaController();
 
-      ///Create a compatibl;e session after negotiating with remote SDP
-      SdpSession createSession(const SdpSession& remoteSdp)
-             throw (MediaException&) ;
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-      /**Create a brand new SDP session
-        * using the RTP port range and MediaCapabilities registered.
-        */
-      SdpSession createSession()
-             throw (MediaException&);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-      ///Get SDP for an existing session identified by sId.
-      SdpSession getSdp(unsigned int sId, VSdpMode=VSDP_SND_RECV);
 
-      /**Get SDP for an existing session identified by sId, after negotiatng
-        * with given remoteSdp.
-        */
-      SdpSession getSdp(unsigned int sId, SdpSession& resmoteSdp);
+   ///Create a compatibl;e session after negotiating with remote SDP
+   SdpSession createSession(const SdpSession& remoteSdp)
+      throw (MediaException&) ;
 
-      ///Free a media session and all its resources identified by sId.
-      void freeSession(int sessionId);
+   /**Create a brand new SDP session
+    * using the RTP port range and MediaCapabilities registered.
+    */
+   SdpSession createSession()
+      throw (MediaException&);
 
-      ///Join a remote site to a session identified by localSdp 
-      void addToSession(SdpSession& localSdp, SdpSession& remoteSdp);
+   ///Get SDP for an existing session identified by sId.
+   SdpSession getSdp(unsigned int sId, VSdpMode=VSDP_SND_RECV);
 
-      ///Add a device to session identified by the sessionId
-      void addDeviceToSession(unsigned int sessionId, Sptr<MediaDevice> mDevice);
+   /**Get SDP for an existing session identified by sId, after negotiatng
+    * with given remoteSdp.
+    */
+   SdpSession getSdp(unsigned int sId, SdpSession& resmoteSdp);
 
-      ///
-      void shutdown();
+   ///Free a media session and all its resources identified by sId.
+   void freeSession(int sessionId);
 
-      ///Register a media device
-      void registerDevice(Sptr<MediaDevice> mDevice);
+   ///Join a remote site to a session identified by localSdp 
+   void addToSession(SdpSession& localSdp, SdpSession& remoteSdp);
 
-      ///Register a Codec 
-      void registerCodec(Sptr<CodecAdaptor> cAdp);
+   ///Add a device to session identified by the sessionId
+   void addDeviceToSession(unsigned int sessionId, Sptr<MediaDevice> mDevice);
 
-      ///Get the list of media devices registered with the controller
-      list<Sptr<MediaDevice> > getListOfMediaDevices();
+   ///Register a Codec 
+   void registerCodec(Sptr<CodecAdaptor> cAdp);
 
-      ///Get the MediaCapability object that holds the list of codecs supported
-      MediaCapability& getMediaCapability() { return myMediaCapability; };
+   ///Get the MediaCapability object that holds the list of codecs supported
+   MediaCapability& getMediaCapability() { return myMediaCapability; };
 
-      ///Get a session associated with a sessionId.
-      Sptr<MediaSession> getSession(unsigned int sessionId);
+   ///Get a session associated with a sessionId.
+   Sptr<MediaSession> getSession(unsigned int sessionId);
 
-      ///Starts a session identified by sId and given mode.
-      // mode used to default to VSDP_SND_RECV
-      void startSession(unsigned int sId, VSdpMode mode);
+   ///Starts a session identified by sId and given mode.
+   // mode used to default to VSDP_SND_RECV
+   void startSession(unsigned int sId, VSdpMode mode);
 
-      ///
-      void suspendSession(unsigned int sId);
+   ///
+   void suspendSession(unsigned int sId);
 
-      ///
-      void resumeSession(unsigned int sId, SdpSession& remoteSdp);
+   ///
+   void resumeSession(unsigned int sId, SdpSession& remoteSdp);
 
-    private:
-        /// NOTE:  localAddr and port will be modified accordingly.
-        int createSessionImpl(string& localAddr,
-                              int& port);
+private:
+   /// NOTE:  localAddr and port will be modified accordingly.
+   int createSessionImpl(string& localAddr,
+                         int& port);
 
-        /** Create the Instance of MediaController
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
-         *   the priority map, then it will not be used at all.
-         */
-        MediaController(const string& local_ip,
-                        const string& local_dev_to_bind_to,
-                        int minRtpPort, int maxRtpPort,
-                        map<VCodecType, int>& prio_map);
+   /** Create the Instance of MediaController
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
+    *   the priority map, then it will not be used at all.
+    */
+   MediaController(const string& local_ip,
+                   const string& local_dev_to_bind_to,
+                   int minRtpPort, int maxRtpPort,
+                   map<VCodecType, int>& prio_map);
 
-        ///
-        static MediaController* myInstance;
+   ///
+   static MediaController* myInstance;
 
-        ///List of media devices managed by the Media Controller
-        list<Sptr<Adaptor> >  myMediaDeviceList;
+   /**List of NetworkResource objects ( encapsulates IP,Port 
+    * pair of listening sending media, and also the availability
+    * information)
+    */
+   list<Sptr<NetworkRes> > myNetworkResList;
 
-        /**List of NetworkResource objects ( encapsulates IP,Port 
-         * pair of listening sending media, and also the availability
-         * information)
-         */
-        list<Sptr<NetworkRes> > myNetworkResList;
+   ///
+   map<int, Sptr<MediaSession> > myMediaSessionMap;
 
-        ///
-        map<int, Sptr<MediaSession> > myMediaSessionMap;
-
-        /** Suppress copying
-         */
-        MediaController(const MediaController &);
+   /** Suppress copying
+    */
+   MediaController(const MediaController &);
         
-        /** Suppress copying
-         */
-        const MediaController & operator=(const MediaController &);
+   /** Suppress copying
+    */
+   const MediaController & operator=(const MediaController &);
 
-        // Suppress default construction
-        MediaController();
+   // Suppress default construction
+   MediaController();
 
-        ///
-        int   myRollingSessionId;
+   ///
+   int   myRollingSessionId;
 
-        ///
-        MediaCapability myMediaCapability;
+   ///
+   MediaCapability myMediaCapability;
 
-        string local_ip;
-        string localDevToBindTo;
+   string local_ip;
+   string localDevToBindTo;
 };
 
 }

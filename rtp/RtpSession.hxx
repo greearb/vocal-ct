@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 
 
@@ -130,247 +130,245 @@ static const char* const RtpSession_hxx_Version =
 
    
 */
-class RtpSession
-{
-    public:
-        /**@param ports All ports are optional
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         **/
-        RtpSession (const string& local_ip,
-                    const string& local_dev_to_bind_to,
-                    const char* remoteHost, int remotePort, int localPort,
-                    int rtcpRemotePort, int rtcpLocalPort,
-                    RtpPayloadType format, int clockrate, int per_sample_size,
-                    int samplesize);
+class RtpSession {
+public:
+   /**@param ports All ports are optional
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    **/
+   RtpSession (const string& local_ip,
+               const string& local_dev_to_bind_to,
+               const char* remoteHost, int remotePort, int localPort,
+               int rtcpRemotePort, int rtcpLocalPort,
+               RtpPayloadType format, int clockrate, int per_sample_size,
+               int samplesize);
 
-        /**@param ports All ports are optional by passing 0.  Port range is
-         *        availiable here.
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         **/
-        RtpSession (const string& local_ip,
-                    const string& local_dev_to_bind_to,
-                    const char* remoteHost, int remotePort, int localPort,
-                    int rtcpRemotePort, int rtcpLocalPort, int portRange,
-                    RtpPayloadType format, int clockrate, int per_sample_size,
-                    int samplesize);
+   /**@param ports All ports are optional by passing 0.  Port range is
+    *        availiable here.
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    **/
+   RtpSession (const string& local_ip,
+               const string& local_dev_to_bind_to,
+               const char* remoteHost, int remotePort, int localPort,
+               int rtcpRemotePort, int rtcpLocalPort, int portRange,
+               RtpPayloadType format, int clockrate, int per_sample_size,
+               int samplesize);
 
-        /** consturctor init (don't call this function)
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        void constructRtpSession (const string& local_ip,
-                                  const string& local_dev_to_bind_to,
-                                  const char* remoteHost, int remotePort,
-                                  int localPort, int rtcpRemotePort, int rtcpLocalPort,
-                                  int portRange, RtpPayloadType format,
-                                  int clockrate, int per_sample_size,
-                                  int samplesize);
-        ///
-        virtual ~RtpSession ();
+   /** consturctor init (don't call this function)
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   void constructRtpSession (const string& local_ip,
+                             const string& local_dev_to_bind_to,
+                             const char* remoteHost, int remotePort,
+                             int localPort, int rtcpRemotePort, int rtcpLocalPort,
+                             int portRange, RtpPayloadType format,
+                             int clockrate, int per_sample_size,
+                             int samplesize);
+   ///
+   virtual ~RtpSession ();
         
-        /**  reserves a rtp port by instantiating a RtpReceiver object
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        int reserveRtpPort(const string& local_ip,
-                           const string& local_dev_to_bind_to,
-                           int localMin = -1, int localMax = -1);
-        /// release the rtp port
-        int releaseRtpPort();
+   /**  reserves a rtp port by instantiating a RtpReceiver object
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   int reserveRtpPort(const string& local_ip,
+                      const string& local_dev_to_bind_to,
+                      int localMin = -1, int localMax = -1);
+   /// release the rtp port
+   int releaseRtpPort();
 
-        /** reserves a rtcp port by instantiating a RtcpReceiver object
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        int reserveRtcpPort(const string& local_ip, const string& local_dev_to_bind_to,
-                            int localPort, int portRange = 0);
-        /// release the rtcp port
-        int releaseRtcpPort();
+   /** reserves a rtcp port by instantiating a RtcpReceiver object
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   int reserveRtcpPort(const string& local_ip, const string& local_dev_to_bind_to,
+                       int localPort, int portRange = 0);
+   /// release the rtcp port
+   int releaseRtcpPort();
 
-        /**@name Session Functions
-         *  Being in a particular state disables some functions.  For example,
-         *  in recvonly state, the transmit function will do nothing.
-         *  Availiable state are listed in rtpTyes.h
-         **/
-        void setSessionState (RtpSessionState state);
-        ///
-        RtpSessionState getSessionState ();
+   /**@name Session Functions
+    *  Being in a particular state disables some functions.  For example,
+    *  in recvonly state, the transmit function will do nothing.
+    *  Availiable state are listed in rtpTyes.h
+    **/
+   void setSessionState (RtpSessionState state);
+   ///
+   RtpSessionState getSessionState ();
 
-        /** set receivers
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        int setReceiver ( const string& local_ip,
-                          const string& local_dev_to_bind_to,
-                          int localMinPort, int rtcpLocalPort, int portRange,
-                          RtpPayloadType format, int clockrate, int per_sample_size,
-                          int samplesize);
+   /** set receivers
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   int setReceiver ( const string& local_ip,
+                     const string& local_dev_to_bind_to,
+                     int localMinPort, int rtcpLocalPort, int portRange,
+                     RtpPayloadType format, int clockrate, int per_sample_size,
+                     int samplesize);
 
-        /** set transmitters
-         * @param local_ip  Local IP to bind to, use "" for system default.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        int setTransmiter ( const string& local_ip,
-                            const string& local_dev_to_bind_to,
-                            const char* remoteHost, int remotePort,
-                            int rtcpRemotePort, RtpPayloadType format,
-                            int clockrate, int per_sample_size, int samplesize);
+   /** set transmitters
+    * @param local_ip  Local IP to bind to, use "" for system default.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   int setTransmiter ( const string& local_ip,
+                       const string& local_dev_to_bind_to,
+                       const char* remoteHost, int remotePort,
+                       int rtcpRemotePort, RtpPayloadType format,
+                       int clockrate, int per_sample_size, int samplesize);
 
-        ///
-        void setFormat (RtpPayloadType type, int clockrate, int per_sample_size,
-                        int samplesize);
+   ///
+   void setFormat (RtpPayloadType type, int clockrate, int per_sample_size,
+                   int samplesize);
 
-        ///
-        void setCodecString (const char* codecStringInput);
+   ///
+   void setCodecString (const char* codecStringInput);
 
-        /// size is in number of samples
-        void setSampleSize (int size);
+   /// size is in number of samples
+   void setSampleSize (int size);
 
-        ///
-        int getSampleSize ();
+   ///
+   int getSampleSize ();
 
-        ///
-        int getPacketSent ();
-        ///
-        int getByteSent ();
+   ///
+   int getPacketSent ();
+   ///
+   int getByteSent ();
 
-        ///
-        int getPacketReceived ();
-        ///
-        int getByteReceived ();
+   ///
+   int getPacketReceived ();
+   ///
+   int getByteReceived ();
 
-        ///
-        int getPacketLost ();
+   ///
+   int getPacketLost ();
 
-        ///
-        int getJitter ();
+   ///
+   int getJitter ();
 
-        ///
-        int getLatency ();
+   ///
+   int getLatency ();
 
-        // not implemented
-        //void setTypeOfService (int service);
-        // not implemented
-        //int getTypeOfService ();
-        //@}
-
-
-        /** Creates an RTP packet for transmitter
-         *  @param no_samples number of samples for specified payload
-         *  @param padbyteSize always 0, not fully implemented
-         *  @param csrc_count number of contributing sources to packet
-         **/
-        RtpPacket* createPacket (int padbyteSize = 0, int csrcCount = 0);
-
-        /** Gets the previous packet's RTP sequence number 
-         **/
-        RtpSeqNumber getPrevSequence();
-
-        /** Gets the previous packet's RTP timestamp
-         **/
-        RtpTime getPrevRtpTime();
-
-        // set marker flago next packet
-        void setMarkerOnce();
-
-        /** Transmits packet onto network
-         *  @return -1 error, otherwise size sent on sucess
-         **/
-        int transmit (RtpPacket& packet);
-        int transmitRaw (char* inbuffer, int len);
-
-        /** Transmit DTMF event in RTP on network
-         *  @return -1 error, otherwise 0
-         **/
-        int transmitEvent( int event );
-
-        /** Receives RTP packet information from network
-         * Returns <= 0 if packet is not valid.
-         **/
-        int receive (RtpPacket& pkt, fd_set* fds);
-        int getPacket(RtpPacket& pkt);
+   // not implemented
+   //void setTypeOfService (int service);
+   // not implemented
+   //int getTypeOfService ();
+   //@}
 
 
-        /** Checks RTCP interval, transmits and receeives if neccessary
-         **/
-        void processRTCP();
+   /** Creates an RTP packet for transmitter
+    *  @param no_samples number of samples for specified payload
+    *  @param padbyteSize always 0, not fully implemented
+    *  @param csrc_count number of contributing sources to packet
+    **/
+   RtpPacket* createPacket (int padbyteSize = 0, int csrcCount = 0);
 
-        /** Create and transmit compound RTCP packet
-         *  @return -1 failure, else number of bytes sent on success
-         **/
-        int transmitRTCP ();
+   /** Gets the previous packet's RTP sequence number 
+    **/
+   RtpSeqNumber getPrevSequence();
 
-        /** Create and transmit a SR and BYE compound packet
-         *  @return -1 failure, else number of bytes sent on success
-         **/
-        int transmitRTCPBYE ();
+   /** Gets the previous packet's RTP timestamp
+    **/
+   RtpTime getPrevRtpTime();
 
-        /** receive and read compound RTCP packet
-         *  @eturn 0 if no packet received, else 1 on sucess
-         **/
-        int receiveRTCP ();
+   // set marker flago next packet
+   void setMarkerOnce();
 
-        /** Check if time to send RTCP packet
-         *  return: 1 = time to send RTCP packet
-         **/
-        int checkIntervalRTCP ();
+   /** Transmits packet onto network
+    *  @return -1 error, otherwise size sent on sucess
+    **/
+   int transmit (RtpPacket& packet);
+   int transmitRaw (char* inbuffer, int len);
+
+   /** Transmit DTMF event in RTP on network
+    *  @return -1 error, otherwise 0
+    **/
+   int transmitEvent( int event );
+
+   /** Receives RTP packet information from network
+    * Returns <= 0 if packet is not valid.
+    **/
+   int receive (RtpPacket& pkt, fd_set* fds);
 
 
-        /// RTP transmitter
-        RtpTransmitter* getRtpTran () {
-            return tran;
-        }
+   /** Checks RTCP interval, transmits and receeives if neccessary
+    **/
+   void processRTCP();
 
-        /// RTP recevier
-        RtpReceiver* getRtpRecv () {
-            return recv;
-        }
+   /** Create and transmit compound RTCP packet
+    *  @return -1 failure, else number of bytes sent on success
+    **/
+   int transmitRTCP ();
 
-        /// RTCP transmitter
-        RtcpTransmitter* getRtcpTran () {
-            return rtcpTran;
-        }
+   /** Create and transmit a SR and BYE compound packet
+    *  @return -1 failure, else number of bytes sent on success
+    **/
+   int transmitRTCPBYE ();
 
-        /// RTCP receiver
-        RtcpReceiver* getRtcpRecv () {
-            return rtcpRecv;
-        }
+   /** receive and read compound RTCP packet
+    *  @eturn 0 if no packet received, else 1 on sucess
+    **/
+   int receiveRTCP ();
+
+   /** Check if time to send RTCP packet
+    *  return: 1 = time to send RTCP packet
+    **/
+   int checkIntervalRTCP ();
+
+
+   /// RTP transmitter
+   RtpTransmitter* getRtpTran () {
+      return tran;
+   }
+
+   /// RTP recevier
+   RtpReceiver* getRtpRecv () {
+      return recv;
+   }
+
+   /// RTCP transmitter
+   RtcpTransmitter* getRtcpTran () {
+      return rtcpTran;
+   }
+
+   /// RTCP receiver
+   RtcpReceiver* getRtcpRecv () {
+      return rtcpRecv;
+   }
 
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now);
 
-        //Current number of elements in jitter buffer.
-        unsigned int getJitterPktsInQueueCount() const {
-           return recv->getJitterPktsInQueueCount();
-        }
+   //Current number of elements in jitter buffer.
+   unsigned int getJitterPktsInQueueCount() const {
+      return recv->getJitterPktsInQueueCount();
+   }
 
-        unsigned int getCurMaxPktsInQueue() const {
-           return recv->getCurMaxPktsInQueue();
-        }
+   unsigned int getCurMaxPktsInQueue() const {
+      return recv->getCurMaxPktsInQueue();
+   }
 
-        /// Rtp event class
-        RtpEvent _rtpEvent;
+   /// Rtp event class
+   RtpEvent _rtpEvent;
 
-        /// DTMF callback function
-        void setDTMFInterface ( DTMFInterface* t );
-        void unsetDTMFInterface ( DTMFInterface* t );
+   /// DTMF callback function
+   void setDTMFInterface ( DTMFInterface* t );
+   void unsetDTMFInterface ( DTMFInterface* t );
 
-    private:
-        /// Internal pointer to RTP transmitter
-        RtpTransmitter* tran;
-        /// Internal pointer to RTP receiver
-        RtpReceiver* recv;
-        /// Internal pointer to RTCP transmitter
-        RtcpTransmitter* rtcpTran;
-        /// Internal pointer to RTCP receiver
-        RtcpReceiver* rtcpRecv;
+private:
+   /// Internal pointer to RTP transmitter
+   RtpTransmitter* tran;
+   /// Internal pointer to RTP receiver
+   RtpReceiver* recv;
+   /// Internal pointer to RTCP transmitter
+   RtcpTransmitter* rtcpTran;
+   /// Internal pointer to RTCP receiver
+   RtcpReceiver* rtcpRecv;
 
-        /// session state
-        RtpSessionState sessionState;
+   /// session state
+   RtpSessionState sessionState;
 
-        /// session error code;
-        RtpSessionError sessionError;
+   /// session error code;
+   RtpSessionError sessionError;
 
    //Restricted.
    RtpSession();

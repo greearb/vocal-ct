@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 
 #include "global.h"
@@ -815,48 +815,26 @@ int RtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 
-int RtpSession::receive (RtpPacket& pkt, fd_set* fds)
-{
-    if ( !( sessionState == rtp_session_sendrecv
-            || sessionState == rtp_session_recvonly ) )
-    {
-        if (recv) {
-           recv->receive(pkt, fds);
-           sessionError = session_wrongState;
-           cpLog (LOG_ERR, "RTP stack can't receive. Wrong state");
-        }
-        return -EINVAL;
-    }
+int RtpSession::receive (RtpPacket& pkt, fd_set* fds) {
+   if ( !( sessionState == rtp_session_sendrecv
+           || sessionState == rtp_session_recvonly ) ) {
+      if (recv) {
+         recv->receive(pkt, fds);
+         sessionError = session_wrongState;
+         cpLog (LOG_ERR, "RTP stack can't receive. Wrong state");
+      }
+      return -EINVAL;
+   }
 
-    if (rtcpRecv) {
-       if (!fds || (FD_ISSET(rtcpRecv->getUdpStack()->getSocketFD(), fds))) {
-          receiveRTCP();
-       }
-    }
-
-    sessionError = session_success;
-    return recv->receive(pkt, fds);
+   if (rtcpRecv) {
+      if (!fds || (FD_ISSET(rtcpRecv->getUdpStack()->getSocketFD(), fds))) {
+         receiveRTCP();
+      }
+   }
+   
+   sessionError = session_success;
+   return recv->receive(pkt, fds);
 }
-
-
-int RtpSession::getPacket(RtpPacket& pkt)
-{
-    if ( !( sessionState == rtp_session_sendrecv
-            || sessionState == rtp_session_recvonly ) )
-    {
-        if (recv) {
-           recv->getPacket(pkt);
-           sessionError = session_wrongState;
-           cpLog (LOG_ERR, "RTP stack can't receive. Wrong state");
-        }
-        return -EINVAL;
-    }
-
-    assert (recv);
-    sessionError = session_success;
-    return recv->getPacket(pkt);
-}
-
 
 
 /* --- Send and Receive RTCP Functions ----------------------------- */

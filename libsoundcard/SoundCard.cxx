@@ -49,7 +49,7 @@
  */
 
 static const char* const SoundCard_cxx_Version =
-    "$Id: SoundCard.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: SoundCard.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 #include <iostream>
 #include <fstream>
@@ -114,11 +114,9 @@ SoundCard::open()
     cpLog(LOG_DEBUG, "Opening audio hardware" );
 
     // open audio device
-    LocalScopeAllocator lo;
-
 #ifndef WIN32
     //if( ( myFD = ::open( myDeviceName.getData(lo), O_RDWR | O_NDELAY, 0 ) ) == -1 )
-    if( ( myFD = ::open( myDeviceName.getData(lo), O_RDWR , 0 ) ) == -1 )
+    if( ( myFD = ::open( myDeviceName.c_str(), O_RDWR , 0 ) ) == -1 )
     {
         perror("Open failed:");
 	myFD = -1;
@@ -224,19 +222,18 @@ SoundCard::open()
     // setting audio device parameters
     //ioctlParam = AFMT_MU_LAW;  //test setting to ulaw
     int ioctlParamSave = ioctlParam;
-    if( ioctl( myFD, SNDCTL_DSP_SETFMT, &ioctlParam ) == -1 )
-    {   
-        perror("SNDCTL_DSP_SETFMT");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if( ioctl( myFD, SNDCTL_DSP_SETFMT, &ioctlParam ) == -1 ) {
+       cpLog(LOG_ERR, "SNDCTL_DSP_SETFMT: %s", strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
-    if( ioctlParam != ioctlParamSave )
-    {   
-        perror("Failed to set DSP Format, sound card returned format");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if( ioctlParam != ioctlParamSave ) {
+       cpLog(LOG_ERR, "Failed to set DSP Format, sound card returned format: %s",
+             strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
 
     ioctlParam = 1;
@@ -246,56 +243,48 @@ SoundCard::open()
 
     myNumChannels = 1;
 
-    if( ioctl( myFD, SNDCTL_DSP_CHANNELS, &ioctlParam ) == -1 )
-    {
-        perror("SNDCTL_DSP_CHANNELS");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if ( ioctl( myFD, SNDCTL_DSP_CHANNELS, &ioctlParam ) == -1 ) {
+       cpLog(LOG_ERR,"SNDCTL_DSP_CHANNELS: %s", strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
 
-    if( ioctlParam != 1)
-    {
-        myNumChannels = ioctlParam;
-        cout << "warning:  unable to set audio output to mono,"
-             << " may cause problems later. Set to " 
-             << myNumChannels << " channels\n";
+    if( ioctlParam != 1) {
+       myNumChannels = ioctlParam;
+       cout << "warning:  unable to set audio output to mono,"
+            << " may cause problems later. Set to " 
+            << myNumChannels << " channels\n";
     }
 
     ioctlParam = 8000;
-    if( ioctl( myFD, SNDCTL_DSP_SPEED, &ioctlParam ) == -1 )
-    {
-        perror("SNDCTL_DSP_SPEED");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if( ioctl( myFD, SNDCTL_DSP_SPEED, &ioctlParam ) == -1 ) {
+       cpLog(LOG_ERR, "SNDCTL_DSP_SPEED: %s", strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
-    if( ioctlParam != 8000 )
-    {
-        perror("Failed to set sample rate");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if( ioctlParam != 8000 ) {
+       cpLog(LOG_ERR, "Failed to set sample rate: %s, it is instead: %d",
+             strerror(errno), ioctlParam);
     }
 
     int blockSize;
-    if ( ioctl ( myFD, SNDCTL_DSP_GETBLKSIZE, &blockSize) == -1 )
-    {
-        perror("SNDCTL_DSP_GETBLKSIZE");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if ( ioctl ( myFD, SNDCTL_DSP_GETBLKSIZE, &blockSize) == -1 ) {
+       cpLog(LOG_ERR, "SNDCTL_DSP_GETBLKSIZE: %s", strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
 
-    if ( ioctl( myFD, SNDCTL_DSP_SYNC, 0 ) == -1 )
-    {
-        perror("SNDCTL_DSP_SYNC");
-        ::close(myFD);
-	myFD = -1;
-        return -1;
+    if ( ioctl( myFD, SNDCTL_DSP_SYNC, 0 ) == -1 ) {
+       cpLog(LOG_ERR, "SNDCTL_DSP_SYNC: %s", strerror(errno));
+       ::close(myFD);
+       myFD = -1;
+       return -1;
     }
 
-    cpLog(LOG_ERR, "soundcard blockSize = %d\n", blockSize);
+    cpLog(LOG_ERR, "soundcard opened successfully, blockSize = %d\n", blockSize);
 
 #else
     myFormat = SoundCardSigned16LE;

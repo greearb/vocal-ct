@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.8 2004/06/10 23:16:17 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.9 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -113,12 +113,22 @@ Sptr<SipMsgContainer> SipUdpConnection::getNextMessage() {
 void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                             uint64 now) {
 
+   if (udpStack.checkIfSet(input_fds)) {
+      Sptr<SipMsgContainer> m = receiveMessage();
+      if (m != 0) {
+         // The SipThread class will slurp this with receiveNB later...
+         rcvFifo.push_back(m);
+      }
+   }
+
    int sofar = 0;
    while (sendQ.size()) {
       int ret_status = 0;
-
-      if (sendQ.top()->getNextTx() > now) {
+      uint64 ntx = sendQ.top()->getNextTx();
+      if (ntx > now) {
          // Wait a while, not ready to send any more at this time
+         cpLog(LOG_DEBUG_STACK, "Waiting to send later: nextTx: %llu  now: %llu\n",
+               ntx, now);
          break;
       }
 
@@ -255,9 +265,7 @@ int SipUdpConnection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_
    if (sendQ.size()) {
       uint64 ntx = sendQ.top()->getNextTx();
       if (ntx > now) {
-         if (now - ntx < timeout) {
-            timeout = now - ntx;
-         }
+         timeout = min(timeout, ntx - now);
       }
       else {
          udpStack.addToFdSet(output_fds); //Need to write
@@ -371,12 +379,12 @@ int SipUdpConnection::udpSend(Sptr<SipMsgContainer> sipMsg) {
     assert(lngth);
 
     Sptr<NetworkAddress> nAddr = sipMsg->getNetworkAddr();
-    cpLog(LOG_INFO, "Sending UDP Message :\n\n-> HOST[%s] PORT[%d]\n\n%s",
-          nAddr->getIpName().c_str(), nAddr->getPort(),
-          sipMsg->getEncodedMsg().c_str());
-    
     int ret_status = udpStack.doTransmitTo(sipMsg->getEncodedMsg().c_str(),
                                            lngth, nAddr.getPtr());
+    cpLog(LOG_INFO, "Sent UDP Message :\n\n-> HOST[%s] PORT[%d] sz: %d  rv: %d\n\n%s",
+          nAddr->getIpName().c_str(), nAddr->getPort(), lngth, ret_status,
+          sipMsg->getEncodedMsg().c_str());
+    
     return ret_status;
 }//udpSend
 
@@ -410,6 +418,8 @@ void SipUdpConnection::getHostPort(Sptr<SipMsg> sipMessage, Data& host, int& por
          Sptr<SipUrl> dest = command->postProcessRouteAndGetNextHop();
          
          if (dest != 0) {
+            cpLog(LOG_DEBUG_STACK, "Found dest by processRouteAndGetNextHop: %s\n",
+                  dest->encode().c_str());
             Data maddr = dest->getMaddrParam();
             if (maddr.length() > 0) {
                host = maddr;

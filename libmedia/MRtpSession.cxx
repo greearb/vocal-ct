@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -161,7 +161,7 @@ MRtpSession::processIncomingRTP(fd_set* fds) {
         // pkt at a time here.  If there is more to be received, the select will cause
         // us to return here quickly... --Ben
 
-    }//while
+    }//if
 }//processIncomingRTP
 
 

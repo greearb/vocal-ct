@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.7 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -89,7 +89,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
             cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
             retVal->setTransport(dest->getTransportParam().c_str());
         }
-    } 
+    }
 
     if (msg->getType() != SIP_ACK) {
         retVal->setRetransmitMax(MAX_RETRANS_COUNT);

@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 
 
@@ -136,6 +136,7 @@ int VmcpDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    else {
       timeout = 0;
    }
+   return 0;
 }
 
 

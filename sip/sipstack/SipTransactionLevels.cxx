@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipTransactionLevels.cxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipTransactionLevels.cxx,v 1.5 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionLevels.hxx"
@@ -66,7 +66,6 @@ SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
 
 void SipMsgContainer::setMsgIn(Sptr<SipMsg> inm) {
    in = inm;
-   in_encode = in->encode().c_str();
 }
 
 void SipMsgContainer::clear() {

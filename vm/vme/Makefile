@@ -1,7 +1,12 @@
 
 # $Log: Makefile,v $
-# Revision 1.1  2004/05/01 04:15:38  greear
-# Initial revision
+# Revision 1.2  2004/06/22 02:24:05  greear
+# gua can now make calls to itself.  Have not tested registration yet.
+# Have not driven through CLI yet...
+# --Ben
+#
+# Revision 1.1.1.1  2004/05/01 04:15:38  greear
+# Branching vocal
 #
 # Revision 1.3.16.2  2004/01/13 02:15:04  greearb
 # Merge the bulk of my remaining changes.  Includes:
@@ -29,15 +34,13 @@ BUILD = ../../build
 
 include $(BUILD)/Makefile.pre
 
-PACKAGES += VMCP UTIL PTHREAD
+PACKAGES += VMCP UTIL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L../vmcp/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil -lvmcp
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lvmcp
 
 
 #INCDIRS += codec
-
-#DEFINES += USE_PTHREADS
 
 TARGET_LIBRARY = libvme
 

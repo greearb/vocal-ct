@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.7 2004/06/21 19:33:20 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.8 2004/06/22 02:24:04 greear Exp $";
 
 
 #include <sys/types.h>
@@ -368,15 +368,7 @@ UaFacade::~UaFacade() {
 
 // Received from the stack
 void UaFacade::process(Sptr < SipProxyEvent > event) {
-   Sptr<SipEvent> se;
-   se.dynamicCast(event);
-   if (se != 0) {
-      postMsg(se->getSipMsg());
-   }
-   else {
-      cpLog(LOG_ERR, "ERROR:  Received unhandled event: %s\n",
-            event->toString().c_str());
-   }
+   queueEvent(event);
 }//process
 
 
@@ -498,7 +490,7 @@ void
 UaFacade::postInfo(Sptr<SipMsg> sMsg) {
    assert(sMsg != 0);
    strstream s;
-   s << "INFO " << sMsg->encode().logData() << endl << ends;
+   s << "RCVD " << sMsg->encode().logData() << endl << ends;
    postMsg(s.str());
    s.freeze(false);
 }
@@ -634,15 +626,11 @@ void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    myLFThread->tick(input_fds, output_fds, exc_fds, now);
 #endif
    
-   MediaDeviceMap::iterator i;
-   for (i = myMediaDeviceMap.begin(); i != myMediaDeviceMap.end(); i++) {
-      i->second->tick(input_fds, output_fds, exc_fds, now);
-   }
+   MediaController::instance().tick(input_fds, output_fds, exc_fds, now);
 
-   // Queue incomming events, handle them all in the tick() method.
    while (eventQueue.size()) {
       if (eventQueue.top()->getRunTimer() > now) {
-         // Wait a while, not ready to send any more at this time
+         // Wait a while, not ready to process any more events at this time
          break;
       }
       Sptr<SipProxyEvent> ev = eventQueue.top();
@@ -659,11 +647,8 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #endif
 
-   MediaDeviceMap::iterator i;
-   for (i = myMediaDeviceMap.begin(); i != myMediaDeviceMap.end(); i++) {
-      i->second->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
-   }
-
+   MediaController::instance().setFds(input_fds, output_fds, exc_fds, maxdesc,
+                                      timeout, now);
    if (eventQueue.size()) {
       uint64 ntx = eventQueue.top()->getRunTimer();
       if (ntx < now) {

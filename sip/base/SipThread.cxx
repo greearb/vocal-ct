@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.5 2004/06/07 08:32:20 greear Exp $";
+    "$Id: SipThread.cxx,v 1.6 2004/06/22 02:24:04 greear Exp $";
 
 
 #include "global.h"
@@ -125,8 +125,7 @@ void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    mySipStack->tick(input_fds, output_fds, exc_fds, now);
 
    Sptr < SipMsgQueue > sipRcv(mySipStack->receiveNB());
- 
-   if ( sipRcv != 0 ) {
+   while (sipRcv != 0) {
       Sptr < SipMsg > sipMsg = sipRcv->lst.back();
       if ( sipMsg != 0 ) {
          Sptr < SipEvent > nextEvent = new SipEvent();
@@ -139,7 +138,8 @@ void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
          myProxy->process(nextEvent.getPtr());
       }
-   }
+      sipRcv = mySipStack->receiveNB();
+   }//while
 
    // It may have more to write at this point
    mySipStack->tick(input_fds, output_fds, exc_fds, now);

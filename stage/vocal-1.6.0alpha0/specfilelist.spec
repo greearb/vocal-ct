@@ -5,15 +5,7 @@
 @prefix@/bin/rs
 @prefix@/bin/cdrserv
 %dir @prefix@/bin/Tone/
-@prefix@/bin/Tone/3beeps
-@prefix@/bin/Tone/cwbeep
-@prefix@/bin/Tone/dialtone
-@prefix@/bin/Tone/ringback
 %dir @prefix@/bin/sample-ua-config/
-@prefix@/bin/sample-ua-config/ua1000.cfg
-@prefix@/bin/sample-ua-config/ua1001.cfg
-@prefix@/bin/sample-ua-config/auto1000.cfg
-@prefix@/bin/sample-ua-config/auto1001.cfg
 %dir @prefix@/bin/policy/
 @prefix@/bin/policy/getKeyReq.tk
 @prefix@/bin/policy/getcacert.tk
@@ -27,7 +19,6 @@
 @prefix@/bin/voicemail/sendMime.sh
 @prefix@/bin/voicemail/base64encoder
 @prefix@/bin/voicemail/voicemail.config
-@prefix@/bin/voicemail/ua.cfg
 %dir @prefix@/bin/voicemail/Voice/
 @prefix@/bin/voicemail/Voice/InvalidUser.wav
 @prefix@/bin/voicemail/Voice/OwnerGreeting.wav

@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -311,10 +311,6 @@ MediaSession::tearDown()
     cpLog(LOG_DEBUG, "Tearing down the session:%d" , mySessionId);
 
     // Stop them both...
-    if (myRtpSession != 0) {
-        myRtpSession->shutdown();
-    }
-
     if (myMediaDevice != 0) {
         myMediaDevice->stop();
     }
@@ -338,19 +334,38 @@ MediaSession::tearDown()
 
 void 
 MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
-                         Adaptor* adp, bool silence_pkt)
-{
-    assertNotDeleted();
-    if(adp->getDeviceType() != RTP)
-    {
-        //Data from hardware, ship it out to the RTP session
-        if(myRtpSession != 0)
-           myRtpSession->sinkData(data, len, cType, codec, silence_pkt);
-    }
-    else
-    {
-         myMediaDevice->sinkData(data, len, cType, codec, silence_pkt);
-    }
+                         Adaptor* adp, bool silence_pkt) {
+   assertNotDeleted();
+   if (adp->getDeviceType() != RTP) {
+      //Data from hardware, ship it out to the RTP session
+      if (myRtpSession != 0) {
+         myRtpSession->sinkData(data, len, cType, codec, silence_pkt);
+      }
+   }
+   else {
+      myMediaDevice->sinkData(data, len, cType, codec, silence_pkt);
+   }
+}
+
+void MediaSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        uint64 now) {
+   if (myRtpSession) {
+      myRtpSession->tick(input_fds, output_fds, exc_fds, now);
+   }
+   if (myMediaDevice != 0) {
+      myMediaDevice->tick(input_fds, output_fds, exc_fds, now);
+   }
+}
+
+int MediaSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                         int& maxdesc, uint64& timeout, uint64 now) {
+   if (myRtpSession) {
+      myRtpSession->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   if (myMediaDevice != 0) {
+      myMediaDevice->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   return 0;
 }
 
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 
 #include "global.h"
@@ -519,9 +519,9 @@ int RtpReceiver::getPacket(RtpPacket& pkt)
     int len;
     len = myStack->receiveFrom ((char*)pkt.getHeader(), pkt.getPacketAlloc(), NULL,
                                 MSG_DONTWAIT);
-    if (len == -EAGAIN) {
+    if (len == 0) {
        cpLog(LOG_DEBUG_STACK, "NOTE:  Received -EAGAIN when trying to read rtp packet.\n");
-       return -EAGAIN;
+       return 0;
     }
 
     pkt.setTotalUsage (len);
@@ -529,8 +529,7 @@ int RtpReceiver::getPacket(RtpPacket& pkt)
           len, pkt.getSequence(), pkt.getRtpTime(), pkt.getPayloadUsage());
 
     // check packet
-    if( !pkt.isValid() )
-    {
+    if ( !pkt.isValid() ) {
         cpLog(LOG_ERR, "****Packet is not valid");
         return -EINVAL;
     }

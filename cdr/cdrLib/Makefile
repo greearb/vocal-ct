@@ -1,8 +1,13 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
 
 # $Log: Makefile,v $
-# Revision 1.1  2004/05/01 04:14:55  greear
-# Initial revision
+# Revision 1.2  2004/06/22 02:24:04  greear
+# gua can now make calls to itself.  Have not tested registration yet.
+# Have not driven through CLI yet...
+# --Ben
+#
+# Revision 1.1.1.1  2004/05/01 04:14:55  greear
+# Branching vocal
 #
 # Revision 1.8.22.2  2004/01/13 02:14:01  greearb
 # Merge the bulk of my remaining changes.  Includes:
@@ -56,10 +61,10 @@ include $(BUILD)/Makefile.pre
 
 TARGET_LIBRARY = libcdr
 
-PACKAGES += PTHREAD UTIL LIBXML
+PACKAGES += UTIL LIBXML
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lxml -lvutil
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lxml -lvutil
 
 
 # name of all files to be compiled (don't include header files)

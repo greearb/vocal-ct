@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -77,107 +77,100 @@ namespace UA
 class CodecAdaptor;
 class MediaSession;
 ///Sample class to abstract RTP data handling. Currently uses Vovida's RTP stack.
-class MRtpSession  : public Adaptor
-{
-    public:
-        /**Constructor
-         * @param sessionId - MediaSesion Id, the RTP session is associated with.
-         * @param local - Local network resource ( IP,PORT)
-         * @param remote - Remote resource ( IP,PORT)
-         * @param cAdp - Codec adaptor to use for encodning/decoding data
-         * @param ssrc - (Optional), set the unique src id in RTP packets, if RTP stack
-         *               does not take care by itself.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         * @param rtpPayloadType  For non-standard codecs, the number must be
-         *               negotiated.  If so, pass something in here.  Currently
-         *               the Speex codec requires it.
-         */
-        MRtpSession(int sessionId, NetworkRes& local, 
-                    const string& local_dev_to_bind_to,
-                    NetworkRes& remote ,
-                    Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
-                    u_int32_t ssrc);
+class MRtpSession  : public Adaptor {
+public:
+   /**Constructor
+    * @param sessionId - MediaSesion Id, the RTP session is associated with.
+    * @param local - Local network resource ( IP,PORT)
+    * @param remote - Remote resource ( IP,PORT)
+    * @param cAdp - Codec adaptor to use for encodning/decoding data
+    * @param ssrc - (Optional), set the unique src id in RTP packets, if RTP stack
+    *               does not take care by itself.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    * @param rtpPayloadType  For non-standard codecs, the number must be
+    *               negotiated.  If so, pass something in here.  Currently
+    *               the Speex codec requires it.
+    */
+   MRtpSession(int sessionId, NetworkRes& local, 
+               const string& local_dev_to_bind_to,
+               NetworkRes& remote ,
+               Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
+               u_int32_t ssrc);
 
-        virtual ~MRtpSession() {
-             delete myRemoteAddress;
-             delete rtpStack;
-             delete myLocalAddress;
-        }
+   virtual ~MRtpSession() {
+      delete myRemoteAddress;
+      delete rtpStack;
+      delete myLocalAddress;
+   }
 
-         ///
-         string className() { return "MRtpSession"; }  
+   ///
+   string className() { return "MRtpSession"; }  
 
-         ///
-         string description();
+   ///
+   string description();
 
-         ///
-         const NetworkRes& getRemoteAddress() const { return *myRemoteAddress; };
-         ///
-         int getSessionId() const { return mySessionId; };
+   ///
+   const NetworkRes& getRemoteAddress() const { return *myRemoteAddress; };
+   ///
+   int getSessionId() const { return mySessionId; };
 
-        /** Send the data over the wire
-         */
-         void sinkData(char* data, int length, VCodecType type,
-                       Sptr<CodecAdaptor> codec, bool silence_pkt);
+   /** Send the data over the wire
+    */
+   void sinkData(char* data, int length, VCodecType type,
+                 Sptr<CodecAdaptor> codec, bool silence_pkt);
 
-         ///
-         void shutdown() 
-         { 
-             mySession = 0;
-         };
+   ///Re-initialise connection to remote party based on the remote SDP
+   void adopt(SdpSession& remoteSdp);
 
-         ///Re-initialise connection to remote party based on the remote SDP
-         void adopt(SdpSession& remoteSdp);
+   ///Set the operation mode (VSDP_SND, VSDP_RECV,VSDP_SND_RECV)
+   void setMode(VSdpMode mode);
 
-         ///Set the operation mode (VSDP_SND, VSDP_RECV,VSDP_SND_RECV)
-         void setMode(VSdpMode mode);
+   ///Called when DTMF is received as RTP Payload (RFC 2833)
+   void recvDTMF(int event);
 
-        ///Called when DTMF is received as RTP Payload (RFC 2833)
-        void recvDTMF(int event);
+   RtpSession* getRtpSession() { return rtpStack; }
 
-        RtpSession* getRtpSession() { return rtpStack; }
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                          uint64 now);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                           int& maxdesc, uint64& timeout, uint64 now);
+protected:
+   ///Process the data received over the wire
+   void processRecv(RtpPacket& packet, const NetworkRes& sentBy);
 
-    protected:
-         ///Process the data received over the wire
-         void processRecv(RtpPacket& packet, const NetworkRes& sentBy);
+   ///Interface to receive DTMF events from RTP stack
+   class MDTMFInterface: public DTMFInterface {
+   public:
+      MDTMFInterface(MRtpSession* s): mySession(s) { };
+      ///Do not know what to do with second argument
+      virtual void sendDTMF( int a, int b ) { mySession->recvDTMF(a); };
+      MRtpSession* mySession;
+   };
+   ///
+   void processIncomingRTP(fd_set* fds);
 
-         ///Interface to receive DTMF events from RTP stack
-         class MDTMFInterface: public DTMFInterface {
-             public:
-                MDTMFInterface(MRtpSession* s): mySession(s) { };
-                ///Do not know what to do with second argument
-                virtual void sendDTMF( int a, int b ) { mySession->recvDTMF(a); };
-                MRtpSession* mySession;
-         };
-        ///
-        void processIncomingRTP(fd_set* fds);
+   ///
+   int mySessionId;
 
-        ///
-        int mySessionId;
+   ///
+   NetworkRes* myRemoteAddress;
 
-        ///
-        NetworkRes* myRemoteAddress;
+   /// RTP session variables
+   RtpSession* rtpStack;
 
-        /// RTP session variables
-        RtpSession* rtpStack;
+   ///
+   MDTMFInterface* myDTMFInterface;
 
-        ///
-        MDTMFInterface* myDTMFInterface;
+private:
+   ///
+   Sptr<MediaSession> mySession;
+   ///
+   NetworkRes* myLocalAddress;
+   string localDevToBindTo;
 
-    private:
-        ///
-        Sptr<MediaSession> mySession;
-        ///
-        NetworkRes* myLocalAddress;
-        string localDevToBindTo;
-
-        RtpPacket rtp_rx_packet;
+   RtpPacket rtp_rx_packet;
 };
 
  

@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.5 2004/06/21 19:33:20 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.6 2004/06/22 02:24:04 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -97,10 +97,6 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
     if (CallControl::processEvent(event)) {
         cpLog(LOG_DEBUG, "Event handled by the base class");
 
-#if 0 
-        // It appears that the underlying code signals the call-control
-        // through separate means.  So, not going to post this message at
-        // this time... --Ben
         Sptr<SipEvent> sipEvent;
         sipEvent.dynamicCast(event);
 
@@ -121,7 +117,6 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
         }
 
         UaFacade::instance().postMsg(m);
-#endif
 
         //Already handled by the base class, so return
         return true;

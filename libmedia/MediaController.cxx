@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MediaController.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 
 #include "MediaController.hxx"
@@ -184,9 +184,24 @@ MediaController::~MediaController()
 {
 }
 
-void
-MediaController::shutdown()
-{
+
+void MediaController::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           uint64 now) {
+   cpLog(LOG_DEBUG_STACK, "MediaController tick, session size: %d\n",
+         myMediaSessionMap.size());
+   map<int, Sptr<MediaSession> >::iterator i;
+   for (i = myMediaSessionMap.begin(); i != myMediaSessionMap.end(); i++) {
+      i->second->tick(input_fds, output_fds, exc_fds, now);
+   }
+}
+
+int MediaController::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                            int& maxdesc, uint64& timeout, uint64 now) {
+   map<int, Sptr<MediaSession> >::iterator i;
+   for (i = myMediaSessionMap.begin(); i != myMediaSessionMap.end(); i++) {
+      i->second->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   return 0;
 }
 
 
@@ -289,14 +304,13 @@ MediaController::freeSession(int sId)
 void
 MediaController::addDeviceToSession(unsigned int sessionId, Sptr<MediaDevice> mDevice)
 {
-    if(myMediaSessionMap.count(sessionId) == 0)
-    {
-        cpLog(LOG_ERR, "No session exists for if (%d), ignoring the add device request",
-                        sessionId);
-        return;
-    }
-    Sptr<MediaSession> mSession = myMediaSessionMap[sessionId];
-    mSession->addToSession(mDevice);
+   if (myMediaSessionMap.count(sessionId) == 0) {
+      cpLog(LOG_ERR, "No session exists for if (%d), ignoring the add device request",
+            sessionId);
+      return;
+   }
+   Sptr<MediaSession> mSession = myMediaSessionMap[sessionId];
+   mSession->addToSession(mDevice);
 }
 
 void
@@ -316,35 +330,6 @@ MediaController::getSession(unsigned int sessionId)
    assert(itr != myMediaSessionMap.end());
    return((*itr).second);
 }
-
-void 
-MediaController::registerDevice(Sptr<MediaDevice> mDevice)
-{
-   myMediaDeviceList.push_back(mDevice.getPtr());
-}
-
-list<Sptr<MediaDevice> >
-MediaController::getListOfMediaDevices()
-{
-    //get the list fo devices audio/video which are currently
-    //available
-    list<Sptr<MediaDevice> > retList;
-    //Return list of devices which either support audio or video
-    for(list<Sptr<Adaptor> >::iterator itr = myMediaDeviceList.begin();
-         itr != myMediaDeviceList.end(); itr++)
-    {
-        if((*itr)->getMediaType() != NONE ) 
-        {
-            Sptr<MediaDevice> mDevice;
-            mDevice.dynamicCast((*itr));
-            if ((mDevice != 0) && (!mDevice->isBusy())) {
-                retList.push_back(mDevice.getPtr());
-            }
-        }
-    }
-    return retList;
-}
-
 
 void 
 MediaController::registerCodec(Sptr<CodecAdaptor> cAdp)

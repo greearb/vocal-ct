@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:25 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
 
 BUILD = ../../build
 
@@ -8,11 +8,11 @@ TARGET_LIBRARY = libsipua
 
 #PACKAGES += PROXYBASE SIP
 
-PACKAGES += PROXYBASE RADIUS SIP SDP2 PTHREAD UTIL LIBXML
+PACKAGES += PROXYBASE RADIUS SIP SDP2 UTIL LIBXML
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L../sipstack/obj.$(TARGET_NAME)/ \
    -L$(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)/  -L$(ROOT)/sip/base/obj.$(TARGET_NAME)/ 
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil -lsip -lsdp2 -lproxyBase
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lsip -lsdp2 -lproxyBase
 
 
 INCDIRS += $(ROOT)/sip/libsipua  $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/libsipua/controlState

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:24 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
 
 BUILD = ../build
 
@@ -6,9 +6,9 @@ include $(BUILD)/Makefile.pre
 
 TARGET_LIBRARY = libsdp
 
-PACKAGES += UTIL LIBXML PTHREAD 
+PACKAGES += UTIL LIBXML
 
-MKSHLIB_LIBS += -lpthread -lstdc++ -lm -lgcc_s
+MKSHLIB_LIBS += -lstdc++ -lm -lgcc_s
 
 
 # names of programs (e.g. test programs) to be compiled

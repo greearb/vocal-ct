@@ -53,7 +53,7 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: MediaSession.hxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
@@ -82,107 +82,112 @@ class MediaDevice;
   * receive RTP packets to/from the other side. 
   * 
  */
-class MediaSession : public BugCatcher
-{
-    public:
-      /** Constructor- creates a MediaSession object with a given session ID and
-        * reserve the local network resource ( IP and PORT) to use for RTP.
-        * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-        */
-      MediaSession(int sessionId,
-                   Sptr<NetworkRes> localRes,
-                   const string& local_dev_to_bind_to);
+class MediaSession : public BugCatcher {
+public:
+   /** Constructor- creates a MediaSession object with a given session ID and
+    * reserve the local network resource ( IP and PORT) to use for RTP.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   MediaSession(int sessionId,
+                Sptr<NetworkRes> localRes,
+                const string& local_dev_to_bind_to);
 
 
-      ///Add a media device to the session
-      void addToSession( Sptr<MediaDevice> mDevice);
+   ///Add a media device to the session
+   void addToSession( Sptr<MediaDevice> mDevice);
 
-      /**Based on the Local and remote SDP, creates an RTP session and
-       * and associates the RTP session as one of the participants.
-       */
-      void addToSession( SdpSession& localSdp, SdpSession& remoteSdp);
+   /**Based on the Local and remote SDP, creates an RTP session and
+    * and associates the RTP session as one of the participants.
+    */
+   void addToSession( SdpSession& localSdp, SdpSession& remoteSdp);
 
-      ///
-      string className() { return "MediaSession"; }
+   ///
+   string className() { return "MediaSession"; }
 
-      /** Virtual destructor
-       */
-      virtual ~MediaSession();
+   /** Virtual destructor
+    */
+   virtual ~MediaSession();
+   
+   ///Start the session, also indicate the session mode, default is send-recv
+   // Mode used to default to VSDP_SND_RECV
+   void startSession(VSdpMode mode);
+   
+   ///Teardown the entire session, returns 1 on success
+   int tearDown();
+   ///Suspend a session, can be resumed by calling resume()
+   void suspend();
+   ///Resume a suspended session
+   void resume(SdpSession& remoteSdp);
 
-      ///Start the session, also indicate the session mode, default is send-recv
-      // Mode used to default to VSDP_SND_RECV
-      void startSession(VSdpMode mode);
+   /**Process data from a Media device or RTP stream
+    * @param data - The raw data received from device or via RTP
+    * @param len  - Length of the raw data
+    * @param cType - Codec type used to encode data
+    * @param adp - The Adaptor(souncard, RTP etc)that generated the data
+    * @param codec - Some codecs need state, so pass this codec, which can decode
+    *        the raw, if possible.  If null, a codec will be found, but it will
+    *        not necessarily have the right state.  Speex currently needs this
+    *        functionality.
+    * @param silence_pkt - The packet is silence, generated locally, probably because
+    *        we never received the real packet.
+    */
+   void processRaw (char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
+                    Adaptor* adp, bool silence_pkt);
 
-      ///Teardown the entire session, returns 1 on success
-      int tearDown();
-      ///Suspend a session, can be resumed by calling resume()
-      void suspend();
-      ///Resume a suspended session
-      void resume(SdpSession& remoteSdp);
+   /** Allow the receiver to throttle based on the current size of the
+    * jitter buffer.  This timeout will be passed to select.
+    */
+   virtual uint64 getPreferredTimeout(unsigned int jitter_pkts_in_queue,
+                                      unsigned int queue_max);
 
-      /**Process data from a Media device or RTP stream
-        * @param data - The raw data received from device or via RTP
-        * @param len  - Length of the raw data
-        * @param cType - Codec type used to encode data
-        * @param adp - The Adaptor(souncard, RTP etc)that generated the data
-        * @param codec - Some codecs need state, so pass this codec, which can decode
-        *        the raw, if possible.  If null, a codec will be found, but it will
-        *        not necessarily have the right state.  Speex currently needs this
-        *        functionality.
-        * @param silence_pkt - The packet is silence, generated locally, probably because
-        *        we never received the real packet.
-        */
-      void processRaw (char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
-                       Adaptor* adp, bool silence_pkt);
+   /**Based on the given mode ( VSDP_SND, VSDP_RECV,VSDP_SND_RECV), generate
+    *local SDP data. Used when initiating a call.
+    */
+   SdpSession getSdp(VSdpMode mode);
 
-      /** Allow the receiver to throttle based on the current size of the
-       * jitter buffer.  This timeout will be passed to select.
-       */
-      virtual uint64 getPreferredTimeout(unsigned int jitter_pkts_in_queue,
-                                         unsigned int queue_max);
-
-      /**Based on the given mode ( VSDP_SND, VSDP_RECV,VSDP_SND_RECV), generate
-        *local SDP data. Used when initiating a call.
-        */
-      SdpSession getSdp(VSdpMode mode);
-
-      /**Based on the remote SDP, negotiate SDP and generate the Local SDP.
-       * Uses MediaCapability to query the local codec capabilities.
-       * Used when accepting a call into session.
-       */
-      SdpSession getSdp(SdpSession& remoteSdp);
-
+   /**Based on the remote SDP, negotiate SDP and generate the Local SDP.
+    * Uses MediaCapability to query the local codec capabilities.
+    * Used when accepting a call into session.
+    */
+   SdpSession getSdp(SdpSession& remoteSdp);
+   
    //MRtpSession* getRtpSession() { return myRtpSession; }
 
-      virtual int getSessionId() const { return mySessionId; }
+   virtual int getSessionId() const { return mySessionId; }
+ 
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-      static int getInstanceCount() { return _cnt; }
-
-    private:
-      static int _cnt;
-
-      ///
-      int mySessionId;
-      ///
-      MRtpSession*  myRtpSession;
-
-      ///
-      Sptr<NetworkRes>         myLocalRes;
-      ///
-      Sptr<MediaDevice>        myMediaDevice;
-
-      //Suppress copying
-      MediaSession(const MediaSession &);
-        
-      // Suppress copying
-      const MediaSession & operator=(const MediaSession &);
-
-      ///
-      bool myShutdownFlg;
-
-      ///
-      u_int32_t mySSRC;
-      string localDevToBindTo;
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+  
+   static int getInstanceCount() { return _cnt; }
+   
+private:
+   static int _cnt;
+   
+   ///
+   int mySessionId;
+   ///
+   MRtpSession*  myRtpSession;
+   
+   ///
+   Sptr<NetworkRes>         myLocalRes;
+   ///
+   Sptr<MediaDevice>        myMediaDevice;
+   
+   //Suppress copying
+   MediaSession(const MediaSession &);
+   
+   // Suppress copying
+   const MediaSession & operator=(const MediaSession &);
+   
+   ///
+   bool myShutdownFlg;
+   
+   ///
+   u_int32_t mySSRC;
+   string localDevToBindTo;
 };
 
 

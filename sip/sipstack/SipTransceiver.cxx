@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.7 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -296,7 +296,6 @@ void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
    if (sipAgent != 0) {
       sipAgent->tick(input_fds, output_fds, exc_fds, now);
    }
-
 }
 
 int SipTransceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
@@ -395,9 +394,6 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
       if (sipAgent != 0) {
          updateSnmpData(sipPtr, INS);
       }
-      // TODO:  Understand why we need to send here.  Shouldn't the
-      // request or response DBs take care of this?
-      send(msgPtr); //TODO:  make sure we aren't responding to acks, etc.
    }
 
    return msgQ;

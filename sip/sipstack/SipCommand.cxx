@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCommand_cxx_version =
-    "$Id: SipCommand.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipCommand.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -1418,14 +1418,7 @@ SipCommand::postProcessRouteAndGetNextHop()
         burl = routeFront().getUrl();
     }
 #endif
-    url = (SipUrl*)(burl.getPtr());
+    url.dynamicCast(burl);
     return url;
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
