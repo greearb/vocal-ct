@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.8 2004/12/11 08:30:12 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -101,7 +101,7 @@ public:
       buf = (char*)(malloc(ln));
       memcpy(buf, b, ln);
       len = ln;
-      n = NULL;
+      na = NULL;
       if (n) {
          na = new NetworkAddress(*n);
       }

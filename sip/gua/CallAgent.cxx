@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.7 2004/12/11 08:30:11 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -441,6 +441,9 @@ void CallAgent::stopCall() {
             myState->className().c_str());
       // Continue
    }
+
+   // Make sure the media is freed.
+   freeMedia();
 }//stopCall
 
 

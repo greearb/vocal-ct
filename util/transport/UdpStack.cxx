@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.8 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.9 2004/12/11 08:30:12 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -1348,10 +1348,9 @@ int UdpStack::doTransmit(const char* buf, int ln) {
 
 
 // Returns number of bytes written, or -errno on error.
-int
-UdpStack::queueTransmitTo ( const char* buffer,
-                            const int length,
-                            const NetworkAddress* dest ) {
+int UdpStack::queueTransmitTo ( const char* buffer,
+                                const int length,
+                                const NetworkAddress* dest ) {
 
    if ((mode == recvonly) || (mode == inactive)) {
       cpLog(LOG_ERR, "The stack is not capable to transmit. ");
@@ -1360,6 +1359,12 @@ UdpStack::queueTransmitTo ( const char* buffer,
 
    assert(buffer);
    assert(length > 0);
+
+   if (dest) {
+      if (strcasecmp(dest->getIpName().c_str(), "0.0.0.0") == 0) {
+         assert("IP address is 0.0.0.0 in queueTransmitTo" == "fatal");
+      }
+   }
 
    if (sendBacklog.size()) {
       flushBacklog();
