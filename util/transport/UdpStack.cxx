@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.5 2004/06/09 07:19:35 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -1235,13 +1235,58 @@ UdpStack::receiveTimeout ( char* buffer,
 #endif
 }
 
+
+string UdpStack::toString() {
+   ostrstream rv;
+   rv << "lclName: " << lclName << " rmtName: " << rmtName << " pktLossProb: "
+      << packetLossProbability << " BytesRx: " << numBytesReceived
+      << " PktsRx: " << numPacketsReceived << " BytesTx: " << numBytesTransmitted
+      << " PktsTx: " << numPacketsTransmitted << " mode: " << mode
+      << " curLocalIp: " << curLocalIp << " desiredLocalIp: "
+      << desiredLocalIp << " logFlag: " << logFlag << " socketFd: "
+      << data->socketFd << " rcvCount: " << rcvCount << " sndCount: "
+      << sndCount << " blockingFlg: " << blockingFlg << endl;
+   return rv.str();
+}
+
+
+int UdpStack::flushBacklog() {
+   int t = 0;
+   while (sendBacklog.size()) {
+      Sptr<ByteBuffer> bb = sendBacklog.front();
+      if (bb->getNetworkAddress()) {
+         t = doTransmitTo(bb->getBuf(), bb->getLength(), bb->getNetworkAddress());
+      }
+      else {
+         t = doTransmit(bb->getBuf(), bb->getLength());
+      }
+
+      if (t == bb->getLength()) {
+         // Success
+         sendBacklog.pop_front();
+         t++;
+      }
+      else if (t < 0) {
+         // Fatal error, give up on this pkt
+         drop_in_bklog++;
+         sendBacklog.pop_front();
+         t++;
+      }
+      else {
+         // Must have been EAGAIN, return and queue will try again next call
+         break;
+      }
+   }
+   return t;
+}
+
 // uses send() which is better to get ICMP msg back
-// function returns a 0  normally
-void
-UdpStack::transmit ( const char* buf, const int length ) {
+// Returns < 0 on error, number of bytes written or queued otherwise.
+int
+UdpStack::queueTransmit ( const char* buf, const int length ) {
    if ((mode == recvonly) || (mode == inactive)) {
       cpLog(LOG_ERR, "The stack is not capable to transmit. ");
-      return ;
+      return -1;
    }
 
    assert(buf);
@@ -1265,73 +1310,65 @@ UdpStack::transmit ( const char* buf, const int length ) {
       double prob = numerator / denominator;
       if ( prob < packetLossProbability ) {
          // ok - just drop this packet
-         return ;
+         // We are lying on purpose.
+         return length;
       }
    }
 
+   if (sendBacklog.size()) {
+      flushBacklog();
+   }
+
+   int rslt = -1;
+   bool enqueue = false;
+   if (sendBacklog.size()) {
+      enqueue = true;
+   }
+   else {
+      // Got space to push
+      rslt = doTransmit(buf, length);
+      if (rslt == length) {
+         // Pkt is heading towards the wire..it's as good as we can do!
+      }
+      else {
+         if (rslt == 0) {
+            enqueue = true;
+         }
+         // else, drop ye pkt
+      }
+   }
+
+   if (enqueue) {
+      // Queue it up, network is busy it seems
+      Sptr<ByteBuffer> bb = new ByteBuffer(buf, length, NULL);
+      sendBacklog.push_back(bb);
+      rslt = length;
+   }
+   return rslt;
+}//transmit
+
+
+int UdpStack::doTransmit(const char* buf, int ln) {
    int count = send( data->socketFd,
-                     (char *)buf, length,
+                     (char *)buf, ln,
                      0 /* flags */ );
 
-   if ( count < 0 ) {
+   if ( count != ln ) {
       int err = errno;
-      strstream errMsg;
-      errMsg << "UdpStack<" << getRmtName() << ">::transmit ";
-      
-      switch (err) {
-      case ECONNREFUSED: {
-         // This is the most common error - you get it if the host
-         // does not exist or is nor running a program to recevice
-         // the packets. This is what you get with the other side
-         // crashes.
-         
-         errMsg << "Connection refused by destination host";
-         errMsg << char(0);
-         cpLog(LOG_ERR, errMsg.str());
-         break;
+      if ((err == EAGAIN) || (err == EINTR)) {
+         count = 0;
       }
-      case EHOSTDOWN: {
-         errMsg << "destination host is down";
-         errMsg << char(0);
-         cpLog(LOG_ERR, errMsg.str());
-         break;
-      }
-      case EHOSTUNREACH: {
-         errMsg << "no route to to destination host";
-         errMsg << char(0);
-         cpLog(LOG_ERR,  errMsg.str());
-         break;
-      }
-      default: {
-         errMsg << ": " << strerror(err);
-         errMsg << char(0);
+      else {
+         ostrstream errMsg;
+         errMsg << "UdpStack<" << getRmtName() << ">::transmit: "
+                << strerror(err);
          cpLog(LOG_ERR, errMsg.str());
       }
-      }//switch
- 
-      cpLog (LOG_ERR, "UDP send() error: ");
-
-      errMsg.freeze(false);
-   }
-   else if ( count != length ) {
-      /*
-        int err = errno;
-      */
-      strstream errMsg;
-      errMsg << "UdpStack<" << getRmtName()
-             << ">:transmit error is send: "
-             << "Asked to transmit " << length
-             << " bytes but only sent " << count ;
-      errMsg << char(0);
-
-      cpLog(LOG_ERR,  errMsg.str());
-      errMsg.freeze(false);
    }
    else {
       numBytesTransmitted += count;
       numPacketsTransmitted += 1;
    }
-
 
    if ( (logFlag) && (count > 0) ) {
       strstream lenln3;
@@ -1347,28 +1384,15 @@ UdpStack::transmit ( const char* buf, const int length ) {
       out_log->write(buf, count);
       out_log->write(separator, 6);
    }
-}//transmit
-
-
-string UdpStack::toString() {
-   ostrstream rv;
-   rv << "lclName: " << lclName << " rmtName: " << rmtName << " pktLossProb: "
-      << packetLossProbability << " BytesRx: " << numBytesReceived
-      << " PktsRx: " << numPacketsReceived << " BytesTx: " << numBytesTransmitted
-      << " PktsTx: " << numPacketsTransmitted << " mode: " << mode
-      << " curLocalIp: " << curLocalIp << " desiredLocalIp: "
-      << desiredLocalIp << " logFlag: " << logFlag << " socketFd: "
-      << data->socketFd << " rcvCount: " << rcvCount << " sndCount: "
-      << sndCount << " blockingFlg: " << blockingFlg << endl;
-   return rv.str();
-}
+   return count;
+}//doTransmit
 
 
 // Returns number of bytes written, or -errno on error.
 int
-UdpStack::transmitTo ( const char* buffer,
-                       const int length,
-                       const NetworkAddress* dest ) {
+UdpStack::queueTransmitTo ( const char* buffer,
+                            const int length,
+                            const NetworkAddress* dest ) {
 
    if ((mode == recvonly) || (mode == inactive)) {
       cpLog(LOG_ERR, "The stack is not capable to transmit. ");
@@ -1378,10 +1402,46 @@ UdpStack::transmitTo ( const char* buffer,
    assert(buffer);
    assert(length > 0);
 
-   //SP setDestination(dest);
+   if (sendBacklog.size()) {
+      flushBacklog();
+   }
+
+   int rslt = -1;
+   bool enqueue = false;
+   if (sendBacklog.size()) {
+      enqueue = true;
+   }
+   else {
+      // Got space to push
+      rslt = doTransmitTo(buffer, length, dest);
+      if (rslt == length) {
+         // Pkt is heading towards the wire..it's as good as we can do!
+      }
+      else {
+         if (rslt == 0) {
+            enqueue = true;
+         }
+         // else, drop ye pkt
+      }
+   }
+
+   if (enqueue) {
+      // Queue it up, network is busy it seems
+      Sptr<ByteBuffer> bb = new ByteBuffer(buffer, length, dest);
+      sendBacklog.push_back(bb);
+      rslt = length;
+   }
+   return rslt;
+}
+
+int UdpStack::doTransmitTo( const char* buffer,
+                            const int length,
+                            const NetworkAddress* dest ) {
+
    struct sockaddr_storage xDest;
    memset(&xDest, 0, sizeof(xDest));
    dest->getSockAddr(&xDest);
+
    int count = sendto( data->socketFd,
                        (char*)buffer,
                        length,
@@ -1389,26 +1449,20 @@ UdpStack::transmitTo ( const char* buffer,
                        (struct sockaddr*) & xDest,
                        sizeof(struct sockaddr_storage));
 
-   if ( count < 0 ) {
+   if ( count != length ) {
       int err = errno;
-      ostrstream errMsg;
-      errMsg << "UdpStack<" << getRmtName() << ">::transmitTo error\n"
-             << toString() << "\n buffer: " << (void*)(buffer)
-             << " length: " << length << " dest: " << dest->toString()
-             << ", error: ";
-      return -err;
-   }
-   else if ( count != length ) {
-
-      strstream errMsg;
-      errMsg << "UdpStack<" << getRmtName()
-             << ">:transmit error is send: "
-             << "Asked to transmit " << length
-             << " bytes but only sent " << count ;
-      errMsg << char(0);
-      cpLog(LOG_ERR, errMsg.str());
-
-      assert(0); // This should never happen
+      if ((err == EAGAIN) || (err == EINTR)) {
+         count = 0;
+      }
+      else {
+         ostrstream errMsg;
+         errMsg << "UdpStack<" << getRmtName() << ">::transmitTo error\n"
+                << toString() << "\n buffer: " << (void*)(buffer)
+                << " length: " << length << " dest: " << dest->toString()
+                << ", error: ";
+         cpLog(LOG_ERR, errMsg.str());
+         return -err;
+      }
    }
    else {
       numBytesTransmitted += count;
@@ -1438,12 +1492,11 @@ UdpStack::transmitTo ( const char* buffer,
 void
 UdpStack::joinMulticastGroup ( NetworkAddress group,
                                NetworkAddress* iface,
-                               int ifaceInexe )
-{
-// Previously for win32 platforms this function did nothing
-// Now it does what it should do using the ip_mreq structure defined
-// in W32McastCfg.hxx. contact nismail@cisco.com
-//#ifndef WIN32
+                               int ifaceInexe ) {
+   // Previously for win32 platforms this function did nothing
+   // Now it does what it should do using the ip_mreq structure defined
+   // in W32McastCfg.hxx. contact nismail@cisco.com
+   //#ifndef WIN32
 
 #if defined(__linux__)
     if(NetworkConfig::instance().getAddrFamily() == PF_INET)

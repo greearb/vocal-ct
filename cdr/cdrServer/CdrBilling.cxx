@@ -51,7 +51,7 @@
 
 
 static const char* const CdrBilling_cxx_Version =
-    "$Id: CdrBilling.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrBilling.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include <stdio.h>
@@ -76,178 +76,107 @@ const int BILLING_MIN_DELETE_SIZE = 1000000;      // total to delete each cycle
 const long int BILLING_MAX_TOTAL_SIZE = 20000000; // maximum space for all billing files
 
 
-void
-CdrBilling::run( void *args )
-{
-    cpLog(LOG_INFO,
-          "Billing interval reached. Sending records to billing server");
+CdrBilling::CdrBilling() {
+   char* envptr = getenv("BILLING_FILE_LOCK_LIMIT");
+   if (envptr) {
+      cpLog(LOG_INFO, "Set BILLING_FILE_LOCK_LIMIT from env:%s", envptr);
+      billingLockTimeLimit = atoi(envptr);
+   }
+   else {
+      billingLockTimeLimit = BILLING_FILE_LOCK_LIMIT;
+   }
 
-    CdrConfig& cdata = *(static_cast < CdrConfig* > (args));
+   errorFileExt = ".error";
 
-    // Keep a cache of the users so that we don't have to retrieve them
-    // from provisioning all the time
-    CdrUserCache userAliases;
+   envptr = getenv("BILLING_ERROR_FILE_EXT");
+   if (envptr) {
+      cpLog(LOG_INFO, "Set BILLING_ERROR_FILE_EXT from env:%s", envptr);
+      errorFileExt = envptr;
+   }
+}
 
-    // We need to monitor the last time we connected to the billing server,
-    // if the time exceeds the time limit for storing billing records, then
-    // we start deleting the oldest files 1M at a time to free up space
-    //
-    time_t lastConnectTime = time(0);
 
-    try
-    {
-        while (1)
-        {
-            time_t now = time(0);
+int CdrBilling::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       int& maxdesc, uint64& timeout, uint64 now) {
+   uint64 nxtx = lastConnectTime + cdata.m_billingFrequency;
+   if (nxtx <= now) {
+      timeout = 0;
+   }
+   else {
+      if (timeout > (nxtx - now)) {
+         timeout = nxtx - now;
+      }
+   }
+}
+   
+void CdrBilling::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      uint64 now) {
 
-            if (sendBillingRecords( cdata, userAliases ))
-            {
-                lastConnectTime = now;
-            }
-            else
-            {
-                if (now - lastConnectTime > BILLING_STORAGE_LIMIT)
-                {
-                    deleteOldestFiles(cdata);
-                }
-            }
-
-            sleep(cdata.m_billingFrequency);
-        }
-
-        CdrUserCache::destroy();
-    }
-    catch (VCdrException &e)
-    {
-        cpLog(LOG_ALERT, "Error occurred while sending billing records: %s",
-              e.getDescription().c_str());
-    }
-    catch (...)
-    {
-        cpLog(LOG_ALERT,
-              "Unknown exception caught while trying to send billing records");
-    }
+   if (sendBillingRecords( cdata, userAliases )) {
+      lastConnectTime = now;
+   }
+   else {
+      if (now - lastConnectTime > BILLING_STORAGE_LIMIT) {
+         deleteOldestFiles(cdata);
+      }
+   }
 }
 
 bool
 CdrBilling::sendBillingRecords( const CdrConfig &cdata,
-                                CdrUserCache &userAliases )
-{
-    try
-    {
+                                CdrUserCache &userAliases ) {
+    try {
         MindClient::initialize(cdata.m_localIp,
                                cdata.m_radiusServerHost.c_str(),
                                cdata.m_radiusSecretKey.c_str(),
                                cdata.m_radiusRetries);
     }
-    catch (VRadiusException&e)
-    {
+    catch (VRadiusException&e) {
         cpLog(LOG_ALERT,
               "Cannot connect with Mind Billing Server, skipping billing cycle");
         return false;
     }
 
-    int billingLockTimeLimit = BILLING_FILE_LOCK_LIMIT;
-
-    char *envptr;
-
-    envptr = getenv("BILLING_FILE_LOCK_LIMIT");
-    if (envptr)
-    {
-        cpLog(LOG_INFO, "Set BILLING_FILE_LOCK_LIMIT from env:%s", envptr);
-        billingLockTimeLimit = atoi(envptr);
+    if (! MindClient::instance()) {
+       return false;
     }
 
-    // check if there is a billing lock on
-    CdrFileHandler lockFile(cdata.m_billingDirectory, cdata.m_billingLockFile);
-    bool billingLocked = true;
-    try
-    {
-        lockFile.open(O_RDONLY);
-    }
-    catch (VCdrException&e)
-    {
-        billingLocked = false;
-    }
+    string buf = cdata.m_billingDirectory + "/" + cdata.m_billingLockFile;
+    FileStackLock fsl(buf, billingLockTimeLimit);
+    if (fsl.isLocked()) {
 
-    if (billingLocked)
-    {
-        lockFile.close();
-    
-        // Check if the lock is older than the limit, if so delete it and start billing
-        if ((time(0) - lockFile.getLastModification()) < billingLockTimeLimit)
-        {
-            cpLog(LOG_ALERT, "Another billing client already running, aborting this session");
-            return false;
-        }
-        // delete old lock file
-        unlink(lockFile.getFullFileName().c_str());
-    }
+       // get a listing of the billing files which need to be sent to
+       // the billing server
+       
+       list < string > cdrFileList;
+       CdrFileHandler::directoryList(cdrFileList,
+                                     cdata.m_billingDirectory,
+                                     cdata.m_billingFileName,
+                                     cdata.m_unsentFileExt);
 
-    lockFile.open(O_WRONLY | O_CREAT);
+       for (list < string > ::iterator itr = cdrFileList.begin();
+            itr != cdrFileList.end(); itr++) {
+          int errCount = 0;
+          int recCount = 0;
 
-    string errorFileExt(".error");
+          CdrFileHandler bfile(cdata.m_billingDirectory, *itr);
+          try {
+             bfile.open(O_RDONLY);
+             cpLog(LOG_INFO, "Opened billing file %s" , (*itr).c_str());
+          }
+          catch (VCdrException &e) {
+             cpLog(LOG_ALERT, "Failed to open billing file %s", (*itr).c_str());
+             continue;
+          }
 
-    envptr = getenv("BILLING_ERROR_FILE_EXT");
-    if (envptr)
-    {
-        cpLog(LOG_INFO, "Set BILLING_ERROR_FILE_EXT from env:%s", envptr);
-        errorFileExt = envptr;
-    }
+          while (!bfile.eof()) {
+             CdrRadius ref;
 
-    // Opening error file for call records which are rejected by
-    // Mind billing server
-
-    string errFile(cdata.m_billingFileName + errorFileExt);
-    CdrFileHandler errorFile(cdata.m_billingDirectory, errFile.c_str());
-
-    try
-    {
-        errorFile.open(O_WRONLY | O_CREAT | O_APPEND);
-    }
-    catch (VCdrException &e)
-    {
-        cpLog(LOG_ALERT, "Failed to open billing error file %s", errFile.c_str());
-    }
-
-    // get a listing of the billing files which need to be sent to
-    // the billing server
-
-    list < string > cdrFileList;
-    CdrFileHandler::directoryList(cdrFileList,
-                                  cdata.m_billingDirectory,
-                                  cdata.m_billingFileName,
-                                  cdata.m_unsentFileExt);
-
-    for (list < string > ::iterator itr = cdrFileList.begin();
-            itr != cdrFileList.end();
-            itr++)
-    {
-        int errCount = 0;
-        int recCount = 0;
-
-        CdrFileHandler bfile(cdata.m_billingDirectory, *itr);
-        try
-        {
-            bfile.open(O_RDONLY);
-            cpLog(LOG_INFO, "Opened billing file %s" , (*itr).c_str());
-        }
-        catch (VCdrException &e)
-        {
-            cpLog(LOG_ALERT, "Failed to open billing file %s", (*itr).c_str());
-            continue;
-        }
-
-        while (!bfile.eof())
-        {
-            CdrRadius ref;
-
-            list < string > tokenList;
-            bfile.readTokens(tokenList);
-            ref.setValues(tokenList);
-
-            if (ref.m_callEvent == CALL_BILL)
-            {
+             list < string > tokenList;
+             bfile.readTokens(tokenList);
+             ref.setValues(tokenList);
+             
+             if (ref.m_callEvent == CALL_BILL) {
                 recCount++;
 
                 //
@@ -258,13 +187,11 @@ CdrBilling::sendBillingRecords( const CdrConfig &cdata,
                 string ANI(userAliases.getCustomerId(ref.m_userId));
 
                 string recvNum;
-                if (ref.m_DTMFCalledNum[0] != 0)
-                {
-                    recvNum = userAliases.getCustomerId(ref.m_DTMFCalledNum);
+                if (ref.m_DTMFCalledNum[0] != 0) {
+                   recvNum = userAliases.getCustomerId(ref.m_DTMFCalledNum);
                 }
-                else
-                {
-                    recvNum = userAliases.getCustomerId(ref.m_E164CalledNum);
+                else {
+                   recvNum = userAliases.getCustomerId(ref.m_E164CalledNum);
                 }
 
                 // set userID and ANI
@@ -281,31 +208,46 @@ CdrBilling::sendBillingRecords( const CdrConfig &cdata,
 
                 // need to emulate a call by sending start and stop records
                 if (!MindClient::instance().accountingStartCall(ref) ||
-                        !MindClient::instance().accountingStopCall(ref))
-                {
-                    errCount++;
-                    errorFile.writeCdr(ref);
+                    !MindClient::instance().accountingStopCall(ref)) {
+                   errCount++;
+                   if ((errorFile == 0) && (!errFileBusted)) {
+                      // Opening error file for call records which are rejected by
+                      // Mind billing server
+
+                      string errFile(cdata.m_billingFileName + errorFileExt);
+                      errorFile = new CdrFileHandler(cdata.m_billingDirectory,
+                                                     errFile.c_str());
+
+                      try {
+                         errorFile.open(O_WRONLY | O_CREAT | O_APPEND);
+                      }
+                      catch (VCdrException &e) {
+                         cpLog(LOG_ALERT, "Failed to open billing error file %s",
+                               errFile.c_str());
+                         errFileBusted = true;
+                      }
+                   }
+                   if (errorFile != 0) {
+                      errorFile->writeCdr(ref);
+                   }
                 }
-            }
-        }
+             }
+          }//while
 
-        cpLog(LOG_INFO, "Billing File %s:, Total recs:%d, Rejected recs:%d, copied to file %s",
-              (*itr).c_str(), recCount, errCount, errFile.c_str());
+          cpLog(LOG_INFO, "Billing File %s:, Total recs:%d, Rejected recs:%d, copied to file %s",
+                (*itr).c_str(), recCount, errCount, errFile.c_str());
 
-        bfile.close();
+          bfile.close();
 
-        int pos = bfile.getFullFileName().rfind(cdata.m_unsentFileExt);
-        string newFileName = bfile.getFullFileName().erase(pos);
-        rename(bfile.getFullFileName().c_str(), newFileName.c_str());
+          int pos = bfile.getFullFileName().rfind(cdata.m_unsentFileExt);
+          string newFileName = bfile.getFullFileName().erase(pos);
+          rename(bfile.getFullFileName().c_str(), newFileName.c_str());
+       }
     }
 
-    MindClient::destroy();
+    // I see no reason to get rid of this...  --Ben
+    //MindClient::destroy();
     
-    errorFile.close();
-    
-    lockFile.close();
-    unlink(lockFile.getFullFileName().c_str());
-
     return true;
 }
 

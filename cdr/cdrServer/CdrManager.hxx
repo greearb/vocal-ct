@@ -53,12 +53,13 @@
 
 
 static const char* const CdrManager_hxx_Version =
-    "$Id: CdrManager.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrManager.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include <list>
 #include "CdrConfig.hxx"
 #include "CdrData.hxx"
+#include <misc.hxx>
 
 class CdrServer;
 class CdrCache;
@@ -69,66 +70,73 @@ class EventObj;
     CdrManager manages time and data events.
 **/
 
-class CdrManager
-{
-    public:
+class CdrManager {
+public:
 
-        /**
-         * Get singleton instance.
-         * @param CdrConfig*, must be passed for the very first call
-         * @return CdrManager reference
-         */
-        static CdrManager &instance(const CdrConfig *cdata = 0);
+   /**
+    * Get singleton instance.
+    * @param CdrConfig*, must be passed for the very first call
+    * @return CdrManager reference
+    */
+   static CdrManager &instance(const CdrConfig *cdata = 0);
     
-        ///
-        virtual ~CdrManager();
+   ///
+   virtual ~CdrManager();
     
-        ///
-        static void destroy();
+   ///
+   static void destroy();
 
-        /// Event loop
-        void run();
+   /// Event loop
+   void run();
 
-        /**
-         * Register a new event
-         * @param EventObj*
-         * @return void
-         */
-        void registerEvent( EventObj *obj );
+   /**
+    * Register a new event
+    * @param EventObj*
+    * @return void
+    */
+   void registerEvent( EventObj *obj );
 
-        /**
-         * Remove an existing event
-         * @param EventObj*
-         * @return void
-         */
-        void unregister( const EventObj *obj );
+   /**
+    * Remove an existing event
+    * @param EventObj*
+    * @return void
+    */
+   void unregister( const EventObj *obj );
 
-        /**
-         * Call back function for the Cdr Cache
-         * @param CdrClient&
-         * @return void
-         */
-        void addCache( const CdrClient &msg );
 
-        /// clears all events
-        void clear();
 
-    private:
+   /**
+    * Call back function for the Cdr Cache
+    * @param CdrClient&
+    * @return void
+    */
+   void addCache( const CdrClient &msg );
 
-        /// Private constructor for singleton
-        CdrManager( const CdrConfig &cdata );
+   /// clears all events
+   void clear();
 
-        ///
-        static CdrManager *m_instance;
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              int& maxdesc, uint64& timeout, uint64 now);
+   
+   void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+             uint64 now);
 
-        ///
-        list < EventObj* > m_eventList;
+private:
 
-        ///
-        CdrConfig  m_configData;
-        ///
-        CdrServer *m_cdrServer;
-        ///
-        CdrCache  *m_cdrCache;
+   /// Private constructor for singleton
+   CdrManager( const CdrConfig &cdata );
+
+   ///
+   static CdrManager *m_instance;
+
+   ///
+   list < Sptr<EventObj> > m_eventList;
+
+   ///
+   CdrConfig  m_configData;
+   ///
+   Sptr<CdrServer> cdrServer;
+   ///
+   Sptr<CdrCache>  cdrCache;
 };
 #endif

@@ -52,7 +52,7 @@
  */
 
 static const char* const SnmpCommon_h_version =
-    "$Id: SnmpCommon.h,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: SnmpCommon.h,v 1.2 2004/06/09 07:19:35 greear Exp $";
 
 #include "vtypes.h"
 
@@ -95,10 +95,9 @@ enum DataType
 };
 
 
-typedef struct
-{
+typedef struct {
     u_int16_t dataType;
-    u_int16_t padding;
+    u_int16_t serverType;
     u_int16_t port;
     u_int16_t load;
 }

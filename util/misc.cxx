@@ -192,6 +192,5 @@ bool visNumber(const char* s) {
    return true;
 }//isNumber
 
-
 #endif
 #endif

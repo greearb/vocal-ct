@@ -51,7 +51,7 @@
 
 
 static const char* const AgentRegister_cxx_Version =
-    "$Id: AgentRegister.cxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: AgentRegister.cxx,v 1.4 2004/06/09 07:19:35 greear Exp $";
 
 
 #include "global.h"
@@ -120,7 +120,7 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
 
     // This is modified to send on the regTrUdpStack instead of the regUdpStack. Contact
     // nismail@cisco.com
-    regTrUdpStack->transmitTo(txMessage, txMsgLen, &dest);
+    regTrUdpStack->queueTransmitTo(txMessage, txMsgLen, &dest);
 
 }
 
@@ -135,7 +135,18 @@ int AgentRegister::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
                           int& maxdesc, uint64& timeout, uint64 now) {
    // We only read on regUdpStack
    regUdpStack->addToFdSet(input_fds);
+   regUdpStack->addToFdSet(exc_fds);
+   if (regUdpStack->getBacklogMsgCount()) {
+      regUdpStack->addToFdSet(output_fds);
+   }
    maxdesc = regUdpStack->getMaxFD(maxdesc);
+
+   regTrUdpStack->addToFdSet(exc_fds);
+   if (regTrUdpStack->getBacklogMsgCount()) {
+      regTrUdpStack->addToFdSet(output_fds);
+      maxdesc = regUdpStack->getMaxFD(maxdesc);
+   }
+
    return 0;
 }
 
@@ -163,7 +174,7 @@ void AgentRegister::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
          if ( bytesRead >= 0) {
             // Send on the transmission stack. Contact nismail@cisco.com
-            regTrUdpStack->transmitTo(txMessage, txMsgLen, &dest);
+            regTrUdpStack->queueTransmitTo(txMessage, txMsgLen, &dest);
          }
          else if ( bytesRead == -1) {
             cpLog( LOG_ERR, "Error in receiving on port %d",
@@ -179,4 +190,8 @@ void AgentRegister::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
          cpLog( LOG_ERR, "Exception from udpstack for AgentRegister" );
       }
    }
+
+   // Attempt to write any pending data
+   regUdpStack->flushBacklog();
+   regTrUdpStack->flushBacklog();
 }//tick

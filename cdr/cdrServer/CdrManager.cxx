@@ -51,7 +51,7 @@
 
 
 static const char* const CdrManager_cxx_Version =
-    "$Id: CdrManager.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrManager.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include <time.h>
@@ -62,10 +62,8 @@ static const char* const CdrManager_cxx_Version =
 #include "EventObj.hxx"
 #include "CommandLine.hxx"
 #include "VCdrException.hxx"
-#include "Condition.hxx"
 #include "cpLog.h"
 
-using namespace Vocal::Threads;
 
 // Global constants
 //
@@ -77,159 +75,85 @@ CdrManager* CdrManager::m_instance = 0;
 
 
 CdrManager&
-CdrManager::instance( const CdrConfig *cdata )
-{
-    if (!m_instance)
-    {
-        assert(cdata);
+CdrManager::instance( const CdrConfig *cdata ) {
+   if (!m_instance) {
+      assert(cdata);
 
-        m_instance = new CdrManager(*cdata);
-        m_instance->m_cdrServer = new CdrServer(*cdata);
-        m_instance->m_cdrCache = new CdrCache(*cdata);
+      m_instance = new CdrManager(*cdata);
 
-        // register events
-        m_instance->registerEvent(m_instance->m_cdrServer);
-        m_instance->registerEvent(m_instance->m_cdrCache);
-    }
-    return *m_instance;
+      // register events
+      m_instance->registerEvent(m_instance->m_cdrServer);
+      m_instance->registerEvent(m_instance->m_cdrCache);
+   }
+   return *m_instance;
 }
 
-CdrManager::CdrManager( const CdrConfig &cdata ) :
-    m_configData(cdata),
-    m_cdrServer(0),
-    m_cdrCache(0)
-{}
-
-
-CdrManager::~CdrManager()
+CdrManager::CdrManager( const CdrConfig &cdata )
+      : m_configData(cdata)
 {
-    // Since m_cdrServer and m_cdrCache are items in the list,
-    // they will be deleted when the list gets deleted
+   cdrServer = new CdrServer(cdata);
+   cdrCache = new CdrCache(cdata);
+}
 
-    list < EventObj* > ::iterator itr = m_eventList.begin();
-    while (itr != m_eventList.end())
-    {
-        EventObj *obj = *itr;
-        itr = m_eventList.erase(itr);
-        delete obj;
-    }
+
+CdrManager::~CdrManager() {
+   // Nothing to do
 }
 
 void
-CdrManager::destroy()
-{
+CdrManager::destroy() {
     delete m_instance;
     m_instance = 0;
 }
 
+
+
+int CdrManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       int& maxdesc, uint64& timeout, uint64 now) {
+   list < EventObj* > ::iterator itr;
+   itr = m_eventList.begin();
+   while (itr != m_eventList.end()) {
+      Sptr<EventObj> obj = *itr;
+      obj->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+      itr++;
+   }
+}
+   
+void CdrManager::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      uint64 now) {
+
+   list < EventObj* > ::iterator itr;
+   itr = m_eventList.begin();
+   while (itr != m_eventList.end()) {
+      Sptr<EventObj> obj = *itr;
+      obj->tick(input_fds, output_fds, exc_fds, now);
+      if (obj->eventDone()) {
+         itr = m_eventList.erase(itr);
+      }
+      else {
+         itr++;
+      }
+   }
+}//tick
+
+
 void
-CdrManager::run()
-{
-    time_t startTime = time(0);
-
-    // These parameters control the number of data event
-    // loop cycles before each sleep
-    //
-    int cycleCount = 0;
-    bool isData = false;
-
-    list < EventObj* > ::iterator itr;
-
-    while (1)
-    {
-        cycleCount = 0;
-        isData = false;
-
-        // cycle through event list checking data events,
-        // this loop gets priority so loop through it
-        // many times before we sleep
-        //
-        while (cycleCount++ < CYCLE_COUNT)
-        {
-            itr = m_eventList.begin();
-            while (itr != m_eventList.end())
-            {
-                EventObj *obj = *itr;
-
-                if (obj->isDataReady(0))
-                {
-                    isData = true;
-                    obj->onData();
-                }
-
-                if (obj->eventDone())
-                {
-                    itr = m_eventList.erase(itr);
-                    delete obj;
-                }
-                else
-                    itr++;
-            }
-
-            // if no data found, break from loop and sleep
-            if (!isData)
-            {
-                break;
-            }
-        }
-
-        // sleep here so we don't hog the CPU
-        //
-        vusleep(MIN_SLEEP_TIME);
-
-        // get current time for time events
-        //
-        time_t now = time(0);
-
-        unsigned long int timeSec = now - startTime;
-
-        // cycle through event list checking time events,
-        // we only need to check time events every second or so
-        //
-        itr = m_eventList.begin();
-        while (itr != m_eventList.end())
-        {
-            EventObj *obj = *itr;
-
-            if (obj->isTimeReady(timeSec))
-            {
-                obj->onTimer();
-            }
-
-            if (obj->eventDone())
-            {
-                itr = m_eventList.erase(itr);
-                delete obj;
-            }
-            else
-                itr++;
-        }
-    }
+CdrManager::registerEvent( Sptr<EventObj> obj ) {
+   eventList.push_back(obj);
 }
 
 void
-CdrManager::registerEvent( EventObj *obj )
-{
-    m_eventList.push_back(obj);
+CdrManager::unregister( Sptr<EventObj> obj ) {
+   for (list < Sptr<EventObj> > ::iterator itr = eventList.begin();
+        itr != m_eventList.end(); itr++) {
+      if ((*itr).getPtr() == obj.getPtr()) {
+         eventList.erase(itr);
+         break;
+      }
+   }
 }
 
 void
-CdrManager::unregister( const EventObj *obj )
-{
-    for (list < EventObj* > ::iterator itr = m_eventList.begin();
-         itr != m_eventList.end();
-         itr++)
-    {
-        if ((*itr) == obj)
-        {
-            m_eventList.erase(itr);
-            break;
-        }
-    }
-}
-
-void
-CdrManager::addCache( const CdrClient &msg )
-{
+CdrManager::addCache( const CdrClient &msg ) {
     m_cdrCache->add(msg);
 }

@@ -83,13 +83,14 @@
 
 
 static const char* const RadiusStack_hxx_Version =
-    "$Id: RadiusStack.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: RadiusStack.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 #include "global.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string>
 #include "VRadiusException.hxx"
+#include <BugCatcher.hxx>
 
 /// Global constants
 
@@ -103,14 +104,12 @@ class UdpStack;
 /** Data structure definitions **/
 
 /// Used for send and receive buffers
-union BufType
-{
+union BufType {
     /// attribute buffer
     unsigned char buffer[4096];
 
     /// header for attribute buffer (attributes must follow header)
-    struct AcctHdr
-    {                                               ///
+    struct AcctHdr {
         unsigned char code;                         ///
         unsigned char id;                           ///
         unsigned short int length;                  ///
@@ -134,228 +133,223 @@ union BufType
     functionality, there is little support for the
     authorization functionality.
 **/
-class RadiusStack
-{
-    public:
-        ///
-        enum PacketType
-        {                                     ///
-            PW_AUTHENTICATION_REQUEST = 1,    ///
-            PW_AUTHENTICATION_ACK = 2,        ///
-            PW_AUTHENTICATION_REJECT = 3,     ///
-            PW_ACCOUNTING_REQUEST = 4,        ///
-            PW_ACCOUNTING_RESPONSE = 5,       ///
-            PW_ACCOUNTING_STATUS = 6,         ///
-            PW_PASSWORD_REQUEST = 7,          ///
-            PW_PASSWORD_ACK = 8,              ///
-            PW_PASSWORD_REJECT = 9,           ///
-            PW_ACCOUNTING_MESSAGE = 10,       ///
-            PW_ACCESS_CHALLENGE = 11          ///
-        };
-        ///
-        enum AttribType
-        {                                     ///
-            PW_USER_NAME = 1,                 ///
-            PW_PASSWORD = 2,                  ///
-            PW_CHAP_PASSWORD = 3,             ///
-            PW_NAS_IP_ADDRESS = 4,            ///
-            PW_NAS_PORT_ID = 5,               ///
+class RadiusStack : public BugCatcher {
+public:
+   ///
+   enum PacketType {                                     ///
+      PW_AUTHENTICATION_REQUEST = 1,    ///
+      PW_AUTHENTICATION_ACK = 2,        ///
+      PW_AUTHENTICATION_REJECT = 3,     ///
+      PW_ACCOUNTING_REQUEST = 4,        ///
+      PW_ACCOUNTING_RESPONSE = 5,       ///
+      PW_ACCOUNTING_STATUS = 6,         ///
+      PW_PASSWORD_REQUEST = 7,          ///
+      PW_PASSWORD_ACK = 8,              ///
+      PW_PASSWORD_REJECT = 9,           ///
+      PW_ACCOUNTING_MESSAGE = 10,       ///
+      PW_ACCESS_CHALLENGE = 11          ///
+   };
+   ///
+   enum AttribType {
+      PW_USER_NAME = 1,                 ///
+      PW_PASSWORD = 2,                  ///
+      PW_CHAP_PASSWORD = 3,             ///
+      PW_NAS_IP_ADDRESS = 4,            ///
+      PW_NAS_PORT_ID = 5,               ///
+      
+      PW_VENDOR_SPECIFIC = 26,          ///
+      PW_CALLED_STATION_ID	= 30, ///
+      PW_CALLING_STATION_ID = 31,       ///
+      
+      PW_ACCT_STATUS_TYPE = 40,         ///
+      PW_ACCT_DELAY_TIME = 41,          ///
+      PW_ACCT_INPUT_OCTETS = 42,        ///
+      PW_ACCT_OUTPUT_OCTETS = 43,       ///
+      PW_ACCT_SESSION_ID = 44,          ///
+      PW_ACCT_AUTHENTIC = 45,           ///
+      PW_ACCT_SESSION_TIME = 46,        ///
+      PW_ACCT_INPUT_PACKETS = 47,       ///
+      PW_ACCT_OUTPUT_PACKETS = 48,      ///
+      PW_ACCT_TERMINATE_CAUSE = 49      ///
+   };
+   ///
+   enum AcctStatusType {
+      ACCT_START = 1,                   ///
+      ACCT_STOP = 2,                    ///
+      ACCT_ON = 7,                      ///
+      ACCT_OFF = 8                      ///
+   };
 
-            PW_VENDOR_SPECIFIC = 26,          ///
-            PW_CALLED_STATION_ID	= 30, ///
-            PW_CALLING_STATION_ID = 31,       ///
-
-            PW_ACCT_STATUS_TYPE = 40,         ///
-            PW_ACCT_DELAY_TIME = 41,          ///
-            PW_ACCT_INPUT_OCTETS = 42,        ///
-            PW_ACCT_OUTPUT_OCTETS = 43,       ///
-            PW_ACCT_SESSION_ID = 44,          ///
-            PW_ACCT_AUTHENTIC = 45,           ///
-            PW_ACCT_SESSION_TIME = 46,        ///
-            PW_ACCT_INPUT_PACKETS = 47,       ///
-            PW_ACCT_OUTPUT_PACKETS = 48,      ///
-            PW_ACCT_TERMINATE_CAUSE = 49      ///
-        };
-        ///
-        enum AcctStatusType
-        {                                     ///
-            ACCT_START = 1,                   ///
-            ACCT_STOP = 2,                    ///
-            ACCT_ON = 7,                      ///
-            ACCT_OFF = 8                      ///
-        };
-
-    public:
+public:
  
-        /** local_ip can be "" if you want the default, or you can specify it
-         * to bind to a particular local interface.
-         */
-        RadiusStack(const string& local_ip);
+   /** local_ip can be "" if you want the default, or you can specify it
+    * to bind to a particular local interface.
+    */
+   RadiusStack(const string& local_ip);
 
-        /// Destructor
-        virtual ~RadiusStack();
+   /// Destructor
+   virtual ~RadiusStack();
 
-        /// Initialize connection with radius server
-        virtual void initialize( const string &server,
-                                 const string &secretKey,
-                                 const int retries ) throw(VRadiusException&);
+   /// Initialize connection with radius server
+   virtual void initialize( const string &server,
+                            const string &secretKey,
+                            const int retries ) throw(VRadiusException&);
 
-        /// Set up the values for the connection
-        void setupConnection();
+   /// Set up the values for the connection
+   void setupConnection();
+   
+   /// Sent when the client starts
+   bool accountingOn();
 
-        /// Sent when the client starts
-        bool accountingOn();
+   /// Sent when the client terminates
+   bool accountingOff();
 
-        /// Sent when the client terminates
-        bool accountingOff();
-
-        /// Sent when subscriber should be authenticated
-        bool accessRequest( const string &callId,
-                            const string &passwd );
-
-        /// Sent when gateway wants to start a call
-        bool accountingStartCall( const string &from,
-                                  const string &to,
-                                  const string &callId );
-
-        /// Sent when the call is terminated
-        bool accountingStopCall( const string &callId );
-
-
-    protected:
-
-        /**
-         * Process the VSA (vendor specific attributes)
-         * Called by evaluateRecvBuffer() to deal with
-         * messages from the radius server
-         */
-        virtual void processVsa( const unsigned char vsaType,
-                                 unsigned char *ptr,
-                                 int bufLen ) {}
-
-        /// Fills the m_sendBuffer with accounting ON message
-        void createAcctOnMsg();
-
-        /// Fills the m_sendBuffer with accounting OFF message
-        void createAcctOffMsg();
-
-        /// Fills the m_sendBuffer with accounting start call message
-        void createAcctStartCallMsg( const string &from,
-                                     const string &to,
-                                     const string &callId );
-
-        /// Fills the m_sendBuffer with accounting stop call message
-        void createAcctStopCallMsg( const string &callId );
-
-        /// Fills the m_sendBuffer with access request  message
-        void createAccessRqstMsg( const string &callId,
-                                  const string &passwd );
-
-        /// Fill m_sendBuffer header with data, overwrites existing data
-        int addHeader( const PacketType type );
-
-        /// Calculate MD5 hash and fill field in m_sendBuffer
-        void addMD5();
-
-        /// Adds attribute to m_sendBuffer, returns length of attribute
-        int addAttribute( const AttribType type, const unsigned long int value );
-
-        /// Adds attribute to m_sendBuffer, returns length of attribute
-        int addAttribute( const AttribType type, const unsigned short int value );
-
-        /// Adds attribute to m_sendBuffer, returns length of attribute
-        int addAttribute( const AttribType type, const unsigned char value );
-
-        /// Adds attribute to m_sendBuffer, returns length of attribute
-        int addAttribute( const AttribType type,
-                          const unsigned char* value,
-                          const int sizeOfValue );
-
-        /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
-        int addVsaAttribute( const unsigned char vsaType,
-                             const unsigned long int value,
-                             const unsigned long int vendorId );
-
-        /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
-        int addVsaAttribute( const unsigned char vsaType,
-                             const unsigned short int value,
-                             const unsigned long int vendorId );
-
-        /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
-        int addVsaAttribute( const unsigned char vsaType,
-                             const unsigned char value,
-                             const unsigned long int vendorId );
-
-        /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
-        int addVsaAttribute( const unsigned char vsaType,
-                             const unsigned char* value,
-                             const int sizeOfValue,
-                             const unsigned long int vendorId );
-
-        /// sends message and waits for reply
-        bool handshake();
-
-        /// Send data from m_sendBuffer. Blocks until all the data is sent
-        bool sendRadius();
-
-        /// Puts data in m_recvBuffer
-        int recvRadius();
-
-        /// evaluate attribute list in receive m_recvBuffer
-        bool evaluateRecvBuffer();
-
-        /// validate md5 sum of accounting message in m_recvBuffer
-        bool verifyAcctRecvBuffer() throw(VRadiusException&);
-
-        /// validate md5 sum of authentication message in m_recvBuffer
-        bool verifyAuthRecvBuffer() throw(VRadiusException&)
-        {
-            return (true);
-        }
-
-        /// md5Calc is used to find the md5 sum
-        int md5Calc( unsigned char *output,
-                     unsigned char *input,
-                     unsigned inLen );
+   /// Sent when subscriber should be authenticated
+   bool accessRequest( const string &callId,
+                       const string &passwd );
+   
+   /// Sent when gateway wants to start a call
+   bool accountingStartCall( const string &from,
+                             const string &to,
+                             const string &callId );
+   
+   /// Sent when the call is terminated
+   bool accountingStopCall( const string &callId );
 
 
-    protected:
+protected:
 
-        int m_retries;                        ///
+   /**
+    * Process the VSA (vendor specific attributes)
+    * Called by evaluateRecvBuffer() to deal with
+    * messages from the radius server
+    */
+   virtual void processVsa( const unsigned char vsaType,
+                            unsigned char *ptr,
+                            int bufLen ) {}
 
-        string m_serverName;                  ///
+   /// Fills the m_sendBuffer with accounting ON message
+   void createAcctOnMsg();
 
-        /// network byte order
-        unsigned long int m_serverAddr;       ///
-        int m_serverPort;                     ///
+   /// Fills the m_sendBuffer with accounting OFF message
+   void createAcctOffMsg();
 
-        string m_clientName;                  ///
+   /// Fills the m_sendBuffer with accounting start call message
+   void createAcctStartCallMsg( const string &from,
+                                const string &to,
+                                const string &callId );
+   
+   /// Fills the m_sendBuffer with accounting stop call message
+   void createAcctStopCallMsg( const string &callId );
 
-        /// network byte order
-        unsigned long int m_clientAddr;       ///
-        int m_clientPort;                     ///
+   /// Fills the m_sendBuffer with access request  message
+   void createAccessRqstMsg( const string &callId,
+                             const string &passwd );
 
-        unsigned char m_requestId;            ///
-        unsigned char m_responseId;           ///
-        string m_secretKey;                   ///
+   /// Fill m_sendBuffer header with data, overwrites existing data
+   int addHeader( const PacketType type );
 
-        bool m_connected;                     ///
-        AcctStatusType m_acctStatusType;      ///
+   /// Calculate MD5 hash and fill field in m_sendBuffer
+   void addMD5();
 
-        BufType m_sendBuffer;                 ///
-        BufType m_recvBuffer;                 ///
-        int m_sendBufferLen;                  ///
-        int m_recvBufferLen;                  ///
-        bool m_recvBufferValid;               ///
+   /// Adds attribute to m_sendBuffer, returns length of attribute
+   int addAttribute( const AttribType type, const unsigned long int value );
+
+   /// Adds attribute to m_sendBuffer, returns length of attribute
+   int addAttribute( const AttribType type, const unsigned short int value );
+
+   /// Adds attribute to m_sendBuffer, returns length of attribute
+   int addAttribute( const AttribType type, const unsigned char value );
+
+   /// Adds attribute to m_sendBuffer, returns length of attribute
+   int addAttribute( const AttribType type,
+                     const unsigned char* value,
+                     const int sizeOfValue );
+   
+   /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
+   int addVsaAttribute( const unsigned char vsaType,
+                        const unsigned long int value,
+                        const unsigned long int vendorId );
+   
+   /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
+   int addVsaAttribute( const unsigned char vsaType,
+                        const unsigned short int value,
+                        const unsigned long int vendorId );
+   
+   /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
+   int addVsaAttribute( const unsigned char vsaType,
+                        const unsigned char value,
+                        const unsigned long int vendorId );
+
+   /// Adds vsaAttribute to m_sendBuffer, returns length of vsaAttribute
+   int addVsaAttribute( const unsigned char vsaType,
+                        const unsigned char* value,
+                        const int sizeOfValue,
+                        const unsigned long int vendorId );
+
+   /// sends message and waits for reply
+   bool handshake();
+
+   /// Send data from m_sendBuffer. Blocks until all the data is sent
+   bool sendRadius();
+
+   /// Puts data in m_recvBuffer
+   int recvRadius();
+
+   /// evaluate attribute list in receive m_recvBuffer
+   bool evaluateRecvBuffer();
+
+   /// validate md5 sum of accounting message in m_recvBuffer
+   bool verifyAcctRecvBuffer() throw(VRadiusException&);
+
+   /// validate md5 sum of authentication message in m_recvBuffer
+   bool verifyAuthRecvBuffer() throw(VRadiusException&) {
+      return (true);
+   }
+
+   /// md5Calc is used to find the md5 sum
+   int md5Calc( unsigned char *output,
+                unsigned char *input,
+                unsigned inLen );
+
+   
+protected:
+
+   int m_retries;                        ///
+
+   string m_serverName;                  ///
+
+   /// network byte order
+   unsigned long int m_serverAddr;       ///
+   int m_serverPort;                     ///
+
+   string m_clientName;                  ///
+
+   /// network byte order
+   unsigned long int m_clientAddr;       ///
+   int m_clientPort;                     ///
+
+   unsigned char m_requestId;            ///
+   unsigned char m_responseId;           ///
+   string m_secretKey;                   ///
+
+   bool m_connected;                     ///
+   AcctStatusType m_acctStatusType;      ///
+
+   BufType m_sendBuffer;                 ///
+   BufType m_recvBuffer;                 ///
+   int m_sendBufferLen;                  ///
+   int m_recvBufferLen;                  ///
+   bool m_recvBufferValid;               ///
 
 
-        string m_localIp;
-        NetworkAddress *m_networkAddr;        ///
-        UdpStack *m_udpConnection;            ///
+   string m_localIp;
+   Sptr<NetworkAddress> m_networkAddr;        ///
+   Sptr<UdpStack> m_udpConnection;            ///
 
 private:
-        RadiusStack(); // Must specify local-ip, so can't use this one.
-        RadiusStack(const RadiusStack& src); // not implemented.
-        RadiusStack& operator=(const RadiusStack& rhs); // not implemented.
+   RadiusStack(); // Must specify local-ip, so can't use this one.
+   RadiusStack(const RadiusStack& src); // not implemented.
+   RadiusStack& operator=(const RadiusStack& rhs); // not implemented.
 };
 #endif

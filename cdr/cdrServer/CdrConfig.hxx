@@ -53,7 +53,7 @@
 
 
 static const char* const CdrConfig_hxx_Version =
-    "$Id: CdrConfig.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrConfig.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -67,98 +67,92 @@ static const char* const CdrConfig_hxx_Version =
    the environment or config file.
  **/
 
-class CdrConfig
-{
-    public:
-        ///
-        enum CdrConfigTag
-        {                            ///
-            CdrServerHost = 0,       ///
-            CdrServerPort,           ///
-            CdrBillingFrequency,     ///
-            CdrBillingDirectory,     ///
-            CdrBillingFileName,      ///
-            CdrLogLevel,             ///
-            CdrLogFile,              ///
-            CdrRadiusServerHost,     ///
-            CdrRadiusRetries,        ///
-            CdrRadiusSecretKey,      ///
-            CdrUnsentFileExt,        ///
-            CdrBillingLockFile,      ///
-            CdrRolloverSize,         ///
-            CdrRolloverPeriod,       ///
-            CdrFileCheckFreq,        ///
-            CdrBillRingTime,         ///
-            CdrLocalIp,              ///
-            CdrConfigTagMax          ///
-    };
+class CdrConfig {
+public:
+   ///
+   enum CdrConfigTag {
+      CdrServerHost = 0,       ///
+      CdrServerPort,           ///
+      CdrBillingFrequency,     ///
+      CdrBillingDirectory,     ///
+      CdrBillingFileName,      ///
+      CdrLogLevel,             ///
+      CdrLogFile,              ///
+      CdrRadiusServerHost,     ///
+      CdrRadiusRetries,        ///
+      CdrRadiusSecretKey,      ///
+      CdrUnsentFileExt,        ///
+      CdrBillingLockFile,      ///
+      CdrRolloverSize,         ///
+      CdrRolloverPeriod,       ///
+      CdrFileCheckFreq,        ///
+      CdrBillRingTime,         ///
+      CdrLocalIp,              ///
+      CdrConfigTagMax          ///
+   };
 
-    public:
+public:
 
-        ///
-        CdrConfig();
+   ///
+   CdrConfig();
     
-        /**
-         * Copy constructor
-         * @param CdrConfig& object to copy
-         */
-        CdrConfig( const CdrConfig &rhs );
+   /**
+    * Copy constructor
+    * @param CdrConfig& object to copy
+    */
+   CdrConfig( const CdrConfig &rhs );
     
-        ///
-        virtual ~CdrConfig() {}
+   ///
+   virtual ~CdrConfig() {}
     
-        ///
-        void print(const int loglevel);
+   ///
+   void print(const int loglevel);
 
-        ///
-        int cdrConfigTag2i( const char *tag );
+   ///
+   int cdrConfigTag2i( const char *tag );
     
-        ///
-        void setCdrConfig( const char* tag,
-                           const char* type,
-                           const char* value);
+   ///
+   void setCdrConfig( const char* tag,
+                      const char* type,
+                      const char* value);
     
-        ///
-        void setEnvCdr();
+   ///
+   void setEnvCdr();
 
-        /**
-         * Load data from the config file, environment vars override file
-         * @param string& configuration filename
-         * @return void
-         */
-        void getData( const string &fileName ) throw (VCdrException&);
+   /**
+    * Load data from the config file, environment vars override file
+    * @param string& configuration filename
+    * @return void
+    */
+   void getData( const string &fileName ) throw (VCdrException&);
 
-        /**
-         * Load data from provisioning, environment vars override ps
-         * @param string& primary ps hostname
-         * @param int primary ps port
-         * @param string& alternate ps hostname
-         * @param int alternate ps port
-         * @return void
-         */
-        void getPsData( const string &psHost, const int psPort,
-                        const string &altHost, const int altPort,
-			string readSecret, string writeSecret)
-            throw (VCdrException&);
+   /**
+    * Load data from provisioning, environment vars override ps
+    */
+   void getPsData( const NetworkAddress& psHost,
+                   const NetworkAddress& altHost,
+                   const string& readSecret,
+                   const string& writeSecret)
+      throw (VCdrException&);
 
-    public:
-        ///
-        string m_serverHost;                   ///
-        int m_serverPort;                      ///
-        int m_billingFrequency;                ///
-        string m_billingDirectory;             ///
-        string m_billingFileName;              ///
-        int m_logLevel;                        ///
-        string m_logFile;                      ///
-        string m_radiusServerHost;             ///
-        int m_radiusRetries;                   ///
-        string m_radiusSecretKey;              ///
-        string m_unsentFileExt;                ///
-        string m_billingLockFile;              ///
-        int m_rolloverSize;                    ///
-        unsigned long int m_rolloverPeriod;    ///
-        unsigned long int m_fileCheckFreq;     ///
-        bool m_billRingTime;                   ///
-        string m_localIp;
+public:
+   ///
+   string m_serverHost;                   ///
+   int m_serverPort;                      ///
+   int m_billingFrequency;                ///
+   string m_billingDirectory;             ///
+   string m_billingFileName;              ///
+   int m_logLevel;                        ///
+   string m_logFile;                      ///
+   string m_radiusServerHost;             ///
+   int m_radiusRetries;                   ///
+   string m_radiusSecretKey;              ///
+   string m_unsentFileExt;                ///
+   string m_billingLockFile;              ///
+   int m_rolloverSize;                    ///
+   unsigned long int m_rolloverPeriod;    ///
+   unsigned long int m_fileCheckFreq;     ///
+   bool m_billRingTime;                   ///
+   string m_localIp;
 };
 #endif

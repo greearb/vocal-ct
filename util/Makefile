@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/05/29 01:10:33 greear Exp $
+# $Id: Makefile,v 1.4 2004/06/09 07:19:35 greear Exp $
 
 BUILD = ../build
 
@@ -138,6 +138,8 @@ SRC += \
         transport/UDPSocket.cxx \
         transport/UdpStack.cxx \
         transport/vsock.cxx \
+	FileStackLock.cxx
+
 
 ifeq ($(USE_YARROW),1)
 SRC += 	\

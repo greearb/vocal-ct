@@ -50,11 +50,10 @@
 
 
 static const char* const StatelessBasicProxy_cxx_Version =
-    "$Id: StatelessBasicProxy.cxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
+    "$Id: StatelessBasicProxy.cxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
 
 
 #include "CommandLine.hxx"
-#include "ServerContainer.hxx"
 #include "SipThread.hxx"
 #include "SipTransceiverFilter.hxx"
 #include "StatelessBasicProxy.hxx"
@@ -64,17 +63,13 @@ using namespace Vocal;
 
 StatelessBasicProxy::StatelessBasicProxy( const string& local_ip,
                                           const string& local_dev_to_bind_to,
+                                          ServerType myType,
                                           unsigned short defaultSipPort,
                                           Data applName,
                                           bool filterOn, 
                                           bool nat,
                                           SipAppContext aContext) {
 
-   //  Filter option controls which transceiver object is created for the
-   //  sip stack.
-
-   // NOTE:  SipTransceiverFilter was just a typedef, so the filter flag
-   // was making no difference.
    mySipStack = new SipTransceiver(local_ip,
                                    local_dev_to_bind_to,
                                    applName, defaultSipPort, nat, aContext,
@@ -85,9 +80,10 @@ StatelessBasicProxy::StatelessBasicProxy( const string& local_ip,
    if (CommandLine::instance()->getInt("HEARTBEAT")) {
       cpLog(LOG_INFO, "Initializing heartbeat mechanism");
       myHeartbeatThread = new HeartbeatThread(local_ip, local_dev_to_bind_to,
-                                              &(ServerContainer::instance()),
-                                              defaultSipPort,
+                                              myType, defaultSipPort,
                                               HB_RX|HB_TX|HB_HOUSEKEEPING);
+      myHeartbeatThread->addServerContainer(SERVER_RS);  // Listen for Register Servers
+      myHeartbeatThread->addServerContainer(SERVER_POS); // Listen for Provision servers
    }
 }
 

@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.4 2004/06/09 07:19:35 greear Exp $";
 
 
 #include "global.h"
@@ -95,7 +95,7 @@ AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Def
        udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
 #endif	
        message1.action = (actionT)Register_Req;
-       udpStack->transmitTo((char *)&message1, sizeof(message1), &dest);
+       udpStack->queueTransmitTo((char *)&message1, sizeof(message1), &dest);
        break;
 
     case SERVER_NetMgnt:
@@ -153,7 +153,7 @@ AgentApi::sendTrap(int trapType, string parameter)
       else {
          return voFailure;
       }
-      udpStack->transmitTo((char *)&trapMessage, sizeof(trapMessage), &dest);
+      udpStack->queueTransmitTo((char *)&trapMessage, sizeof(trapMessage), &dest);
       return voSuccess;
    }
 #ifdef PtW32CatchAll
@@ -182,7 +182,7 @@ AgentApi::sendResponse(int val, NetworkAddress *sender)
 	if (sender) 
 	    cpLog( LOG_DEBUG, "send integer response: %d to %s:%d",
 		   val, sender->getHostName().c_str(), sender->getPort());
-        udpStack->transmitTo((char *)&message, sizeof(message), sender);
+        udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
         return voSuccess;
     }
 #ifdef PtW32CatchAll
@@ -211,7 +211,7 @@ AgentApi::sendResponse(unsigned long val, NetworkAddress *sender)
 	memcpy(message.parm2, &val, sizeof(val));
         cpLog( LOG_DEBUG, "send ulong response: %d to %s:%d",
                val, sender->getHostName().c_str(), sender->getPort());
-        udpStack->transmitTo((char *)&message, sizeof(message), sender);
+        udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
         return voSuccess;
     }
 #ifdef PtW32CatchAll
@@ -246,7 +246,7 @@ AgentApi::sendResponse(string parameter, NetworkAddress *sender)
         }
         cpLog( LOG_DEBUG, "send string response: %s to %s:%d",
                parameter.c_str(), sender->getHostName().c_str(), sender->getPort());
-        udpStack->transmitTo((char *)&message, sizeof(message), sender);
+        udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
         return voSuccess;
     }
 #ifdef PtW32CatchAll
@@ -274,7 +274,7 @@ AgentApi::sendResponse(void *inData, NetworkAddress *sender)
         memcpy(message.parm2, inData, sizeof(message.parm2));
         cpLog( LOG_DEBUG, "send generic response to %s:%d",
                sender->getHostName().c_str(), sender->getPort());
-        udpStack->transmitTo((char *)&message, sizeof(message), sender);
+        udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
         return voSuccess;
     }
 #ifdef PtW32CatchAll
@@ -309,6 +309,11 @@ int AgentApi::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    }
 
    udpStack->addToFdSet(input_fds);
+   udpStack->addToFdSet(exc_fds);
+   if (udpStack->getBacklogMsgCount()) {
+      udpStack->addToFdSet(output_fds);
+   }
+
    maxdesc = udpStack->getMaxFD(maxdesc);
    return 0;
 }
@@ -339,4 +344,7 @@ void AgentApi::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
          cpLog( LOG_ERR, "Exception from udpstack for AgentApiRx" );
       }
    }// if socket is readable
+
+   // Attempt to write any pending data
+   udpStack->flushBacklog();
 }//tick

@@ -53,7 +53,7 @@
 
 
 static const char* const MindClient_hxx_Version =
-    "$Id: MindClient.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: MindClient.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include "RadiusStack.hxx"
@@ -70,122 +70,120 @@ class VCdrException;
  **   Singleton class - allow only one connection to the
  **   Mind server for each instance of the program
  */
-class MindClient : public RadiusStack
-{
-    public:
-        ///
-        enum MindVsaType
-        {                                      ///
-            MIND_VSA_CALLER_ID_TYPE = 1,       ///
-            MIND_VSA_ORIGINATE_ADDRESS = 2,    ///
-            MIND_VSA_BALANCE = 3,              ///
-            MIND_VSA_CURRENCY = 4,             ///
-            MIND_VSA_BILLING_MODEL = 5,        ///
-            MIND_VSA_LANGUAGE = 6,             ///
-            MIND_VSA_STATUS = 7,               ///
-            MIND_VSA_CALL_DIRECTION = 8,       ///
-            MIND_VSA_CALL_INFO = 9,            ///
-            MIND_VSA_CALL_PARTIES = 10,        ///
-            MIND_VSA_LINE = 11,                ///
-            MIND_VSA_OUTBOUND_TYPE = 12,       ///
-            MIND_VSA_QUERY_REQUEST = 13,       ///
-            MIND_VSA_START_TIME = 14,          ///
-            MIND_VSA_PROTOCOL_NUMBER = 15,     ///
-            MIND_VSA_MAX_CALL_DURATION = 16,   ///
-            MIND_VSA_CDR = 17                  ///
-        };
+class MindClient : public RadiusStack {
+public:
+   ///
+   enum MindVsaType {
+      MIND_VSA_CALLER_ID_TYPE = 1,       ///
+      MIND_VSA_ORIGINATE_ADDRESS = 2,    ///
+      MIND_VSA_BALANCE = 3,              ///
+      MIND_VSA_CURRENCY = 4,             ///
+      MIND_VSA_BILLING_MODEL = 5,        ///
+      MIND_VSA_LANGUAGE = 6,             ///
+      MIND_VSA_STATUS = 7,               ///
+      MIND_VSA_CALL_DIRECTION = 8,       ///
+      MIND_VSA_CALL_INFO = 9,            ///
+      MIND_VSA_CALL_PARTIES = 10,        ///
+      MIND_VSA_LINE = 11,                ///
+      MIND_VSA_OUTBOUND_TYPE = 12,       ///
+      MIND_VSA_QUERY_REQUEST = 13,       ///
+      MIND_VSA_START_TIME = 14,          ///
+      MIND_VSA_PROTOCOL_NUMBER = 15,     ///
+      MIND_VSA_MAX_CALL_DURATION = 16,   ///
+      MIND_VSA_CDR = 17                  ///
+   };
 
-    public:
+public:
 
-        /**
-         * Singleton object reference.  Must call initialize once
-         * before making this call.
-         */
-         static MindClient& instance() { return *m_instance; }
+   /**
+    * Singleton object reference.  Must call initialize once
+    * before making this call.
+    */
+   static MindClient* instance() { return m_instance; }
 
-        /**
-         * Initialize the singlegon.
-         * @param string& local_ip The local IP to bind with, or "" for the defaut
-         * @param char* server name to connect with
-         * @param char* secretKey
-         * @param int retries
-         * @return MindClient& a reference to the instance
-         */
-         static void initialize( const string& local_ip,
-                                 const char *server = 0,
-                                 const char *secretKey = 0,
-                                 const int retries = 0 );
+   /**
+    * Initialize the singlegon.
+    * @param string& local_ip The local IP to bind with, or "" for the defaut
+    * @param char* server name to connect with
+    * @param char* secretKey
+    * @param int retries
+    * @return MindClient& a reference to the instance
+    */
+   static void initialize( const string& local_ip,
+                           const char *server = 0,
+                           const char *secretKey = 0,
+                           const int retries = 0 );
 
-        /// 
-        static void destroy();
+   /// 
+   static void destroy();
 
-        /// Destructor
-        virtual ~MindClient() {}
+   /// Destructor
+   virtual ~MindClient() {}
 
-        /**
-         * Sent when GW wants to start a call
-         * @param CdrRadius& data record
-         * @return bool true is success
-         */
-        bool accountingStartCall( const CdrRadius &ref );
+   /**
+    * Sent when GW wants to start a call
+    * @param CdrRadius& data record
+    * @return bool true is success
+    */
+   bool accountingStartCall( const CdrRadius &ref );
 
-        /**
-         * Sent when the call is terminated
-         * @param CdrRadius& data record
-         * @return bool true is success
-         */
-        bool accountingStopCall( const CdrRadius &ref );
+   /**
+    * Sent when the call is terminated
+    * @param CdrRadius& data record
+    * @return bool true is success
+    */
+   bool accountingStopCall( const CdrRadius &ref );
 
 
-    private:
+private:
 
-        /// Constructor is private, must access through instance()
-        MindClient(const string& local_ip);
+   /// Constructor is private, must access through instance()
+   MindClient(const string& local_ip);
+   
+   /// Not used (use the one above)
+   MindClient();
 
-        /// Not used (use the one above)
-        MindClient();
+   /**
+    * Fills the m_sendBuffer with accounting start call message
+    * @param CdrRadius& data record
+    * @return void
+    */
+   void createAcctStartCallMsg( const CdrRadius &ref );
 
-        /**
-         * Fills the m_sendBuffer with accounting start call message
-         * @param CdrRadius& data record
-         * @return void
-         */
-        void createAcctStartCallMsg( const CdrRadius &ref );
+   /**
+    * Fills the m_sendBuffer with accounting stop call message
+    * @param CdrRadius& data record
+    * @return void
+    */
+   void createAcctStopCallMsg( const CdrRadius &ref );
 
-        /**
-         * Fills the m_sendBuffer with accounting stop call message
-         * @param CdrRadius& data record
-         * @return void
-         */
-        void createAcctStopCallMsg( const CdrRadius &ref );
+   /**
+    * Adds CDR to m_sendBuffer, returns number of bytes added
+    * @param CdrRadius& data record
+    * @return int length of Cdr buffer
+    */
+   int addMindCdr( const CdrRadius &ref );
 
-        /**
-         * Adds CDR to m_sendBuffer, returns number of bytes added
-         * @param CdrRadius& data record
-         * @return int length of Cdr buffer
-         */
-        int addMindCdr( const CdrRadius &ref );
+   /**
+    * Process the VSA
+    * @param unsigned char vsaType
+    * @param unsigned char* ptr to the start location of the VSA
+    * @param int bufLen length of this VSA
+    * @return void
+    */
+   void processVsa( const unsigned char vsaType,
+                    const unsigned char *ptr,
+                    const int bufLen );
+   
+private:
 
-        /**
-         * Process the VSA
-         * @param unsigned char vsaType
-         * @param unsigned char* ptr to the start location of the VSA
-         * @param int bufLen length of this VSA
-         * @return void
-         */
-        void processVsa( const unsigned char vsaType,
-                         const unsigned char *ptr,
-                         const int bufLen );
-
-    private:
-
-        /// Static pointer to singleton instance
-        static MindClient* m_instance;
+   /// Static pointer to singleton instance
+   static MindClient* m_instance;
                                              ///
-        MindVsaStatus m_vsaStatus;           ///
-        unsigned long int m_maxCallingDur;   ///
-        unsigned char m_billingModel;        ///
-        string m_balance;                    ///
-        string m_currency;                   ///
+   MindVsaStatus m_vsaStatus;           ///
+   unsigned long int m_maxCallingDur;   ///
+   unsigned char m_billingModel;        ///
+   string m_balance;                    ///
+   string m_currency;                   ///
 };
 #endif

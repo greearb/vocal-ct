@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
 
 
 #include "HeartbeatThread.hxx"
@@ -100,6 +100,7 @@ public:
    BasicProxy(const Sptr < Builder >   builder, 
               const string&            local_ip,
               const string&            local_dev_to_bind_to,
+              ServerType               myType,
               unsigned short           defaultSipPort = 5060,
               Data                     applName = "unknown",
               bool                     filteron = true, 

@@ -53,106 +53,76 @@
 
 
 static const char* const EventObj_hxx_Version =
-    "$Id: EventObj.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: EventObj.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+
+#include <BugCatcher.hxx>
 
 /**
  **   EventObj, base class which manages time and data events
  */
 
-class EventObj
-{
-    public:
+class EventObj : public BugCatcher {
+public:
 
-        /**
-         * Constructor
-         * @param int fileDesc of the data event
-         * @param bool reoccuring false if a one off
-         */
-        EventObj( int fileDesc, bool reoccuring = true ) :
-            m_fileDesc( fileDesc ),
-            m_seconds( 0 ),
-            m_lastTime( 0 ),
-            m_reoccuring( reoccuring ),
-            m_done( false ) {}
+   /**
+    * Constructor
+    * @param int fileDesc of the data event
+    * @param bool reoccuring false if a one off
+    */
+   EventObj( int fileDesc, bool reoccuring = true )
+         : m_fileDesc( fileDesc ),
+           m_seconds( 0 ),
+           m_lastTime( 0 ),
+           m_reoccuring( reoccuring ),
+           m_done( false ) {}
+   
+   /**
+    * Constructor
+    * @param int seconds time interval for events
+    * @param bool reoccuring false if a one off
+    */
+   EventObj( unsigned long int seconds, bool reoccuring = true )
+         : m_fileDesc( -1 ),
+           m_seconds( seconds ),
+           m_lastTime( 0 ),
+           m_reoccuring( reoccuring ),
+           m_done( false ) {}
+   
+   ///
+   virtual ~EventObj() {}
 
-        /**
-         * Constructor
-         * @param int seconds time interval for events
-         * @param bool reoccuring false if a one off
-         */
-        EventObj( unsigned long int seconds, bool reoccuring = true ) :
-            m_fileDesc( 0 ),
-            m_seconds( seconds ),
-            m_lastTime( 0 ),
-            m_reoccuring( reoccuring ),
-            m_done( false ) {}
+   ///
+   virtual void onData() {}
 
-        /**
-         * Copy constructor
-         * @param EventObj& object to copy
-         * @param bool reoccuring false if a one off
-         */
-        EventObj( const EventObj &rhs )
-        {
-	    m_fileDesc = rhs.m_fileDesc;
-            m_seconds  = rhs.m_seconds;
-            m_lastTime = rhs.m_lastTime;
-            m_reoccuring = rhs.m_reoccuring;
-            m_done = rhs.m_done;
-        }
+   ///
+   virtual void onTimer() {}
 
-        ///
-        virtual ~EventObj() {}
 
-        /**
-         * Assignment operator
-         * @param EventObj& object to copy
-         * @return EventObj& this object
-         */
-        EventObj& operator=( const EventObj &rhs )
-        {
-	    m_fileDesc = rhs.m_fileDesc;
-            m_seconds  = rhs.m_seconds;
-            m_lastTime = rhs.m_lastTime;
-            m_reoccuring = rhs.m_reoccuring;
-            m_done = rhs.m_done;
-            return ( *this );
-        }
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              int& maxdesc, uint64& timeout, uint64 now);
+   
+   void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+             uint64 now);
 
-        ///
-        virtual void onData() {}
+   ///
+   bool eventDone() { return m_done; }
 
-        ///
-        virtual void onTimer() {}
+protected:
 
-        /**
-         * Is data ready on the port?
-         * @param unsigned long int usec is the select wait time
-         * @return bool true if data is ready
-         */
-        bool isDataReady( const unsigned long int usec );
+   ///
+   int m_fileDesc;
+   ///
+   uint64 timerMs;
+   ///
+   uint64 lastTime;
+   ///
+   bool m_reoccuring;
+   ///
+   bool m_done;
 
-        /**
-         * Has the next time interval been reached?
-         * @param unsigned long int sec is the UTC time (or time since start)
-         * @return bool true if the next time interval has arrived
-         */
-        bool isTimeReady( const unsigned long int sec );
-
-        ///
-        bool eventDone();
-
-    protected:
-
-        ///
-        int m_fileDesc;
-        ///
-        unsigned long int m_seconds;
-        ///
-        unsigned long int m_lastTime;
-        ///
-        bool m_reoccuring;
-        ///
-        bool m_done;
+private:
+   // Don't allow these, copying file descriptors is a very bad idea
+   EventObj( const EventObj &rhs );
+   EventObj& operator=( const EventObj &rhs );
 };
 #endif

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.7 2004/06/09 07:19:35 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -377,8 +377,8 @@ int SipUdpConnection::udpSend(Sptr<SipMsgContainer> sipMsg) {
           nAddr->getIpName().c_str(), nAddr->getPort(),
           sipMsg->getEncodedMsg().c_str());
     
-    int ret_status = udpStack.transmitTo(sipMsg->getEncodedMsg().c_str(),
-                                         lngth, nAddr.getPtr());
+    int ret_status = udpStack.doTransmitTo(sipMsg->getEncodedMsg().c_str(),
+                                           lngth, nAddr.getPtr());
     return ret_status;
 }//udpSend
 

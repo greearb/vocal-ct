@@ -53,7 +53,7 @@
 
 
 static const char* const CdrBilling_hxx_Version =
-    "$Id: CdrBilling.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrBilling.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include "CdrConfig.hxx"
@@ -64,38 +64,47 @@ static const char* const CdrBilling_hxx_Version =
 class VCdrException;
 class VRadiusException;
 
-/**
-   The class functions are meant to be run within a separate
-   thread or process.
-**/
-class CdrBilling
-{
-        friend class CdrManager;
+class CdrBilling {
+protected:
 
-    public:
+   // Keep a cache of the users so that we don't have to retrieve them
+   // from provisioning all the time
+   CdrUserCache userAliases;
 
-        /**
-         * Calls sendBillingRecords() within a loop sleeps for sleepSecs
-         * @param void* pointer to CdrConfig object
-         * @return void
-         */
-        static void run( void *CdrConfig_data );
+   // We need to monitor the last time we connected to the billing server,
+   // if the time exceeds the time limit for storing billing records, then
+   // we start deleting the oldest files 1M at a time to free up space
+   //
+   uint64 lastConnectTime;
 
-        /**
-         * Read records from billing files and send to billing server,
-         * return false if cannot connect to billing server
-         * @param CdrConfig& configuration data
-         * @param CdrUserCache&
-         * @return bool true if able to connect with billing server
-         */
-        static bool sendBillingRecords( const CdrConfig &cdata,
-                                        CdrUserCache &userAliases );
+   uint64 billingLockTimeLimitMs;
+   string errorFileExt;
 
-        /**
-         * Delete files from billing directory
-         * @param CdrConfig& configuration data
-         * @return void
-         */
-        static void deleteOldestFiles( const CdrConfig &cdata );
+public:
+
+   CdrBilling();
+
+   /**
+    * Read records from billing files and send to billing server,
+    * return false if cannot connect to billing server
+    * @param CdrConfig& configuration data
+    * @param CdrUserCache&
+    * @return bool true if able to connect with billing server
+    */
+   bool sendBillingRecords( const CdrConfig &cdata,
+                                   CdrUserCache &userAliases );
+
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     int& maxdesc, uint64& timeout, uint64 now);
+   
+   void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                    uint64 now);
+
+   /**
+    * Delete files from billing directory
+    * @param CdrConfig& configuration data
+    * @return void
+    */
+   static void deleteOldestFiles( const CdrConfig &cdata );
 };
 #endif

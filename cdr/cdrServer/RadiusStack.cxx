@@ -81,7 +81,7 @@
 
 
 static const char* const RadiusStack_cxx_Version =
-    "$Id: RadiusStack.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: RadiusStack.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include <sys/time.h>
@@ -117,33 +117,16 @@ RadiusStack::RadiusStack(const string& local_ip) :
     m_sendBufferLen( 0 ),
     m_recvBufferLen( 0 ),
     m_recvBufferValid( false ),
-    m_localIp(local_ip),
-    m_networkAddr( 0 ),
-    m_udpConnection( 0 )
+    m_localIp(local_ip)
 {}
 
-RadiusStack::~RadiusStack()
-{
-    if (m_connected)
-    {
-        if (!accountingOff())
-        {
-            cpLog(LOG_ALERT,
-                  "Accounting off failed, closing connection anyways");
-        }
-    }
-
-    if (m_networkAddr)
-    {
-        delete m_networkAddr;
-        m_networkAddr = 0;
-    }
-
-    if (m_udpConnection)
-    {
-        delete m_udpConnection;
-        m_udpConnection = 0;
-    }
+RadiusStack::~RadiusStack() {
+   if (m_connected) {
+      if (!accountingOff()) {
+         cpLog(LOG_ALERT,
+               "Accounting off failed, closing connection anyways");
+      }
+   }
 }
 
 void
@@ -423,86 +406,71 @@ RadiusStack::verifyAcctRecvBuffer() throw(VRadiusException&)
 }
 
 bool
-RadiusStack::handshake()
-{
-    int result = 0;
-    int i = 0;
-    for (; i < m_retries; i++)
-    {
-        cpLog(LOG_DEBUG_STACK, "Sending request. Attempt #%d", i + 1);
+RadiusStack::handshake() {
+   int result = 0;
+   int i = 0;
+   for (; i < m_retries; i++) {
+      cpLog(LOG_DEBUG_STACK, "Sending request. Attempt #%d", i + 1);
+      
+      if (!sendRadius()) {
+         return false;
+      }
 
-        if (!sendRadius())
-        {
-            return false;
-        }
-
-        if ((result = recvRadius()) > 0)
-        {
-            cpLog(LOG_DEBUG_STACK, "Received a reply from Radius");
-            break;
-        }
-    }
-    if (result > 0 && i < m_retries)
-    {
-        m_connected = true;
-    }
-    else
-    {
-        m_connected = false;
-    }
-    return m_connected;
+      if ((result = recvRadius()) > 0) {
+         cpLog(LOG_DEBUG_STACK, "Received a reply from Radius");
+         break;
+      }
+   }
+   if (result > 0 && i < m_retries) {
+      m_connected = true;
+   }
+   else {
+      m_connected = false;
+   }
+   return m_connected;
 }
 
 bool
-RadiusStack::sendRadius()
-{
-    try
-    {
-        m_udpConnection->transmit((char*)&(m_sendBuffer.buffer),
-                                 m_sendBufferLen);
-    }
-    catch (UdpStackException &e)
-    {
-        cpLog(LOG_ALERT, "Error occured in sendRadius()");
-        cpLog(LOG_ALERT, "UdpStackException caught");
-        return false;
-    }
+RadiusStack::sendRadius() {
+   int rv = m_udpConnection->transmit((char*)&(m_sendBuffer.buffer),
+                                      m_sendBufferLen);
+   if (rv != m_sendBufferLen) {
+      cpLog(LOG_ALERT, "Error occured in sendRadius(), transmit: %d, len: %d (%s)",
+            rv, m_sendBufferLen, strerror(errno));
+      return false;
+   }
 
-    cpLog(LOG_DEBUG_STACK, "Transmitted bytes:%d", m_sendBufferLen);
-
-    return true;
+   cpLog(LOG_DEBUG_STACK, "Transmitted bytes:%d", m_sendBufferLen);
+   return true;
 }
 
+#warning "This should use 'tick' strategy"
 int
-RadiusStack::recvRadius()
-{
-    struct timeval tv;
-    fd_set readfds;
+RadiusStack::recvRadius() {
+   struct timeval tv;
+   fd_set readfds;
 
-    tv.tv_sec = 5;
-    tv.tv_usec = 1;
+   tv.tv_sec = 5;
+   tv.tv_usec = 1;
 
-    FD_ZERO(&readfds);
-    FD_SET(m_udpConnection->getSocketFD(), &readfds);
+   FD_ZERO(&readfds);
+   FD_SET(m_udpConnection->getSocketFD(), &readfds);
 
-    if (select(m_udpConnection->getSocketFD() + 1, &readfds, 0, 0, &tv) == 0)
-    {
-        return (0);
-    }
+   if (select(m_udpConnection->getSocketFD() + 1, &readfds, 0, 0, &tv) == 0) {
+      return (0);
+   }
+   
+   try {
+      m_recvBufferLen = m_udpConnection->receive((char*) & (m_recvBuffer.buffer),
+                                                 sizeof(m_recvBuffer.buffer));
+   }
+   catch (UdpStackException &e) {
+      cpLog(LOG_ALERT, "Error occured in recvRadius()");
+      cpLog(LOG_ALERT, "UdpStackException caught");
+      return 0;
+   }
 
-    try
-    {
-        m_recvBufferLen = m_udpConnection->receive((char*) & (m_recvBuffer.buffer),
-                         sizeof(m_recvBuffer.buffer));
-    }
-    catch (UdpStackException &e)
-    {
-        cpLog(LOG_ALERT, "Error occured in recvRadius()");
-        cpLog(LOG_ALERT, "UdpStackException caught");
-        return 0;
-    }
-
-    return (m_recvBufferLen);
+   return (m_recvBufferLen);
 }
 
 int

@@ -49,53 +49,41 @@
  */
 
 static const char* const cdrserv_cxx_Version =
-    "$Id: cdrserv.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: cdrserv.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 #include "VCdrException.hxx"
 #include "CommandLine.hxx"
 #include "CdrManager.hxx"
 #include "CdrBilling.hxx"
-#include "VFunctor.hxx"
-#include "VThreadPool.hxx"
-#include "HeartbeatTxThread.hxx"
+#include "HeartbeatThread.hxx"
 #include "cpLog.h"
 
 
-int
-main( const int argc, const char** argv )
-{
+bool cdr_running = true;
+
+int main( const int argc, const char** argv ) {
     CdrConfig configData;
-    char configFile[512];
-    char psHost[512];
-    char altHost[512];
-    int psPort = 0;
-    int altPort = 0;
+    string configFile;
+    NetworkAddress psHost("127.0.0.1", 5060);
+    NetworkAddress altHost("127.0.0.1", 5060);
 
-    Data readSecret, writeSecret;
-
+    string readSecret, writeSecret;
 
     int logLevel = LOG_DEBUG;
     bool useProvisioning = false;
 
-    memset(psHost, 0, sizeof(psHost));
-    memset(altHost, 0, sizeof(altHost));
-    memset(configFile, 0, sizeof(configFile));
-
     // Read command line or env vars
     //
     char *envptr = getenv("CDRLOCALIP");
-    if (envptr)
-    {
+    if (envptr) {
         configData.m_localIp = envptr;
     }
 
     envptr = getenv("CDRCONFIGFILE");
-    if (envptr)
-    {
-        strcpy(configFile, envptr);
+    if (envptr) {
+        configFile = envptr;
     }
-    else
-    {
+    else {
         CommandLine &parms = *CommandLine::instance(argc, argv);
         logLevel = cpLogStrToPriority(parms.getString("LOGLEVEL").c_str());
         string tip = parms.getString("LOCALIP");
@@ -104,90 +92,46 @@ main( const int argc, const char** argv )
             configData.m_localIp = tip;
         }
 
-	{
-	    Data psHostPort = CommandLine::instance()->getString( "PSERVER" );
-	    char matched;
-	    Data myPsHost = psHostPort.matchChar(":", &matched);
-	    Data myPsPort = "6005";
-	    if(matched != '\0') 
-	    { 
-		myPsPort = psHostPort;
-	    }
-	    else 
-	    {
-		// no match, so the remainder must be the psHost
-		myPsHost = psHostPort;
-	    }
-	    LocalScopeAllocator lo;
-	    strncpy(psHost, myPsHost.getData(lo), 254);
-	    psPort = myPsPort.convertInt();
-	}
+        NetworkAddress na1(CommandLine::instance()->getString( "PSERVER" ));
+        psHost = na1;
 
-	{
-	    Data psHostPort = CommandLine::instance()->getString( "PSERVERBACKUP" );
-	    char matched;
-	    Data myPsHost = psHostPort.matchChar(":", &matched);
-	    Data myPsPort = "6005";
-	    if(matched != '\0') 
-	    { 
-		myPsPort = psHostPort;
-	    }
-	    else 
-	    {
-		// no match, so the remainder must be the psHost
-		myPsHost = psHostPort;
-	    }
-	    LocalScopeAllocator lo;
-	    strncpy(altHost, myPsHost.getData(lo), 254);
-	    altPort = myPsPort.convertInt();
-	}
+        NetworkAddress na2(CommandLine::instance()->getString( "PSERVERBACKUP" ));
+        altHost = na2;
 
-        {
-            readSecret = CommandLine::instance()->getString("CONFDIR") 
-                + "/" + "vocal.secret";
-            writeSecret = CommandLine::instance()->getString("CONFDIR") 
-                + "/" + "vocal.writesecret";
-        }
+        readSecret = CommandLine::instance()->getString("CONFDIR") 
+            + "/" + "vocal.secret";
+        writeSecret = CommandLine::instance()->getString("CONFDIR") 
+            + "/" + "vocal.writesecret";
 
         useProvisioning = true;
     }
 
     // Load configuration from provisioning or config file
     //
-    try
-    {
-        if (useProvisioning)
-        {
-            LocalScopeAllocator lo;
-            LocalScopeAllocator lo2;
-            configData.getPsData(psHost, 
-                                 psPort, 
-                                 altHost, 
-                                 altPort, 
-                                 readSecret.getData(lo), 
-                                 writeSecret.getData(lo2));
+    try {
+        if (useProvisioning) {
+            configData.getPsData(psHost,
+                                 altHost,
+                                 readSecret, 
+                                 writeSecret);
             configData.m_logLevel = logLevel;
         }
-        else if (configFile[0])
-        {
+        else if (configFile[0]) {
             configData.getData(configFile);
         }
-        else
-        {
+        else {
             cpLog(LOG_ALERT, "No configuration data.");
             exit(1);
         }
     }
-    catch (VException& e)
-    {
+    catch (VException& e) {
         cpLog(LOG_ALERT, "Error reading config data. Exiting application. Reason:%s", e.getDescription().c_str());
         exit(1);
     }
 
     // Start Application
     //
-    try
-    {
+    try {
         // set logging level
         cpLogSetPriority(configData.m_logLevel);
         configData.print(LOG_INFO);
@@ -195,49 +139,64 @@ main( const int argc, const char** argv )
         // first call to instance for initialization
         CdrManager::instance(&configData);
 
-        // spawn a new thread to handle the connection to the billing server
-        //
-        VFunctor func(CdrBilling::run, &configData);
-        VThreadPool threadPool(1);
-        threadPool.addFunctor(func);
+        // Drop into our main loop.
+        fd_set input_set;
+        fd_set output_set;
+        fd_set exc_set;
 
-        if (useProvisioning)
-        {
-            // start the heartbeats, must be done after provisioning is instantiated
-            //
-            HeartbeatTxThread heartbeat(configData.m_localIp,
-                                        "", /* local_dev_to_bind_to */
-                                        configData.m_serverPort);
-            heartbeat.run();
+        uint64 sleep_for;
+        int maxdesc;
+        uint64 now;
+        struct timeval timeout_tv;
 
-            CdrManager::instance().run();
-            CdrManager::destroy();
+        while (cdr_running) {
+            sleep_for = 60 * 1000;
 
-            // wait until the threads exit
-            heartbeat.join();
-        }
-        else
-        {
-            // run the server without heartbeat (if there is no provisioning)
-            //
-            CdrManager::instance().run();
-            CdrManager::destroy();
-        }
+            FD_ZERO(&input_set);
+            FD_ZERO(&output_set);
+            FD_ZERO(&exc_set);
+
+            maxdesc = 0;
+
+            now = vgetCurMs();
+            
+            CdrBilling::setFds(&input_set, &output_set, &exc_set, maxdesc, sleep_for, now);
+            CdrManager::instance().setFds(&input_set, &output_set, &exc_set, maxdesc,
+                                          sleep_for, now);
+
+            // TODO:  Heartbeat thread
+#if 0
+            if (useProvisioning) {
+                heartbeat.run();
+            }
+#endif
+
+            timeout_tv = vms_to_tv(sleep_for);
+
+            int fds = select(maxdesc + 1, &input_set, &output_set, &exc_set, &timeout_tv);
+            if (fds < 0) {
+                if (errno == EBADF) {
+                    cpLog(LOG_ERR, "ERROR:  bad file desc. given in a set to select.\n");
+                    break;
+                }//if
+                else if (errno == EINTR) {
+                    cpLog(LOG_WARNING, "ERROR:  A non blocked signal was caught (EINTR).\n");
+                    // Clear all the FD-sets
+                    FD_ZERO(&input_set);
+                    FD_ZERO(&output_set);
+                    FD_ZERO(&exc_set);
+                }//if
+            }
+
+            now = vgetCurMs();
+
+            // Either we timed out, or a file descriptor is readable.  Let the
+            // BasicProxy do it's job.
+            CdrBilling::tick(&input_set, &output_set, &exc_set, now);
+            CdrManager::instance().tick(&input_set, &output_set, &exc_set, now);
+        }//while
     }
-    catch (VException& e)
-    {
+    catch (VException& e) {
         cpLog(LOG_ALERT, "Application exiting, reason:%s", e.getDescription().c_str());
     }
-    catch (...)
-    {
-        cpLog(LOG_ALERT, "Application exiting, reason:Unknown");
-    }
-}
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
+}//main

@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -71,17 +71,54 @@ static const char* const UdpStackHeaderVersion =
 #include <string>
 #include <assert.h>
 #include "NetworkAddress.h"
-
+#include <misc.hxx>
+#include <list>
+#include <Sptr.hxx>
 
 ///
-typedef enum
-{
+typedef enum {
     inactive,
     sendonly,
     recvonly,
     sendrecv
 } UdpMode;
 
+
+class ByteBuffer : public BugCatcher {
+private:
+   // Not implemented, do not use.
+   ByteBuffer& operator=(const ByteBuffer& rhs);
+   ByteBuffer(const ByteBuffer& src);
+   ByteBuffer();
+
+protected:
+   char* buf;
+   int len;
+   NetworkAddress* na;
+
+public:
+   ByteBuffer(const char* b, int ln, const NetworkAddress* n) {
+      buf = (char*)(malloc(ln));
+      memcpy(buf, b, ln);
+      len = ln;
+      n = NULL;
+      if (n) {
+         na = new NetworkAddress(*n);
+      }
+   }
+
+   ~ByteBuffer() {
+      free(buf);
+      if (na) {
+         delete na;
+      }
+   }
+
+   char* getBuf() { return buf; }
+   int getLength() { return len; }
+   NetworkAddress* getNetworkAddress() { return na; }
+};//ByteBuffer
+      
 
 // class UdpStackPrivateData;
 // this class hold stuff that is likely to be a problem to port
@@ -324,9 +361,16 @@ public:
        
        @param buffer   buffer to read message from
        @param length  number of bytes to send.
+       
+       This method will attempt to buffer data if we cannot send at this
+       particular moment (EAGAIN).
    */
-   void transmit ( const char* buffer,
-                   const int length );
+   int queueTransmit ( const char* buffer,
+                       const int length );
+
+   // Will not cache of flush backlog
+   int doTransmit ( const char* buffer,
+                     const int length );
 
    /** 
        Transmit a datagram.
@@ -337,11 +381,23 @@ public:
        @param dest     destination to send packet to.
        
        @return >0 if transmitted OK, or -errno if not OK.
+
+       This method will attempt to buffer data if we cannot send at this
+       particular moment (EAGAIN).
    */
-   /// Transmit a datagram
-   int transmitTo ( const char* buffer,
-                    const int length,
-                    const NetworkAddress* dest );
+   int queueTransmitTo ( const char* buffer,
+                         const int length,
+                         const NetworkAddress* dest );
+
+   // Will not cache of flush backlog
+   int doTransmitTo ( const char* buffer,
+                      const int length,
+                      const NetworkAddress* dest );
+
+   int flushBacklog();
+
+   int getBacklogMsgCount() { return sendBacklog.size(); }
+
    ///
    void joinMulticastGroup ( NetworkAddress group,
                              NetworkAddress* iface = NULL,
@@ -424,7 +480,6 @@ private:
    /// Mode
    UdpMode mode;
 
-
    /** Local IP address that we ended up bound to.
     */
    string curLocalIp; 
@@ -450,6 +505,12 @@ private:
    int sndCount ;
    bool   blockingFlg;
    string localDev;
+
+   uint32 busy; //counter, number of times we tried to write and got EAGAIN
+   uint32 drop_in_bklog; //Failed to send in the backlog
+
+   // Msgs may queue here if we have no kernel buffers to send at the moment.
+   list<Sptr<ByteBuffer> > sendBacklog;
 };
 
 

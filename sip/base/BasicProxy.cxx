@@ -50,12 +50,11 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
 
 
 #include "global.h"
 #include "BasicProxy.hxx"
-#include "ServerContainer.hxx"
 #include "CommandLine.hxx"
 #include "SipThread.hxx"
 #include "Builder.hxx"
@@ -64,27 +63,28 @@ static const char* const BasicProxy_cxx_Version =
 
 using namespace Vocal;
 
-BasicProxy::BasicProxy( 
-    const Sptr < Builder >  builder,
-    const string&           local_ip,
-    const string&           local_dev_to_bind_to,
-    unsigned short          defaultSipPort,
-    Data                    applName, 
-    bool                    filteron, 
-    bool                    nat ,
-    SipAppContext           aContext
-) 
-    :   HeartLessProxy(builder, local_ip,
-                       local_dev_to_bind_to, defaultSipPort,
-                       applName, filteron, nat, aContext)
+BasicProxy::BasicProxy(const Sptr < Builder >  builder,
+                       const string&           local_ip,
+                       const string&           local_dev_to_bind_to,
+                       ServerType              myType,
+                       unsigned short          defaultSipPort,
+                       Data                    applName,
+                       bool                    filteron, 
+                       bool                    nat ,
+                       SipAppContext           aContext
+   )
+      :   HeartLessProxy(builder, local_ip,
+                         local_dev_to_bind_to, defaultSipPort,
+                         applName, filteron, nat, aContext)
 {
 
     if (CommandLine::instance()->getInt("HEARTBEAT")) {
         cpLog(LOG_INFO, "Initializing heartbeat mechanism");
         myHeartbeatThread = new HeartbeatThread(local_ip, local_dev_to_bind_to,
-                                                &(ServerContainer::instance()),
-                                                defaultSipPort,
+                                                myType, defaultSipPort,
                                                 HB_RX|HB_TX|HB_HOUSEKEEPING);
+        myHeartbeatThread->addServerContainer(SERVER_RS); //Listen for Register Servers
+        myHeartbeatThread->addServerContainer(SERVER_POS); //Listen for Provision servers.
     }
 }
 

@@ -51,7 +51,7 @@
 
 
 static const char* const EventObj_cxx_Version =
-    "$Id: EventObj.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: EventObj.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
 
 
 #include <sys/time.h>
@@ -62,60 +62,48 @@ static const char* const EventObj_cxx_Version =
 #include "EventObj.hxx"
 
 
-bool
-EventObj::isDataReady( const unsigned long int usec )
-{
-    if (m_fileDesc == 0)
-    {
-        return false;
-    }
+int EventObj::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     int& maxdesc, uint64& timeout, uint64 now) {
+   if (m_fileDesc >= 0) {
+      FD_SET(m_fileDesc, &input_fds);
+      FD_SET(m_fileDesc, &exc_fds);
+      if (m_fileDesc > maxdesc) {
+         maxDesc = m_fileDesc;
+      }
+   }
 
-    fd_set rfds;
-    struct timeval tv;
-    tv.tv_sec = 0;
-    tv.tv_usec = usec;
-
-    FD_ZERO(&rfds);
-    FD_SET(m_fileDesc, &rfds);
-
-    int retval = select(m_fileDesc + 1, &rfds, NULL, NULL, &tv);
-
-    if (retval > 0 && FD_ISSET(m_fileDesc, &rfds))
-    {
-        if (!m_reoccuring)
-        {
-            m_done = true;
-        }
-
-        return true;
-    }
-    return false;
+   if (timerMs > 0) {
+      uint64 nxtx = lastTime + timerMs;
+      if (nxtx > now) {
+         if ((nxtx - now) < timeout) {
+            timeout = ntxt;
+         }
+      }
+      else {
+         timeout = 0;
+      }
+   }
 }
 
-bool
-EventObj::isTimeReady( const unsigned long int sec )
-{
-    if (m_seconds == 0)
-    {
-        return false;
-    }
 
-    if ( (sec - m_lastTime) >= m_seconds )
-    {
-        m_lastTime = sec;
+void EventObj::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                    uint64 now) {
 
-        if (!m_reoccuring)
-        {
+   if (m_fileDesc >= 0) {
+      if (FD_ISSET(m_fileDesc, &rfds)) {
+         onData();
+         if (!m_reoccuring) {
             m_done = true;
-        }
+         }
+      }
+   }
 
-        return true;
-    }
-    return false;
-}
-
-bool
-EventObj::eventDone()
-{
-    return m_done;
+   if (timerMs > 0) {
+      if (lastTime + timerMs <= now) {
+         onTimer();
+         if (!m_reoccuring) {
+            m_done = true;
+         }
+      }
+   }
 }
