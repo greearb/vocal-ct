@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.5 2004/11/09 00:49:51 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -83,6 +83,10 @@ MediaSession::MediaSession(int sessionId,
         myRtpSession(NULL),
         localDevToBindTo(local_dev_to_bind_to) {
    _cnt++;
+
+   cpLog(LOG_ERR, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
+         sessionId, debug, _cnt, this);
+
    mySSRC = 0;
    while (mySSRC == 0) {
       mySSRC =  rand();

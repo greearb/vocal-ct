@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.11 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.12 2004/11/09 00:49:51 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -444,7 +444,7 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
       //UaFacade::instance().postMsg("TRYING ");
       //Initiate an Invite to the remote party
       string value = gEvent->getValue();
-      initiateInvite(value);
+      initiateInvite(value, "G_INVITE");
       break;
    }
    case G_HOLD: {
@@ -536,142 +536,152 @@ void UaCallControl::destroy() {
    myInstance = 0;
 }
 
-void UaCallControl::initiateInvite(const string& to) {
-    //Parse the to string
-    //1000-> sip:1000@proxy.com;user=phone
-    //xvz->  sip:xyz@proxy.com;
-    //xyz@domain.com -> sip:xyz@<domain SIP server IP>
-    //xyz@fqdn  ->      sip:xyz@fqdn
+void UaCallControl::initiateInvite(const string& to, const char* debug) {
+   //Parse the to string
+   //1000-> sip:1000@proxy.com;user=phone
+   //xvz->  sip:xyz@proxy.com;
+   //xyz@domain.com -> sip:xyz@<domain SIP server IP>
+   //xyz@fqdn  ->      sip:xyz@fqdn
+
+   // First, make sure that we are not already in call.
+   if (myCallMap.size()) {
+      cpLog(LOG_ERR, "ERROR:  myCallMap has size: %d, should be empty, debug: %s\n",
+            myCallMap.size(), debug);
+      return;
+   }
+   else {
+      cpLog(LOG_ERR, "initiateInvite, debug: %s\n", debug);
+   }
+
+   //Case 1: sip:user@...
+   string::size_type pos = to.find_first_of(":@");
+   Sptr<BaseUrl> toUrl; 
+   if (pos != string::npos) {
+      toUrl = parseUrl(to);
+      if (toUrl == 0) {
+         //Case 2
+         //user@xyz.com
+         //Assume it to be a SIP url
+         string mTo("sip:");
+         mTo += to;
+         toUrl = parseUrl(mTo);
+         if (toUrl == 0) {
+            //Give-up, url is not the right type
+            UaFacade::instance().postMsg("ERROR Invalid URL");
+            return;
+         }
+      }
+   }
+   else {
+      //Only user part
+      toUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
+      Sptr<SipUrl> sUrl;
+      sUrl.dynamicCast(toUrl);
+      sUrl->setUserValue(to);
+      sUrl->setHost(UaConfiguration::instance().getValue(ProxyServerTag));
+   }
    
-    //Case 1: sip:user@...
-    string::size_type pos = to.find_first_of(":@");
-    Sptr<BaseUrl> toUrl; 
-    if (pos != string::npos) {
-        toUrl = parseUrl(to);
-        if (toUrl == 0) {
-           //Case 2
-           //user@xyz.com
-           //Assume it to be a SIP url
-           string mTo("sip:");
-           mTo += to;
-           toUrl = parseUrl(mTo);
-           if (toUrl == 0) {
-               //Give-up, url is not the right type
-               UaFacade::instance().postMsg("ERROR Invalid URL");
-               return;
-           }
-        }
-    }
-    else {
-        //Only user part
-        toUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
-        Sptr<SipUrl> sUrl;
-        sUrl.dynamicCast(toUrl);
-        sUrl->setUserValue(to);
-        sUrl->setHost(UaConfiguration::instance().getValue(ProxyServerTag));
-    }
+   string sipPort = UaConfiguration::instance().getValue(LocalSipPortTag);
+   string rtpPort =  UaConfiguration::instance().getValue(MinRtpPortTag);
+   
+   Sptr<InviteMsg> msg = new InviteMsg( toUrl, UaConfiguration::instance().getMyLocalIp(),
+                                        atoi( sipPort.c_str()) ,atoi(rtpPort.c_str()) );
+   SipFrom from("", UaConfiguration::instance().getMyLocalIp());
+   from.setHost(Data(UaConfiguration::instance().getMyLocalIp()));
+   from.setUser( UaConfiguration::instance().getValue(UserNameTag));
+   from.setDisplayName(UaConfiguration::instance().getValue(DisplayNameTag));
+   
+   //if(sipPort != "5060")
+   //{
+   from.setPort(sipPort.c_str());
+   //}
+   
+   int sipPorti = atoi(sipPort.c_str());
+   
+   CryptoRandom random;
+   unsigned char tempTag[NUM_TAG_RANDOMNESS];
+   int len = random.getRandom(tempTag, NUM_TAG_RANDOMNESS);
+   Data fromTag;
+   if (len > 0) {
+      fromTag = convertToHex(tempTag, NUM_TAG_RANDOMNESS);
+   }
+   from.setTag(fromTag);
+   msg->setFrom( from );
+   
+   
+   // Set transport in Via:
+   SipVia via = msg->getVia();
+   msg->removeVia();
+   via.setTransport( UaConfiguration::instance().getValue(SipTransportTag) );
+   Data viaBranch("z9hG4bK");
+   viaBranch += msg->computeBranch2(sipPorti);
+   via.setBranch(viaBranch);
+   msg->setVia( via );
+   
+   SipUserAgent uAgent("Vovia-SIP-SoftPhone/0.1 (www.vovida.org)",
+                       UaConfiguration::instance().getMyLocalIp());
+   msg->setUserAgent(uAgent);
+   
+   // Set Contact header
+   Sptr< SipUrl > myUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
+   myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
+   SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
+   if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
+      myUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
+   } else {
+      myUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
+   }
+   myUrl->setPort( UaConfiguration::instance().getValue(LocalSipPortTag) );
+   myContact.setUrl( myUrl.getPtr() );
+   msg->setNumContact( 0 );    // Clear old contact
+   msg->setContact( myContact );
 
-    string sipPort = UaConfiguration::instance().getValue(LocalSipPortTag);
-    string rtpPort =  UaConfiguration::instance().getValue(MinRtpPortTag);
-
-    Sptr<InviteMsg> msg = new InviteMsg( toUrl, UaConfiguration::instance().getMyLocalIp(),
-                                         atoi( sipPort.c_str()) ,atoi(rtpPort.c_str()) );
-    SipFrom from("", UaConfiguration::instance().getMyLocalIp());
-    from.setHost(Data(UaConfiguration::instance().getMyLocalIp()));
-    from.setUser( UaConfiguration::instance().getValue(UserNameTag));
-    from.setDisplayName(UaConfiguration::instance().getValue(DisplayNameTag));
-
-    //if(sipPort != "5060")
-    //{
-    from.setPort(sipPort.c_str());
-    //}
-
-    int sipPorti = atoi(sipPort.c_str());
-    
-    CryptoRandom random;
-    unsigned char tempTag[NUM_TAG_RANDOMNESS];
-    int len = random.getRandom(tempTag, NUM_TAG_RANDOMNESS);
-    Data fromTag;
-    if (len > 0) {
-        fromTag = convertToHex(tempTag, NUM_TAG_RANDOMNESS);
-    }
-    from.setTag(fromTag);
-    msg->setFrom( from );
-
-
-    // Set transport in Via:
-    SipVia via = msg->getVia();
-    msg->removeVia();
-    via.setTransport( UaConfiguration::instance().getValue(SipTransportTag) );
-    Data viaBranch("z9hG4bK");
-    viaBranch += msg->computeBranch2(sipPorti);
-    via.setBranch(viaBranch);
-    msg->setVia( via );
-
-    SipUserAgent uAgent("Vovia-SIP-SoftPhone/0.1 (www.vovida.org)",
-                        UaConfiguration::instance().getMyLocalIp());
-    msg->setUserAgent(uAgent);
-
-    // Set Contact header
-    Sptr< SipUrl > myUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
-    myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
-    SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
-    if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
-       myUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
-    } else {
-       myUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
-    }
-    myUrl->setPort( UaConfiguration::instance().getValue(LocalSipPortTag) );
-    myContact.setUrl( myUrl.getPtr() );
-    msg->setNumContact( 0 );    // Clear old contact
-    msg->setContact( myContact );
-
-    SipRequestLine& reqLine = msg->getMutableRequestLine();
-    reqLine.setTransportParam(UaConfiguration::instance().getValue(SipTransportTag));
-
-    Sptr<SipSdp> sipSdp;
-    sipSdp.dynamicCast ( msg->getContentData( 0 ) );
-    assert(sipSdp != 0);
-    Data NAT_HOST = UaConfiguration::instance().getValue(NATAddressIPTag);
+   SipRequestLine& reqLine = msg->getMutableRequestLine();
+   reqLine.setTransportParam(UaConfiguration::instance().getValue(SipTransportTag));
+   
+   Sptr<SipSdp> sipSdp;
+   sipSdp.dynamicCast ( msg->getContentData( 0 ) );
+   assert(sipSdp != 0);
+   Data NAT_HOST = UaConfiguration::instance().getValue(NATAddressIPTag);
 #ifdef USE_MPEGLIB
-    int video  = atoi(UaConfiguration::instance().getValue(VideoTag).c_str()); 
-    //Even if video mode is on, when running in command line mode force the
-    //non-video option
-    if (video && (!UaCommandLine::instance()->getIntOpt("cmdline"))) {
-        Data sdpData;
-        Sptr<VideoDevice> vDevice;
-        vDevice.dynamicCast(UaFacade::instance().peekMediaDevice());
-        assert(vDevice != 0);
-        SdpSession& localSdp = sipSdp->getSdpDescriptor();
-        localSdp.flushMediaList();
-        vDevice->generateSdpData(localSdp);
-    }
-    else {
-        SdpSession localSdp = MediaController::instance().createSession();
-        if(NAT_HOST.length())
-        {
-           setHost(localSdp, NAT_HOST);
-        }
-        sipSdp->setSdpDescriptor(localSdp);
-    }
+   int video  = atoi(UaConfiguration::instance().getValue(VideoTag).c_str()); 
+   //Even if video mode is on, when running in command line mode force the
+   //non-video option
+   if (video && (!UaCommandLine::instance()->getIntOpt("cmdline"))) {
+      Data sdpData;
+      Sptr<VideoDevice> vDevice;
+      vDevice.dynamicCast(UaFacade::instance().peekMediaDevice());
+      assert(vDevice != 0);
+      SdpSession& localSdp = sipSdp->getSdpDescriptor();
+      localSdp.flushMediaList();
+      vDevice->generateSdpData(localSdp);
+   }
+   else {
+      SdpSession localSdp = MediaController::instance().createSession();
+      if (NAT_HOST.length()) {
+         setHost(localSdp, NAT_HOST);
+      }
+      sipSdp->setSdpDescriptor(localSdp);
+   }
 #else
-    SdpSession localSdp = MediaController::instance().createSession("UaCallControll::initiateInvite");
-    if (NAT_HOST.length()) {
-       setHost(localSdp, NAT_HOST);
-    }
-    sipSdp->setSdpDescriptor(localSdp);
+   SdpSession localSdp = MediaController::instance().createSession("UaCallControll::initiateInvite");
+   if (NAT_HOST.length()) {
+      setHost(localSdp, NAT_HOST);
+   }
+   sipSdp->setSdpDescriptor(localSdp);
 #endif
+   
+   int callId = myCallMap.size();
+   
+   //Create call-agent to handle the call from now on
+   Sptr<CallAgent> cAgent = new CallAgent(callId, msg.getPtr(), &(UaFacade::instance()),
+                                          Vocal::UA::A_CLIENT);
+   
+   //Persist the agent for the duration of the call
+   myCallMap[cAgent->getId()] = cAgent;
+   //UaClient state-machine will take the call from here
+}//initiateInvite
 
-    int callId = myCallMap.size();
-
-    //Create call-agent to handle the call from now on
-    Sptr<CallAgent> cAgent = new CallAgent(callId, msg.getPtr(), &(UaFacade::instance()),
-                                           Vocal::UA::A_CLIENT);
-
-    //Persist the agent for the duration of the call
-    myCallMap[cAgent->getId()] = cAgent;
-    //UaClient state-machine will take the call from here
-}
 
 bool
 UaCallControl::busy(Sptr<SipCommand> sipMsg)
