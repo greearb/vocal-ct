@@ -51,8 +51,6 @@ void debugMemUsage(const char* msg, const char* fname) {
    off << endl;
 }
 
-
-
 void vhexDump(const char* msg, int len, string& _retval,
              bool show_decode, bool add_newlines) {
    ostringstream retval;

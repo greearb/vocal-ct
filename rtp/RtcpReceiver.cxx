@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.2 2004/06/02 03:38:05 greear Exp $";
 
 
 #include "global.h"
@@ -389,8 +389,14 @@ void RtcpReceiver::readSR (RtcpHeader* head)
 
 #ifdef USE_LANFORGE
            if (rtpStatsCallbacks) {
-              cpLog(LOG_DEBUG_STACK, "Inserting lanforge latency: %d\n", diff);
+
+              if ((diff < -1000) || (diff > 1000)) {
+                 cpLog(LOG_ERR, "WARNING: rt_latency abnormal: nowN: %llu  thenN: %llu  diff: %d  lastDelay: %d, block->lastSRTimeStamp: %x\n",
+                       nowN, thenN, diff, ld, srt);
+              }
               uint64 nw = nowNtp.getMs();
+              cpLog(LOG_ERR, "NOTE:  Inserting lanforge latency: %d, nw: %llu\n",
+                    diff, nw);
               rtpStatsCallbacks->avgNewRoundTripLatency(nw, diff);
            }
 #endif

@@ -49,7 +49,7 @@
  */
 
 static const char* const UaWorkerThread_cxx_Version =
-    "$Id: UaWorkerThread.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaWorkerThread.cxx,v 1.2 2004/06/02 03:38:05 greear Exp $";
 
 
 #include "SipEvent.hxx"
@@ -58,6 +58,8 @@ static const char* const UaWorkerThread_cxx_Version =
 #include "CallDB.hxx"
 #include "UaWorkerThread.hxx"
 #include "UaCallControl.hxx"
+#include "UaFacade.hxx"
+
 
 using namespace Vocal::UA;
 
@@ -100,6 +102,11 @@ UaWorkerThread::thread()
         catch(VException& e)
         {
             cpLog(LOG_ERR, "Failed to process event, reason %s", e.getDescription().c_str());
+
+            // Tell the GUI about this problem.
+            string errm = "LOCAL_EXCEPTION: ";
+            errm += e.getDescription().c_str();
+            UaFacade::instance().postMsg(errm.c_str());
         }
     }//while
     cpLog(LOG_DEBUG, "Exiting worker thread...");
