@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.5 2004/05/29 01:10:34 greear Exp $";
+    "$Id: Connection.hxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -60,6 +60,7 @@ static const char* const ConnectionHeaderVersion =
 #include <BugCatcher.hxx>
 #include <IOBuffer.hxx>
 #include <string>
+#include <misc.hxx>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -98,175 +99,183 @@ typedef struct sockaddr SA;
 
 
 class Connection: public BugCatcher {
-    public:
+public:
         
-        /**
-           Construct a connection.
-           @param blocking  create a blocking object, or non-blocking if false.
+   /**
+      Construct a connection.
+      @param blocking  create a blocking object, or non-blocking if false.
 
-        */
-        Connection(bool blocking);
+   */
+   Connection(bool blocking);
 
-        /**
-           Construct a connection.
-           @param conId  file descriptor to wrap with connection object.
-           @param blocking  create a blocking object.
-        */
-        Connection(int conId, bool blocking);
+   /**
+      Construct a connection.
+      @param conId  file descriptor to wrap with connection object.
+      @param blocking  create a blocking object.
+   */
+   Connection(int conId, bool blocking);
 
 
-        /** On_purpose is just to make sure we call this method
-         * on purpose, and thus are paying atention to making sure
-         * the underlying socket descriptors are set correctly.
-         */
-        Connection(const Connection& other, bool on_purpose);
+   /** On_purpose is just to make sure we call this method
+    * on purpose, and thus are paying atention to making sure
+    * the underlying socket descriptors are set correctly.
+    */
+   Connection(const Connection& other, bool on_purpose);
 
-        /** return the file descriptor */
-        int getConnId() const {
-            return _connId;
-        }
+   /** return the file descriptor */
+   int getConnId() const {
+      return _connId;
+   }
 
-        /** return the address connecting to */
-        struct sockaddr& getConnAddr() {
-            return *_connAddr;
-        }
+   /** return the address connecting to */
+   struct sockaddr& getConnAddr() {
+      return *_connAddr;
+   }
  
-        /** return length of the connecting address. */
-        socklen_t getConnAddrLen() const {
-            return _connAddrLen;
-        }
+   /** return length of the connecting address. */
+   socklen_t getConnAddrLen() const {
+      return _connAddrLen;
+   }
 
-        virtual ~Connection();
+   virtual ~Connection();
 
-        // Be very careful with this.  You must set closeOnDestruct
-        // correctly!
-        Connection& operator=(const Connection& other);
+   // Be very careful with this.  You must set closeOnDestruct
+   // correctly!
+   Connection& operator=(const Connection& other);
 
-        virtual void setCloseOnDestruct(bool b) { closeOnDestruct = b; }
-        virtual bool shouldCloseOnDestruct() const { return closeOnDestruct; }
+   virtual void setCloseOnDestruct(bool b) { closeOnDestruct = b; }
+   virtual bool shouldCloseOnDestruct() const { return closeOnDestruct; }
 
-        virtual bool needsToWrite() { return outBuf.getCurLen() > 0; }
-        virtual int getSendQueueSize() { return outBuf.getCurLen(); }
-        virtual void consumeRcvdBytes(int cnt) { rcvBuf.dropFromTail(cnt); }
+   virtual bool needsToWrite() { return outBuf.getCurLen() > 0; }
+   virtual int getSendQueueSize() { return outBuf.getCurLen(); }
+   virtual void consumeRcvdBytes(int cnt) { rcvBuf.dropFromTail(cnt); }
 
-        // Returns the number of bytes actually peeked, and
-        // buf will be null-terminated.
-        int peekRcvdBytes(unsigned char* buf, int mx_buf_len);
+   // Returns the number of bytes actually peeked, and
+   // buf will be null-terminated.
+   int peekRcvdBytes(unsigned char* buf, int mx_buf_len);
 
-        /**
-           this is true if the two Connection objects have the same
-           fd, false otherwise.
-        */
+   /**
+      this is true if the two Connection objects have the same
+      fd, false otherwise.
+   */
 
-        bool operator==(const Connection& other) {
-            return (_connId == other._connId);
-        }
+   bool operator==(const Connection& other) {
+      return (_connId == other._connId);
+   }
 
-        /**
-           this is false if the two Connection objects have the same
-           fd, true otherwise.
-        */
+   /**
+      this is false if the two Connection objects have the same
+      fd, true otherwise.
+   */
 
-        bool operator!=(const Connection& other) {
-            return (_connId != other._connId);
-        }
-
-
-        /** Returns >= 0 if we received a newline, OR if the entire buffer is full
-         * but there is no newline.  RsltBuf will be null terminated.  Maxlen specifies
-         * the memory allocated for rsltBuf and is uses to ensure we do not over-run
-         * the buffer.
-         * In general, call this method repeatedly untill it returns < 0
-         */
-        int getLine(char* rsltBuf, int maxlen);
+   bool operator!=(const Connection& other) {
+      return (_connId != other._connId);
+   }
 
 
-        /** 
-            Gets the connection description.
-            @return connection description (far end) in the format
-            IP_ADDRESSS:Port.
-        */
-        string getDescription() const;
-
-        /** 
-            Gets the IP of the peer machine (destination).
-            @return IP of the destination.
-        */
-        string getPeerIp() const;
-
-        //Gets the port of the destination 
-        int getPeerPort() const;
+   /** Returns >= 0 if we received a newline, OR if the entire buffer is full
+    * but there is no newline.  RsltBuf will be null terminated.  Maxlen specifies
+    * the memory allocated for rsltBuf and is uses to ensure we do not over-run
+    * the buffer.
+    * In general, call this method repeatedly untill it returns < 0
+    */
+   int getLine(char* rsltBuf, int maxlen);
 
 
-        /// Still connected?  true if so.
-        bool isLive() const {
-            return (_live);
-        }
+   /** 
+       Gets the connection description.
+       @return connection description (far end) in the format
+       IP_ADDRESSS:Port.
+   */
+   string getDescription() const;
 
-        // close connection.
-        int close();
+   /** 
+       Gets the IP of the peer machine (destination).
+       @return IP of the destination.
+   */
+   string getPeerIp() const;
 
-        // initialize the SIGPIPE signal handler (for broken pipes)
-        void initialize();
+   //Gets the port of the destination 
+   int getPeerPort() const;
 
-        // handler for SIGPIPE signal
-        static void signalHandler(int signo);
+   // Still connected?  true if so.
+   bool isLive() const {
+      return (_connId >= 0);
+   }
 
-        void setConnectInProgress(bool v) { _inProgress = true; }
-        bool isConnectInProgress() const { return _inProgress; }
+   // close connection.
+   int close();
 
-        // Get the file descriptor for the socket - use with care or not at all
-        int getSocketFD () { return getConnId(); }
+   // initialize the SIGPIPE signal handler (for broken pipes)
+   void initialize();
 
-        // Add this stacks file descriptors to the the fdSet
-        void addToFdSet ( fd_set* set );
+   // handler for SIGPIPE signal
+   static void signalHandler(int signo);
 
-        // Find the max of any file descripts in this stack and the passed value
-        int getMaxFD ( int prevMax);
+   void setConnectInProgress(bool v) { _inProgress = true; }
+   bool isConnectInProgress() const { return _inProgress; }
 
-        // Check and see if this stacks file descriptor is set in fd_set
-        bool checkIfSet ( fd_set* set );
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        bool isBlocking() { return _blocking; }
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-        virtual int read();
 
-        virtual int write();
+   // Get the file descriptor for the socket - use with care or not at all
+   int getSocketFD () { return getConnId(); }
 
-        // Queue it for send.  It will be written as soon as possible.
-        virtual int queueSendData(const char* data, int len);
+   // Add this stacks file descriptors to the the fdSet
+   void addToFdSet ( fd_set* set );
 
-    protected:
+   // Find the max of any file descripts in this stack and the passed value
+   int getMaxFD ( int prevMax);
 
-        /**Sets the connection state to be blocking or non-blocking
-           based on the type of the connection.
-         */
-        void setState();
+   // Check and see if this stacks file descriptor is set in fd_set
+   bool checkIfSet ( fd_set* set );
 
-        virtual int iclose();
-        virtual int iread();
-        virtual int iwrite();
+   bool isBlocking() { return _blocking; }
 
-        friend class TcpServerSocket;
-        friend class TcpClientSocket;
-        int _connId;
-        bool _live;
-        socklen_t _connAddrLen;
-        struct sockaddr* _connAddr;
-        bool _blocking;
-        bool _inProgress; // Doing a non-blocking connect
-        static bool _init;  // Set to true if signal handler initialized
-        bool _isClient; //  set if it is the client
-        bool closeOnDestruct; /* Should we close our socket on destruct, or not.
-                               * Helps with shared sockets. */
+   virtual int read();
 
-        IOBuffer outBuf;
-        IOBuffer rcvBuf;
+   virtual int write();
 
-    private:
-        // Don't use this, makes it a total PITA to figure out how to
-        // safely close file descriptors.
-        Connection(const Connection& other);
+   // Queue it for send.  It will be written as soon as possible.
+   virtual int queueSendData(const char* data, int len);
+
+   // Clear out our buffers, does not attempt to flush.
+   virtual void clear();
+
+protected:
+
+   /**Sets the connection state to be blocking or non-blocking
+      based on the type of the connection.
+   */
+   void setState();
+
+   virtual int iclose();
+   virtual int iread();
+   virtual int iwrite();
+
+   friend class TcpServerSocket;
+   friend class TcpClientSocket;
+   int _connId;
+   socklen_t _connAddrLen;
+   struct sockaddr* _connAddr;
+   bool _blocking;
+   bool _inProgress; // Doing a non-blocking connect
+   static bool _init;  // Set to true if signal handler initialized
+   bool _isClient; //  set if it is the client
+   bool closeOnDestruct; /* Should we close our socket on destruct, or not.
+                          * Helps with shared sockets. */
+
+   IOBuffer outBuf;
+   IOBuffer rcvBuf;
+
+private:
+   // Don't use this, makes it a total PITA to figure out how to
+   // safely close file descriptors.
+   Connection(const Connection& other);
 };
 
 #endif

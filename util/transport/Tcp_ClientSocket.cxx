@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 
 #ifndef __vxworks
 
@@ -116,12 +116,27 @@ TcpClientSocket::TcpClientSocket(const NetworkAddress& server,
     _hostName = server.getHostName();
     _serverPort = server.getPort();
     cpLog(LOG_DEBUG_STACK, "%s %d", _hostName.c_str(), _serverPort);
-    if (_serverPort == -1 )
-    {
+    if (_serverPort == -1 ) {
         _serverPort = VEnvVar::VPS_PORT;
     }
     initalize();
 }
+
+void TcpClientSocket::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           uint64 now) {
+    if (_conn != 0) {
+        _conn->tick(input_fds, output_fds, exc_fds, now);
+    }
+}
+
+int TcpClientSocket::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                            int& maxdesc, uint64& timeout, uint64 now) {
+    if (_conn != 0) {
+        _conn->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+    }
+    return 0;
+}
+
 
 /* I think this is a bad idea, and it's not implemented right, as far as I
  * can tell. --Ben
@@ -150,13 +165,11 @@ TcpClientSocket::operator=(TcpClientSocket& other)
 
 
 void
-TcpClientSocket::initalize()
-{
+TcpClientSocket::initalize() {
     _conn = new Connection(_blocking);
 }
 
-TcpClientSocket::~TcpClientSocket()
-{
+TcpClientSocket::~TcpClientSocket() {
     close();
 }
 
@@ -171,9 +184,7 @@ bool TcpClientSocket::isConnected() const {
 }
 
 
-void
-TcpClientSocket::connect() throw (VNetworkException&)
-{
+void TcpClientSocket::connect() throw (VNetworkException&) {
     struct addrinfo hints, *res, *tSave;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = NetworkConfig::instance().getAddrFamily();
@@ -183,12 +194,12 @@ TcpClientSocket::connect() throw (VNetworkException&)
     int myerrno = 0;
 
     sprintf(pBuf, "%d", _serverPort);
-    if((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
+    if ((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
         char buf[256];
-        sprintf(buf, "Failed to getaddrinfo for server %s:%d, reason %s",
-            _hostName.c_str(), 
-            _serverPort,
-            gai_strerror(errno));
+        snprintf(buf, 255, "Failed to getaddrinfo for server %s:%d, reason %s",
+                 _hostName.c_str(), 
+                 _serverPort,
+                 gai_strerror(errno));
         cpLog(LOG_ERR, buf);
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
@@ -204,6 +215,9 @@ TcpClientSocket::connect() throw (VNetworkException&)
             cpLog(LOG_DEBUG, buf);
             continue;
         }
+
+        // Set it to be non-blocking, etc.
+        _conn->setState();
 
         // 16/1/04 fpi		  
         // tbr
@@ -280,23 +294,30 @@ TcpClientSocket::connect() throw (VNetworkException&)
 
     if (res == 0) {
         char buf[256];
-        sprintf(buf, "Failed to connect to server %s:%d, reason %s (%d)",
-            _hostName.c_str(), 
-            _serverPort,
-            gai_strerror(myerrno), myerrno);
+        snprintf(buf, 255, "Failed to connect to server %s:%d, reason %s (%d)",
+                 _hostName.c_str(), 
+                 _serverPort,
+                 gai_strerror(myerrno), myerrno);
         cpLog(LOG_ERR, buf);
         _conn->close();
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
     freeaddrinfo(tSave);
     _conn->setState();
+}//connect
+
+
+void TcpClientSocket::clear() {
+    if (_conn != 0) {
+        _conn->clear();
+    }
 }
 
-void
-TcpClientSocket::close()
-{
-    if (_closeCon && _conn->getConnId() > 2)
+
+void TcpClientSocket::close() {
+    if (_closeCon && (_conn != 0) && (_conn->getConnId() > 2)) {
         _conn->close();
+    }
 }
 
 const char*

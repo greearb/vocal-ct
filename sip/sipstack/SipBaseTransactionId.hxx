@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionId_hxx_Version =
-    "$Id: SipBaseTransactionId.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipBaseTransactionId.hxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx"
@@ -442,12 +442,5 @@ SipBaseTransactionId::compareOmitVia(const SipBaseTransactionId& other) const
 }
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

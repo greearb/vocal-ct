@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
 
 
 #include <string>
@@ -155,9 +155,12 @@ class SipTransceiver: public BugCatcher {
 	///
 	void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
 
+#if 0
 	///
 	SipTransactionDB::CallLegVector getCallLegMsgs(Sptr < SipMsg >
 						       sipmsg);
+#endif
+
 	///
 	void printSize();
 
@@ -208,12 +211,5 @@ class SipTransceiver: public BugCatcher {
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -79,8 +79,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
 
     SipTransactionId id(*msg);
     Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
-    retVal->msg.in = msg;
-    retVal->msg.type = msg->getType();
+    retVal->setMsgIn(msg);
 
     Sptr<SipCommand> command((SipCommand*)(msg.getPtr()));
 
@@ -88,7 +87,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
         Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
         if (dest != 0) {
             cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
-            retVal->msg.transport = dest->getTransportParam();
+            retVal->setTransport(dest->getTransportParam().c_str());
         }
     } 
 
@@ -97,11 +96,12 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
     }
 
     Sptr<SipCallContainer> call = getCallContainer(id);
-    Sptr<SipMsg> mold;
-    if ((call != 0) && ((mold = call->findMsg(id)) != 0)) {
+    Sptr<SipMsgPair> mold;
+    if ((call != 0) && ((mold = call->findMsgPair(id)) != 0)
+        && (mold->request != 0)) {
 	cpLog(LOG_ERR,"two identical requests from application...");
 	cpLog(DEBUG_NEW_STACK,"Old...\n%s\n\nNew...\n%s",
-	      mold.toString().c_str(), msg.toString().c_str());
+	      mold->request->toString().c_str(), msg->toString().c_str());
     }
     else {
         if (call == 0) {
@@ -115,32 +115,34 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
             call->clear();
 	}
 
+        Sptr<SipMsgPair> mp = new SipMsgPair();
+        mp->request = retVal;
 	// insert the request into data base
-        call->addMsg(retval);
+        call->addMsgPair(mp);
     }
     return retVal;
 }//processSend
 
 
 Sptr<SipMsgQueue>
-SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now) {
+SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
     // the only receive in THIS db can be of the responses
     Sptr<StatusMsg > response;
-    response.dynamic_cast(msgContainer->msg.in);
+    response.dynamicCast(msgContainer->getMsgIn());
     assert(response != 0);
 
     Sptr<SipMsgQueue> retVal;
 
-    SipTransactionId id(*(msgContainer->msg.in));
+    SipTransactionId id(*(msgContainer->getMsgIn()));
 
     Sptr<SipCallContainer> call = getCallContainer(id);
     if (call == 0) {
         // there's no transaction for this response message
         cpLog(LOG_DEBUG_STACK,"No transaction for %s",
-              msgContainer->msg.in->encode().logData());
+              msgContainer->getMsgIn()->toString().c_str());
     }
     else {
-        Sptr<SipMsgPair> msgPair = call->findMsgPair(response);
+        Sptr<SipMsgPair> msgPair = call->findMsgPair(id);
         if (msgPair == 0) {
             // Response to something we didn't send??
             cpLog(LOG_ERR, "ERROR:  Could not find request for response: %s\n",
@@ -160,7 +162,7 @@ SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now) {
                  (response->getCSeq().getMethod() == INVITE_METHOD))) {
                 // simply forward this response up to application
                 retVal = new SipMsgQueue();
-                retVal->push_back(msgContainer->msg.in);
+                retVal->push_back(msgContainer->getMsgIn());
             }
             else if (response->getStatusLine().getStatusCode() >= 200) {
                 // if it is a final response, then process the transaction
@@ -168,20 +170,16 @@ SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now) {
                 if (msgPair->response != 0) {
                     // Already had a response!
                     cpLog(LOG_ERR, "WARNING:  Received duplicate response, initial: %s\nnew: %s\n",
-                          msgPair->response->toString().c_str, response->toString().c_str());
+                          msgPair->response->toString().c_str(),
+                          response->toString().c_str());
                     // Ignore this later response
                 }
                 else {
-                    msgPair->response = response;
+                    msgPair->response = msgContainer;
                     
                     retVal = new SipMsgQueue();
-                    retval->push_back(msgPair->request->msg.in); //TODO:  Why?
-                    retVal->push_back(msgContainer->msg.in);
-                    
-                    //Clean up Object leave the raw data
-                    if (!msgContainer->msg.out.length()) {
-                        msgContainer->msg.out = msgContainer->msg.in->encode(); 
-                    }
+                    retVal->push_back(msgPair->request->getMsgIn()); //TODO:  Why?
+                    retVal->push_back(msgContainer->getMsgIn());                    
                 }
             }
         }

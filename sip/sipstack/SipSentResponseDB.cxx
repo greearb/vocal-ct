@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentResponseDB_cxx_version =
-    "$Id: SipSentResponseDB.cxx,v 1.3 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipSentResponseDB.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
@@ -68,8 +68,8 @@ SipSentResponseDB::SipSentResponseDB(const string& _local_ip)
 }
 */
 
-SipSentResponseDB::SipSentResponseDB(int size, const string& _local_ip)
-    : SipTransactionDB(size, _local_ip)
+SipSentResponseDB::SipSentResponseDB(const string& _local_ip)
+    : SipTransactionDB(_local_ip)
 {}
 
 SipSentResponseDB::~SipSentResponseDB()
@@ -77,344 +77,194 @@ SipSentResponseDB::~SipSentResponseDB()
     /// the SipTransactionDB::~ will do the clean up
 }
 
-SipMsgContainer*
-SipSentResponseDB::processSend(const Sptr<SipMsg>& msg)
-{
+Sptr<SipMsgContainer>
+SipSentResponseDB::processSend(const Sptr<SipMsg>& msg) {
     /// the only send in THIS db can be of the responses
-    StatusMsg * response = dynamic_cast<StatusMsg*>(msg.getPtr());
-    assert(response);
+    Sptr<StatusMsg> response;
+    response.dynamicCast(msg);
+    assert(response != 0);
 
-    SipMsgContainer * retVal = new SipMsgContainer();
-    retVal->msg.in = msg;
-    retVal->msg.type = msg->getType();
-    retVal->msg.transport = msg->getVia(0).getTransport();
+    SipTransactionId id(*msg);
 
-    /// if its a final response then update the transactionDB
-    if(response->getStatusLine().getStatusCode() >= 200)
-    {
-	SipTransactionId id(*msg);
-	SipTransactionList<SipTransLevel3Node *>::SipTransListNode*
-	    level3Node = 0;
-	SipTransLevel1Node * topNode = getTopNode(id,msg);
-	if(topNode)
-	{
-	    SipTransactionList<SipTransLevel2Node *>::SipTransListNode*
-		level2Node = 0;
+    Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
+    retVal->setMsgIn(msg);
+    retVal->setTransport(msg->getVia(0).getTransport().c_str());
 
-	    level2Node = topNode->find(id);
-	    if(level2Node)
-	    {
-		level3Node = level2Node->val->find(id);
-	    }
-	    else
-	    {
-		cpLog(DEBUG_NEW_STACK,
-		      "ERROR, no Level2[%s] entry for outgoing response...",
-		      id.getLevel2().logData());
-	    }
-	}
-	if(level3Node)
-	{
-	    /// there's a transaction for this response message
-	    /// hence add it to the transaction
-	    if(level3Node->val->msgs.response)
-	    {
-		cpLog(DEBUG_NEW_STACK,"Collision\nOLD:%s\n\nNEW:%s",
-		      level3Node->val->msgs.response->msg.out.logData(),
-		      retVal->msg.out.logData());
-	    }
-	    else {
-		level3Node->val->msgs.response = retVal;
-		retVal->setLevel3Ptr(level3Node->val);
+    // if its a final response then update the transactionDB
+    if (response->getStatusLine().getStatusCode() >= 200) {
 
-		/// make the transport retrans it repeatedly
-		if ((level3Node->val->myKey == INVITE_METHOD) &&
-                   (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
-                    cpLog( LOG_DEBUG_STACK, "Set UA INVITE final response retransmission" );
-		    retVal->setRetransCount(MAX_RETRANS_COUNT);
+        // Find the related call
+        Sptr<SipCallContainer> call = getCallContainer(id);
+        if (call != 0) {
+            Sptr<SipMsgPair> mp = call->findMsgPair(id);
+            if (mp != 0) {
+                if (mp->response != 0) {
+                    cpLog(LOG_ERR, "Collision\nOLD:%s\n\nNEW:%s",
+                          mp->response->toString().c_str(),
+                          response->toString().c_str());
                 }
-                cpLog( LOG_DEBUG_STACK, "Retransmission count %d", retVal->getRetransCount() );
-
-                if (level3Node->val->myKey == INVITE_METHOD) {
-                    SipTransactionGC::instance()->
-                        collect(level3Node->val->msgs.request,
-                                INVITE_CLEANUP_DELAY);
+                else {
+                    mp->response = retVal;
+                    // make the transport retrans it repeatedly
+                    if ((response->getType() == SIP_INVITE) &&
+                        (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
+                        cpLog( LOG_DEBUG_STACK, "Set UA INVITE final response retransmission" );
+                        retVal->setRetransCount(MAX_RETRANS_COUNT);
+                    }
                 }
 	    }
 	}
-
     }
 
     return retVal;
 }
 
-SipMsgQueue*
-SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
-{
-    /// the only receive in THIS db can be of the requests
-    assert(dynamic_cast<SipCommand*>(msgContainer->msg.in.getPtr()));
 
-    SipTransactionId id(*(msgContainer->msg.in));
-    SipMsgQueue * retVal = 0;
+Sptr<SipMsgQueue>
+SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
+    // the only receive in THIS db can be of the requests
+    assert(dynamic_cast<SipCommand*>(msgContainer->getMsgIn().getPtr()));
 
-    SipTransLevel1Node * topNode = getTopNode(id,msgContainer->msg.in);
-    if(!topNode)
-    {
-	/// there was no transaction found/created for this message,
-	/// so just proxy it up and hope for the best!!!
-	retVal = new SipMsgQueue;
-	retVal->push_back(msgContainer->msg.in);
-        msgContainer->msg.in = 0;
-	cpLog(LOG_DEBUG,"No trasaction for %s",
-	      msgContainer->msg.out.logData());
+    SipTransactionId id(*(msgContainer->getMsgIn()));
+    Sptr<SipMsgQueue> retVal;
+    
+    Sptr<SipCallContainer> call = getCallContainer(id);
+    Sptr<SipMsgPair> mp;
 
-	///// leak fixed 04/11 @ 1230
-	SipTransactionGC::instance()->
-	    collect(msgContainer,
-		    ORPHAN_CLEANUP_DELAY);
+    if (call == 0) {
+        // See if we can create a new call.
+        if (msgContainer->getMsgIn()->getType() == SIP_INVITE) {
+            call = new SipCallContainer(id);
+            addCallContainer(call);
+        }
     }
-    else
-    {
-        SipTransLevel2Node * level2Node = topNode->findOrInsert(id)->val;
 
-	SipTransactionList<SipTransLevel3Node *>::SipTransListNode *nodePtr =
-	    level2Node->findOrInsert(id);
+    if (call == 0) {
+        // there was no transaction found/created for this message,
+        // so just proxy it up and hope for the best!!!
+        // TODO:  This looks a bit strange.  If we should proxy, we should KNOW
+        //  we needed to proxy..otherwise, should drop. --Ben
+        retVal = new SipMsgQueue();
+        retVal->push_back(msgContainer->getMsgIn());
+        cpLog(LOG_ERR, "No trasaction for %s",
+              msgContainer->getMsgIn()->toString().c_str());
+    }
+    else {
 
-	if(nodePtr->val->msgs.request)
-	{
-	    /// if there is a coresponding response then retrans it
-	    if(nodePtr->val->msgs.response)
-	    {
+        mp = call->findMsgPair(id);
+        if (mp == 0) {
+            mp = new SipMsgPair();
+        }
+
+	if (mp->request != 0) {
+	    // if there is a coresponding response then retrans it
+	    if (mp->response != 0) {
 		cpLog(LOG_INFO,"duplicate message: %s",
-		      msgContainer->msg.out.logData());
-		msgContainer->msg.in = nodePtr->val->msgs.response->msg.in;
-		msgContainer->msg.netAddr = nodePtr->val->msgs.response->msg.netAddr;
-                if(nodePtr->val->msgs.response->msg.out.length())
-                {
-		    msgContainer->msg.out 
-                        = nodePtr->val->msgs.response->msg.out;
-                }
-                else
-                { 
-		    msgContainer->msg.out 
-                        = nodePtr->val->msgs.response->msg.in->encode();
-                }
-		msgContainer->msg.type 
-                    = nodePtr->val->msgs.response->msg.type;
-		msgContainer->msg.transport 
-                    = nodePtr->val->msgs.response->msg.transport;
-		msgContainer->msg.netAddr 
-                    = nodePtr->val->msgs.response->msg.netAddr;
+		      msgContainer->toString().c_str());
+
+                // Just assign the new message in place.
+                mp->response = msgContainer;
 		msgContainer->setRetransCount(FILTER_RETRANS_COUNT);
 	    }
-	    else
-	    {
+	    else {
 		/// we didn't find a matching response but since the request
 		/// has been received already so assume that application will
 		/// be sending a response (if it's not an ACK)
 		/// and hence just drop this duplicate
-		msgContainer->msg.in = 0;
-		msgContainer->msg.out = "";
-		msgContainer->setRetransCount(0);
+		msgContainer->clear();
 	    }
 	}
-	else
-	{
+	else {
 	    /// this is a first time receive of this message
             int msgSeqNumber 
-                  = msgContainer->msg.in->getCSeq().getCSeqData().convertInt();
-#if 1
-            if (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)
-            {
-                if(!( (msgContainer->msg.in->getType() == SIP_ACK) ||
-                      (msgContainer->msg.in->getType() == SIP_CANCEL) ))
-                {
-		    // Not ACK or CANCEL
-                    if(level2Node->seqSet)
-                    {
-                      // Check the seq number of the message for the same call-leg.
-                
-                      // 1.  if the seq number is higher than previous one Msg is OK
-                      // 2.  If sequence number is lower, it is an error
-                      // 3.  If sequence number is equal and message is not an
-                      //     ACK or CANCEL it is an error.  ACK and CANCELs w/
-                      //     the same seqence number are OK.
+                = msgContainer->getMsgIn()->getCSeq().getCSeqData().convertInt();
+            int storedSeqNum = call->getCurSeqNum();
 
-                        int storedSeqNum = level2Node->seqNumber;
-                        if( msgSeqNumber > storedSeqNum )
-                        {
+            if (SipTransceiver::myAppContext != APP_CONTEXT_PROXY) {
+                if (!((msgContainer->getMsgIn()->getType() == SIP_ACK) ||
+                      (msgContainer->getMsgIn()->getType() == SIP_CANCEL) )) {
+
+		    // Not ACK or CANCEL
+                    if (call->isSeqSet()) {
+                        // Check the seq number of the message for the same call-leg.
+                        
+                        // 1.  if the seq number is higher than previous one Msg is OK
+                        // 2.  If sequence number is lower, it is an error
+                        // 3.  If sequence number is equal and message is not an
+                        //     ACK or CANCEL it is an error.  ACK and CANCELs w/
+                        //     the same seqence number are OK.
+
+                        if (msgSeqNumber > storedSeqNum) {
                             cpLog(LOG_DEBUG, "***** Bumping seq to %d", msgSeqNumber);
                             //Bump up the next sequenece only if not ACK or CANCEL      
-                            level2Node->seqNumber = msgSeqNumber;
+                            call->setCurSeqNum(msgSeqNumber);
                         }
                         else if( (msgSeqNumber < storedSeqNum) ||
                                  (msgSeqNumber == storedSeqNum) ) {             
                             // Error condition
-                            Sptr<SipCommand> sipCmd((SipCommand*)(msgContainer->msg.in.getPtr()));
-                            assert(sipCmd != 0);
+                            Sptr<SipCommand> sipCmd;
+                            sipCmd.dynamicCast(msgContainer->getMsgIn());
                             Sptr<StatusMsg> statusMsg = new StatusMsg(*sipCmd, 400); 
                             Data reason = "Sequence number out of order";
                             statusMsg->setReasonPhrase(reason);
-                            msgContainer->msg.in = statusMsg;
-                            msgContainer->msg.type = statusMsg->getType();
-                            msgContainer->msg.transport = statusMsg->getVia(0).getTransport();
+                            Sptr<SipMsg> sm;
+                            sm.dynamicCast(statusMsg);
+                            msgContainer->setMsgIn(sm);
+                            msgContainer->setTransport(statusMsg->getVia(0).getTransport().c_str());
 
-                            msgContainer->msg.out = "";
                             msgContainer->setRetransCount(1);
                      
                             processSend(statusMsg.getPtr());
                             return 0;
                         }
                     }
-                 }
-                 else
-                 {
-                     level2Node->seqNumber = msgSeqNumber;
-                     level2Node->seqSet = true;
-                     cpLog(LOG_DEBUG_STACK, "***** Setting seq to %d for callId %s",
-                           msgSeqNumber, msgContainer->msg.in->getCallId().encode().logData());
-                 }
-            }
-#endif
-
-	    nodePtr->val->msgs.request = msgContainer;
-	    nodePtr->val->msgs.request->setLevel3Ptr(nodePtr->val);
-
-	    /// construct the msg queue to be sent up to application
-	    retVal = new SipMsgQueue;
-	    if(msgContainer->msg.in->getType() == SIP_ACK)
-	    {
-		SipTransactionList<SipTransLevel3Node *>::SipTransListNode
-		    *curr = level2Node->level3.getLast();
-		while(curr)
-		{
-		    /// look for the INVITE message
-		    if(curr->val->myKey == INVITE_METHOD)
-			break;
-		    curr = level2Node->level3.getPrev(curr);
-		}
-		if( !curr )
-                {
-		    cpLog(LOG_DEBUG_STACK,"No INVITE, try without Via branch");
-		    curr = topNode->findLevel3AckInvite( id );
                 }
-		if(curr)
-		{
+                else {
+                    // I see no reason to set this to older values.. --Ben
+                    if (msgSeqNumber > storedSeqNum) {                    
+                        call->setCurSeqNum(msgSeqNumber);
+                        cpLog(LOG_DEBUG_STACK, "***** Setting seq to %d for callId %s",
+                              msgSeqNumber, id.toString().c_str());
+                    }
+                }
+            }//if not a proxy
+
+	    // construct the msg queue to be sent up to application
+	    retVal = new SipMsgQueue();
+	    if (msgContainer->getMsgIn()->getType() == SIP_ACK) {
+
+                // TODO:  It seems that this only (fully) handles response to
+                //  an invite?
+
+                mp = call->findMsgPair(SIP_INVITE);
+
+		if (mp != 0) {
 		    cpLog(LOG_DEBUG_STACK,"Found INVITE");
                     // add the other items of this transaction, and
                     // reduce memory usage by clearing the parsed
                     // message in the in pointer
 
-		    if(curr->val->msgs.request)
-                    {
-			retVal->push_back(curr->val->msgs.request->msg.in);
-                        curr->val->msgs.request->msg.in = 0;
+		    if (mp->request != 0) {
+			retVal->push_back(mp->request->getMsgIn());
                     }
-		    if(curr->val->msgs.response)
-                    {
-			retVal->push_back(curr->val->msgs.response->msg.in);
-                        curr->val->msgs.response->msg.in = 0;
+		    if (mp->response != 0) {
+			retVal->push_back(mp->response->getMsgIn());
+                        mp->response->setRetransCount(0); // Cancel retrans of response
+                        // also cancel the retrans of response
+                        cpLog(DEBUG_NEW_STACK,"Stopping retrans of response[%s]",
+                              mp->response->toString().c_str());
                     }
-
-		    /// also cancel the retrans of response
-		    cancel(curr->val->msgs.response);
-		    cpLog(DEBUG_NEW_STACK,"Stopping retrans of response[%s]",
-			  curr->val->myKey.logData());
-		}
-		else
-		{
-		    cpLog(LOG_DEBUG_STACK,"INVITE not Found");
+                }
+		else {
+		    cpLog(LOG_DEBUG_STACK, "INVITE not Found");
 		    /////////// ACK w/o INVITE !!!!
 		    ////////// (may have been gc'd)
 		}
 	    }
-	    retVal->push_back(msgContainer->msg.in);
-	    /// also inform the cleanup
-            if(msgContainer->msg.in->getType() != SIP_INVITE)
-            {
-                SipTransactionGC::instance()->
-                    collect(nodePtr->val->msgs.request,
-                            MESSAGE_CLEANUP_DELAY);
-            }
-            msgContainer->msg.in = 0;
+
+	    retVal->push_back(msgContainer->getMsgIn());
 	}
     }
     return retVal;
 }
 
-SipTransLevel1Node*
-SipSentResponseDB::getTopNode(const SipTransactionId& id, 
-                              const Sptr<SipMsg>& msg)
-{
-    SipTransHashTable::Node * bktNode;
-
-    if(msg->getType()==SIP_STATUS)
-    {
-	/// this finds if there's a transaction
-	bktNode = table.find(id.getLevel1());
-	if(bktNode)
-	  if(bktNode->myNode->toTag == NOVAL)
-	  {
-              // this is the first response going out for this call
-              // leg, hence / update the state info with To tag
-
-              bktNode->myNode->toTag = msg->getTo().getTag();
-	  }
-	  else
-	  {
-	    /// make sure that response has the To tag same as previous
-	    /// responses for this call leg
-	    if(bktNode->myNode->toTag != msg->getTo().getTag())
-	      {
-		cpLog(LOG_DEBUG_STACK,
-		      "To tag of outgoing %d[%s] %s [%s] is incorrect",
-                      msg->getType(),
-		      msg->getTo().getTag().logData(),
-		      "in existing transaction",
-		      bktNode->myNode->toTag.logData());
-                if(SipTransceiver::myAppContext != APP_CONTEXT_PROXY)
-                {
-                    SipTo to = msg->getTo();
-		    cpLog(LOG_DEBUG, "Setting to-tag of outgoing response from=%s to=%s", to.getTag().logData(), bktNode->myNode->toTag.logData() );
-                    to.setTag(bktNode->myNode->toTag);
-                    msg->setTo(to);
-                }
-	      }
-	  }
-    }
-    else
-    {
-	// this creates a new transaction, if none exists
-	bktNode = table.findOrInsert(id.getLevel1());
-	if(bktNode->myNode == 0)
-	{
-	    bktNode->myNode = new SipTransLevel1Node();
-	    bktNode->myNode->bucketNode = bktNode;
-	}
-	/// if there's a transaction, then check the to tag
-	else if((bktNode->myNode->toTag!= NOVAL) &&
-		(bktNode->myNode->toTag != msg->getTo().getTag()))
-	{
-	    cpLog(LOG_DEBUG_STACK,"To tag of incoming %d[%s] %s [%s] is incorrect",
-		  msg->getType(),
-		  msg->getTo().getTag().logData(),
-		  "in existing transaction",
-		  bktNode->myNode->toTag.logData());
-	}
-    }
-
-    if(bktNode)
-    {
-	return bktNode->myNode;
-    }
-    else
-	return 0;
-}
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -52,23 +52,27 @@
  */
 
 static const char* const SipMsgQueue_hxx_Version =
-    "$Id: SipMsgQueue.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMsgQueue.hxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
 
 #include "Sptr.hxx"
 #include <deque>
+#include "SipMsg.hxx"
+#include <BugCatcher.hxx>
+#include <list>
 
 namespace Vocal
 {
 
-class SipMsg;
-typedef std::deque < Sptr < SipMsg > > SipMsgQueue;
+    // Need a wrapper around the stl container so we can use smart pointers.
+    class SipMsgQueue : public BugCatcher {
+        public:
+            list<Sptr<SipMsg> > lst;
+
+            virtual ~SipMsgQueue() { }
+
+            void push_front(Sptr<SipMsg> s) { lst.push_front(s); }
+            void push_back(Sptr<SipMsg> s) { lst.push_back(s); }
+    };
     
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

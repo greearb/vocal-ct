@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -137,7 +137,7 @@ class TcpClientSocket: public BugCatcher
            connect to the far side.
         */
         void connect() throw (VNetworkException&);
-
+        
         /**
            close the connnection.
         */
@@ -156,6 +156,14 @@ class TcpClientSocket: public BugCatcher
 
         bool isConnected() const;
 
+        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now);
+
+        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now);
+
+        virtual void clear();
+
     private:
         void initalize();
         const char* connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const;
@@ -173,14 +181,6 @@ class TcpClientSocket: public BugCatcher
         // These are not implemented (and should not be)
         TcpClientSocket(const TcpClientSocket&);
         TcpClientSocket& operator=(TcpClientSocket& other);
-
 };
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

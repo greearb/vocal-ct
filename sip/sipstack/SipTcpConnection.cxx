@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.5 2004/05/29 01:10:33 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -470,9 +470,11 @@ int SipTcpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
       nport = port.convertInt();
    }
    else {
-      Sptr<SipCommand> command((SipCommand*)(msg->msg.in.getPtr()));
+      Sptr<SipCommand> command;
+      command.dynamicCast(msg->getMsgIn());
       if (command.getPtr() != 0) {
-         Sptr<SipUrl> sipDest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
+         Sptr<SipUrl> sipDest;
+         sipDest.dynamicCast(command->getRequestLine().getUrl());
          if (sipDest != 0) {
             nhost = sipDest->getMaddrParam();
             if (!nhost.length())
@@ -491,8 +493,8 @@ int SipTcpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
 
    if (nhost.length()) {
       try {
-         msg->msg.netAddr = new NetworkAddress(nhost.convertString(),
-                                               nport); 
+         Sptr<NetworkAddress> na =  new NetworkAddress(nhost.convertString(), nport); 
+         msg->setNetworkAddr(na);
       }
       catch(NetworkAddress::UnresolvedException& e) {
          cpLog(LOG_ERR, "Destination (%s) is not reachable, reason:%s.",
@@ -552,29 +554,30 @@ SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
 
    // create or use the current TCP details as appropriate
 
-   int type = sipMsg->msg.in->getType();
+   int type = sipMsg->getMsgIn()->getType();
 
-   if ((type == SIP_STATUS) && (sipMsg->msg.in.getPtr())) {
-      conn = tcpConnInfo.getStatusMsgConn(sipMsg->msg.in);
+   if ((type == SIP_STATUS) && (sipMsg->getMsgIn().getPtr())) {
+      conn = tcpConnInfo.getStatusMsgConn(sipMsg->getMsgIn());
    }
-   else if (sipMsg->msg.in.getPtr()) {
+   else if (sipMsg->getMsgIn().getPtr()) {
 
       // Make sure the cast is sane.
-      assert(sipMsg->msg.in->isSipCommand());
+      assert(sipMsg->getMsgIn()->isSipCommand());
 
-      Sptr < SipCommand > sipCommand((SipCommand*)(sipMsg->msg.in.getPtr()));
+      Sptr < SipCommand > sipCommand;
+      sipCommand.dynamicCast(sipMsg->getMsgIn());
 
-      if (sipMsg->msg.netAddr == 0){
+      if (sipMsg->getNetworkAddr() == 0){
          cpLog(LOG_WARNING, "TCP Send is NULL");
          return -EINVAL;
       }
 
       // this is a request
 #ifdef USE_PERSISTENT_TCP
-      conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
+      conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->getNetworkAddr()));
 #else
       if (sipCommand->nextHopIsAProxy()) {
-         conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
+         conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->getNetworkAddr()));
       }
       else {
          conn = createRequestTransaction(sipMsg);
@@ -588,26 +591,26 @@ SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
    }
 
    // at this point, you need to transmit
-   sipMsg->msg.out =  sipMsg->msg.in->encode();
-   string dataString = sipMsg->msg.out.c_str();
+   sipMsg->cacheEncode();
    cpLog(LOG_INFO, "sending TCP SIP msg:\n\n-> %s\n\n%s",
-         conn->getConnection()->getDescription().c_str(), dataString.c_str());
+         conn->getConnection()->getDescription().c_str(),
+         sipMsg->getEncodedMsg().c_str());
    cpLog(LOG_DEBUG_STACK, "TCP fd: %d", conn->getConnection()->getConnId());
    
    // If this fails, we are out of buffer space..  the conn class will
    // try as hard as possible, so just ignore errors at this point.
-   conn->writeData(dataString);
+   conn->writeData(sipMsg->getEncodedMsg());
 
 #ifdef USE_PERSISTENT_TCP
    assert(type == SIP_STATUS);
-   Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->msg.in.getPtr()));
+   Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->getMsgIn().getPtr()));
    if ((statusMsg != 0) && (statusMsg->getStatusLine().getStatusCode() >= 200)) {
       //Transaction is over, remove the entry from the ID map
       SipTransactionId id(*statusMsg);
       tcpConnInfo.delIdMapEntry(id);
    }
 #else
-   if ((type == SIP_ACK) && !(sipMsg->msg.in->nextHopIsAProxy())) {
+   if ((type == SIP_ACK) && !(sipMsg->getMsgIn()->nextHopIsAProxy())) {
       tcpConnInfo.myCleanupList.push_back(conn->tcpConnection->getConnId());
    }
 #endif
@@ -616,65 +619,57 @@ SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
 
 
 string
-get_next_line(const string& str, string::size_type* old_pos)
-{
+get_next_line(const string& str, string::size_type* old_pos) {
    string myStr;
-
+   
    string::size_type pos = str.find('\n', *old_pos);
-   if (pos != string::npos)
-      {
-         myStr = str.substr(*old_pos, pos - (*old_pos));
-         *old_pos = pos + 1;
-      }
-   else
-      {
-         myStr = str.substr(*old_pos, str.length() - *old_pos);
-         *old_pos = pos;
-      }
+   if (pos != string::npos) {
+      myStr = str.substr(*old_pos, pos - (*old_pos));
+      *old_pos = pos + 1;
+   }
+   else {
+      myStr = str.substr(*old_pos, str.length() - *old_pos);
+      *old_pos = pos;
+   }
    return myStr;
 }
 
 
 int
-getContentLength(const string& str)
-{
+getContentLength(const string& str) {
    // given that this string is a content-length then do something
    static string contentLengthStr = str2lower(CONTENT_LENGTH.c_str());
    static string contentLengthStr2 = str2lower(CONTENT_LENGTH_SHORT.c_str());
    
    int pos = 0; 
    unsigned len = str.length();
-   if(len > contentLengthStr.length())
+   if (len > contentLengthStr.length()) {
       len = contentLengthStr.length();
+   }
    string x = str2lower(str.substr(0,len));
 
-   if (x.find(contentLengthStr) == 0) 
-      {
-         // this is right -- scan
-         pos = contentLengthStr.length();
-      }
-   else if (x.find(contentLengthStr2) == 0) 
-      {
-         pos = contentLengthStr2.length();
-      }
-   else
-      {
-         // not the content-length
-         return -1;
-      }
+   if (x.find(contentLengthStr) == 0) {
+      // this is right -- scan
+      pos = contentLengthStr.length();
+   }
+   else if (x.find(contentLengthStr2) == 0) {
+      pos = contentLengthStr2.length();
+   }
+   else {
+      // not the content-length
+      return -1;
+   }
    string::size_type newPos = str.find_first_not_of("0123456789", pos + 1);
-   if (newPos == string::npos)
-      {
-         newPos = str.length();
-      }
+   if (newPos == string::npos) {
+      newPos = str.length();
+   }
    string contentLen = str.substr(pos + 1, newPos - (pos + 1));
    return (atoi(contentLen.c_str()));
 }
 
 
 bool
-isBlankLine(const string& str)
-{
+isBlankLine(const string& str) {
    // a line which has only whitespace is NOT a blank line for the
    // purposes of separating the headers from the body in a SIP
    // message, only a line which has ONLY the CRLF.  we also accept
@@ -770,33 +765,35 @@ SipTcpConnection::processMsgsIfReady(Sptr<NTcpStuff> connInfo) {
       // Drop it from the received bytes buffer
       connInfo->getConnection()->consumeRcvdBytes(bufLen);
 
-      Sptr<SipMsgContainer> sipMsg = new SipMsgContainer();
+      Sptr<SipMsg> msg = SipMsg::decode(msgBuf, getLocalIp());
+      if (msg != 0) {
+         SipTransactionId id(*msg);
+         Sptr<SipMsgContainer> sipMsg = new SipMsgContainer(id);
 
-      sipMsg->msg.out = msgBuf;
-      sipMsg->msg.in = SipMsg::decode(msgBuf, getLocalIp());
-
-      if (sipMsg->msg.in != 0) {
          //store the receivedIPName.
          cpLog(LOG_DEBUG_STACK, "*** getSenderIP = %s***", ipName.c_str());
-         sipMsg->msg.in->setReceivedIPName( ipName );
+         msg->setReceivedIPName( ipName );
          cpLog(LOG_INFO, "Received UDP Message :\n\n<- HOST[%s]\n\n%s",
                ipName.c_str(),  data.logData());
 
-         if ((sipMsg->msg.in->getType() != SIP_STATUS) &&
-             (sipMsg->msg.in->getType() != SIP_ACK)) {
+         sipMsg->setMsgIn(msg);
+
+         if ((msg->getType() != SIP_STATUS) &&
+             (msg->getType() != SIP_ACK)) {
             // save in the map
-            tcpConnInfo.setStatusMsgConn(sipMsg->msg.in, fd);
-            if (sipMsg->msg.in->getType() == SIP_REGISTER) {
+            tcpConnInfo.setStatusMsgConn(msg, fd);
+            if (msg->getType() == SIP_REGISTER) {
                //If request is a REGISTER message, map the contact
                //host port with TCP socket, so that future
                //requests to the contact would follow the same
                //TCP connection
                string rData = connInfo->getConnection()->getDescription();
                cpLog( LOG_DEBUG_STACK, "Received from %s", rData.c_str());
-               int numContacts = sipMsg->msg.in->getNumContact();
+               int numContacts = msg->getNumContact();
                if ( numContacts ) {
-                  const SipContact& contact = sipMsg->msg.in->getContact( numContacts-1 );
-                  Sptr<SipUrl> sUrl((SipUrl*)(contact.getUrl().getPtr()));
+                  const SipContact& contact = msg->getContact( numContacts - 1 );
+                  Sptr<SipUrl> sUrl;
+                  sUrl.dynamicCast(contact.getUrl());
                   if ( sUrl != 0 ) {
                      Data tmp = sUrl->getHost();
                      tmp += ":";
@@ -808,10 +805,10 @@ SipTcpConnection::processMsgsIfReady(Sptr<NTcpStuff> connInfo) {
                }
             }
          }
-         else if (sipMsg->msg.in.getPtr()
-                  && sipMsg->msg.in->isStatusMsg()) {
+         else if (msg->isStatusMsg()) {
             // Now we know it's safe to cast.
-            Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->msg.in.getPtr()));
+            Sptr<StatusMsg> statusMsg;
+            statusMsg.dynamicCast(msg);
             if (statusMsg->getStatusLine().getStatusCode() >= 200) {
 #ifndef USE_PERSISTENT_TCP
                string iName = connInfo->tcpConnection->getDescription();
@@ -849,9 +846,7 @@ void SipTcpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
    while (sendQ.size()) {
       Sptr<SipMsgContainer> sipMsg = sendQ.front();
 
-      int type = sipMsg->msg.type;
-
-      if (sipMsg->msg.in == 0) {
+      if (sipMsg->getMsgIn() == 0) {
          // Give up
          cpLog(LOG_ERR, "msg.in == 0, giving up on sipMsg: %s\n",
                sipMsg->toString().c_str());
@@ -865,11 +860,6 @@ void SipTcpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
       }
 
       sendQ.pop_front();
-
-      // also inform the cleanup
-      if (type != SIP_INVITE) {
-         SipTransactionGC::instance()->collect(sipMsg, MESSAGE_CLEANUP_DELAY);
-      }
    }//while
 
    tcpConnInfo.writeTick(output_fds);

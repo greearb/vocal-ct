@@ -52,7 +52,7 @@
  */
 
 static const char* const SipSentRequestDB_hxx_version =
-    "$Id: SipSentRequestDB.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipSentRequestDB.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
 
 #include "SipTransactionDB.hxx"
 
@@ -76,7 +76,7 @@ private:
 public:
     virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg);
 
-    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now);
+    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer);
 
 };
  

@@ -52,7 +52,7 @@
  */
 
 static const char* const TlsConnection_hxx_version =
-    "$Id: TlsConnection.hxx,v 1.3 2004/05/29 01:10:34 greear Exp $";
+    "$Id: TlsConnection.hxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 
 #include "Connection.hxx"
 
@@ -134,8 +134,7 @@ typedef void SSL_METHOD;
 
 */
 
-class TlsConnection : public Connection
-{
+class TlsConnection : public Connection {
     public:
         /// initiate an empty TLS server connection.
         TlsConnection(bool blocking);
@@ -179,6 +178,12 @@ class TlsConnection : public Connection
          */
         Data getErrMsg(int e);
 
+        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now);
+
+        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now);
+
     protected:
         virtual int iclose();
         virtual ssize_t iread();
@@ -195,13 +200,5 @@ class TlsConnection : public Connection
         const TlsConnection& operator=(const TlsConnection& x);
 
 };
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

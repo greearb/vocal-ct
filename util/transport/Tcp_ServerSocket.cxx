@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 #ifndef __vxworks
 
 
@@ -240,7 +240,6 @@ int TcpServerSocket::acceptNB(Connection& con) {
          return -errno;
       }
       cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
-      con._live = true;
       con.setState();
       return con._connId;
    }
@@ -271,12 +270,11 @@ TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
     if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr, &con._connAddrLen)) < 0)
     {
         char buf[256];
-        sprintf(buf, "Failed to accept the connection, reason:%s", strerror(errno));
+        snprintf(buf, 255, "Failed to accept the connection, reason:%s", strerror(errno));
         cpLog(LOG_DEBUG, buf);
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
     cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
-    con._live = true;
     con.setState();
     return con._connId;
 }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipTransactionLevels.cxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipTransactionLevels.cxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionLevels.hxx"
@@ -58,14 +58,31 @@ static const char* const SipTransactionLevels_cxx_version =
 using namespace Vocal;
 
 
-SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
-    : retransCount(1),
-      collected(false),
-      trans_id(id)
-{
-    // Nothing to do
+SipMsgContainer::SipMsgContainer(const SipTransactionId& id) {
+   clear();
+   trans_id = id;
 }
 
+void SipMsgContainer::setMsgIn(Sptr<SipMsg> inm) {
+   in = inm;
+   in_encode = in->encode();
+}
+
+void SipMsgContainer::clear() {
+   in = NULL;
+   in_encode = "";
+   netAddr = NULL;
+   transport = "";
+   shouldGcAt = 0;
+   retransCount = 1;
+   collected = false;
+   prepareCount = 0;
+   trans_id.clear();
+}//clear
+
+bool SipMsgContainer::matches(const SipTransactionId& id) {
+   return (id == trans_id);
+}
 
 void SipMsgContainer::cleanup() {
     msg.in = NULL;
@@ -100,7 +117,16 @@ string SipMsgContainer::toString() const {
 }
 
 
-Sptr<SipMsgPair> SipCallContainer::findMsg(const SipTransactionId& id) {
+///*******************  Sip Call Container  **********************///
+
+SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
+      : id(call_id) {
+   seqSet = false;
+   curSeqNum = 0;
+}
+
+
+Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
     list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
     while (i != msgs.end()) {
         Sptr<SipMsgPair> mp = *i;
@@ -113,4 +139,27 @@ Sptr<SipMsgPair> SipCallContainer::findMsg(const SipTransactionId& id) {
         i++;
     }
     return NULL;
+}
+
+
+Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
+    list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+    while (i != msgs.end()) {
+        Sptr<SipMsgPair> mp = *i;
+        if ((mp->request != 0) && mp->request->getType() == method) {
+            return (*i);
+        }
+        if ((mp->response != 0) && mp->response->getType() == method) {
+            return (*i);
+        }
+        i++;
+    }
+    return NULL;
+}
+
+
+void SipCallContainer::clear() {
+   msgs.clear();
+   seqSet = false;
+   curSeqNum = 0;
 }

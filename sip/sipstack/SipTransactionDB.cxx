@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.3 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -58,31 +58,31 @@ using namespace Vocal;
 
 
 SipTransactionDB::SipTransactionDB(const string& _local_ip) {
-    local_ip = _local_ip;
+   local_ip = _local_ip;
 }
 
 
 SipTransactionDB::~SipTransactionDB() {
-    // Nothing to do at this point.
+   // Nothing to do at this point.
 }
 
 
 string SipTransactionDB::toString() {
-    // TODO:
-    return "BUG";
+   // TODO:
+   return "BUG";
 }
 
 
-Sptr<SipMsgContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
-    map <KeyTypeI, Sptr<SipMsgContainer> >::iterator i = table.find(id.getLevel1());
-    if (i != table.end()) {
-        return i->second;
-    }
-    return NULL;
+Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
+   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> >::iterator i = table.find(id.getLevel1());
+   if (i != table.end()) {
+      return i->second;
+   }
+   return NULL;
 }
 
-void SipTransationDB::addCallContainer(Sptr<SipCallContainer> m) {
-    table.put(m->getTransactionId().getLevel1(), m);
+void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
+   table.put(m->getTransactionId().getLevel1(), m);
 }
 
 #warning "WTF is this supposed to do???"
@@ -90,41 +90,41 @@ void SipTransationDB::addCallContainer(Sptr<SipCallContainer> m) {
 SipTransactionDB::CallLegVector
 SipTransactionDB::getCallLegMsgs(Sptr<SipMsg>& sipMsg)
 {
-    CallLegVector retVal;
-    SipTransactionId id(*sipMsg);
+   CallLegVector retVal;
+   SipTransactionId id(*sipMsg);
 
-    SipTransLevel1Node * topNode = getTopNode(id,sipMsg);
-    if(topNode)
-    {
-	SipTransactionList<SipTransLevel2Node*>::SipTransListNode*
+   SipTransLevel1Node * topNode = getTopNode(id,sipMsg);
+   if(topNode)
+      {
+         SipTransactionList<SipTransLevel2Node*>::SipTransListNode*
             level2Node = topNode->level2.getFirst();
-	while(level2Node)
-	{
-	    SipTransactionList<SipTransLevel3Node*>::SipTransListNode 
-		*level3Node = level2Node->val->level3.getFirst();
-	    while(level3Node)
-	    {
-		if(level3Node->val->msgs.request)
-                {
-                    Data toBeEatenData 
-                        = level3Node->val->msgs.request->msg.out;
-                    SipMsg* sipMsg = SipMsg::decode(toBeEatenData, local_ip);
-                    sipMsg->setSendAddress(*(level3Node->val->msgs.request->msg.netAddr));
-                    retVal.push_back(sipMsg);
-		    //retVal.push_back(SipMsg::decode(toBeEatenData));
-                }
-		if(level3Node->val->msgs.response)
-                {
-                    Data toBeEatenData 
-                        = level3Node->val->msgs.response->msg.out;
-		    retVal.push_back(SipMsg::decode(toBeEatenData, local_ip));
-                }
-		level3Node = level2Node->val->level3.getNext(level3Node);
-	    }
-	    level2Node = topNode->level2.getNext(level2Node);
-	}
-    }
+         while(level2Node)
+            {
+               SipTransactionList<SipTransLevel3Node*>::SipTransListNode 
+                  *level3Node = level2Node->val->level3.getFirst();
+               while(level3Node)
+                  {
+                     if(level3Node->val->msgs.request)
+                        {
+                           Data toBeEatenData 
+                              = level3Node->val->msgs.request->msg.out;
+                           SipMsg* sipMsg = SipMsg::decode(toBeEatenData, local_ip);
+                           sipMsg->setSendAddress(*(level3Node->val->msgs.request->msg.netAddr));
+                           retVal.push_back(sipMsg);
+                           //retVal.push_back(SipMsg::decode(toBeEatenData));
+                        }
+                     if(level3Node->val->msgs.response)
+                        {
+                           Data toBeEatenData 
+                              = level3Node->val->msgs.response->msg.out;
+                           retVal.push_back(SipMsg::decode(toBeEatenData, local_ip));
+                        }
+                     level3Node = level2Node->val->level3.getNext(level3Node);
+                  }
+               level2Node = topNode->level2.getNext(level2Node);
+            }
+      }
 
-    return retVal;
+   return retVal;
 }
 #endif

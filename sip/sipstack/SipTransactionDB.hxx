@@ -52,13 +52,11 @@
  */
 
 static const char* const SipTransactionDB_hxx_version =
-    "$Id: SipTransactionDB.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipTransactionDB.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipTransactionLevels.hxx"
-#include "SipTransactionGC.hxx"
 #include "SipMsgQueue.hxx"
-
 
 namespace Vocal
 {
@@ -67,12 +65,6 @@ namespace Vocal
 #define MAX_RETRANS_COUNT    7
 
 class SipTransactionDB : public BugCatcher {
-public:
-   // local_ip cannot be "" here, must be the local IP we are bound to locally
-   // or 'hostaddress' if we are not specifically bound.
-   SipTransactionDB(const string& _local_ip);
-   virtual ~SipTransactionDB();
-
 private:
    SipTransactionDB();
    SipTransactionDB(const SipTransactionDB&);
@@ -80,16 +72,21 @@ private:
    bool operator==(const SipTransactionDB&) const;
 
 public:
-   // entry point for transceiver functionality
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipTransactionDB(const string& _local_ip);
+   virtual ~SipTransactionDB();
+
    /**
+    * entry point for transceiver functionality
     * it will be passed the Sptr reference from worker thread, and will return
     * a pointer to a newly created Sip message container that needs to be passed
     * to the transport layer
     */
    virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg) = 0;
 
-   // entry point for filter functionality
    /**
+    *  entry point for filter functionality
     * it will be given the Sip message container received from transport layer,
     * and either will return the transaction queue, or will return null and modify
     * the Sip message container w/ the old message to be retransmitted
@@ -112,9 +109,11 @@ public:
 
    Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
 
+   void addCallContainer(Sptr<SipCallContainer> cc);
+
 protected:
 
-   map <KeyTypeI, Sptr<SipCallContainer> > table;
+   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> > table;
 
    string local_ip;
 };

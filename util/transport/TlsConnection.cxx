@@ -49,52 +49,13 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.4 2004/05/29 01:10:34 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
  #include <openssl/err.h>
 #endif
 #include "cpLog.h"
-
-#if 0
-// No more locking needed I think. --Ben
-extern "C"
-{
-    void my_locking_function(int mode, int n, const char *file, int line);
-};
-
-
-
-
-void my_locking_function(int mode, int n, const char *file, int line)
-{
-#ifdef VOCAL_HAS_OPENSSL
-    static Vocal::Threads::Mutex myMutex[2000];
-
-    if(mode & CRYPTO_LOCK)
-    {
-        myMutex[n].lock();
-    }
-    else
-    {
-        myMutex[n].unlock();
-    }
-#endif
-}
-
-//id_function()
-
-
-
-
-static void setCallbacks()
-{
-#ifdef VOCAL_HAS_OPENSSL
-    CRYPTO_set_locking_callback(my_locking_function);
-#endif
-}
-#endif
 
 TlsConnection::TlsConnection(bool blocking)
     : Connection(blocking),
@@ -129,21 +90,17 @@ TlsConnection::~TlsConnection() {
         ctx = NULL;
     }
 #endif
-
 }
 
 
 
 bool 
-TlsConnection::isTls() const
-{
+TlsConnection::isTls() const {
     return ssl != 0;
 }
 
-int 
-TlsConnection::iclose()
-{
-    if(ssl) {
+int TlsConnection::iclose() {
+    if (ssl) {
 #ifdef VOCAL_HAS_OPENSSL
 	cpLog(LOG_DEBUG_STACK, "closing SSL");
         SSL_shutdown(ssl);
@@ -160,56 +117,33 @@ TlsConnection::iclose()
 }
 
 
-#warning "Make this non-blocking."
-//TODO:  Make this non-blocking.
 int TlsConnection::iread() {
-    if(ssl) {
+    if (ssl) {
 #ifdef VOCAL_HAS_OPENSSL
-        while (1) {
-            ssize_t t = SSL_read(ssl, buf, count);
-            if(t == -1) {
-                ERR_print_errors_fp(stderr);
-                int myerr = SSL_get_error(ssl, t);
-                if(myerr == SSL_ERROR_WANT_READ) {
-                    // select here to wait for the right bits but keep
-                    // from looping relentlessly.  this only will work
-                    // on UNIX.
-                    int fd = SSL_get_fd(ssl);
-
-                    if(fd >= 0)
-                    {
-                        fd_set rfds;
-                        struct timeval tv;
-                        int retval;
-                        
-                        FD_ZERO(&rfds);
-                        FD_SET(fd, &rfds);
-                        tv.tv_sec = 5;
-                        tv.tv_usec = 0;
-                        
-                        retval = select(fd + 1, &rfds, NULL, NULL, &tv);
-                        
-                        if(retval <= 0)
-                        {
-                            errno = EIO;
-                            return -1;
-                        }
-                    }
-                    else
-                    {
-                        return -1;
-                    }
-                }
-                else 
-                {
-                    return -1;
-                }
+        int count = 8196;
+        char buf[count];
+        int rd = SSL_read(ssl, buf, count);
+        if (t < 0) {
+            int myerr = SSL_get_error(ssl, t);
+            if (myerr == SSL_ERROR_WANT_READ) {
+                // Try more later
+                rd = 0;
             }
-            else
-            {
-                return t;
+            else {
+                ERR_print_errors_fp(stderr);
+                // Fatal error, closing
+                // We are SOL it appears.
+                char errm[256];
+                ERR_error_string(SSL_get_error(ssl, errm, 255));
+                cpLog(LOG_ERR, "ERROR:  Closing SSL connection due to bad read: %s(%d)\n",
+                      errm, myerr);
+                close();
             }
         }
+        else {
+            rcvBuf.append(buf, rd);
+        }
+        return rd;
 #endif
     }
     return Connection::iread();
@@ -217,18 +151,30 @@ int TlsConnection::iread() {
 
 
 int TlsConnection::iwrite() {
-    if(ssl) {
+    if (ssl) {
 #ifdef VOCAL_HAS_OPENSSL
-        ssize_t t = SSL_write(ssl, buf, count);
-	if(t == -1) 
-	{
+        int count = outBuf.getCurLen();
+        char buf[count];
+        outBuf.peekBytes(outbuf, count);
+        int t = SSL_write(ssl, buf, count);
+	if (t < 0) {
 	    ERR_print_errors_fp(stderr);
             int myerr = SSL_get_error(ssl, t);
-            if(myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE)
-            {
+            if (myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE) {
                 return 0;
             }
+            else {
+                // We are SOL it appears.
+                char errm[256];
+                ERR_error_string(SSL_get_error(ssl, errm, 255));
+                cpLog(LOG_ERR, "ERROR:  Closing SSL connection due to bad write: %s(%d)\n",
+                      errm, myerr);
+                close();
+            }
 	}
+        else {
+            outBuf.dropFromTail(t);
+        }
 	return t;
 #endif
     }
@@ -236,59 +182,45 @@ int TlsConnection::iwrite() {
 }
 
 
-int 
-TlsConnection::initTlsClient()
-{
+int TlsConnection::initTlsClient() {
+    assert(_isClient);
 #ifdef VOCAL_HAS_OPENSSL
     SSLeay_add_ssl_algorithms();
-    meth = TLSv1_client_method();
+    meth = TLSv23_client_method();
     SSL_load_error_strings();
     ctx = SSL_CTX_new (meth);
-    if(ctx == 0)
-    {
+    if (ctx == 0) {
 	return -1;
     }
 
     ssl = SSL_new (ctx);
-    if(ssl == 0)
-    {
+    if (ssl == 0) {
 	return -1;
     }
     int err;
 
     err = SSL_set_fd (ssl, _connId);
 
-    if(!err)
-    {
+    if (!err) {
         cpLog(LOG_DEBUG, "failed to connect socket to TLS!");
         return -1;
     }
 
+    err = SSL_connect (ssl);
 
-    while(1)
-    {
-        err = SSL_connect (ssl);
-
-        if(err <= 0)
-        {
-            // check for ERROR_WANT_READ / ERROR_WANT_WRITE
-            int myerr = SSL_get_error(ssl, err);
+    if (err <= 0) {
+        // check for ERROR_WANT_READ / ERROR_WANT_WRITE
+        int myerr = SSL_get_error(ssl, err);
             
-            if(myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE)
-            {
-                cpLog(LOG_DEBUG, "try again!\n");
-                vusleep(1000);
-            }
-            else
-            {
-                // issue
-                cpLog(LOG_DEBUG, "TLS error: %d ( %s )", err, ERR_error_string(SSL_get_error(ssl, err),0));
-                break;
-            }
+        if (myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE) {
+            cpLog(LOG_DEBUG, "try again!\n");
+            _inProgress = true;
         }
-        else
-        {
-            break;
+        else {
+            // issue
+            cpLog(LOG_DEBUG, "TLS error: %d ( %s )",
+                  err, ERR_error_string(SSL_get_error(ssl, err),0));
+            close();
         }
     }
 
@@ -299,10 +231,65 @@ TlsConnection::initTlsClient()
 }
 
 
+void TlsConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                         uint64 now) {
+#ifdef VOCAL_HAS_OPENSSL
+    int err = 0;
+    if (checkIfSet(input_fds)) {
+        if (_isClient) {
+            if (_inProgress) {
+                err = SSL_connect (ssl);
+            }
+            else {
+                err = iread();
+            }
+        }
+        else {
+            if (_inProgress) {
+                err = SSL_accept (ssl);
+            }
+            else {
+                err = iread();
+            }
+        }
+
+        if (err <= 0) {
+            // check for ERROR_WANT_READ / ERROR_WANT_WRITE
+            int myerr = SSL_get_error(ssl, err);
+            
+            if (myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE) {
+                cpLog(LOG_DEBUG, "try again!\n");
+            }
+            else {
+                // issue
+                cpLog(LOG_ERR, "TLS error: %d ( %s )",
+                      err, ERR_error_string(SSL_get_error(ssl, err),0));
+                close();
+            }
+        }
+        else {
+            if (_inProgress) {
+                // Progress completed it appears
+                _inProgress = false;
+            }
+        }
+    }
+    return err;
+#endif
+    return Connection::tick(input_fds, output_fds, exc_fds, now);
+}
+
+int TlsConnection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          int& maxdesc, uint64& timeout, uint64 now) {
+    Connection::setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+    return 0;
+}
+
+
 int 
 TlsConnection::initTlsServer(const char* certificate,
-                             const char* key)
-{
+                             const char* key) {
+    assert(!_isClient);
 #ifdef VOCAL_HAS_OPENSSL
     // check for TLSness
 
@@ -312,16 +299,14 @@ TlsConnection::initTlsServer(const char* certificate,
 
     test[bytes-1] = '\0';
 
-    if(strcmp(test, ".") == 0)
-    {
+    if (strcmp(test, ".") == 0) {
         cpLog(LOG_DEBUG_STACK, "TLS connection!\n");
     }
 
     char buf2[256];
     char* bptr = buf2;
 
-    for(int i = 0; i < bytes ; ++i)
-    {
+    for (int i = 0; i < bytes ; ++i) {
         sprintf(bptr, "%2.2x", test[i]);
         bptr += 2;
     }
@@ -333,32 +318,27 @@ TlsConnection::initTlsServer(const char* certificate,
     cpLog(LOG_DEBUG_STACK, "initalizing TLS server connection");
 
     SSLeay_add_ssl_algorithms();
-    meth = TLSv1_server_method();
+    meth = TLSv23_server_method();
     SSL_load_error_strings();
     ctx = SSL_CTX_new (meth);
-    if(ctx == 0) {
+    if (ctx == 0) {
 	cpLog(LOG_ERR, "no ctx");
 	return -1;
     }
 
     // at this point, you need your certs.
-    LocalScopeAllocator lo1;
-    LocalScopeAllocator lo2;
-
     if (SSL_CTX_use_certificate_file(ctx, 
-				     myCertificate.getData(lo1), 
-				     SSL_FILETYPE_PEM) <= 0) 
-    {
+				     myCertificate.c_str(),
+				     SSL_FILETYPE_PEM) <= 0) {
 	ERR_print_errors_fp(stderr);
 	cpLog(LOG_ERR, "failed to set certificate file %s",
-	      myCertificate.getData(lo1));
+	      myCertificate.c_str());
 	return -1;
     }
 
     if (SSL_CTX_use_PrivateKey_file(ctx, 
-				    myKey.getData(lo2), 
-				    SSL_FILETYPE_PEM) <= 0) 
-    {
+				    myKey.c_str(),
+				    SSL_FILETYPE_PEM) <= 0) {
 	ERR_print_errors_fp(stderr);
 	cpLog(LOG_ERR, "failed to set key file %s",
 	      myKey.getData(lo1));
@@ -368,55 +348,26 @@ TlsConnection::initTlsServer(const char* certificate,
     int err;
     assert(ctx != 0);
     ssl = SSL_new (ctx);
-    if(ssl == 0) {
+    if (ssl == 0) {
 	cpLog(LOG_ERR, "failed to create new ssl");
 	return -1;
     }
     assert(_connId >= 0);
     SSL_set_fd (ssl, _connId);
 
-    while(1)
-    {
-        err = SSL_accept (ssl);
-        if(err <= 0)
-        {
-            // check for ERROR_WANT_READ / ERROR_WANT_WRITE
-            int myerr = SSL_get_error(ssl, err);
-            
-            if(myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE)
-            {
-                cpLog(LOG_DEBUG, "try again!\n");
-                vusleep(1000);
-            }
-            else
-            {
-                // issue
-                cpLog(LOG_DEBUG, "TLS error: %d ( %s )", err, ERR_error_string(SSL_get_error(ssl, err),0));
-                break;
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-    return err;
+    return 0;
 #else
     return -1;
 #endif
 }
 
 
-SSL* 
-TlsConnection::getSsl()
-{
+SSL* TlsConnection::getSsl() {
     return ssl;
 }
 
 
-bool 
-TlsConnection::hasTls()
-{
+bool TlsConnection::hasTls() {
 #ifdef VOCAL_HAS_OPENSSL
     return true;
 #else
@@ -426,8 +377,7 @@ TlsConnection::hasTls()
 
 
 Data
-TlsConnection::getErrMsg(int e)
-{
+TlsConnection::getErrMsg(int e) {
     char tmp[1024];
 
 #ifdef VOCAL_HAS_OPENSSL
@@ -435,11 +385,3 @@ TlsConnection::getErrMsg(int e)
 #endif
     return Data(tmp);
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -52,13 +52,14 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
 #include "NetworkAddress.h"
 #include "cpLog.h"
 #include <misc.hxx>
+#include <list>
 
 namespace Vocal
 {
@@ -71,6 +72,7 @@ static const char * const NOVAL = "";
 
 
 class SipMsgPair : public BugCatcher {
+public:
     /// the request
     Sptr<SipMsgContainer> request;
     /// and the response
@@ -80,19 +82,6 @@ class SipMsgPair : public BugCatcher {
 
 class SipMsgContainer : public BugCatcher {
 public:
-   struct m {
-      // refence to the message (for incoming messages)
-      Sptr<SipMsg> in;
-      // reference to raw msg txt (for outgoing messages)
-      Data         out;
-      //Host
-      Sptr<NetworkAddress> netAddr;
-      //
-      int  type;
-      //
-      Data  transport;
-   } msg;
-
    // constructed with default value for stateless mode
    SipMsgContainer(const SipTransactionId& id);
 
@@ -109,8 +98,39 @@ public:
    bool hasBeenCollected() { return collected; }
    void setCollected(bool v) { collected = v; }
 
+   void setMsgIn(Sptr<SipMsg> inm);
+   Sptr<SipMsg> getMsgIn() { return in; }
+
+   void setTransport(const string& t) { transport = t; }
+   const string& getTransport() { return transport; }
+
+   void setNetworkAddr(Sptr<NetworkAddress> na) { netAddr = na; }
+   Sptr<NetworkAddress> getNetworkAddr() { return netAddr; }
+
+   virtual void clear();
+
+   virtual bool matches(const SipTransactionId& id);
+
+   // Ensure that the msg encode is current.
+   void cacheEncode() {
+      in_encode = in->encode().c_str();
+   }
+
+   const string& getEncodedMsg() { return in_encode; }
+
 protected:
-   // transport specific data
+   // refence to the message (for incoming messages)
+   Sptr<SipMsg> in;
+
+   // cache of raw msg txt (for outgoing messages)
+   string in_encode;
+
+   //Host
+   Sptr<NetworkAddress> netAddr;
+
+   //
+   string  transport;
+
    uint64 shouldGcAt; //When should we garbage-collect this thing.  Used by SipTransactionGC
    int retransCount;
    bool collected;
@@ -125,7 +145,11 @@ protected:
 class SipCallContainer : public BugCatcher {
 public:
 
-   void addMsg(Sptr<SipMsgPair> m) {
+   SipCallContainer(const SipTransactionId& call_id);
+
+   virtual ~SipCallContainer() { }
+
+   void addMsgPair(Sptr<SipMsgPair> m) {
       msgs.push_back(m);
    }
 
@@ -136,19 +160,38 @@ public:
       return NULL;
    }
 
-   Sptr<SipPairContainer> findMsg(const SipTransactionId& id);
+   Sptr<SipMsgPair> findMsgPair(const SipTransactionId& id);
+   Sptr<SipMsgPair> findMsgPair(Method method);
 
    void popMsg() {
       assert(msgs.size());
-      msgs.pop();
+      msgs.pop_front();
    }
    
-   void clear() { msgs.clear(); }
+   void clear();
 
    list<Sptr<SipMsgPair> >& getMsgList() { return msgs; }
 
+   int getCurSeqNum() { return curSeqNum; }
+   void setCurSeqNum(int i) { curSeqNum = i; setSeq = true; }
+
+   bool isSeqSet() { return setSeq; }
+
+   const SipTransactionId& getTransactionId() { return id; }
+
 protected:
    list<Sptr<SipMsgPair> > msgs;
+   SipTransactionId id;
+
+   int curSeqNum; //Sequence number of last SIP message received.
+   bool setSeq; // Has it been set yet?
+
+private:
+   // Not implemented
+   SipCallContainer();
+   SipCallContainer(const SipCallContainer& rhs);
+   SipCallContainer& operator=(const SipCallContainer& rhs);
+
 };//SipCallContainer
  
 } // namespace Vocal

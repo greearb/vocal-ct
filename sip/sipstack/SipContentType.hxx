@@ -54,7 +54,7 @@
 #include "global.h"
 
 static const char* const SipContentTypeVersion =
-    "$Id: SipContentType.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipContentType.hxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
 
 #include <map>
 #include "Data.hxx"
@@ -189,12 +189,5 @@ class SipContentType : public SipHeader
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

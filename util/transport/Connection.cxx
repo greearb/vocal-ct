@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.5 2004/05/29 01:10:34 greear Exp $";
+    "$Id: Connection.cxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
 
 #ifndef __vxworks
 
@@ -81,7 +81,7 @@ bool Connection::_init = false;
 
 
 Connection::Connection(bool blocking)
-    : _connId(-1), _live(false), _connAddrLen(0), 
+    : _connId(-1), _connAddrLen(0), 
       _connAddr(0), _blocking(blocking),
       closeOnDestruct(true)
 {
@@ -90,7 +90,7 @@ Connection::Connection(bool blocking)
 
 
 Connection::Connection(int conId, bool blocking)
-    : _connId(conId), _live(true), _connAddrLen(0), 
+    : _connId(conId), _connAddrLen(0), 
       _connAddr(0), _blocking(blocking),
       closeOnDestruct(true)
 {
@@ -100,7 +100,6 @@ Connection::Connection(int conId, bool blocking)
 // TODO:  I don't like this, should remove it.
 Connection::Connection(const Connection& other, bool on_purpose) {
     _connId = other._connId;
-    _live = other._live;
     _connAddrLen = other._connAddrLen;
     _blocking = other._blocking;
     if (other._connAddr) {
@@ -126,7 +125,6 @@ Connection::~Connection() {
 Connection& Connection::operator=(const Connection& other) {
     if (this != &other) {
 	_connId = other._connId;
-	_live = other._live;
 	_connAddrLen = other._connAddrLen;
 	_blocking = other._blocking;
         if (other._connAddr) {
@@ -326,6 +324,75 @@ int Connection::getPeerPort() const {
     return retPort;
 }
 
+void Connection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      uint64 now) {
+
+   if (!isLive()) {
+      return;
+   }
+
+   if (checkIfSet(input_fds)) {
+      if (_inProgress) {
+         // Connect in progress, and looks like it completed, check success.
+         int rv;
+         int so_err = 0;
+         socklen_t slen = sizeof(int);
+         rv = getsockopt(getSocketFD(), SOL_SOCKET, SO_ERROR, &so_err, &slen);
+         if (rv < 0) {
+            cpLog(LOG_ERR, "ERROR: getsockopt failed w/val: %d: %s\n",
+                  rv, strerror(errno));
+            close();
+            return;
+         }
+         else {
+            if (so_err != 0) {
+               cpLog(LOG_ERR, "WARNING: Could not establish connection: %d: %s\n",
+                     so_err, strerror(so_err));
+               close();
+               return;
+            }
+            else {
+               // Success, set TOS here if we ever want to do that sort of thing
+               _inProgress = false;
+            }
+         }
+      }
+      else {
+         read();
+      }
+   }
+   if (!_inProgress) {
+      write();
+   }
+}
+
+
+// Clear out our buffers, does not attempt to flush.
+void Connection::clear() {
+   outBuf.clear();
+   rcvBuf.clear();
+}
+
+
+int Connection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       int& maxdesc, uint64& timeout, uint64 now) {
+
+   if (!isLive()) {
+      return 0;
+   }
+
+   addToFdSet(input_fds);
+   if (needsToWrite()) {
+      addToFdSet(output_fds);
+   }
+   addToFdSet(exc_fds);
+
+   if (getSocketFD() > maxdesc) {
+      maxdesc = getSocketFD();
+   }
+   return 0;
+}
+
 // Queue it for send.  It will be written as soon as possible.
 int Connection::queueSendData(const char* data, int len) {
     //TODO:  Consider putting a max limit on this (4-8MB?) so that
@@ -354,7 +421,6 @@ int Connection::close() {
             cpLog(LOG_ERR, "Error closing connection %d", _connId);
         }
     }
-    _live = false;
     _connId = -1;
     return err;
 }
@@ -371,10 +437,6 @@ void Connection::setState() {
             cpLog(LOG_ERR, "Error setting Connection FIONBIO: %d", WSAGetLastError());
         }
 #endif
-        _live = true;
-    }
-    else {
-        _live = false;
     }
 }
 
