@@ -1,0 +1,76 @@
+Phase 1		Completed Friday evening, June 30
+
+	- Read messages from an ipgrab log
+	- Display servers
+	- Display messages between servers (labeled arrows)
+	- Scroll properly when there are too many messages to fit in
+		the display area
+
+Phase 2		Completed Tuesday evening, August 8;
+	        important bug fix Wednesday afternoon, August 9
+
+	- Discover servers dynamically while parsing the log, so that no
+          user interaction is required to work with different combinations
+          of servers
+
+	- Support printing to Postscript.
+
+	- Test parsing against different call scenarios to ensure that it
+	  is general and robust.  (Completed Friday, August 11.)
+
+Phase 3		Completed Saturday evening, August 25
+		(We can move this to Monday or Friday if you prefer.
+		I would have said Friday, but I wanted to allow an
+		extra day because of our vacation.
+
+	- Display entire SIP messages (full requests plus headers)
+		in pop-up balloons when the user moves the pointer
+		over the call-flow arrows
+
+Phase 4		Deadline:  Thursday, August 31 at midnight
+		(amended 8/28/2000 to Saturday, September 2 at midnight)
+
+	- Add functionality to attach to a running ipgrab
+
+	- Add a GUI field for the actual ipgrab command to run
+
+	- Add a "clear" button to free the message data structures
+	  and clear the canvas, so multiple calls can be made in one
+	  session
+
+	- Add a "insert break" button, allowing users to visually
+	  separate multiple calls within a single session, without
+	  using the "clear" button.
+
+Phase 5   Deadline:  Thursday, September 7, 2000 at midnight
+        - Add functionality to split Postscript output into pages
+        - Add intelligence for splitting messages cleanly (e.g.
+          keeping all legs of a relayed 200 response on one page,
+          even if that means foreshortening the page)
+        - Add ability to translate server IPs / port numbers
+          to a logical server name (e.g. "UA Marshal").
+          (Actually, I wrote this code a while ago, but it needs
+          to be tested and debugged.)
+
+Phase 6   Deadline:  Saturday, September 16, 2000 at midnight
+        - Add ability to read from multiple ipgrabs on different machines,
+          collate them, and display them in a single canvas
+
+
+Phase 7
+
+	- Debug batch mode, set up CGI interface.
+
+Phase 8 (This one just occurred to me.  Do you think it would be
+	worthwhile?)
+
+	- Port to Windows.  (Theoretically any Perl-Tk program should run
+	on Windows, but I will doubtless need to eliminate Unixisms like
+	paths with slashes in them.)
+
+Phase 9 (perhaps to be canceled?)
+
+	- Allow users to change servers' order on the screen by dragging
+	- Add an option to save the order of servers in a file
+	- Add an option to restore the order of servers from a file
+

@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>lz</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="refentry"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="lz">lz</H1
+><DIV
+CLASS="refnamediv"
+><A
+NAME="AEN6"
+></A
+><H2
+>Name</H2
+>lz&nbsp;--&nbsp;SIP based Load Generator.</DIV
+><DIV
+CLASS="refsynopsisdiv"
+><A
+NAME="AEN9"><H2
+>Synopsis</H2
+><P
+><B
+CLASS="command"
+>lz</B
+> [options]</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN13"
+></A
+><H2
+>Description</H2
+><P
+>SIP Load Generator (ElGee).</P
+><P
+>ElGee is an implementation on top of the Vovida SIP stack, base
+    code, util and other supporting libraries that genrates SIP calls for load
+    and stress testing. You can test SIP calls originating from ElGee against
+    a SIP proxy server or any other SIP UAS.</P
+><P
+>This release of ElGee comes with enhanced features:</P
+><DIV
+CLASS="refsect2"
+><A
+NAME="AEN18"
+></A
+><H3
+>Authentication</H3
+><P
+>ElGee supports HTTP-Basic, HTTP-Digest and SIP-CHAP based
+      authentication. both WWW-Authenticate and Proxy-Authenticate based
+      challenges can be authenticated for INVITEs and REGISTERs.</P
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN21"
+></A
+><H2
+>Running modes</H2
+><P
+>This release of ElGee supports three running modes : </P
+><P
+></P
+><UL
+><LI
+><P
+>Originating</P
+></LI
+><LI
+><P
+>Registration</P
+></LI
+><LI
+><P
+>Terminating</P
+></LI
+></UL
+><P
+>These running modes allow for stress load generation to simulate
+    large number of SIP clients.</P
+><DIV
+CLASS="refsect2"
+><A
+NAME="AEN32"
+></A
+><H3
+>UDP &#38; TCP</H3
+><P
+>ElGee supports both transport protocols. for
+      originating/registration mode, sample message should specify the
+      transport param in headers, while in terminating mode it listens for
+      both. you can use ElGee more flexibly by using a config file. see the
+      included elgee.conf for different configurable parameters</P
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN35"
+></A
+><H2
+>Options</H2
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>-f arg</DT
+><DD
+><P
+>specify configuration file</P
+></DD
+><DT
+></DT
+><DD
+><P
+>source user#[@host[:port]]</P
+></DD
+><DT
+></DT
+><DD
+><P
+>dest user#@host:port</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN50"
+></A
+><H2
+>See Also</H2
+><P
+>More information is available from <A
+HREF="http://www.vovida.org/"
+TARGET="_top"
+>http://www.vovida.org/</A
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN54"
+></A
+><H2
+>Copyright</H2
+><P
+>Copyright 2003, Cisco Systems, Inc.</P
+><P
+>THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS,
+    WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+    INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</P
+></DIV
+></BODY
+></HTML
+>

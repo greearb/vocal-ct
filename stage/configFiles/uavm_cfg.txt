@@ -1,0 +1,82 @@
+# SIP User Agent configuration
+
+# This version works with ua( not sua ) because of tags and other changes
+
+# User
+User_Name	string	        1043
+Display_Name	string		Phone
+
+
+Local_SIP_Port	string		portToken
+# Usage: SIP_Transport string [UDP|TCP]
+SIP_Transport	string		UDP
+
+
+# Registration data
+# Usage: Register_On bool [True|False]
+Register_On		bool		False
+Register_From		string		192.168.22.35
+Register_To		string		192.168.22.29:8061
+# Expires in seconds
+Register_Expires	int		600
+Register_Action		string		proxy
+    
+
+# Ringback tone option
+Provide_Ringback	bool		False
+    
+
+# RTP packet size in ms
+Network_RTP_Rate	int	20
+
+
+# Dialing timers( in ms )
+Initial_Digit_Timeout	int 	16000
+Inter_Digit_Timeout	int	8000
+
+
+# Dialing types
+#   0 - SPEED_DIAL
+#   1 - INTERNAL_DIAL
+#   2 - NORMAL_DIAL
+#   3 - INTERNAL_IP_DIAL
+# Usage: Dial_Pattern string <type> <pattern>
+Dial_Pattern	string	0	^#[0-9][0-9][0-9]
+Dial_Pattern	string	2	^911
+Dial_Pattern	string	2	^611
+Dial_Pattern	string	2	^411
+Dial_Pattern	string	2	^6[0-9][0-9][0-9]
+Dial_Pattern	string	2	^9[2-9][0-9][0-9][0-9][0-9][0-9][0-9]
+Dial_Pattern	string	2	^91[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]
+Dial_Pattern	string	3	^[*][0-9][0-9][0-9]
+
+
+# Speed dial list
+# Usage: Speed_Dial string <digits> <destination>
+# Note: Speed dial calls will by pass proxy server if the host part exists
+Speed_Dial	string	#102	93831074
+Speed_Dial	string	#398	6398@192.168.5.130
+Speed_Dial	string	#400	6333@192.168.22.29:5060
+Speed_Dial	string	#150	150@10.0.0.2
+
+
+# Load Generator data
+LoadGen_On              bool            False
+RunMode                 string          Calling
+StartTime               int             5000
+CallUrl                 string          sip:7399@mendel
+NumEndpoints            int             1
+CallDuration            int             1000
+CallDelay               int             1000
+AnswerDelay             int             100
+MonitorMsgOn     	bool	        False 
+MonitorMsgInterval      int             10
+DialNumber              string          6000
+
+
+# RSVP data
+Rsvp_On			bool		False
+Provisioning_Host	string		bass
+Provisioning_Port	int		6005
+Use_Policy_Server	bool		False
+

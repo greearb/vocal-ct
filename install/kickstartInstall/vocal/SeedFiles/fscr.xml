@@ -1,0 +1,3 @@
+<featureServer host="FSCRHOSTIP" port="FSCRPORT"><type value="CallReturn"></type>
+<group value="CallReturnGroup"></group>
+</featureServer>

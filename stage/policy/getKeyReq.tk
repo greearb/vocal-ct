@@ -1,0 +1,292 @@
+#!/usr/bin/expectk -f
+## *********************************************************************
+## 
+## $Id: getKeyReq.tk,v 1.1 2004/05/01 04:15:31 greear Exp $
+## 
+## *********************************************************************
+## 
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+## 
+## *********************************************************************
+## 
+## $Log: getKeyReq.tk,v $
+## Revision 1.1  2004/05/01 04:15:31  greear
+## Initial revision
+##
+## Revision 1.4  2001/03/08 16:36:13  wbreu
+## use Vocal license instead of GNU
+##
+## Revision 1.3.4.1  2001/03/08 23:27:10  wbreu
+## Replace GNU license text with Vocal license.
+##
+## Revision 1.3  2000/12/05 22:28:29  wbreu
+## rearranged the GUI layouts so that they all have the same
+## look and feel, and automatically set the default paths
+## if $MY_TCLTK_PATH and $OPENSSL_PATH environment variables
+## are not set.
+##
+## Revision 1.2  2000/07/05 22:59:32  hyu
+## Merging BRANCH_CURD into HEAD.
+##
+## Revision 1.1.2.1  2000/06/27 23:13:02  wbreu
+## Tk/expect scripts to do device enrollment
+##
+##
+## *********************************************************************
+## expecttk gui spawns the openssl application to obtain
+## public/ private key pair, and also to generate a certicate request
+## (in base 64 encoding).  It also converts the key (B64) to a DER
+## format ready to be used by the OSP client.
+##   
+## Requirements: user needs to set up following Environment Variables:
+##     OPENSSL_PATH and MY_TCLTK_PATH
+##
+## Output files:
+##    pkey_00001.dat - key file in DER format
+##    CertReqB64.dat - certificate request message in PEM format
+##     
+
+# set window title  "." is the main window
+wm title . "Openssl key / certificate request"
+
+global timeout
+set timeout 30
+
+frame .overframe -borderwidth 0
+set f [frame .overframe.controlbutton -borderwidth 5]
+
+pack  $f -side left -ipadx 90
+
+set but [button $f.run -text "Run" -command Run]
+button $f.help -text "Help" -command Help 
+button $f.quit -text "Quit" -command Quit 
+
+
+# proc CommandEntry { name label width command args } {
+proc CommandEntry { name label width1 width2 args } {
+    frame $name -borderwidth 10
+    label $name.label -text $label -width $width1 -anchor w
+    eval { entry $name.entry -width $width2 -relief sunken } $args
+    pack $name.label -side left
+    pack $name.entry -side left -fill x -expand true
+    bind $name.entry <Control-c> Stop
+#	bind $name.entry <Return> 
+    return $name.entry
+}
+
+# Let CommandEntry to create a frame for each label/entry
+
+label .prompt1 -text "Enter key information:" -padx 20 -width 20  -anchor w
+
+global keyfile certreqfile
+set keyfile "pkey_00001.dat"
+set certreqfile "CertReqB64.dat"
+
+# key information:
+CommandEntry .keytype KeyType     20 45 -textvariable keytype
+
+label .prompt2 -text "Enter information for a Distinguished Name:" \
+       -padx 20  -width 40 -anchor w
+
+# Information needed to form a Distinguished Name (DN):
+CommandEntry .passphrase PassPhrase   20 45 -textvariable passphrase
+CommandEntry .country CountryName  20 45 -textvariable country
+CommandEntry .state State 20 45 -textvariable state
+CommandEntry .city  City   20  45 -textvariable city
+CommandEntry .org  Organization   20 45 -textvariable org
+CommandEntry .unit  DepartmentUnit 20 45 -textvariable unit
+CommandEntry .name  Name   20 45 -textvariable name
+CommandEntry .email Email   20 45 -textvariable email
+
+label .info1 -text "generated key is stored in file ./$keyfile" \
+       -padx 20  -width 40 -anchor w
+label .info2 -text "certificate request is stored in file ./$certreqfile" \
+       -padx 20  -width 40 -anchor w
+
+# set default parameters:
+set keytype "rsa:1024"
+set passphrase "abcdefg"
+set country "US"
+set state  "California"
+set city   "San Jose"
+set org    "Vovida Networks"
+set unit   "Technology"
+set name   "Wendy"
+set email  "wbreu@vovida.com"
+
+pack $f.quit $f.run $f.help -ipadx 22 -side right
+
+# layout prompts for user input:
+pack .overframe -side top
+pack .prompt1 -side left -ipadx 165 -side top
+pack .keytype -side top  
+pack .prompt2 -side left -ipadx 90 -side top
+pack .passphrase .country .state  \
+     .city .org .unit .name .email  -side top
+pack .info1 -side left -ipadx 90 -side top
+pack .info2 -side left -ipadx 90 -side top
+
+
+# create a text widget to log the output 
+frame .t
+set log [text .t.log -width 80 -height 10 \
+    -borderwidth 2 -relief raised -setgrid true \
+    -yscrollcommand {.t.scroll set}]
+scrollbar .t.scroll -command {.t.log yview}
+pack .t.scroll -side right -fill y
+pack .t.log -side left -fill both -expand true
+pack .t -side top -fill both -expand true
+
+# get path to the tcl/tk script
+global myscript_path
+if [info exists env(MY_TCLTK_PATH)] {
+    set myscript_path "$env(MY_TCLTK_PATH)"
+} else {
+    set myscript_path "./"
+    $log insert end "default env(MY_TCLTK_PATH) to ./\n"
+}
+
+# get path to access openssl
+global myssl_path
+if [info exists env(OPENSSL_PATH)] {
+    set myssl_path "$env(OPENSSL_PATH)"
+} else {
+    $log insert end "default env(OPENSSL_PATH) to ./\n"
+    set myssl_path "./"
+}
+
+proc Help {} {
+    global log
+    set helpTxt \
+"Click on the Run button to send a key request and a certificate\nrequest to Openssl.\nN.B.  This script assumes that OPENSSL_PATH and MY_TCKTK_PATH \nenvironment variables are set up.\n"
+    $log insert end $helpTxt\n
+}
+
+
+# run the program and arrange to read its input
+proc Run {} {
+    global keytype keyfile certreqfile passphrase country  
+    global state city org unit name email log but
+    global myscript_path myssl_path
+    
+    set parms "$keytype $keyfile $passphrase $country $state $city $org $unit $name $email"
+
+    if [ catch [set pid "spawn $myssl_path/openssl"] reason ] {
+       $log insert end "failed to spawn openssl: $reason\n"
+       return
+    }
+    expect {
+       timeout { puts "openssl timed out"; exit 1 }
+       "OpenSSL>" { $log insert end $expect_out(buffer) }
+    }    
+    exp_send "req -newkey $keytype  -keyout $keyfile -out $certreqfile -outform PEM -config $myssl_path/openssl.cnf\r"
+
+    # enter pass phrase:
+    expect "Enter PEM pass phrase" { exp_send "$passphrase\r"
+                                     $log insert end $expect_out(buffer) }
+    expect "Verifying password *:" { exp_send "$passphrase\r"
+                                     $log insert end $expect_out(buffer) }
+
+    # submit fields for a Distinguished Name (DN):
+    expect "Country Name *:"        { exp_send "$country\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "State *:"               { exp_send "$state\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "Locality *:"            { exp_send "$city\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "Organization Name *:"   { exp_send "$org\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "Organizational Unit *:" { exp_send "$unit\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "Common Name *:"         { exp_send "$name\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "Email Address *:"       { exp_send "$email\r" 
+                                      $log insert end $expect_out(buffer)}
+
+    # just carriage return for extra attributes:
+    expect "A challenge password *:" { exp_send "\r" 
+                                      $log insert end $expect_out(buffer)}
+    expect "An optional company *:"  { exp_send "\r" 
+                                      $log insert end $expect_out(buffer)}
+
+    # Certificate request is generated, convert key to DER format:
+    expect "OpenSSL>" {
+       $log insert end $expect_out(buffer)
+       $log see end
+       exp_send "rsa -in $keyfile -outform DER -out $keyfile\r"
+    }
+    expect "*Enter PEM pass phrase:" {
+       $log insert end $expect_out(buffer) }
+       exp_send "$passphrase\r"
+    expect "*OpenSSL>" {
+       $log insert end $expect_out(buffer)
+       $log insert end "\nrequest completes\n"
+       $log see end
+       exp_send "quit\r" 
+       return
+    }
+    expect {
+        timeout { $log insert end "openssl timeout\n" }
+        eof     { $log insert end "output exhausted\n"
+                  $log see end }
+    }
+
+} 
+
+# stop the program and fix up the radiobutton
+proc Stop {} {
+    global input but
+    catch {close $input}
+    $but config -text "Run" -command Run
+}
+
+proc Quit {} {
+    exit
+}
+
+# end of getKeyReq.tcl

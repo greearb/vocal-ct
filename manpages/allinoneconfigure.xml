@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: allinoneconfigure.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="allinoneconfigure">
+  <refmeta>
+    <refentrytitle>allinoneconfigure</refentrytitle>
+
+    <manvolnum>8</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>allinoneconfigure</refname>
+
+    <refpurpose>configure an all in one vocal system.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>allinoneconfigure</command>
+
+      <arg choice="opt">vyHrR</arg>
+
+      <arg choice="opt">-p config_file_path</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>The allinoneconfigure program initially configures a vocal(8) system
+    in a standard configuration for an &#34;allinone&#34; system, in which all
+    VOCAL servers are run on this host (hence allinone). By default,
+    allinoneconfigure interactively queries the user, and configures the
+    system based on its options. However, when passed the <option>-y</option>
+    switch, allinoneconfigure automatically uses its guessed values to attempt
+    to produce a reasonable system.</para>
+
+    <para>the script does several major things:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>It sets up the vocal.conf file, used by vocalctl to know which
+        servers to start or stop.</para>
+      </listitem>
+
+      <listitem>
+        <para>It configures the servers needed for a default installation,
+        namely a single pserver(1), rs(1), and two ms(1) servers.</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>vocal(8) can be configured both as a single, standalone system and
+    as a distributed network of servers. For information about multi-host
+    networked configuration, please see</para>
+
+    <para><ulink
+    url="http://www.vovida.org/cgi-bin/fom?file=655">http://www.vovida.org/cgi-bin/fom?file=655</ulink></para>
+
+    <para>In addition, allinoneconfigure can be passed <option>-r</option> or
+    <option>-R</option> to change the passwords for the administrator or the
+    system itself.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-v</term>
+
+        <listitem>
+          <para>be more verbose about what is being done</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-y</term>
+
+        <listitem>
+          <para>do not be interactive -- automatically answer all questions
+          with default answers</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-H</term>
+
+        <listitem>
+          <para>update the HTML code without doing anything else.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-r</term>
+
+        <listitem>
+          <para>change the administrator password</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-R</term>
+
+        <listitem>
+          <para>change the internal system password used for processes.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-p <filename>config_file_path</filename></term>
+
+        <listitem>
+          <para>set the path to the config files. This defaults to
+          <filename>/usr/local/vocal/bin/allinoneconfigure</filename>.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Copyright</title>
+
+    <para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+
+    <para>THE INFORMATION HEREIN IS PROVIDED ON AN &#34;AS IS&#34; BASIS,
+    WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+    INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</para>
+  </refsect1>
+</refentry>

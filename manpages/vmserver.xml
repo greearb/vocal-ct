@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: vmserver.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="vmserver">
+  <refmeta>
+    <refentrytitle>vmserver</refentrytitle>
+
+    <manvolnum>1</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>vmserver</refname>
+
+    <refpurpose>VOCAL voice mail control server</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>vmserver</command>
+
+      <arg choice="opt">options</arg>
+
+      <arg>sip-port</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>vmserver controls the voicemail system by controlling a voice mail
+    user agent (UA) which actually handles the SIP calls. vmserver knows about
+    things like answering the call, which greeting to play, and where to send
+    the .wav file which contains the caller&#39;s voice mail message.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>fork into background as a daemon(NOTE: this is opposite all
+          other commands)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-i</term>
+
+        <listitem>
+          <para>run from inetd</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f arg</term>
+
+        <listitem>
+          <para>specify voicemail configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-h arg</term>
+
+        <listitem>
+          <para>specify number of VMCP handles</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-v arg</term>
+
+        <listitem>
+          <para>specify the debugging level</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-m</term>
+
+        <listitem>
+          <para>run in IVR mode.  In this mode, vmserver listens on port 9024 instead of 8024.  the corresponding option to ua is -a.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para><citerefentry><refentrytitle>vocal</refentrytitle><manvolnum>8</manvolnum></citerefentry></para>
+
+    <para>More information is available from <ulink
+    url="http://www.vovida.org/">http://www.vovida.org/</ulink></para>
+  </refsect1>
+<refsect1>
+<title>Copyright</title>
+<para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+<para>
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</para>
+</refsect1>
+
+</refentry>

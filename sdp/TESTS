@@ -1,0 +1,6 @@
+#this is the format of the file.
+#exit-code signal core-dump testprogramCommand
+
+# test for the compiliation of the SDP test program
+0 0 0 test -f SdpTest
+0 0 0 test -x SdpTest

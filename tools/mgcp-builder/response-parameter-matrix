@@ -1,0 +1,28 @@
+# 8   -- audit connection
+#       | Parameter name      |  EP|  CR|  MD|  DL|  RQ|  NT|  AU|  AU|
+#       |                     |  CF|  CX|  CX|  CX|  NT|  FY|  EP|  CX|
+#       |_____________________|____|____|____|____|____|____|____|____|
+| EndpointID                  |  F |  F |  F |  F |  F |  F |  O |  F |
+| ResponseAck                 |  F |  F |  F |  F |  F |  F |  F |  F |
+| BearerInformation           |  F |  F |  F |  F |  F |  F |  O |  F |
+| CallId                      |  F |  F |  F |  F |  F |  F |  F |  O |
+| ConnectionId                |  F |  O*|  F |  F |  F |  F |  F |  O |
+| RequestIdentifier           |  F |  F |  F |  F |  F |  F |  O |  F |
+| LocalConnectionOptions      |  F |  F |  F |  F |  F |  F |  O |  O |
+| ConnectionMode              |  F |  F |  F |  F |  F |  F |  F |  O |
+| RequestedEvents             |  F |  F |  F |  F |  F |  F |  O |  F |
+| SignalRequests              |  F |  F |  F |  F |  F |  F |  O |  F |
+| NotifiedEntity              |  F |  F |  F |  F |  F |  F |  F |  F |
+| ReasonCode                  |  F |  F |  F |  F |  F |  F |  F |  F |
+| ObservedEvents              |  F |  F |  F |  F |  F |  F |  O |  F |
+| DigitMap                    |  F |  F |  F |  F |  F |  F |  O |  F |
+| ConnectionParameters        |  F |  F |  F |  O |  F |  F |  F |  O |
+| SpecificEndpointID          |  F |  O |  F |  F |  F |  F |  F |  F |
+| SecondEndpointID            |  F |  F |  F |  F |  F |  F |  F |  F |
+| RequestedInfo               |  F |  F |  F |  F |  F |  F |  O |  F |
+| QuarantineHandling          |  F |  F |  F |  F |  F |  F |  O |  F |
+| DetectEvents                |  F |  F |  F |  F |  F |  F |  O |  F |
+| RestartMethod               |  F |  F |  F |  F |  F |  F |  F |  F |
+| RestartDelay                |  F |  F |  F |  F |  F |  F |  F |  F |
+| RemoteConnectionDescriptor  |  F |  F |  F |  F |  F |  F |  F |  O*|
+| LocalConnectionDescriptor   |  F |  M |  O |  F |  F |  F |  F |  O*|

@@ -1,0 +1,113 @@
+#! /bin/sh
+
+# the following is magic to allow perl to run with multiple locations of
+# perl.  It only works with perls that have the -x switch, however!
+exec `which perl` -x $0 ${1+"$@"}
+exit
+#!perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: move-allinone,v 1.1 2004/05/01 04:15:31 greear Exp $
+
+@filelist = (
+	     "etc/vocal.conf",
+	     "provisioning_data",
+	    );
+
+@filenamelist = (
+		 "provisioning_data"
+		 );
+
+$source = "172.19.175.174";
+$dest = "172.19.175.173";
+
+foreach $f (@filelist) {
+    &fix_files_in_dir($f);
+}
+
+foreach $f (@filenamelist) {
+    &fix_filenames_in_dir($f);
+}
+
+
+sub fix_files_in_dir {
+    my ($dir) = @_;
+
+    open(F, "find $dir -type f -print|");
+    while(<F>) {
+	chomp;
+	&fix_file($_);
+    }
+    close(F);
+}
+
+sub fix_file {
+    system("perl -pi.bak -e 's/$source/$dest/g;' $_[0]");
+    ($dev,$ino,$mode,$nlink,$uid,$gid) = stat("$_[0].bak");
+    chown $uid, $gid, $_[0];
+    chmod $mode, $_[0];
+}
+
+sub fix_filenames_in_dir {
+    my ($dir) = @_;
+    open(F, "find $dir -name '*$source*' -print|");
+    while(<F>) {
+	chomp;
+	$newfile = $_;
+	$newfile =~ s/$source/$dest/g;
+	rename $_, $newfile;
+    }
+    close(F);
+}
+
+### Local Variables: ###
+### mode: cperl ###
+### End: ###
+

@@ -1,0 +1,18 @@
+---- start ----
+fake dlcx 4000 aaln/1@vovida.com mgcp 0.1
+I: 1
+---- end ----
+---- start ----
+fake dlcx 4000 aaln/2@vovida.com mgcp 0.1
+I: 1
+---- end ----
+---- start ----
+fake dlcx 4000 aaln/1@vovida.com mgcp 0.1
+C: 7
+I: 2
+---- end ----
+---- start ----
+fake dlcx 4000 aaln/2@vovida.com mgcp 0.1
+C: 7
+I: 2
+---- end ----

@@ -1,0 +1,82 @@
+====================================================================
+Feature Information in New Provisiong System README
+====================================================================
+Newprov
+Release 1.0.0
+April 16th 2003
+Authors: Suha Cubukcuoglu [  suhac@nplusone.net ]
+         Colin Cameron    [ colinc@nplusone.net ] 
+         nplusone       [ http://www.nplusone.net ]
+
+====================================================================
+Provisioning and Activating/De-activating Features for Users
+====================================================================
+
+Each user that has been added into the database must likewise be added   
+into the old provisioning server from the Java GUI. The user needs to be
+provisioned with
+
+a) the alias list (same as in the database)
+b) Features
+
+for the New provisioning system to interact properly with the old system.
+
+
+====================================================================
+Hunt Groups in New Provisioning System
+====================================================================
+Hunt Group is a feature that uses 'Forward All Calls' feature server provided
+with the old provisioning system. To be able to provision and activate a hunt
+group, the following steps must be taken:
+
+ - Add a new user into the database with a name that is suitable to reflect the
+   mission of the group, e.g. nplusone-dev.
+ - Add an alias (an e164 number) for this user into 'aliases' table.
+ - Open up the Java GUI for the old provisioning system. Choose the administrator
+   option, click OK. On the upcoming menu right-click and then select 'New'.
+ - In the new window, put the same user name as the one in the Database.
+ - Add the alias you have chosen into 'alias' box. 
+ - Enable and set 'Forward All Calls' feature for the user.
+ - Click OK to exit the window.
+
+Due to the fact that each feature requires a unique CPL script, the cpl file that
+is placed in the hash-map structure of the provisioning server needs to be modified.
+
+The cpl script for Hunt Groups looks like
+
+<?xml version="1.0" ?>
+<!DOCTYPE cpl SYSTEM "cpl.dtd">
+<cpl>
+ <incoming>
+  <location clear="no" url="sip:1011">
+  <location clear="no" url="sip:1021">
+    <proxy ordering="parallel">
+    </proxy>
+  </location>
+  </location>
+ </incoming>
+</cpl>
+ 
+where <location>...</location> denotes a destination to which the incoming
+call be forked. There can be as many entities as necessary in a hunt-group.  
+
+Once the hunt group cpl script is placed in file (e.g. hunt_group.cpl), find
+the old cpl script that is to be replaced under /usr/local/vocal/provisioning_data.
+This file normally resides under Feature_<vocal-ip>_5085/ in one the AA* directories.
+It is called <name_of_user>.cpl.xml. In our particular example, that will be nplusone-dev.cpl.xml.
+
+Copy the file you have prepared into the old one. Finally, restart VOCAL and
+your changes should be picked.
+
+If a call comes in with the destination set to the GDN (Group Directory Number)
+which you've given as an alias to the hunt group, the call will be forked to all
+subscribers inside the hunt group.
+   
+====================================================================
+TODO
+===================================================================
+
+Everytime a hunt-group is added, Pserver and Feature Server-5085 must be restarted.
+The stable release of VOCAL 1.5.0 does not allow live updates of cpl scripts by using
+psins.pl. Therefore, we need to find a solution for adding custom CPL scripts without
+interrupting the system.

@@ -1,0 +1,25 @@
+<deployedServers>
+    <global
+        multicastHost="%heartbeat_ip%"
+        multicastPort="%heartbeat_port%"
+    />
+    <marshalServer
+        host="%host%"
+        port="%ms_ua_port%"
+        type="UserAgent"
+        gatewayHost="%ms_ua_gwhost%"
+        gatewayPort="%ms_ua_gwport%"
+    />
+    <marshalServer
+        host="%host%"
+        port="%ms_gw_port%"
+        type="UserAgent"
+        gatewayHost="%ms_gw_gwhost%"
+        gatewayPort="%ms_gw_gwport%"
+    />
+    <redirectServer
+        host="%host%"
+        port="%rs_port%"
+        syncPort="22002"
+    />
+</deployedServers>

@@ -1,0 +1,19 @@
+INVITE sip:kpavoori@151.214.69.19:5060;transport=udp SIP/2.0
+Via: SIP/2.0/UDP 192.168.5.26:5061
+From: KiranPavoori <sip:kpavoori@151.214.69.19:5060>
+To: kpavoori <sip:kpavoori@151.214.69.19:5060>
+Call-ID: 2088506666@151.214.69.19
+CSeq: 1 INVITE
+Subject: IntervoiceBriteINVITE
+Contact: <sip:Application@151.214.69.19:5060;transport=udp>
+Content-Type: application/sdp
+Content-Length: 174
+
+v=0
+o=kpavoori 20 1 IN IP4 kiran.intervoice-brite.com
+s=IVB_Session
+c=IN IP4 151.214.69.21
+t=961187475 0
+m=audio 2700 RTP/AVP 0 97 98
+a=rtpmap:0 PCMU/8000
+a=ptime:10

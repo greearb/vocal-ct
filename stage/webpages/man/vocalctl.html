@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>vocalctl</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="refentry"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="vocalctl">vocalctl</H1
+><DIV
+CLASS="refnamediv"
+><A
+NAME="AEN6"
+></A
+><H2
+>Name</H2
+>vocalctl&nbsp;--&nbsp;control a VOCAL system</DIV
+><DIV
+CLASS="refsynopsisdiv"
+><A
+NAME="AEN9"><H2
+>Synopsis</H2
+><P
+><B
+CLASS="command"
+>vocalctl</B
+> [-dn] [command]</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN14"
+></A
+><H2
+>Description</H2
+><P
+><SPAN
+CLASS="citerefentry"
+><SPAN
+CLASS="refentrytitle"
+>vocalctl</SPAN
+>(8)</SPAN
+>
+    is a frontend to the <SPAN
+CLASS="citerefentry"
+><SPAN
+CLASS="refentrytitle"
+>vocald</SPAN
+>(8)</SPAN
+>
+    process controller for VOCAL. It</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN23"
+></A
+><H2
+>Commands</H2
+><P
+>vocalctl takes a number of commands, or if no command is passed, it
+    lists the commands which can be used.</P
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>respawn &#60;process&#62;</DT
+><DD
+><P
+>enable automatic respawning of tasks if the task e</P
+></DD
+><DT
+>config</DT
+><DD
+><P
+>print vocal.conf configuration values</P
+></DD
+><DT
+>stop</DT
+><DD
+><P
+>stop vocald</P
+></DD
+><DT
+>shutdown</DT
+><DD
+><P
+>stop vocald (no error if not running)</P
+></DD
+><DT
+>status</DT
+><DD
+><P
+>show status of processes</P
+></DD
+><DT
+>start</DT
+><DD
+><P
+>start vocald</P
+></DD
+><DT
+>reload</DT
+><DD
+><P
+>reread vocal.conf configuration file</P
+></DD
+><DT
+>norespawn &#60;process&#62;</DT
+><DD
+><P
+>disable automatic respawning of tasks if the task</P
+></DD
+><DT
+>disable &#60;process&#62;</DT
+><DD
+><P
+>disable process (or all if no argument)</P
+></DD
+><DT
+>enable &#60;process&#62;</DT
+><DD
+><P
+>enable process (or all if no argument)</P
+></DD
+><DT
+>restart</DT
+><DD
+><P
+>restart vocald (or start if not running)</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN71"
+></A
+><H2
+>Options</H2
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>-d</DT
+><DD
+><P
+>run vocald in debugging mode (and in no daemon mode) to allow
+          debugging messages to appear on the console.</P
+></DD
+><DT
+>-n</DT
+><DD
+><P
+>do not interact with the user if there are problems (suitable
+          for scripting).</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN82"
+></A
+><H2
+>See Also</H2
+><P
+><SPAN
+CLASS="citerefentry"
+><SPAN
+CLASS="refentrytitle"
+>vocal</SPAN
+>(8)</SPAN
+>
+    <SPAN
+CLASS="citerefentry"
+><SPAN
+CLASS="refentrytitle"
+>vocald</SPAN
+>(8)</SPAN
+></P
+><P
+>More information is available from <A
+HREF="http://www.vovida.org/"
+TARGET="_top"
+>http://www.vovida.org/</A
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN93"
+></A
+><H2
+>Copyright</H2
+><P
+>Copyright 2002-2003, Cisco Systems, Inc.</P
+><P
+>&#13;THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</P
+></DIV
+></BODY
+></HTML
+>

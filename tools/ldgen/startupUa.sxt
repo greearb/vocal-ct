@@ -1,0 +1,24 @@
+# this is a sample startup script for start-xterms for ua's:
+
+# arguments:
+
+# 'Title', 'ssh command', 'geometry', 'command executed by Ctrl-F10'
+
+# note:  the command exectued by Ctrl-F10 is interpreted by the shell -- \\n
+#        can be used to send a newline.  also, you can send multiple lines by
+#        the use of \\n as a separator
+#
+# LOG_EMRG      0
+# LOG_ALERT     1
+# LOG_CRIT      2
+# LOG_ERR       3
+# LOG_WARNING   4
+# LOG_NOTICE    5
+# LOG_INFO      6
+# LOG_DEBUG     7
+# LOG_DEBUG_STACK 8
+
+"called-ua", '-',  "80x10+512+480",  'cd /root/ldgen/rec\\n../ua -v -f ua.rec.cfg\\n'
+"calling-ua", '-',  "80x10+0+480",    'cd /root/ldgen/call\\n../ua -v -f ua.call.cfg\\n'
+
+

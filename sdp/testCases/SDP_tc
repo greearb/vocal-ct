@@ -1,0 +1,36 @@
+[DECODE] 	testing
+//
+../testCases/tc_decode_1:		Only required fields; absolute minimum values
+../testCases/tc_decode_2:		Only required fields;add TTL & #of addr for "c=" 
+../testCases/tc_decode_3:		Basic fields; one media line with one non-zero format 
+../testCases/tc_decode_4:		Basic fields; one media line with multiple non-zero formats
+../testCases/tc_decode_5:		Basic fields; two media lines with multiple non-zero formats
+../testCases/tc_decode_6:		Basic fields + "i,u,e,p="
+../testCases/tc_decode_10:		Unknow media type and non-numeric format
+../testCases/tc_decode_11:		Unknow media type and non-numeric format list
+../testCases/tc_decode_12:		Various rtpmap attribute forms
+//
+[ASSIGN_OP] testing
+../testCases/tc_assign_op_1:		Only required fields
+../testCases/tc_assign_op_2:		All fields
+../testCases/tc_assign_op_10:		Unknow media type and non-numeric format
+../testCases/tc_assign_op_11:		Unknow media type and non-numeric format list
+../testCases/tc_assign_op_12:		Various rtpmap attribute forms
+//
+[COPY_CONST] testing
+//
+../testCases/tc_copy_const_1:		Only required fields
+../testCases/tc_copy_const_2:		All fields
+../testCases/tc_copy_ctor_10:		Unknow media type and non-numeric format
+../testCases/tc_copy_ctor_11:		Unknow media type and non-numeric format list
+../testCases/tc_copy_ctor_12:		Various rtpmap attribute forms
+/[NCS] testing
+//
+/tc_NCS_1
+/tc_NCS_2
+//[DUMP] not useful
+//
+//../testCases/tc_dump_1:		Only required fields
+//../testCases/tc_dump_2:		All fields
+//../testCases/tc_dump_10:	Unknow media type and non-numeric format
+//../testCases/tc_dump_11:	Unknow media type and non-numeric format list

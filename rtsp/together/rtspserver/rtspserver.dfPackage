@@ -1,0 +1,83 @@
+package id1ircscml7ohuxcml7s1l7;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:design#Class#id15yaxcml7ohuxcml7s83f.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspserver.test:oiref> 
+*/
+class reference45 {
+}/**
+@__ref <oiref:design#Class#idyhnacml7ohuxcml7s82b.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspserver.sounds:oiref> 
+*/
+class reference52 {
+}/**
+@__ref <oiref:design#Class#idg5wacmqybdckcmr4vnu8.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspserver.doc:oiref> 
+*/
+class reference44 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options option.boundingbox = false
+option.printheader = false
+option.printfooter = false
+option.top = 0
+option.bottom = 0
+option.left = 0
+option.right = 0 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:cpp#Extends#OpSetParameter#Operator:oiref>=6787,1904,5948,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpRecordInvalid#Operator:oiref>=7456,1904,7456,1894,5987,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpTeardown#Operator:oiref>=5003,1904,5844,1818:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#myInstance:oiref>=5239,419,5239,469,5329,469,5329,379,5279,379:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspRtpProcessor#myInstance:oiref>=5475,1345,5475,1395,5565,1395,5565,1305,5515,1305:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePlaying#State:oiref>=7322,1518,6837,1431:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileRtp#RtspFile:oiref>=6353,711,6617,518:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#myStats:oiref>=5076,224,4984,224:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspFileHandler#m_xRtspFile:oiref>=6891,283,6790,283:oigroup>
+<oigroup:<oiref:cpp#Extends#OpSetupInvalid#Operator:oiref>=6341,1904,5922,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileAu#RtspFile:oiref>=6728,711,6728,518:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileRaw#RtspFile:oiref>=6648,711,6648,518:oigroup>
+<oigroup:<oiref:cpp#Extends#StateRecording#State:oiref>=6387,1518,6710,1431:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspSession#myStats:oiref>=5880,230,5932,230:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspSessionManager#myInstance:oiref>=5544,417,5544,467,5634,467,5634,377,5584,377:oigroup>
+<oigroup:<oiref:cpp#Extends#OpAnnounce#Operator:oiref>=4557,1904,4557,1894,5819,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileWav#RtspFile:oiref>=7022,711,6759,619,6759,518:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPlayInvalid#Operator:oiref>=5672,1904,5883,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPlay#Operator:oiref>=4780,1904,4780,1894,5831,1818:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspFileManager#myInstance:oiref>=6413,527,6413,577,6503,577,6503,487,6453,487:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyRecord#State:oiref>=7135,1518,6811,1431:oigroup>
+<oigroup:<oiref:design#Class#id15yaxcml7ohuxcml7s83f.diagram:oiref>=4276,9,63,63,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyPlay#State:oiref>=6574,1518,6735,1431:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPauseInvalid#Operator:oiref>=4334,1904,4334,1894,5806,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpRecord#Operator:oiref>=5896,1904,5896,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPauseOk#Operator:oiref>=5226,1904,5857,1818:oigroup>
+<oigroup:<oiref:design#Class#idyhnacml7ohuxcml7s82b.diagram:oiref>=4388,9,63,63,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPause#Operator:oiref>=7233,1904,7233,1894,5974,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpDescribe#Operator:oiref>=6564,1904,5935,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePauseRecord#State:oiref>=6200,1518,6685,1431:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#StateMachine#myInstance:oiref>=6308,1381,6308,1431,6398,1431,6398,1341,6348,1341:oigroup>
+<oigroup:<oiref:cpp#Extends#OpOptions#Operator:oiref>=5449,1904,5870,1818:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspConfiguration#myInstance:oiref>=4668,614,4668,664,4758,664,4758,574,4708,574:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePausePlay#State:oiref>=6761,1518,6761,1431:oigroup>
+<oigroup:<oiref:cpp#Extends#OpTeardownOk#Operator:oiref>=7010,1904,7010,1894,5961,1818:oigroup>
+<oigroup:<oiref:cpp#Extends#OpSetup#Operator:oiref>=6118,1904,5909,1818:oigroup>
+<oigroup:<oiref:design#Class#idg5wacmqybdckcmr4vnu8.diagram:oiref>=4503,8,63,63,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StateInit#State:oiref>=6948,1518,6786,1431:oigroup>
+*/
+class __positions {
+}

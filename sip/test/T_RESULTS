@@ -1,0 +1,17 @@
+>>>> START sip/test ( 2000-02-23-11-52-59 )
+PASSED: InviteMsgTest:0: testEncodeDecode
+PASSED: InviteMsgTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: CancelMsgTest:0: testEncodeDecode
+PASSED: CancelMsgTest:: (exit code: 0, signal: 0, core: 0)
+FAILED: AckMsgTest:0: testEncodeDecode
+FAILED: AckMsgTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: ByeMsgTest:0: testEncodeDecode
+PASSED: ByeMsgTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: StatusMsgTest:0: testEncodeDecode
+PASSED: StatusMsgTest:: (exit code: 0, signal: 0, core: 0)
+FAILED: ParseTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: SipCallLegTest:0: test for < operator
+PASSED: SipCallLegTest:1: test for < operator
+PASSED: SipCallLegTest:2: test for < operator
+PASSED: SipCallLegTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END sip/test ( 2000-02-23-11-52-59 )

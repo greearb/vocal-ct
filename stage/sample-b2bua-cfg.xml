@@ -1,0 +1,41 @@
+<B2BUA_Configuration>
+  <SIP>
+     <Local>
+       <Port>8095</Port> 
+       <Transport>UDP</Transport> 
+     </Local>
+     <Proxy_Server>
+       <Address>171.71.96.123</Address> 
+       <Port>5060</Port> 
+     </Proxy_Server>
+     <Registration>
+       <Register>yes</Register> 
+       <Address>171.71.96.123</Address> 
+       <Port>5060</Port> 
+       <Expires>600</Expires> 
+     </Registration>
+  </SIP>
+  <RADIUS>
+     <Local>
+       <Authentication_Port>1812</Authentication_Port> 
+       <Accounting_Port>1813</Accounting_Port> 
+     </Local>
+    <Billing_Server>
+       <Address>171.71.96.123</Address> 
+       <Authentication_Port>1812</Authentication_Port> 
+       <Accounting_Port>1813</Accounting_Port> 
+       <Password>vovida</Password> 
+    </Billing_Server>
+  </RADIUS>
+  <PrePaid>
+    <Billing>
+       <Option>free</Option> 
+       <Refresh_Time>60</Refresh_Time> 
+       <Extract_User_Id_From>Proxy-Authorization</Extract_User_Id_From> 
+       <User_Id_Decode_Scheme>Basic</User_Id_Decode_Scheme> 
+    </Billing>
+       <Use_SIP_INFO>no</Use_SIP_INFO> 
+       <Use_HTTP>no</Use_HTTP> 
+  </PrePaid>
+  <Redundancy /> 
+</B2BUA_Configuration>

@@ -1,0 +1,21 @@
+#!/usr/local/bin/perl
+
+print "INVITE sip:6500\@192.168.36.180:5060;user=phone SIP/2.0\r\n";
+print "Via: SIP/2.0/UDP 192.168.36.80:5060\r\n";
+print "From: 6400<sip:6400\@192.168.36.80:5060>\r\n";
+print "To: 6500<sip:6500\@192.168.36.180:5060;user=phone>\r\n";
+print "Call-ID: 247515495\@192.168.36.80\r\n";
+print "Accept: application/sdp\r\n";
+print "Accept-Encoding: crap\r\n";
+print "Accept-Language: da, en-gb\r\n";
+print "Allow: ACK\r\n";
+print "Authorization: PGP version=5.0\r\n";
+print "Content-Encoding: blah\r\n";
+print "Date: Thu, 01 Dec 2000 16:00:00 GMT\r\n";
+print "Encryption: \r\n";
+print "Expires: Thu, 01 Dec 2000 16:00:00 GMT\r\n";
+print "Hide: \r\n";
+print "CSeq: 1 INVITE\r\n";
+print "Subject: VovidaINVITE\r\n";
+print "Contact: <sip:6400\@192.168.36.80:5060>\r\n";
+print "Content-Length: 0\r\n";

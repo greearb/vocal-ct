@@ -1,0 +1,3 @@
+<featureServer host="FSCIBHOSTIP" port="FSCIBPORT"><type value="CallerIdBlocking"></type>
+<group value="CallerIdBlockingGroup"></group>
+</featureServer>

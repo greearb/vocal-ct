@@ -1,0 +1,357 @@
+package id21q0vcmic0tykcmicd3hh;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104:oiref><oihard>
+@__modelType reference 
+*/
+class reference105 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106:oiref><oihard>
+@__modelType reference 
+*/
+class reference107 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108:oiref><oihard>
+@__modelType reference 
+*/
+class reference109 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110:oiref><oihard>
+@__modelType reference 
+*/
+class reference111 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112:oiref><oihard>
+@__modelType reference 
+*/
+class reference113 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114:oiref><oihard>
+@__modelType reference 
+*/
+class reference115 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node119:oiref><oihard>
+@__modelType reference 
+*/
+class reference120 {
+}/**
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@__modelType reference 
+*/
+class reference124 {
+}/**
+@shapeType Hyperlink
+@__modelType link
+@__ref <oiref:cpp#Class#StateMachine:oiref><oihard>
+@__reversed 
+*/
+class link {
+}}/**
+State flow of RTSP request from
+@__tags
+@shapeType StateDiagram 
+*/
+class __tags {
+}/**
+@__options option.showprintgrid = true 
+*/
+class __options {
+}/**
+@__positions <oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link:oiref>=535,708,58,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link116:oiref>=57,254,154,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110.link140:oiref>=149,426,77,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link138:oiref>=48,570,62,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106.link:oiref>=112,399,62,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link137:oiref>=514,587,45,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link143:oiref>=240,531,77,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110.link:oiref>=142,518,142,644:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePlaying#State:oiref>=315,223,683,163:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link128:oiref>=320,217,314,404:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref>=305,404,15,15,1:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104.link:oiref>=513,377,513,475:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node119:oiref>=311,109,12,12,1:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link117:oiref>=502,538,95,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node:oiref>=286,174,61,43,1:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link144:oiref>=412,532,77,19,0:oigroup>
+<oigroup:<oiref:cpp#Extends#StateRecording#State:oiref>=945,223,760,163:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104:oiref>=453,334,102,43,1:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link141:oiref>=485,475,318,419:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110.link140:oiref>=142,475,307,419:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106.link145:oiref>=247,366,77,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link147:oiref>=318,310,77,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link138:oiref>=108,644,108,518:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link137:oiref>=510,645,510,552,510,518:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link:oiref>=165,707,58,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node119.link:oiref>=317,121,317,174:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link130:oiref>=315,259,65,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link143:oiref>=163,644,310,419:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110:oiref>=74,475,103,43,1:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link:oiref>=434,570,58,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link126:oiref>=332,235,72,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link:oiref>=556,678,576,678,576,708,546,708,546,688:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link131:oiref>=310,284,98,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106:oiref>=68,333,113,43,1:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link117:oiref>=542,508,562,508,562,538,532,538,532,518:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link116:oiref>=294,217,124,333:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyRecord#State:oiref>=105,223,658,163:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link:oiref>=425,254,130,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104.link146:oiref>=330,361,77,19,0:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyPlay#State:oiref>=1155,223,785,163:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106.link:oiref>=108,376,108,475:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112.link144:oiref>=472,645,316,419:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110.link:oiref>=146,570,58,19,0:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link128:oiref>=320,335,77,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112:oiref>=455,645,101,43,1:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108:oiref>=457,475,85,43,1:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104.link:oiref>=517,415,45,19,0:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link:oiref>=338,217,504,334:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106.link145:oiref>=181,366,305,409:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114:oiref>=67,644,119,43,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePauseRecord#State:oiref>=525,223,709,163:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link147:oiref>=315,217,313,404:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104.link146:oiref>=453,367,320,409:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114.link:oiref>=186,677,206,677,206,707,176,707,176,687:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePausePlay#State:oiref>=735,223,735,163:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link130:oiref>=311,217,312,404:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link126:oiref>=329,217,317,404:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node.link131:oiref>=303,217,309,404:oigroup>
+<oigroup:<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link:oiref>=490,518,490,645:oigroup>
+<oigroup:<oiref:cpp#Extends#StateInit#State:oiref>=1365,223,810,163:oigroup>
+<oigroup:Composite#$transitionInplaceEditing#<oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108.link141:oiref>=405,426,77,19,0:oigroup>
+
+*/
+class __positions {
+}/**
+@shapeType State
+@__modelType node
+@name StateInit 
+*/
+class node {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node104:oiref><oihard> 
+@event OpSetup
+@eventArguments mode=PLAY*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node106:oiref><oihard> 
+@event OpSetup
+@eventArguments mode=RECORD
+@name
+*/
+class link116 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpDescribe 
+@name OpDescribe
+*/
+class link126 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpAnnounce
+@name OpAnnounce 
+*/
+class link128 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpOptions 
+*/
+class link130 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpSetParameter
+@name OpSetParameter 
+*/
+class link131 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link147 {
+}}/**
+@shapeType State
+@__modelType node
+@name StateReadyPlay 
+*/
+class node104 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108:oiref><oihard>
+@event OpPlay 
+*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link146 {
+}}/**
+@shapeType State
+@__modelType node
+@name StateReadRecord 
+*/
+class node106 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110:oiref><oihard>
+@event OpRecord 
+*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link145 {
+}}/**
+@shapeType State
+@__modelType node
+@name StatePlaying 
+*/
+class node108 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112:oiref><oihard>
+@event OpPause 
+@name OpPause
+*/
+class link {
+}/**
+Play request is queued
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108:oiref><oihard>
+@event OpPlay
+@name OpPlay
+@eventArguments queued*/
+class link117 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link141 {
+}}/**
+@shapeType State
+@__modelType node
+@name StateRecording 
+*/
+class node110 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114:oiref><oihard>
+@event OpPause 
+*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link140 {
+}}/**
+@shapeType State
+@__modelType node
+@name StatePausePlay 
+*/
+class node112 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node112:oiref><oihard>
+@event OpPause 
+*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node108:oiref><oihard>
+@event OpPlay 
+*/
+class link137 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link144 {
+}}/**
+@shapeType State
+@__modelType node
+@name StatePauseRecord 
+*/
+class node114 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node114:oiref><oihard>
+@event OpPause 
+*/
+class link {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node110:oiref><oihard>
+@event OpRecord 
+*/
+class link138 {
+}/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node123:oiref><oihard>
+@event OpTeardown 
+*/
+class link143 {
+}}/**
+@shapeType StartState
+@__modelType node
+@name StartState
+*/
+class node119 {
+/**
+@shapeType TransitionLink
+@__modelType link
+@__ref <oiref:design#Class#id21q0vcmic0tykcmicd3hh.node:oiref><oihard> 
+*/
+class link {
+}}/**
+@shapeType EndState
+@__modelType node
+@name EndState
+*/
+class node123 {
+}

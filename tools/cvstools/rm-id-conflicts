@@ -1,0 +1,65 @@
+#! /usr/bin/perl
+
+# $Id: rm-id-conflicts,v 1.1 2004/05/01 04:15:31 greear Exp $
+
+# find all conflict files and resolve $Id: rm-id-conflicts,v 1.1 2004/05/01 04:15:31 greear Exp $ conflicts ONLY
+
+open(FILELIST, "cvs update|") || die "cannot run cvs update: $!";
+while(<FILELIST>) {
+    chomp;
+    if(s/^C //) {
+	push (@filelist, $_);
+    }
+}
+close(FILELIST);
+
+foreach $file ( @filelist) {
+    open(OUT, ">$file.removed-id-conflict") || die "can't open $file.new for writing: $!";
+    open(FILE, "$file") || die "can't open $file: $!";
+    $file =~ /\/?([^\/]*)$/;
+    $basename = $1;
+    print $basename, "\n";
+    $in_conflict = 0;
+    while(<FILE>) {
+	if(/^\<\<\<\<\<\<\< $basename/) {
+	    # in a conflict
+	    $in_conflict = 1;
+	    $first = "";
+	    $second = "";
+	    $first_count = 0;
+	    $second_count = 0;
+#	    print "in conflict: $basename\n";
+	    $start = $_;
+	} elsif( $in_conflict && /^\>\>\>\>\>\>\> /) {
+	    $in_conflict = 0;
+	    if($first_count == 1 && $second_count == 1 &&
+	       $first =~ /\$Id\:[^\$]*\$/ &&
+	       $second =~ /\$Id\:[^\$]*\$/) {
+		print OUT $first;
+	    } else {
+		print OUT $start;
+		print OUT $first;
+		print OUT "=======\n";
+		print OUT $second;
+		print OUT $_;
+	    }
+	} elsif ($in_conflict && /^=======$/ ) {
+	    # switching
+	    $in_conflict = 2;
+	} elsif ($in_conflict == 1) {
+	    $first .= $_;
+	    $first_count++;
+	} elsif ($in_conflict == 2) {
+	    $second .= $_;
+	    $second_count++;
+	} else {
+	    print OUT;
+	}
+    }
+    close(FILE);
+    close(OUT);
+    $diff = `diff $file $file.removed-id-conflict`;
+    if(!$diff) {
+	unlink "$file.removed-id-conflict";
+    }
+}

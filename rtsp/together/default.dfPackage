@@ -1,0 +1,49 @@
+package id3yfgdcml7ohuxcml7ry68;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:design#Class#idm03mcml7ohuxcml7s1iz.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspclient:oiref> 
+*/
+class reference {
+}/**
+@__ref <oiref:design#Class#id1ircscml7ohuxcml7s1l7.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspserver:oiref> 
+*/
+class reference2 {
+}/**
+@__ref <oiref:design#Class#id10i3icml7ohuxcml7s1k3.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspif:oiref> 
+*/
+class reference4 {
+}/**
+@__ref <oiref:design#Class#id1cg26cml8rml8cml8s4f9.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspstack:oiref> 
+*/
+class reference1 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:design#Class#idm03mcml7ohuxcml7s1iz.diagram:oiref>=10,10,63,63,1:oigroup>
+<oigroup:<oiref:design#Class#id10i3icml7ohuxcml7s1k3.diagram:oiref>=10,98,63,63,1:oigroup>
+<oigroup:<oiref:design#Class#id1cg26cml8rml8cml8s4f9.diagram:oiref>=368,3,64,101,1:oigroup>
+<oigroup:<oiref:design#Class#id1ircscml7ohuxcml7s1l7.diagram:oiref>=170,4,69,120,1:oigroup>
+*/
+class __positions {
+}

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="US-ASCII" ?>
+
+<!--
+    Draft DTD for CPL, corresponding to
+    draft-ietf-iptel-cpl-01.
+-->
+
+<!-- Top-level tags of the CPL -->
+<!-- Ancillary information -->
+
+<!ENTITY % Ancillary 'timezone' >
+
+<!-- Subactions -->
+<!ENTITY % Subactions 'subaction' >
+
+<!-- Top-level actions -->
+<!ENTITY % TopLevelAction 'incoming|outgoing' >
+
+
+<!-- Nodes. -->
+<!-- Switch nodes -->
+<!ENTITY % Switch 'address-switch|string-switch|time-switch|
+                   priority-switch' >
+
+<!-- Location nodes -->
+<!ENTITY % Location 'location|lookup|remove-location' >
+
+<!-- Signalling action nodes -->
+<!ENTITY % SignallingAction 'proxy|redirect|vmredirect|reject|dproxy' >
+
+<!-- Other actions -->
+<!ENTITY % OtherAction 'mail|log' >
+
+<!-- Links to subactions -->
+<!ENTITY % Sub 'sub' >
+
+<!-- Nodes are one of the above four categories, or a subaction.
+     This entity (macro) describes the contents of an output.
+     Note that a node can be empty, implying default action. -->
+<!ENTITY % Node     '(%Location;|%Switch;|%SignallingAction;|
+                     %OtherAction;|%Sub;)?' >
+
+
+<!-- Switches: choices a CPL script can make. -->
+
+<!-- All switches can have an 'otherwise' output. -->
+<!ELEMENT otherwise ( %Node; ) >
+
+<!-- All switches can have a 'not-present' output. -->
+<!ELEMENT not-present ( %Node; ) >
+
+<!-- Address-switch makes choices based on addresses. -->
+<!ELEMENT address-switch ( not-present?,address+, otherwise? ) >
+<!ATTLIST address-switch
+   field         CDATA    #REQUIRED
+   subfield      CDATA    #IMPLIED
+>
+
+
+<!ELEMENT address ( %Node; ) >
+<!ATTLIST address
+   is            CDATA    #IMPLIED
+   contains      CDATA    #IMPLIED
+   subdomain-of  CDATA    #IMPLIED
+>
+
+<!-- String-switch makes choices based on strings. -->
+
+<!ELEMENT string-switch ( (string|not-present)+, otherwise? ) >
+<!ATTLIST string-switch
+   field         CDATA    #REQUIRED
+>
+
+<!ELEMENT string ( %Node; ) >
+<!ATTLIST string
+   is            CDATA    #IMPLIED
+   contains      CDATA    #IMPLIED
+>
+
+<!-- Time-switch makes choices based on the current time. -->
+
+<!ELEMENT time-switch ( (time|not-present)+, otherwise? ) >
+<!ATTLIST time-switch
+   timezone      CDATA    #IMPLIED
+>
+
+<!ELEMENT time ( %Node; ) >
+<!ATTLIST time
+   year          CDATA  #IMPLIED
+   month         CDATA  #IMPLIED
+   date          CDATA  #IMPLIED
+   day           CDATA  #IMPLIED
+   timeofday     CDATA  #IMPLIED
+>
+
+
+<!-- Priority-switch makes choices based on message priority. -->
+
+<!ELEMENT priority-switch ( (priority|not-present)+, otherwise? ) >
+
+<!ENTITY % PriorityVal '(emergency|urgent|normal|non-urgent)' >
+
+<!ELEMENT priority ( %Node; ) >
+<!ATTLIST priority
+   less          %PriorityVal;  #IMPLIED
+   greater       %PriorityVal;  #IMPLIED
+   equal         CDATA          #IMPLIED
+>
+
+
+<!-- Locations: ways to specify the location a subsequent action
+     (proxy, redirect) will attempt to contact. -->
+
+<!ENTITY % Clear  'clear (yes|no) "no"' >
+
+<!ELEMENT location ( %Node; ) >
+<!ATTLIST location
+   url           CDATA    #REQUIRED
+   %Clear;
+>
+
+<!ELEMENT lookup ( success,notfound?,failure? ) >
+<!ATTLIST lookup
+  source         CDATA     #REQUIRED
+  timeout        CDATA     "30"
+  use            CDATA     #IMPLIED
+  ignore         CDATA     #IMPLIED
+  %Clear;
+>
+
+<!ELEMENT success  ( %Node; ) >
+<!ELEMENT notfound ( %Node; ) >
+<!ELEMENT failure ( %Node; ) >
+
+<!ELEMENT remove-location ( %Node; ) >
+<!ATTLIST remove-location
+   param         CDATA    #IMPLIED
+   value         CDATA    #IMPLIED
+   location      CDATA    #IMPLIED
+>
+
+
+<!-- Signalling Actions: call-signalling actions the script can
+     take. -->
+
+<!ELEMENT proxy ( busy?,noanswer?,failure? ) >
+<!ATTLIST proxy
+   timeout       CDATA    "20"
+   recurse       (yes|no) "yes"
+   ordering      CDATA    "parallel"
+>
+
+<!ELEMENT dproxy ( busy?,noanswer?,failure? ) >
+<!ATTLIST dproxy
+   timeout       CDATA    "20"
+   recurse       (yes|no) "yes"
+   ordering      CDATA    "parallel"
+>
+
+<!ELEMENT busy ( %Node; ) >
+<!ELEMENT noanswer ( %Node; ) >
+
+<!-- "failure" repeats from lookup above.  XXX? -->
+
+<!ELEMENT redirect EMPTY >
+
+<!ELEMENT vmredirect EMPTY >
+
+<!-- Statuses we can return -->
+
+<!ELEMENT reject EMPTY >
+<!ATTLIST reject
+   status        CDATA    #REQUIRED
+   reason        CDATA    #IMPLIED
+>
+
+<!-- Non-signalling actions: actions that don't affect the call -->
+
+<!ELEMENT mail ( %Node; ) >
+<!ATTLIST mail
+   url           CDATA    #REQUIRED
+>
+
+<!ELEMENT log ( %Node; ) >
+<!ATTLIST log
+   name          CDATA    #IMPLIED
+   comment       CDATA    #IMPLIED
+>
+
+
+<!-- Calls to subactions. -->
+
+<!ELEMENT sub EMPTY >
+<!ATTLIST sub
+   ref           IDREF    #REQUIRED
+>
+
+
+<!-- Ancillary data -->
+<!-- Timezone information -->
+<!ELEMENT timezone ( standard,daylight? ) >
+<!ATTLIST timezone
+   name          CDATA    #REQUIRED
+>
+
+<!ENTITY % ZoneParams
+  'offset        CDATA  #REQUIRED
+   abbr          CDATA  #REQUIRED
+   year          CDATA  #IMPLIED
+   month         CDATA  #IMPLIED
+   date          CDATA  #IMPLIED
+   day           CDATA  #IMPLIED
+   timeofday     CDATA  #IMPLIED' >
+
+<!ELEMENT standard EMPTY>
+<!ATTLIST standard
+  %ZoneParams;
+>
+
+<!ELEMENT daylight EMPTY>
+<!ATTLIST daylight
+  %ZoneParams;
+>
+
+
+<!-- Top-level action nodes -->
+<!ELEMENT subaction ( %Node; )>
+<!ATTLIST subaction
+   id            ID       #REQUIRED
+>
+
+<!ELEMENT outgoing ( %Node; )>
+
+<!ELEMENT incoming ( %Node; )>
+
+
+<!-- The top-level element of the script. -->
+
+<!ELEMENT cpl  ( timezone*,subaction*,outgoing?,incoming? ) >

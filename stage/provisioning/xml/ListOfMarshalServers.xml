@@ -1,0 +1,11 @@
+<marshalservers>
+    <marshaltype>
+        <type>SIP</type>
+    </marshaltype>
+    <marshaltype>
+        <type>5300</type>
+    </marshaltype>
+    <marshaltype>
+        <type>2600</type>
+    </marshaltype>
+</marshalservers>

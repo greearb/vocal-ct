@@ -1,0 +1,1491 @@
+#! /bin/sh
+
+# the following is magic to allow perl to run with multiple locations of
+# perl.  It only works with perls that have the -x switch, however!
+exec `which perl` -x $0 ${1+"$@"}
+exit
+#!perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2001-2002 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: allinoneconfigure,v 1.1 2004/05/01 04:15:16 greear Exp $
+
+require "getopts.pl";
+&Getopts("vp:yHrR");
+
+
+$print_progress = 1 if $opt_v;
+
+$debug = 0;
+
+
+######################################################################
+#                              DEFAULTS
+######################################################################
+# the below are default values for various items.  Change them here,
+# or better yet add a prompt to ask the user at runtime for a value to
+# override it.
+######################################################################
+
+@openssl_search_path
+  = ( "/usr/bin", "/usr/local/bin", "/opt/bin", "/usr/local/sbin",
+      "/usr/sbin" );
+
+@java_search_path 
+    = ( "/usr/jre/bin", "/usr/jdk/bin", "/usr/java/jdk1.3/bin", 
+        "/usr/java/bin" );
+
+foreach $subdir (&find_file_pattern("jdk", "/usr/java")) {
+    push @java_search_path, "/usr/java/$subdir/bin";
+}
+
+#print @java_search_path;
+
+@httpd_conf_search_path
+    = ( "/etc/httpd/conf", "/usr/local/etc/apache/", "/usr/local/etc/httpd",
+      "/usr/local/etc/httpd/conf", "/usr/local/apache/conf", 
+      "/usr/local/httpd/conf", "/etc/httpd/" );
+
+$VOCAL_BASE = "/usr/local/vocal";  # VOCAL_BASE
+$VOCAL_BASE_CONFIGURED = '@prefix@';
+if($VOCAL_BASE_CONFIGURED ne '@'.'prefix@') {
+    $VOCAL_BASE = $VOCAL_BASE_CONFIGURED;
+}
+
+$bin_directory = "$VOCAL_BASE/bin";
+$conf_directory = "$VOCAL_BASE/etc";
+$prov_directory = "$VOCAL_BASE/provisioning_data";
+$log_directory = "$VOCAL_BASE/log";
+$output_log = "$VOCAL_BASE/allinoneconfig.log";
+$manual_url = "http://www.vovida.org/document/Vocal_Installation_Guide/";
+$var_directory = "$VOCAL_BASE/var";
+$vmhome_directory = "$var_directory/vmhome";
+
+if($opt_p) { 
+    $conf_files_path = $opt_p;
+}
+
+@conf_files_search_path
+  = ( ".", "$bin_directory/allinoneconfigure" );
+
+# these files need to be in the same directory as the
+# allinoneconfigure script
+
+$conf_files{sample_vocal_conf} = "sample_vocal.conf";
+$conf_files{initial_prov} = "initalprovdata.pl";
+$conf_files{sed_rules} = "rulestd.sed";
+
+$conf_files_path = "./";
+
+
+if($opt_R) {
+    print "Regenerating user password....\n";
+    $reader_password = &generate_password();
+    
+    &write_password($conf_directory, "reader", $reader_password, 0);
+    &write_secret($conf_directory, "reader", $reader_password);
+    exit;
+}
+
+if($opt_r) {
+    # set the http password without doing anything else
+    ($generate_pass, $password) = &set_password();
+
+    &write_password($conf_directory, "vocal", $password, 1);
+    if($generate_pass =~ /y/i) {
+	print "User name: vocal\n";
+	print "password: $password\n";
+	print "\n";
+	print "If you lose your password, please run allinoneconfigure -r to\n";
+	print "Create a new password\n";
+    }
+    exit;
+}
+
+
+if(!$opt_p) {
+    # search for the conf files
+
+    foreach $cf_files (@conf_files_search_path) {
+	$ok = 1;
+	foreach(sort keys %conf_files) {
+	    $ok = 0 if(!-e "$cf_files/$conf_files{$_}");
+	}
+	if ($ok) {
+	    $conf_files_path = $cf_files;
+	    break;
+	}
+    }
+}
+
+$ok = 1;
+foreach(sort keys %conf_files) {
+    if($ok && !-e "$conf_files_path/$conf_files{$_}") {
+	$ok = 0;
+
+	print <<EOPRINT
+Cannot find the allinoneconfigure conf files -- please run
+allinoneconfigure from the directory where allinoneconfigure and the
+following files exist:
+
+EOPRINT
+  ;
+    }
+
+    if(!-e "$conf_files_path/$conf_files{$_}") {
+	print "        $conf_files{$_}\n";
+    }
+}
+
+if(!$ok) {
+    exit(-1);
+}
+
+$sample_vocal_conf = "$conf_files_path/$conf_files{sample_vocal_conf}";
+$initial_provisioning = "$conf_files_path/$conf_files{initial_prov}";
+$sed_rules = "$conf_files_path/$conf_files{sed_rules}";
+
+
+
+# searching for 
+
+
+$sample_deployed_servers = "sample_deployedServers.xml";
+#$sample_deployed_servers = "loadgen_deployedServers.xml";
+
+
+
+
+######################################################################
+
+# make sure that I can find all of my configuration and other files
+
+
+chomp($hostname = `hostname`);
+($junk1,$junk2,$junk3,$junk4,@addr) = gethostbyname($hostname);
+($a,$b,$c,$d) = unpack('C4', $addr[0]);
+
+$default{hostname} = $hostname;
+$default{host} = "$a.$b.$c.$d";
+$default{remote_contact} = $default{host};
+
+if($default{remote_contact} eq "127.0.0.1") {
+    foreach $addr (@addr) {
+	($a,$b,$c,$d) = unpack('C4', $addr[0]);
+	$default{remote_contact} = "$a.$b.$c.$d";
+	print $default{remote_contact}, "\n" if $debug;
+	last if($default{remote_contact} ne "127.0.0.1");
+    }
+    # if this is still 127... then do something
+
+    if($default{remote_contact} eq "127.0.0.1") {
+	print "finding...\n" if $debug;
+	@addr_list = &find_address();
+	foreach $addr (@addr_list) {
+	    if($addr ne "127.0.0.1") {
+		$default{remote_contact} = $addr;
+	    }
+	}
+    }
+}
+
+$default{heartbeat_ip}="224.0.0.100";
+$default{heartbeat_port}="0";
+$default{loglevel}="LOG_NOTICE";
+$default{user}="nobody";
+$default{apache_user}="nobody";
+
+sub verify_user {
+    my($user) = @_;
+    my(@userdata) = getpwnam($user);
+
+    if(!$userdata[0]) {
+	return "That user does not exist on this machine.";
+    }
+}
+
+sub verify_user_noroot {
+    my($user) = @_;
+    my(@userdata) = getpwnam($user);
+
+    if(!$userdata[0]) {
+	return "That user does not exist on this machine.";
+    } elsif( $userdata[2] == 0 ) {
+	return "You may not run VOCAL as root.  Please choose another user.";
+    }
+}
+
+
+$default{html_directory} = "$VOCAL_BASE/html";
+$default{cgi_directory} = "$VOCAL_BASE/cgi-bin";
+
+
+$conf_host="10.0.0.1";
+$conf_port="5060";
+$gw_host="10.0.0.5";
+$gw_port="5060";
+
+
+if($opt_H) {
+    # update the HTML code without doing anything else
+
+    &setup_html($bin_directory, 
+		$default{html_directory}, 
+		$default{remote_contact});
+    exit(0);
+
+}
+
+
+
+######################################################################
+#                           QUERY USER
+######################################################################
+# the next section asks the user to confirm that various values are
+# correct.  Add another string if you need a different value.
+######################################################################
+
+
+print <<EOL;
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+
+
+    The following will destroy any VOCAL configuration that you
+    currently have on your system.  If you would like to exit, press
+    Control-C now.
+
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+
+
+EOL
+
+$quit = &query_default("Please press Enter to continue, or q to quit", "");
+
+if($quit =~ /q/i) {
+    print "Aborting installation.\n";
+    exit(0);
+}
+
+$ok = &query_default("I am using files from $conf_files_path.  Is this OK?", "y");
+
+if($ok !~ /y/i) {
+    print "Aborting installation.\n";
+    exit(0);
+}
+
+
+
+print <<EOF;
+
+Welcome to the VOCAL all-in-one configuration system.  This program is
+intended to configure a small example system which has all of the
+servers running on one box, known as an "all-in-one" system.  
+
+This all-in-one system is NOT intended as a production system, but as
+a simple example to get users started using VOCAL.
+
+This configuration WILL destroy any currently configured system on
+this machine.  If this is not acceptable, please quit by pressing
+Control-C now.
+
+EOF
+
+
+if($default{host} eq "127.0.0.1") {
+    # this is a problem, so as an "are you sure?" question
+    $tmp = &query_default("*** WARNING *** an allinone system will not work if the local hostname\n(e.g. $default{hostname}) points to 127.0.0.1 in /etc/hosts .\n Do you wish to continue", "n");
+    if($tmp =~ /n/i) {
+	die "configuration aborted.";
+    }
+}
+
+
+my $valid_host = 0;
+while ($valid_host == 0) {
+	$host
+  	  = &query_default("Host IP Address", $default{host});
+	$valid_host = 1;
+	foreach (split(/\./,$host)) {
+		$valid_host = 0 if ($_ > 255 or $_ < 0);
+	}
+	$valid_host = 0 unless $host =~ /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+	print "Invalid IP, please try again.\n" if $valid_host == 0;
+}
+
+$remote_contact
+  = &query_default("Remote Contact hostname or address (this should NOT be loopback or 127.0.0.1)", $default{remote_contact});
+
+$heartbeat_ip 
+  = &query_default("Multicast Heartbeat IP Address", $default{heartbeat_ip});
+
+$heartbeat_port
+  = &query_default("Multicast Heartbeat Port (0 to deactivate heartbeat)", $default{heartbeat_port});
+
+$loglevel
+  = &query_default("Log Level", $default{loglevel});
+
+$user
+  = &query_default("User to run as", $default{user}, undef, \&verify_user_noroot);
+
+$html_directory
+  = &query_default("HTML directory to install .jar and .html files into\n", 
+    $default{html_directory});
+
+$cgi_directory
+  = &query_default("CGI-BIN directory to install web-based provisioning cgi files into\n", 
+    $default{cgi_directory});
+
+&print_apache_conf();
+
+$add_alias = &query_default("    ********\nAdd * HTML * directory alias\n    ********\n\nWould you like this script to attempt Option 1, Step 1 (y),\nor would you like to perform Option 2 manually (n)? (If y,\nyou must restart Apache after this script has completed\nrunning.)", "y");
+
+($http_dir_tmp) = &find_file("httpd.conf", @httpd_conf_search_path);
+
+if(!$http_dir_tmp) {
+    ($http_dir_tmp) = &find_file("httpd2.conf", @httpd_conf_search_path);
+}
+
+
+
+if($add_alias =~ /y/i) {
+    &locate_httpd_conf();
+}
+
+
+sub locate_httpd_conf {
+    if(!$httpd_conf_path) {
+	$http_dir 
+	  = &query_default("Directory where Apache's httpd.conf or httpd2.conf is located", 
+			   $http_dir_tmp);
+	
+	if(-e "$http_dir/httpd.conf") {
+	    $httpd_conf_path = "$http_dir/httpd.conf";
+	    $httpd_type = "apache1";
+	}
+	if(-e "$http_dir/httpd2.conf") {
+	    $httpd_conf_path = "$http_dir/httpd2.conf";
+	    $httpd_type = "apache2";
+	}
+	
+	if(!$httpd_conf_path) {
+	    die "could not find $http_dir/httpd.conf or $http_dir/httpd2.conf";
+	}
+    }
+}
+
+
+&print_cgi_conf();
+
+$add_cgi = &query_default("    -----------\nAdd - CGI-BIN - alias\n    -----------\n\nWould you like this script to attempt Option 1, Step 1 (y),\nor would you like to perform Option 2 manually (n)? (If y,\nyou must restart Apache after this script has completed\nrunning.)", "y");
+
+
+if($add_cgi =~ /y/i) {
+    &locate_httpd_conf();
+
+    chomp($tmp =`grep ^User $httpd_conf_path`);
+    if($tmp =~ /^User\s+(\w+)$/) {
+	$default{apache_user} = $1;
+    }
+
+    $apache_user
+      = &query_default("The apache web server runs CGI scripts as this user", 
+		       $default{apache_user}, undef, \&verify_user);
+}
+
+
+if($add_cgi =~ /y/i || $add_html =~ /y/i) {
+    ($generate_pass, $password) = &set_password();
+}
+
+#@java_paths = &find_file("java", @java_search_path);
+
+#$java_vm = "none";
+#$java_version = "";
+#foreach $java_vm_tmp (@java_paths) {
+#    $a = `$java_vm_tmp/java -version 2>&1`;
+#    print "$a, $java_vm_tmp \n" if $debug;
+#    if($a =~ /java version \"([^\"]*)\"/) {
+#	# compare version
+#        if($1 gt $java_version) {
+#            $java_vm = "$java_vm_tmp/java";
+#            $java_version = $1;
+#	}
+#    }
+#}
+
+#$java_vm
+#    = &query_default(
+#        "Path to Java VM (if none, automated provisioning will not work)\n" .
+#        " (please include name of interpreter, e.g. /usr/java/bin/java)\n",
+#	$java_vm);
+
+
+($openssl_path) = &find_file("openssl", @openssl_search_path);
+
+if($openssl_path) {
+    $openssl_program_default = "$openssl_path/openssl";
+} else {
+    $openssl_program_default = "none";
+}
+
+$openssl_program 
+  = &query_default("Path to openssl program, or none to not configure SSL support", $openssl_program_default);
+
+&print_config(STDOUT);
+
+sub print_config {
+    local($handle) = @_;
+
+    print $handle <<EOF
+
+                   ******************************
+
+Configuration:
+
+Host IP Address:                   $host
+Remote Contact Address:            $remote_contact
+Multicast Heartbeat IP Address:    $heartbeat_ip
+Multicast Heartbeat Port:          $heartbeat_port
+Log Level:                         $loglevel
+User to run as:                    $user
+HTML directory:                    $html_directory
+CGI directory:                     $cgi_directory
+Apache will run as:                $apache_user
+Openssl:                           $openssl_program
+EOF
+      ;
+    if($add_alias =~ /y/i) {
+	print $handle <<EOF;
+Add alias to:                      $httpd_conf_path
+EOF
+	;
+    }
+
+    if($add_cgi =~ /y/i) {
+	print $handle <<EOF;
+Add CGI to:                        $httpd_conf_path
+EOF
+	;
+    }
+
+    print $handle <<EOF;
+
+                   ******************************
+EOF
+    ;
+}
+
+sub verify_yes_or_no {
+    my($val) = @_;
+
+    if($val !~ /^y/i && $val !~ /^n/i) {
+	return "Please answer y or n";
+    }
+}
+
+$continue = &query_default("Continue", "", "y", \&verify_yes_or_no);
+
+if($continue =~ /n/i) {
+    die "configuration aborted.\n";
+}
+
+open(OUTPUT, ">>$output_log") || die "cannot write to $output_log: $!";
+print OUTPUT "Allinoneconfiguration output for run at ", scalar(localtime), "\n";
+&print_config(OUTPUT);
+close(OUTPUT);
+
+#unlink $output_log;
+
+
+
+print <<EOF
+
+
+**********************************************************************
+
+Beginning the VOCAL configuration process.  This may take a few
+seconds.
+
+
+EOF
+  ;
+
+######################################################################
+#                   FIX PERMISSIONS AND UMASK
+######################################################################
+
+# first things first -- set umask to an appropriate value
+
+&progress("setting umask to 0022 -- users other than root must be able to",
+          "run VOCAL in its default configuration...");
+
+umask 0022;
+
+# fix the permissions on the files
+
+&progress("fixing permissions...");
+
+system("find $VOCAL_BASE | xargs chmod go-w");
+system("find $VOCAL_BASE -type d | xargs chmod a+rx");
+system("find $VOCAL_BASE -type f | xargs chmod a+r");
+
+
+# create var directory
+&progress("Creating var directory...");
+mkdir $var_directory, 0755;
+
+######################################################################
+#                         GENERATE UAVM FILES
+######################################################################
+
+# the UAVM needs copies of $VOCAL_BASE/bin/voicemail/ua.cfg made to
+# $VOCAL_BASE/bin/voicemail/uavm_portnumber.cfg (e.g. uavm_5170.cfg) but
+# with the port number changed
+
+&progress("creating uavm config files...");
+
+mkdir $conf_directory, 0755;
+
+for $ua_port (5170, 5171, 5172, 5173, 5174, 5110) {
+    open(TO, ">$conf_directory/uavm_$ua_port.cfg") || 
+	die "cannot open for writing $uavm_path/uavm_$ua_port.cfg : $!";
+    open(FROM, "$bin_directory/voicemail/ua.cfg") ||
+	die "cannot open $bin_directory/voicemail/ua.cfg : $!";
+    while(<FROM>) {
+        s/^(Local_SIP_Port\s+string\s+)5060/$1 $ua_port/;
+	s/^\#(VmServer\s+string\s+)192\.168\.22\.12/$1 $remote_contact/;
+	print TO;
+    }
+    close(FROM);
+    close(TO);
+}
+
+
+######################################################################
+#		   COPY MANPAGES TO PROPER LOCATION
+######################################################################
+
+&progress("copying man pages to $VOCAL_BASE/man");
+
+if(-d "$VOCAL_BASE/bin/manpages") {
+    system("cp -r $VOCAL_BASE/bin/manpages $VOCAL_BASE/man");
+}
+
+
+######################################################################
+#             GENERATE GUA CONFIGURATION FILE
+######################################################################
+
+&progress("creating GUA config file");
+
+system("cp $VOCAL_BASE/bin/sample-gua.cfg $VOCAL_BASE/etc/gua.cfg");
+
+######################################################################
+#                       GENERATE PROVISIONING
+######################################################################
+
+# this is the sed rule that we will operate on the files
+
+$rule="s/%host%/$host/g;
+s/%heartbeat_ip%/$heartbeat_ip/g;
+s/%heartbeat_port%/$heartbeat_port/g;
+s/%loglevel%/$loglevel/g;
+s/%user%/$user/g;
+s/%pshost%/$host/g;
+s/%backup_pshost%/$host/g;
+s/%ms_gw_gwhost%/$gw_host/g;
+s/%ms_gw_gwport%/$gw_port/g;
+s/%ms_ua_gwhost%/$host/g;
+";
+
+print $rule, "\n" if $debug;
+
+
+($login,$pass,$uid,$gid) = getpwnam($user)
+  or die "$user not in passwd file";
+
+# stop the server
+
+&progress("Stopping VOCAL if it is running...");
+#system("$bin_directory/vocalstart stop >> $output_log 2>&1");
+system("$bin_directory/vocalctl -n stop");
+
+
+&progress("Creating and filling provisioning directory...");
+# destroy the provisioning data and create all of the new data
+
+system("rm -rf $prov_directory");
+
+mkdir $prov_directory, 0755;
+
+# now make the subdirectories
+
+foreach $subdir ("AAA", "AAB", "AAC", "AAD", "AAE", "AAF") {
+    mkdir "$prov_directory/$subdir", 0755;
+}
+
+
+mkdir $log_directory, 0755;
+mkdir "$log_directory/siph323csgw", 0755;
+
+if(`uname` =~ /linux/i) {
+    # chattr the provisioning directory to use sync writes
+    system("chattr +S $prov_directory");
+}
+
+#system("chown -R $user $log_directory") || die "error changing ownership of $log_directory: $!";
+system("chown -R $user $log_directory");
+#system("chown -R $user $prov_directory") || die "error changing ownership of $prov_directory: $!";
+system("chown -R $user $prov_directory");
+
+system("chown -R $user $var_directory");
+
+system("/bin/sync");
+
+system ("sed -e \"$rule\" < $sample_vocal_conf | sed -f $sed_rules > $conf_directory/vocal.conf");
+
+# Append the local-ip information if the user selected something other than the default.
+if ($host ne $default{host}) {
+  system("echo LOCALIP $host >> $conf_directory/vocal.conf");
+}
+
+# hack up the deployedservers file
+
+#system ("sed -e \"$rule\" < $sample_deployed_servers | sed -f rulestd.sed > $prov_directory/deployedServers.xml");
+
+#system ("cp deployedServers.dtd $prov_directory");
+
+&progress("Creating voicemail directory...");
+
+system("rm -rf $vmhome_directory");
+mkdir $vmhome_directory, 0755;
+
+
+
+######################################################################
+#			GENERATE HTML CGI-BIN
+######################################################################
+
+if($apache_user) {
+    system("chown -R $apache_user $vmhome_directory");
+    system("touch $var_directory/mac_addresses");
+    system("chown $apache_user $var_directory/mac_addresses");
+}
+
+&progress("Creating and filling HTML directory...");
+
+# now, install the cgi-bin and jar files appropriately
+
+&setup_html($bin_directory, $html_directory, $remote_contact);
+
+mkdir $cgi_directory, 0755;
+mkdir "$cgi_directory/private", 0755;
+mkdir "$cgi_directory/vprov", 0755;
+
+system("cp $bin_directory/webpages/webconf.cgi $cgi_directory");
+system("cp $bin_directory/webpages/*.pm $cgi_directory");
+system("cp $bin_directory/webpages/vprov/*.pm $cgi_directory/vprov");
+system("chmod a+x $cgi_directory/webconf.cgi");
+
+
+if($add_alias =~ /y/i) {
+    &progress("  Adding alias to httpd.conf...");
+
+    # first, verify that this is not already done
+    $file = `cat $httpd_conf_path`;
+
+    if($file =~ /Alias \/vocal/) {
+	if($file =~ /\#\# vocalkey: html v1.1/) {
+	    &progress("  It looks like the alias has already been added",
+		      "  to httpd.conf.  Skipping...");
+	} else {
+	    &abort("We found an old version of the VOCAL apache configuration.",
+		   "Please remove the old VOCAL configuration (marked with the",
+		   "comment 'Added by allinoneconfigure') from the file",
+		   "$httpd_conf_path and rerun allinoneconfigure.");
+	}
+    } else {
+	# add it to the end
+	open(HTTPD, ">>$httpd_conf_path") || die "cannot open $httpd_conf_path for appending: $!";
+	print HTTPD <<EOF;
+########################################
+## Added by allinoneconfigure
+## vocalkey: html v1.1
+########################################
+Alias /vocal "$html_directory/"
+<Directory "$html_directory">
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+</Directory>
+########################################
+## vocalkeyend: html v1.1
+########################################
+EOF
+  ;
+	close(HTTPD);
+	$alias_added = 1;
+    }
+    # verify the port number for people who have servers on ports other than 80
+    $httpd_port = `egrep ^Port $httpd_conf_path`;
+    if($httpd_port =~ /^Port ([0-9]+)/) {
+        $httpd_port = $1;
+    } else {
+	$httpd_port = "";
+    }
+}
+
+
+if($add_cgi =~ /y/i) {
+    &progress("  Adding CGI alias to httpd.conf...");
+
+    # first, verify that this is not already done
+    $file = `cat $httpd_conf_path`;
+    if($file =~ /ScriptAlias \/vocal/) {
+	if($file =~ /\#\# vocalkey: cgi v1.4/) {
+	    &progress("  It appears that the CGI alias has already been added to httpd.conf.  Skipping...");
+	} else {
+	    &abort("We found an old version of the VOCAL apache configuration.",
+		   "Please remove the old VOCAL configuration (marked with the",
+		   "comment 'Added by allinoneconfigure') from the file",
+		   "$httpd_conf_path and rerun allinoneconfigure.");
+	}
+
+    } else {
+	# add it to the end
+	open(HTTPD, ">>$httpd_conf_path") || die "cannot open $httpd_conf_path for appending: $!";
+	print HTTPD <<EOF;
+########################################
+## Added by allinoneconfigure
+## vocalkey: cgi v1.4
+########################################
+ScriptAlias /vocalconf/ "$cgi_directory/"
+<Directory "$cgi_directory">
+    AllowOverride None
+    Options ExecCGI
+    Order allow,deny
+    Allow from all
+</Directory>
+<Directory "$cgi_directory/private">
+    AllowOverride None
+    Options ExecCGI
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+</Directory>
+########################################
+## vocalkeyend: cgi v1.4
+########################################
+EOF
+  ; #"
+	close(HTTPD);
+	$cgi_added = 1;
+    }
+    # verify the port number for people who have servers on ports other than 80
+    $httpd_port = `egrep ^Port $httpd_conf_path`;
+    if($httpd_port =~ /^Port ([0-9]+)/) {
+        $httpd_port = $1;
+    } else {
+	$httpd_port = "";
+    }
+}
+
+
+######################################################################
+#		    GENERATE PROVISIONING PASSWORD
+######################################################################
+
+&write_password($conf_directory, "vocal", $password, 1);
+
+$reader_password = &generate_password();
+
+
+&write_password($conf_directory, "reader", $reader_password, 0);
+&write_secret($conf_directory, "reader", $reader_password);
+
+system("chown -R $user $prov_directory");
+
+
+######################################################################
+#		  GENERATE SSL KEYS FOR PROVISIONING
+######################################################################
+
+if($openssl_program ne "none") {
+    # generate the key
+    system("$openssl_program genrsa 512/1024 > $VOCAL_BASE/etc/key.pem");
+
+    $openssl_tmp = "/tmp/mkreq.txt.$$";
+    # create the mkreq.txt which has the right bits
+    open(F, ">$openssl_tmp") || die "cannot write $openssl_tmp: $!";
+    ($sample_file = <<REQUEST) =~ s/^\s+//gm;
+	# foo
+	[ req ] 
+	prompt = no
+	distinguished_name = req_distinguished_name
+	attributes = xyz
+	crl_days = 365
+	[ req_distinguished_name ]
+	CN = $hostname
+	[ xyz ]
+REQUEST
+  ;
+    print F $sample_file;
+    close(F);
+    # generate the certificate request
+    system("$openssl_program req -config $openssl_tmp -new -key $VOCAL_BASE/etc/key.pem > $VOCAL_BASE/etc/csr.pem");
+
+    # self-sign the certificate request
+system("$openssl_program req -days 365 -x509 -key $VOCAL_BASE/etc/key.pem -in $VOCAL_BASE/etc/csr.pem > $VOCAL_BASE/etc/cert.pem");
+    unlink $openssl_tmp;
+}
+
+
+# finally, restart VOCAL and run the provisioning deployServers code
+
+&progress("Starting VOCAL...");
+my $vcmd = "$bin_directory/vocalctl -n start";
+$ret = system("$vcmd");
+
+if($ret != 0) {
+    &abort("I failed to start the pserver with cmd: $vcmd.  The pserver must",
+	   "be running to continue.");
+}
+
+
+# make sure the pserver is running
+
+sleep(2);
+
+&check_pserver();
+
+sub check_pserver() {
+    my $ps = "";
+    open(PS, "/bin/ps -axww 2>&1 |") || die "cannot run ps: $!";
+    while(<PS>) {
+	$ps .= $_;
+    }
+    close(PS);
+    
+    if($ps =~ /usage:/i) {
+	$ps = `/bin/ps -ef`;
+    }
+    
+    if($ps !~ /pserver/) {
+	&abort("check_pserver:  I started the pserver, but it is not running.  The pserver must",
+	       "be running to continue.");
+    }
+}
+
+&progress("Creating configuration files...");
+open(PROV, "|$initial_provisioning -L $bin_directory/webpages -I $host") || 
+  die "cannot run $initial_provisioning: $!";
+$oldfh = select(PROV); $| = 1; select($oldfh);
+print PROV "multicast_host $heartbeat_ip\n";
+print PROV "multicast_port $heartbeat_port\n";
+print PROV "authentication vocal:$password\n";
+close(PROV) || &abort("$initial_provisioning exited with an error: $!");
+
+#restart vocal one more time
+&progress("Restarting VOCAL...");
+$ret = system("$bin_directory/vocalctl -n restart");
+
+if($ret != 0) {
+    &abort("I could not restart your VOCAL system");
+}
+
+#system("$bin_directory/vocalstart restart  >> $output_log 2>&1");
+
+
+print "Done.\n";
+
+
+if($add_alias =~ /y/i || $add_cgi =~ /y/i) {
+    print <<EOF;
+
+  ******************************
+       IMPORTANT INFORMATION    
+  ******************************
+
+  Your VOCAL system is just about ready to run.  Please be aware of
+  the following information:
+EOF
+  ;
+
+    &print_restart_reminder();
+    &print_webserver_reminder();
+
+} else {
+}
+
+
+if($java_vm eq "none") {
+    print <<EOF;
+
+  $0 was unable to create a default configuration of 
+  provisioning data for your system.  Please see 
+
+    $manual_url
+
+  for information on how to configure a basic system using the
+  provisioning GUI.
+
+  After producing a basic provisioning system entry for each server
+  which you are interested in using, you MUST restart your VOCAL
+  system by running 
+
+    $bin_directory/vocalctl restart
+
+  because many VOCAL servers will NOT start without at least a
+  minimal configuration.
+
+EOF
+  ;
+}
+
+sub print_webserver_reminder {
+    $hostport = $hostname;
+    if($httpd_port && $httpd_port ne "80") {
+	$hostport .= ":$httpd_port";
+    }
+    print <<EOF;
+
+  * To configure your system, go to
+
+         http://$hostport/vocal/
+
+    And select one of the links there.  Here is your information to
+    log into the Web Based Provisioning system:
+
+      User Name: vocal
+EOF
+;
+    if($generate_pass =~ /y/i) {
+        print "      Password:  $password\n";
+    } else {
+        print "      Password:  <entered by user>\n";
+    }
+print <<EOF;
+
+   * If you lose this information, you can reset the password using
+
+         allinoneconfigure -r
+
+EOF
+  ;
+
+}
+
+open(OUTPUT, ">>$output_log") || die "cannot write to $output_log: $!";
+print OUTPUT "Finished allinoneconfiguration run at ", scalar(localtime), "\n";
+close(OUTPUT);
+
+
+sub print_restart_reminder {
+    if($alias_added || $cgi_added) {
+	print <<EOF;
+
+  * You must first restart your HTTP server, as its configuration has
+    changed.  If you do not, you will not see the website below.
+EOF
+  ;
+    }
+}
+
+
+
+
+######################################################################
+# below this lines are subroutines and functions. 
+######################################################################
+
+
+# this subroutine queries the user by supplying the given prompt and a
+# default value.  If the user types in a new value, that is used,
+# otherwise (if RETURN is pressed w/out a value) the default_value is
+# taken.
+
+# in batch mode (non-interactive mode), batch_value will be returned
+# if it is defined.
+
+# if verify_function is defined, it is called to validate input.
+# verify_function should return an error string if there is a problem
+# with the inputted value, or nothing if the inputted value is
+# acceptable.
+
+sub query_default {
+    local($prompt, $default_value, $batch_value, $verify_function) = @_;
+    local($return_value);
+    local($error);
+
+    if($verify_function && &$verify_function($default_value)) {
+	$default_value = "";
+    }
+
+    while(1) {
+	print $prompt, " [", $default_value, "]: ";
+	
+	if(!$opt_y) {
+	    chomp($return_value = <STDIN>);
+	    if($return_value eq "") {
+		$return_value = $default_value;
+	    }
+	} else {
+	    if(defined($batch_value)) {
+		$return_value = $batch_value;
+	    } else {
+		$return_value = $default_value;
+	    }
+	    print "$return_value\n";
+	}
+	
+	if(!$verify_function || 
+	   !($error = &$verify_function($return_value))) {
+	    return $return_value;
+	} else {
+	    print $error, "\n";
+	    $error = "";
+	    if($opt_y) {
+		&abort("There is no default for the prompt ",
+		       "",
+		       '    '. '"' . $prompt . '"',
+		       "",
+		       "so -y will not work"
+		      );
+	    }
+	}
+    }
+}
+
+
+# this subroutine creates a new user with the given user_name
+# (e.g. their phone #) and IP address.
+
+
+# run a CGI once to form an HTML page which can be loaded statically
+
+sub cgi_to_html {
+    local($cgi, $html, @args) = @_;
+    local($args) = join(" ", @args);
+
+# make cgi script executable
+    system("chmod a+x $cgi");
+    
+    open(OUT, ">$html") || die "cannot open $html for writing: $!";
+    open(F, "$cgi $args|") || die "cannot run $cgi: $!";
+
+    while(<F>) {
+	if( $. > 2) {
+#	    s/http:\/\/[^\/]*\///;
+	    print OUT;
+	}
+    }
+
+    close(F);
+    close(OUT);
+}
+
+
+sub find_file_pattern {
+    local($pattern, @list) = @_;
+    local(@result);
+
+    foreach $directory (@list) {
+	if(-e "$directory") {
+	    opendir(DIR, $directory) || die "can't open $directory: $!";
+	    push @result, grep(/$pattern/, readdir(DIR));
+	    closedir(DIR);
+	}
+    }
+    return @result;
+}
+
+sub find_file {
+    local($filename, @list) = @_;
+    local(@result);
+
+    foreach $directory (@list) {
+	if(-e "$directory/$filename") {
+	    push @result, $directory;
+	}
+    }
+    return @result;
+}
+
+
+######################################################################
+#                               Apache Texts
+######################################################################
+
+
+sub print_apache_conf {
+    print <<EOF;
+
+Provisioning your VOCAL system requires the ability to view the
+contents of $html_directory from the web. There are two ways to
+do this -- review both options before answering the next prompt.
+
+Option 1:
+
+  Step 1: Answer y to the next prompt. This will let this script
+          attempt to add the following to your Apache httpd.conf 
+	  file:
+
+           Alias /vocal "$html_directory"
+           <Directory "$html_directory">
+               AllowOverride None
+               Options ExecCGI
+               Order allow,deny
+               Allow from all
+           </Directory>
+
+           Adding this script creates an alias from the following URL:
+
+           http://$hostname/vocal/
+
+           which points to $html_directory .
+
+
+  Step 2: After this script has completed running, restart your copy
+	  of Apache (httpd) for the change to take effect.
+
+Option 2: Answer n to the next prompt. Then, manually copy the
+	  directory $html_directory to HTML directory for your web server.
+	  You should not need to restart your copy of Apache 
+	  after the script has completed running.
+
+EOF
+    ;
+}
+
+sub print_cgi_conf {
+    print <<EOF;
+
+Would you like to enable the web-based configuration of VOCAL?
+
+There are two ways to do this -- review both options before answering
+the next prompt.
+
+  *******************************************************************
+
+    Warning Warning Warning Warning Warning Warning Warning Warning
+ 
+  *******************************************************************
+
+    Both of these options change your web server to run additional
+    code.  Please make sure that you take a look at the code and are
+    comfortable running it on your web server.
+
+Option 1:
+
+
+  Step 1: Answer y to the next prompt. This will let this script
+          attempt to add the following to your Apache httpd.conf 
+	  file:
+
+           ScriptAlias /vocalconf/ "$cgi_directory"
+           <Directory "$cgi_directory">
+               AllowOverride None
+               Options ExecCGI
+               Order allow,deny
+               Allow from all
+           </Directory>
+
+           Adding this script creates an alias from the following URL:
+
+           http://$hostname/vocalconf/
+
+           which points to $cgi_directory .
+
+  Step 2: After this script has completed running, restart your copy
+	  of Apache (httpd) for the change to take effect.
+
+
+
+Option 2: Answer n to the next prompt. Then, manually copy the
+	  directory $html_directory to HTML directory for your web server.
+	  You should not need to restart your copy of Apache 
+	  after the script has completed running.
+
+EOF
+    ;
+}
+
+
+sub set_password {
+    my $generate_pass, $password;
+    $generate_pass = &query_default("Would you like me to automatically generate a password\n (enter y to generate a password, or n to choose your own)", "n", "y", \&verify_yes_or_no);
+
+    if($generate_pass =~ /y/i) {
+	$password = &generate_password();
+    } else {
+	while(!$password) {
+	    system "stty -echo";
+	    print "Enter Password: ";
+	    chomp($word = <STDIN>);
+	    print "\n";
+	    print "Retype Password: ";
+	    chomp($newword = <STDIN>);
+	    print "\n";
+	    system "stty echo";
+
+	    $password = $word if($word eq $newword);
+	}
+    }
+    return $generate_pass, $password;
+}
+
+
+sub generate_password {
+    my $word;
+#    $word = join '', ('.', '/', 0..9, 'A'..'Z', 'a'..'z')[rand 64, rand 64, rand 64, rand 64, rand 64, rand 64, rand 64, rand 64];
+    $word = join '', ('.', '/', '#', ')', '3', '4', '%', '6', '7', '8', '9', '(', 'A'..'Z', 'a'..'z')[rand 64, rand 64, rand 64, rand 64, rand 64, rand 64, rand 64, rand 64];
+
+    return $word;
+}
+
+sub write_secret {
+    my($dir, $userid, $pass) = @_;
+    my $file = "$dir/vocal.secret";
+
+    open(F, ">$file") || die "cannot open $file for writing: $!";
+    system("chmod go-rwx $file");
+    if($user) {
+	# only set user if the file is appropriate
+	system("chown $user $file");
+    }
+    print F "$userid:$pass\n";
+    close(F);
+}
+
+sub write_password {
+    my($dir, $user, $pass, $level) = @_;
+
+    my $file = "$dir/vocal.passwd";
+    my $crypt;
+    my $salt1 
+      = join '', ('.', '/', 0..9, 'A'..'Z', 'a'..'z')[rand 64, rand 64];
+    my %pwdb;
+    my $written_to_file = 0;
+
+    print $salt, "\n" if $debug;
+    $crypt = crypt($pass, $salt1);
+
+
+    # read in the old password file, copying its output to the new
+    # password file.
+
+    open(F, ">$file.tmp") || die "cannot open $file.tmp for writing: $!";
+
+    if(-f $file) {
+	open(R, "$file") || die "cannot open $file for reading: $!";
+	while(<R>) {
+	    my ($u, $r) = split(/:/, $_, 2);
+	    if($u ne $user) {
+		# not what we are looking for, so just copy to output file
+		print F;
+	    } else {
+		# found it, so replace the part after the colon
+		print F "$user:$crypt:$level\n";
+		$written_to_file = 1;
+	    }
+	}
+	close(R);
+    }
+    if (!$written_to_file) {
+	# append to end of file
+	print F "$user:$crypt:$level\n";
+    }
+    close(F);
+
+    # now, rename the .tmp file to the original file.
+    rename "$file.tmp", $file;
+}
+
+
+
+sub find_address {
+    local($a);
+    local(@addr_list);
+    local($addr);
+    
+    $a = `/sbin/ifconfig -a`;
+    while($a =~ s/inet +(addr:)?([0-9\.]*)//) {
+	push @addr_list, $2;
+    }
+
+    if($debug) {
+	foreach $addr (@addr_list) {
+	    print $addr, "\n";
+	}
+    }
+
+    return @addr_list;
+}
+
+
+sub setup_html {
+    local($bin_dir, $html_dir, $remote) = @_;
+    local($has_java);
+
+    mkdir $html_dir, 0755;
+
+    if(-e "$bin_dir/psClient.jar") {
+	&cgi_to_html("$bin_dir/webpages/provisioning.cgi", 
+		     "$html_dir/provisioning.html",
+		     "-h $remote");
+#	&cgi_to_html("$bin_dir/webpages/systemStatus.cgi", 
+#		     "$html_dir/systemStatus.html",
+#		     "-h $remote");
+#	&cgi_to_html("$bin_dir/webpages/user.cgi", 
+#		     "$html_dir/user.html",
+#		     "-h $remote");
+	$has_java = 1;
+    }
+    open(F, ">$html_dir/index.html") 
+      || die "cannot write $html_dir/index.html: $!";
+    
+    print F <<EOF;
+<html>
+<head>
+<title>VOCAL Configuration for $hostname</title>
+</head>
+<body bgcolor=white>
+<h1>VOCAL Configuration for $hostname</h1>
+Choose one:
+<p>
+    <ul>
+	<li><a href="/vocalconf/webconf.cgi">Web Based Provisioning</a>
+EOF
+
+    if($has_java) {
+	print F <<EOF;
+	<li><a href="provisioning.html">Java Provisioning</a> (requires Java plug-in)
+	<li><a href="user.html">User Configuration</a> (requires Java plug-in)
+EOF
+#	<li><a href="systemStatus.html">System Status</a> (requires Java plug-in)
+
+    }
+
+    print F <<EOF;
+    </ul>
+</body>
+</html>
+EOF
+
+    if(-e "$bin_dir/psClient.jar") {
+	&progress("Copying jar files...");
+	
+	# now, copy the jar files into the html directory
+	
+	mkdir "$html_dir/jarfiles", 0755;
+	system("cp $bin_dir/*.jar $html_dir/jarfiles");
+	system("cp -r $bin_dir/images $html_dir/jarfiles");
+	
+	# make sure permissions are OK
+	system("chmod a+x $html_dir/jarfiles");
+    }
+    
+    system("chmod -R a+r $html_dir");
+    system("chmod a+x $html_dir");
+}
+
+
+sub abort {
+    local(@msg) = @_;
+    local($msg);
+    print "\n\n";
+    print
+      "   **********************    FATAL ERROR    **********************\n\n";
+    foreach $msg (@msg) {
+	print "      $msg\n";
+    }
+    print "\n";
+    print
+      "   **********************    FATAL ERROR    **********************\n";
+    print "\n\n";
+    print "aborted while running\n";
+    foreach $msg (@last_progress_msg) {
+	print "  $msg\n";
+    }
+
+    open(OUTPUT, ">>$output_log") || die "cannot write to $output_log: $!";
+
+    print OUTPUT "Fatal Error:\n";
+    foreach $msg (@msg) {
+	print OUTPUT "      $msg\n";
+    }
+    print OUTPUT " aborted while running\n";
+    foreach $msg (@last_progress_msg) {
+	print OUTPUT "   $msg\n";
+    }
+
+    print OUTPUT "Finished allinoneconfiguration run at ", scalar(localtime), "\n";
+    
+    close(OUTPUT);
+
+    
+    exit -1;
+}
+
+sub progress {
+    local(@msg) = @_;
+    @last_progress_msg = @msg;
+    if($print_progress) {
+	foreach $msg (@msg) {
+	    print "  $msg\n";
+	}
+    }
+}
+
+
+### Local Variables: ###
+### mode: cperl ###
+### End: ###

@@ -1,0 +1,536 @@
+#!/usr/bin/python
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+#
+
+# $Id: vmclient,v 1.1 2004/05/01 04:15:40 greear Exp $
+
+import getpass, imaplib, string, mimetools, multifile, os
+import re, gnome.applet, sys
+
+from gtk import *
+from GTK import *
+
+
+class PlayAudio:
+    "A simple example class"
+    pid = -1
+    def __init__(self, filename):
+	print "playing: " , filename
+	self.pid = os.fork()
+	if (self.pid != 0):
+	    # this is the parent
+	    print "in parent"
+	    # schedule a wait thread to check in 5 seconds
+	    timeout_add(1000, self.cleanup, "")
+
+	elif (self.pid == 0):
+	    # this is the child, so run your audio playing thing
+#	    os.execv("/usr/bin/play", ["play", filename])
+	    os.execv("/usr/bin/sox", ["sox", filename, "-t", "ossdsp", "/dev/dsp"])
+	else:
+	    # this is an error
+	    print "error forking play"
+
+    def cleanup(self, foo):
+	if(self.pid != -1):
+	    print "cleaning up"
+	    newpid, status = os.waitpid(self.pid, os.WNOHANG)
+	    print "status", newpid, status
+	    if(newpid or status):
+		self.pid = -1
+		return 0
+	    return 1
+	else:
+	    return 0
+
+    def stop(self):
+	if(self.pid != -1):
+	    print "stopping", self.pid
+	    os.kill(self.pid, 9)
+
+config_file_name = os.environ['HOME'] + "/.vmclientrc" 
+if (os.access(config_file_name, os.F_OK)):
+    config_file=open(config_file_name, "r")
+    exec(config_file)
+    config_file.close()
+else:
+    print "no .vmclientrc found -- creating with default values."
+    print "please edit .vmclientrc and set it appropriately"
+    config_file=open(config_file_name, "w", 0600)
+    os.chmod(config_file_name, 0600)
+    config_file.write('VMSERVER="192.168.5.101"\n')
+    config_file.write('VMUSER="vm5000"\n')
+    config_file.write('VMPASS="5000"\n')
+    config_file.close()
+    sys.exit()
+    
+
+library_dir          = "/home/labuser/vmclient"
+
+microphone_xpm       = library_dir + "/Microphone.xpm"
+blank_microphone_xpm = library_dir + "/blankMicrophone.xpm"
+rew_xpm              = library_dir + "/rew.xpm"
+play_xpm             = library_dir + "/play.xpm"
+ff_xpm               = library_dir + "/ff.xpm"
+stop_xpm               = library_dir + "/stop.xpm"
+del_xpm              = library_dir + "/del.xpm"
+
+#M.login(getpass.getuser(), getpass.getpass())
+
+M = imaplib.IMAP4(VMSERVER)
+M.login(VMUSER, VMPASS)
+M.select()
+
+
+def listen_one(M, num):
+    global current_played
+    typ, data = M.fetch(num, '(RFC822)')
+    f=open('/tmp/workfile.' + str(os.getpid()), 'w')
+    f.write(data[0][1])
+    f.close()
+    infile=open('/tmp/workfile.' + str(os.getpid()), 'r')
+    message = mimetools.Message(infile)
+    if ( message.gettype() == "audio/wav" ):
+	print "wave file!"
+	outfile=open('/tmp/workfile.' + str(os.getpid()) + '.wav', 'w')
+	mimetools.decode(message.fp,outfile,"base64")
+	outfile.close()
+	current_played = PlayAudio("/tmp/workfile." + str(os.getpid()) + ".wav")
+
+#	os.system("play /tmp/workfile." + str(os.getpid()) + ".wav")
+
+def delete_one(M, num):
+    typ, flags = M.fetch(num, "FLAGS")
+    x = flags[0][3:]
+    print x
+    myflags = imaplib.ParseFlags ( flags[0][3:])
+    flaglist = "("
+    fl = 0
+    for flag in myflags:
+	if(flag != "\Recent"):
+	    if(fl == 1):
+		flaglist = flaglist + " "
+	    flaglist = flaglist + flag
+	    fl = 1
+
+    if(fl == 1):
+	flaglist = flaglist + " "
+
+    flaglist = flaglist + '\Deleted)'
+    M.store(num, 'FLAGS', flaglist)
+
+def undelete_one(M, num):
+    typ, flags = M.fetch(num, "FLAGS")
+    x = flags[0][3:]
+    print x
+    myflags = imaplib.ParseFlags ( flags[0][3:])
+    flaglist = "("
+    fl = 0
+    for flag in myflags:
+	if((flag != "\Deleted") and (flag != "\Recent")):
+	    if(fl == 1):
+		flaglist = flaglist + " "
+	    flaglist = flaglist + flag
+	    fl = 1
+
+    flaglist = flaglist + ')'
+
+    if (flaglist == "()"):
+	flaglist = "(asdf)"
+    print flaglist
+    M.store(num, 'FLAGS', flaglist)
+
+
+def get_status(M, num):
+    status = ""
+    typ, flags = M.fetch(num, "FLAGS")
+    myflags = imaplib.ParseFlags ( flags[0][3:])
+    old = 0
+    deleted = 0
+    new = 0
+    for flag in myflags:
+	if(flag == "\Seen"):
+	    old = 1
+	if(flag == "\Deleted"):
+	    deleted = 1
+
+    if(old):
+	status = status + "Old "
+    else:
+	status = status + "New "
+    if(deleted):
+	status = status + "Deleted"
+    return status
+
+
+def quit_program(*args):
+    global M
+    M.close()
+    M.logout()
+    mainquit()
+
+
+current_msg = 1
+
+msg_count = -1
+
+def get_count():
+    global M, msg_count
+    typ, data = M.search(None, '(ALL)')
+    msg_count = len(string.split(data[0]))
+
+
+get_count()
+
+def play_current(*args):
+    global current_msg, M
+    print "playing ", current_msg
+    listen_one(M, current_msg)
+    if (current_msg < (msg_count)):
+	current_msg = current_msg + 1
+    update_msg()
+
+
+def prev_message(*args):
+    global current_msg
+    if(current_msg > 1):
+	current_msg = current_msg - 1
+	update_msg()
+
+def next_message(*args):
+    global current_msg, msg_count
+    if (current_msg < (msg_count)):
+	current_msg = current_msg + 1
+	update_msg()
+
+def stop_message(*args):
+    global current_played
+    current_played.stop()
+
+def delete_current(*args):
+    global M, current_msg
+    delete_one(M, current_msg)
+
+def undelete_current(*args):
+    global M, current_msg
+    undelete_one(M, current_msg)
+
+
+def update_msg():
+    global current_msg, msgnum, msg_status, M, msg_count
+    msgnum.set_text("Current Message: " + str(current_msg))
+    if ((0 < current_msg) and (current_msg <= msg_count) ):
+	msg_status.set_text("Status: " + get_status(M, current_msg))
+    else:
+	msg_status.set_text("Status: no messages")
+    update_list()
+    check_new()
+
+
+def get_status_fn(*args):
+    check_updated()
+
+list_up_to_date = 0
+
+
+def update_list():
+    global M, list, current_msg, list_up_to_date
+
+    if(list_up_to_date == 0):
+	typ, data = M.search(None, '(ALL)')
+
+	for items in list.children():
+	    list.remove_items(list.children())
+
+	for num in string.split(data[0]):
+	    if(is_new(M, num)):
+		msg_number = str(num) + " *"
+	    else:
+		msg_number = str(num)
+
+	    item = GtkListItem(msg_number)
+	    item.show()
+	    item.connect("event", doubleclick_event_handler)
+	    list.add(item)
+
+	    if(int(num) == current_msg):
+		item.select()
+
+	list_up_to_date = 1
+
+
+def doubleclick_event_handler(widget, event=None):
+    global M, current_msg, list_up_to_date
+    if event.type == GDK.BUTTON_PRESS:
+	print "got singleclick"
+	my_number = string.split(widget.children()[0].get())[0]
+	current_msg = int(my_number)
+	update_msg()
+	return FALSE
+    if event.type == GDK._2BUTTON_PRESS:
+	print "got doubleclick"
+	my_number = string.split(widget.children()[0].get())[0]
+	listen_one(M, my_number)
+	list_up_to_date = 0
+	update_list()
+	check_new()
+	return TRUE
+
+
+def is_new(M, num):
+    typ, flags = M.fetch(num, "FLAGS")
+    isread = 0
+    myflags = imaplib.ParseFlags ( flags[0][3:])
+    for flag in myflags:
+	if(flag == '\Seen'):
+	    isread = 1 
+
+    return not isread
+    
+
+	
+
+def check_new():
+    global M, msg_count, pix1, msk1, pix2, msk2, pixmap, applet_pixmap, up_to_date
+
+    typ, data = M.search(None, '(ALL)')
+    new_msgs = 0
+    for num in string.split(data[0]):
+	isread = 0
+	typ, flags = M.fetch(num, "FLAGS")
+	myflags = imaplib.ParseFlags ( flags[0][3:])
+	for flag in myflags:
+	    if(flag == '\Seen'):
+		isread = 1 
+	if not isread:
+	    new_msgs = 1
+
+    if new_msgs:
+	pixmap.set(pix1, msk1)
+	applet_pixmap.set(pix1, msk1)
+    else:
+	pixmap.set(pix2, msk1)
+	applet_pixmap.set(pix2, msk1)
+
+
+def check_updated(*args):
+    global M, msg_count, up_to_date, list_up_to_date
+#    print "checking"
+    result = M.status("INBOX", "(MESSAGES)")[1][0]
+    junk, count = string.split(re.search("(INBOX \((MESSAGES .*)\))", result).group(2))
+    count = int(count)
+    if (not (count == msg_count)):
+	print count, msg_count
+	get_count()
+	check_new()
+	list_up_to_date = 0
+	update_list()
+    return 1
+
+
+
+timeout_add(1000, check_updated, "")
+
+
+window = GtkWindow(WINDOW_TOPLEVEL)
+window.connect("destroy", quit_program)
+window.set_border_width(10)
+
+box3 = GtkHBox()
+window.add(box3)
+box3.show()
+
+control_box = GtkHBox()
+box3.pack_start(control_box)
+control_box.show()
+
+box0 = GtkVBox()
+box3.pack_start(box0)
+box0.show()
+
+box_list = GtkVBox()
+box3.pack_start(box_list)
+box_list.show()
+
+scrolled_list = GtkScrolledWindow()
+scrolled_list.set_policy(POLICY_AUTOMATIC, POLICY_AUTOMATIC)
+scrolled_list.show()
+box_list.pack_start(scrolled_list)
+
+list = GtkList()
+list.show()
+scrolled_list.add_with_viewport(list)
+
+pix1, msk1 = create_pixmap_from_xpm(window, None, microphone_xpm)
+pix2, msk2 = create_pixmap_from_xpm(window, None, blank_microphone_xpm)
+pixmap = GtkPixmap(pix2, msk1)
+pixmap.show()
+box0.pack_start(pixmap)
+
+
+applet_frame = GtkFrame()
+applet_frame.show()
+
+applet_pixmap = GtkPixmap(pix2, msk1)
+applet_pixmap.show()
+applet_frame.add(applet_pixmap)
+
+
+app = gnome.applet.AppletWidget("vovida-vm")
+app.add(applet_frame)
+app.show()
+
+
+
+
+msgnum = GtkLabel("Current Message: 0")
+box0.pack_start(msgnum)
+msgnum.show()
+
+msg_status = GtkLabel("Status: ")
+box0.pack_start(msg_status)
+msg_status.show()
+
+update_msg()
+
+box1 = GtkHBox()
+box0.pack_start(box1)
+box1.show()
+
+
+#table = GtkTable(2, 3, FALSE)
+table = GtkTable(2, 4)
+table.set_row_spacings(10)
+table.set_col_spacings(10)
+table.set_border_width(10)
+table.show()
+
+control_box.pack_start(table)
+
+
+
+pix_prev, msk_prev = create_pixmap_from_xpm(window, None, rew_xpm)
+prev_pixmap = GtkPixmap(pix_prev, msk_prev)
+prev_pixmap.show()
+
+prev = GtkButton()
+prev.add(prev_pixmap)
+prev.connect("clicked", prev_message)
+table.attach(prev, 0,1, 0,1)
+prev.show()
+
+
+play_pix, play_msk = create_pixmap_from_xpm(window, None, play_xpm)
+play_pixmap = GtkPixmap(play_pix, play_msk)
+play_pixmap.show()
+
+play = GtkButton()
+play.add(play_pixmap)
+play.connect("clicked", play_current)
+table.attach(play, 1,2, 0,1)
+play.show()
+
+
+
+next_pix, next_msk = create_pixmap_from_xpm(window, None, ff_xpm) 
+next_pixmap = GtkPixmap(next_pix, next_msk)
+next_pixmap.show()
+
+next = GtkButton()
+next.add(next_pixmap)
+next.connect("clicked", next_message)
+table.attach(next, 2,3, 0,1)
+next.show()
+
+
+
+stop_pix, stop_msk = create_pixmap_from_xpm(window, None, stop_xpm) 
+stop_pixmap = GtkPixmap(stop_pix, stop_msk)
+stop_pixmap.show()
+
+stop = GtkButton()
+stop.add(stop_pixmap)
+stop.connect("clicked", stop_message)
+table.attach(stop, 3,4, 0,1)
+stop.show()
+
+
+
+delete_pix, delete_msk = create_pixmap_from_xpm(window, None, del_xpm)
+delete_pixmap = GtkPixmap(delete_pix, delete_msk)
+delete_pixmap.show()
+
+
+delete = GtkButton()
+delete.add(delete_pixmap)
+delete.connect("clicked", delete_current)
+table.attach(delete, 1,2, 1,2)
+delete.show()
+
+
+undelete = GtkButton("Undelete")
+undelete.connect("clicked", undelete_current)
+table.attach(undelete, 0,1, 1,2)
+undelete.show()
+
+
+# get_status_button = GtkButton("get status")
+# get_status_button.connect("clicked", get_status_fn)
+# box1.pack_start(get_status_button)
+# get_status_button.show()
+
+quit = GtkButton("Quit")
+quit.connect("clicked", quit_program)
+table.attach(quit, 2,3, 1,2)
+quit.show()
+
+window.show()
+
+mainloop()

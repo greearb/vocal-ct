@@ -1,0 +1,32 @@
+This document identifies installation issues for the system.
+
+Objective:
+
+Allow a user to build, configure, install and provision a system with 
+1 paragraph of documentation.  This system will provide the user the ability 
+to evaluate our product by providing basic calling functionality.  
+
+Assumptions:
+
+    -   a file containing the host names (not ips) of the destination machines
+        one host per line.
+
+    -   trusted root on destination machine. to create:
+
+    -   on local machine "ssh-keygen".  answer all defaults
+	      
+    -   copy the $HOME/.ssh/identity.pub from the local machine to the
+        $HOME/.ssh/authorized_keys file on all machines where you
+        wish  to deploy. and the local machine.
+
+    - "/etc/rc.d/init.d/sshd restart"  on the remote machine
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: install.txt,v 1.1 2004/05/01 04:15:16 greear Exp $

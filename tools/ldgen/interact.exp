@@ -1,0 +1,135 @@
+#!/usr/bin/expect --
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+set argc [llength $argv]
+if { $argc < 5 } {
+    puts "usage: interact.exp <pwd> <host> <rootpf> <userpf> <command>\n"
+    exit 1
+}
+
+set uid     [exec whoami]
+set pwd     [lindex $argv 0]
+set host    [lindex $argv 1]
+set rootpf  [lindex $argv 2]
+set userpf  [lindex $argv 3]
+set command [lindex $argv 4]
+
+# suppressing stdout printout
+log_user 0
+stty -echo
+
+if { !([file exists $rootpf] && [file exists $userpf]) } {
+    # if passwd file does not exist get it and save it
+    if { ![file exists $rootpf] } {
+        send_user "Enter root password: "
+        expect_user -re "(.*)\n"
+        send_user "\n"
+        set rootpasswd $expect_out(1,string)
+        set file [open $rootpf "w"]
+        puts $file $rootpasswd
+        close $file
+    }
+    if { ![file exists $userpf] } {
+        send_user "Enter user password or passphrase: "
+        expect_user -re "(.*)\n"
+        send_user "\n"
+        set userpasswd $expect_out(1,string)
+        set file [open $userpf "w"]
+        puts $file $userpasswd
+        close $file
+    }
+}
+
+set file [open $rootpf "r"]
+set rootpasswd [read $file]
+close $file
+set file [open $userpf "r"]
+set userpasswd [read $file]
+close $file
+
+# starts with host and password
+spawn ssh $host
+
+set timeout 2
+expect {
+    -re "^.*continue connecting \(\yes\/no\)\?.*$" {
+        send -- "yes\n"
+    }
+}
+
+set timeout 5 
+expect {
+    -re "^.*root.*password\:.*$" {
+        send -- "$rootpasswd"
+     }
+    -re "^.*$uid.*password\:.*$" {
+        send -- "$userpasswd"
+    }
+    -re "^.*passphrase.*$uid.*\:.*$" {
+        send -- "$userpasswd"
+    }
+}
+
+expect {
+    -exact "Last" {
+        send -- "cd $pwd\n"
+    }
+    -exact "Permission denied." {
+        puts "invalid password\n"
+        exit 1
+    }
+}
+
+# compound commands 
+send -- "$command\n"
+
+log_user 1
+set stty echo
+interact

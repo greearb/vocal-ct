@@ -1,0 +1,9 @@
+#!/bin/sh
+
+INSTALL_PATH=`cat ${1}/installpath`
+if [ "x${INSTALL_PATH}" = "xdefault" ]
+then
+	sed -e 's#@prefix@#VOCAL_INSTALL_PATH_DEFAULT#g' < ${1}/vocalconfig-config.h.in > ${1}/vocalconfig-config.h
+else
+	sed -e "s#@prefix@#\"${INSTALL_PATH}\"#g" < ${1}/vocalconfig-config.h.in > ${1}/vocalconfig-config.h
+fi

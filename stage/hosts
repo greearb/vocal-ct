@@ -1,0 +1,12 @@
+## The RemoteLoginProtocol lets you specify which protocol you would
+## like to use to transfer files. Supported protocols are ssh, rsh, and
+## ssh2
+
+RemoteLoginProtocol ssh
+
+## Replace the following hostx.domain with the hostnames of the 
+## machines onto which the Vocal System needs to be installed.
+
+host1.domain
+host2.domain
+host3.domain

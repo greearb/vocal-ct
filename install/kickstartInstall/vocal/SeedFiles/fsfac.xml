@@ -1,0 +1,3 @@
+<featureServer host="FSFACHOSTIP" port="FSFACPORT"><type value="ForwardAllCalls"></type>
+<group value="ForwardAllCallsGroup"></group>
+</featureServer>

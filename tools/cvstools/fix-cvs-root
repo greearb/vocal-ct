@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+
+if ($#ARGV != 1) {
+    # 2 arguments mandatory
+    print "Usage: $0 <old-cvs-host> <new-cvs-host>\n";
+    print "\n";
+    print "This script recurses from the current working directory, thus\n";
+    print "you should run this script from the root of your checked-out\n";
+    print "CVS tree.\n";  
+    exit();
+}
+
+print <<EOWARN
+
+**********************************************************************
+                                WARNING
+**********************************************************************
+
+This script will recursively change every Root file in every CVS directory
+in the current directory `pwd` and below it, substituting 
+
+        $ARGV[0]        for       $ARGV[1]
+
+EOWARN
+    ;
+
+$done = 0;
+while(!$done) {
+    print "Are you sure you want to proceed? (yes/no): ";
+    chomp($answer = <STDIN>);
+    if($answer =~ /^yes$/i) {
+        $done = true;
+    } elsif ($answer =~ /^no$/i) {
+	exit(0);
+    } else {
+	print "Please answer yes or no.\n";
+    }
+}
+
+open(FIND, "find . -name 'CVS' -type d -print|") || die "can't run find: $!";
+while(<FIND>) {
+    chomp;
+    $cvsdir = $_;
+    system("perl -pi.bak -e 's/$ARGV[0]/$ARGV[1]/;' $cvsdir/Root");
+}
+close(FIND);

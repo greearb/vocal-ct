@@ -1,0 +1,227 @@
+# $Id: Makefile.pkg,v 1.1 2004/05/01 04:14:55 greear Exp $
+
+# this file defines packages which reside in the contrib directory.
+# it is included from the $(BUILD)/Makefile.pkg file.  
+
+# PLEASE DO NOT INCLUDE DIRECTLY.
+
+
+
+######################################################################
+# LIBSNDFILE is the historical library to build Windows or Linux
+# compatible WAV files.
+######################################################################
+
+ifeq ($(VOCAL_USE_SYSTEM_LIBSNDFILE),true)
+  LIBSNDFILE_INCLUDEDIRS := /usr/local/include
+  LIBSNDFILE_LIBDIRS := /usr/local/lib
+  LIBSNDFILE_LDLIBS_LAST := -lsndfile
+else
+  LIBSNDFILE_INCLUDEDIRS := $(ROOT)/contrib/libsndfile.$(OS_ARCH)/src
+  LIBSNDFILE_LIBDIRS := $(ROOT)/contrib/libsndfile.$(OS_ARCH)/src/.libs 
+  ifeq ($(OSTYPE),Linux)
+    LIBSNDFILE_LIBNAME :=
+  endif
+
+  ifeq ($(OSTYPE),Linux)
+    ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+      LIBSNDFILE_LDLIBS_LAST := -lsndfile
+    else
+      LIBSNDFILE_LDLIBS_LAST := $(LD_STATIC) -lsndfile $(LD_DYNAMIC)
+    endif
+  else
+    ifeq ($(OSTYPE),FreeBSD)
+      LIBSNDFILE_LDLIBS_LAST := $(LD_STATIC) -lsndfile $(LD_DYNAMIC)
+    else
+      ifeq ($(OSTYPE),SunOS)
+        LIBSNDFILE_LDLIBS_LAST := $(LD_DYNAMIC) -lc $(LD_STATIC) -lsndfile
+      endif
+    endif
+  endif
+  ifeq ($(OSTYPE),Darwin)
+    LIBSNDFILE_LDLIBS_LAST := -lsndfile
+  endif
+  
+  ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+    LIBSNDFILE_DEPENDS := $(ROOT)/contrib/libsndfile.$(OS_ARCH)/src/.libs/libsndfile.so
+  else
+    LIBSNDFILE_DEPENDS := $(ROOT)/contrib/libsndfile.$(OS_ARCH)/src/.libs/libsndfile.a
+  endif
+
+$(LIBSNDFILE_DEPENDS):
+	cd $(ROOT)/contrib ;$(MAKE) libsndfile
+endif
+
+
+
+######################################################################
+# NEWSNDFILE replaces LIBSNDFILE for platforms that require
+# Windows or Linux compatible WAV files.
+######################################################################
+
+ifeq ($(VOCAL_USE_SYSTEM_LIBSNDFILE),true)
+  NEWSNDFILE_INCLUDEDIRS := /usr/local/include
+  NEWSNDFILE_LIBDIRS := /usr/local/lib
+  NEWSNDFILE_LDLIBS_LAST := -lsndfile
+else
+  NEWSNDFILE_INCLUDEDIRS := $(ROOT)/contrib/newsndfile.$(OS_ARCH)/src
+  NEWSNDFILE_LIBDIRS := $(ROOT)/contrib/newsndfile.$(OS_ARCH)/src/.libs 
+  ifeq ($(OSTYPE),Linux)
+    NEWSNDFILE_LIBNAME :=
+  endif
+
+  ifeq ($(OSTYPE),Linux)
+    ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+      NEWSNDFILE_LDLIBS_LAST := -lsndfile
+    else
+      NEWSNDFILE_LDLIBS_LAST := $(LD_STATIC) -lsndfile $(LD_DYNAMIC)
+    endif
+  else
+    ifeq ($(OSTYPE),FreeBSD)
+      NEWSNDFILE_LDLIBS_LAST := $(LD_STATIC) -lsndfile $(LD_DYNAMIC)
+    else
+      ifeq ($(OSTYPE),SunOS)
+        NEWSNDFILE_LDLIBS_LAST := $(LD_DYNAMIC) -lc $(LD_STATIC) -lsndfile
+      endif
+    endif
+  endif
+
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+  NEWSNDFILE_DEPENDS := $(ROOT)/contrib/newsndfile.$(OS_ARCH)/src/.libs/libsndfile.so
+else
+  NEWSNDFILE_DEPENDS := $(ROOT)/contrib/newsndfile.$(OS_ARCH)/src/.libs/libsndfile.a
+endif
+
+$(NEWSNDFILE_DEPENDS):
+	cd $(ROOT)/contrib ;$(MAKE) newsndfile
+endif
+
+######################################################################
+#                         libxml
+
+ifeq ($(VOCAL_USE_SYSTEM_LIBXML),true)
+  LIBXML_INCLUDEDIRS := /usr/local/include/libxml2 /usr/local/include/libxml2/libxml /usr/local/include
+  LIBXML_LIBDIRS := /usr/local/lib
+  LIBXML_LDLIBS_LAST := -lxml
+else
+  LIBXML_INCLUDEDIRS := $(ROOT)/contrib/libxml2.$(OS_ARCH) $(ROOT)/contrib/libxml2.$(OS_ARCH)/include/libxml $(ROOT)/contrib/libxml2.$(OS_ARCH)/include
+  LIBXML_LIBDIRS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs 
+  ifeq ($(OSTYPE),Linux)
+    LIBXML_LIBNAME :=
+  endif
+  ifeq ($(OSTYPE),Darwin)
+    LIBXML_LDLIBS_LAST := $(LD_STATIC) -lxml2 -lz $(LD_DYNAMIC)
+  else
+    ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+      LIBXML_LDLIBS_LAST := -lxml
+    else
+      LIBXML_LDLIBS_LAST := $(LD_STATIC) -lxml $(LD_DYNAMIC)
+    endif
+  endif
+
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs/libxml.so
+else
+  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs/libxml.a
+endif
+
+$(LIBXML_DEPENDS):
+	cd $(ROOT)/contrib ;$(MAKE) libxml
+endif
+
+######################################################################
+#                          xerces-c C++ library
+
+XERCES_INCLUDEDIRS := $(ROOT)/contrib/xerces-c-src1_4_0.$(OS_ARCH)/include
+XERCES_LIBDIRS := $(ROOT)/contrib/xerces-c-src1_4_0.$(OS_ARCH)/lib
+XERCES_LIBNAME := xerces-c1_4
+XERCES_DEPENDS := $(ROOT)/contrib/xerces-c-src1_4_0.$(OS_ARCH)/lib/libxerces-c1_4.so
+
+
+######################################################################
+#                             libcext
+
+
+LIBCEXT_INCLUDEDIRS := 
+ifeq ($(OSTYPE),Darwin)
+VOCAL_USE_GETOPT_LONG = 1
+endif
+ifeq ($(OSTYPE),FreeBSD)
+VOCAL_USE_GETOPT_LONG = 1
+endif
+ifeq ($(OSTYPE),SunOS)
+VOCAL_USE_GETOPT_LONG = 1
+endif
+ifeq ($(OSTYPE),Win32)
+VOCAL_USE_GETOPT_LONG = 1
+endif
+ifdef VOCAL_USE_GETOPT_LONG
+LIBCEXT_CXXFLAGS := -D VOCAL_USE_GETOPT_LONG
+endif
+LIBCEXT_LIBDIRS := 
+LIBCEXT_LIBNAME :=
+LIBCEXT_LDFLAGS :=
+LIBCEXT_DEPENDS :=
+
+$(LIBCEXT_DEPENDS):
+	cd $(ROOT)/contrib; $(MAKE) libcext
+
+
+ifeq ($(USE_LIBGETOPT),1)
+    USE_LIBCEXT_BSD = 1
+endif
+
+ifeq ($(USE_R_WRAPPER),1)
+    USE_LIBCEXT_LGPL = 1
+endif
+
+ifeq ($(USE_LIBCEXT_BSD),1)
+LIBCEXT_INCLUDEDIRS := $(ROOT)/contrib/libcext_bsd.$(OS_ARCH)
+LIBCEXT_LIBDIRS := $(ROOT)/contrib/libcext_bsd.$(OS_ARCH)
+LIBCEXT_LIBNAME := cext_bsd
+endif
+
+ifeq ($(USE_LIBCEXT_LGPL),1)
+LIBCEXT_INCLUDEDIRS += $(ROOT)/contrib/libcext_lgpl.$(OS_ARCH)
+LIBCEXT_LIBDIRS += $(ROOT)/contrib/libcext_lgpl.$(OS_ARCH)
+LIBCEXT_LIBNAME += cext_lgpl
+endif
+
+
+######################################################################
+
+ifeq ($(VOCAL_USE_SYSTEM_IMAP),true)
+  LIBIMAP_INCLUDEDIRS := /usr/local/include/c-client
+  LIBIMAP_LIBDIRS := /usr/local/lib
+  LIBIMAP_LIBNAME := c-client4
+  LIBIMAP_LDFLAGS :=
+  LIBIMAP_DEPENDS :=
+else
+  LIBIMAP_INCLUDEDIRS := $(ROOT)/contrib/imap.$(OS_ARCH)/c-client
+  LIBIMAP_LIBDIRS := $(ROOT)/contrib/imap.$(OS_ARCH)/c-client
+  LIBIMAP_LIBNAME := imap
+ifeq ($(OSTYPE),OpenBSD)
+  LIBIMAP_LDFLAGS :=
+else
+  LIBIMAP_LDFLAGS := -lcrypt
+endif
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+  LIBIMAP_DEPENDS := $(ROOT)/contrib/imap.$(OS_ARCH)/c-client/libimap.so
+
+$(LIBIMAP_DEPENDS):
+	cd $(ROOT)/contrib ;$(MAKE) imap
+else
+  LIBIMAP_DEPENDS := $(ROOT)/contrib/imap.$(OS_ARCH)/c-client/libimap.a
+endif
+
+endif
+
+######################################################################
+
+ifeq ($(VOCAL_USE_SPHINX),true)
+  SPHINX_INCLUDEDIRS := /usr/local/include $(VOCAL_SPHINX_PATH)/include $(VOCAL_SPHINX_PATH)/src/libsphinx2/include 
+  SPHINX_LIBDIRS := /usr/local/lib $(VOCAL_SPHINX_PATH)/src/libsphinx2/.libs \
+	$(VOCAL_SPHINX_PATH)/src/libsphinx2ad/.libs \
+	$(VOCAL_SPHINX_PATH)/src/libsphinx2fe/.libs 
+  SPHINX_LDLIBS_LAST := $(LD_STATIC) -lsphinx2 -lsphinx2fe -lsphinx2ad $(LD_DYNAMIC)
+endif

@@ -1,0 +1,54 @@
+.TH pserver 1  vovida.org 
+.\" auto-generated from pserver\&.xml by docbook2manxml
+.SH NAME
+pserver    \- provide provisioning information to VOCAL processes  
+.SH SYNOPSIS
+\fBpserver\fR
+[\fBoptions\fR]
+.SH DESCRIPTION
+The pserver provides provisioning data to VOCAL processes\&.
+.SH OPTIONS
+.TP 
+-c \fIconf_file \fR
+conf_file
+.TP 
+-n
+do not read from config file
+.TP 
+-v \fIlog_level \fR
+set verbosity
+.TP 
+-r \fIpsRootFileSystem \fR
+set file system root
+.TP 
+-f \fIlogfile \fR
+set log file
+.TP 
+-b \fIredundant_server_host:port\fR
+set redundant ("backup") server hostname and port
+.TP 
+-p \fIlocal port\fR
+set port to listen for incoming requests
+.TP 
+-d
+disable daemon mode (run in foreground)
+.TP 
+-u \fInumber of users (1000)\fR
+number of users\&.
+.TP 
+-t \fInumber of threads (25)\fR
+number of request proccess threads\&.
+.TP 
+-N \fInumber of bins \fR
+number of hash bins (overrides number users)\&.
+.TP 
+-M \fImulticast_host:multicast_port\fR
+set the multicast IP address and port
+.TP 
+-s
+log via syslog\&.
+.SH SEE ALSO
+\fBvocal\fR(8)
+.SH DIAGNOSTICS
+.SH BUGS
+.SH AUTHORS

@@ -1,0 +1,10 @@
+#this is the format of the file.
+#exit-code signal core-dump testprogramCommand
+134 0 0 SptrTest01 
+134 0 0 SptrTest02
+134 0 0 SptrTest03 
+1 0 0 VTestTest
+0 0 0 DataTest
+0 0 0 test -f VThreadTest
+1 0 0 test -f nonexistent_file
+0 0 0 HostMatchTest

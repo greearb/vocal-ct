@@ -1,0 +1,9 @@
+CANCEL sip:5105@192.168.36.180:5060;user=phone SIP/2.0
+Via: SIP/2.0/UDP 192.168.36.80:5060
+From: 5225<sip:5225@192.168.36.80:5060>
+To: 5105<sip:5105@192.168.6.5:5060;user=phone>
+Call-ID: 247515495@192.168.36.80
+CSeq: 1 CANCEL
+Subject: VovidaINVITE
+Contact: <sip:5225@192.168.36.80:5060>
+Content-Length: 0

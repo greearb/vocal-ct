@@ -1,0 +1,105 @@
+====================================================================
+LICENSE AND COPYRIGHT 
+====================================================================
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+========================================================================
+
+Vocal release 1.5.0
+-------------------
+The file lists all of the bugs of priority P1-P3 that are fixed in 
+this release.
+273: Call Screen not working for a PSTN call if only 7 digits.
+498: SipMsg::encode function changes the Content Type header by 
+looking at the actual Content -Type , even after u have set the 
+content type explicityly to some value using SetContentType 
+function.
+503: If the last line in an SDP does not have a CR or LF
+CopyOnDataWrite::getLine (in the util subdirectory) fails to 
+remove the last line from the buffer.  This causes 
+SdpSession::decode(Data buffer) to loop forever (Sdp2Session.cxx).
+536: Problems whe using alias ip address to configure allinone VOCAL system.
+544: Vocal user agent does not send quote for nonce and 
+realm in proxy-authenticate.
+545: sip stack transmits 200 repeatedly in INVITE-200-ACK sequence.
+553: proxies/test (500cps,500cpstcp) does not build on RH 7.1 or 7.2.
+570: New user not update at RS.
+573: gw marshal looks up user during calls.
+575: UA-Marshal Server ignores "Contact Header" in 302.
+581: SIP URI cannot handle headers (?hname=hvalue).
+586: enabling voicemail after adding user via java gui does not 
+create vmhome directory.
+587: sometimes see a deleted user when going between 
+add/change/delete user in HTML gui.
+596: CANCEL through BYE message is broken.
+603: CVS based build fails on FreeBSD.
+606: misconfigure of LOG_WARN leaves pserver.core.
+607: Memory leak in RtpTransmitter::transmitRaw().
+608: Vmserver leaves out temporary files.
+610: cgi provisioning doesn't allow logins on netscape 4 when 
+served by redhat 8.
+612: pserver won't start via vocalctl.
+614: if you run out of disk space when making a .a, 
+the system will produce a corrupted .a which doesn't contain 
+all of the files. 
+618: B2bua  strips the SDP when received in 1xx messages.
+619: segfaults are not caught by make verify, so some test 
+cases can seriously fail without detection.
+620: verifysip should create / destroy the users it uses to test 
+the system.
+624: server crashes and burns, fsvm, gua main victims.
+625: Wrong packet size after Silent Packet can cause RTP stack 
+to loop forever.
+627: fix unit tests to compile correctly / not be broken.
+628: cert advisory against SIP stacks.
+630: After changing values in advance config dialog, sipset will 
+not register.
+635: When trying to modify a user with voice mail enabled, the 
+email filed does not show the old value.
+636: Marshal user cache uses string which is not thread-safe 
+on gcc 2.96 and lower version.
+638: remove inet marshal from default allinoneconfigure.
+639: Set the address family correctly, when doing a name 
+resoltion query as IPV4 client.
+643: UA can't register when hostname resolvs to both IPv4 and IPv6.
+644: core dump in NetworkAddress.cxx:312 freeAddrInfo(res).
+648: verifysip -a does not delete users after running.
+649: RPM build failed on RH 7.3 (make CODE_OPTIMIZE=1 rpm).
+652: Call Return with PSTN Gateway doesn't work.
+653: TLS provisioning doesn't work with perl.
+655: RS crashes if  Call return feature servers are 
+661: Util still needs openssl, even though use of openssl 
+is turned off.
+662: In HOLD/RESUME re-INVITE SIPset send incorrect Cseq number
+664: SIP port(5060) in From creates problem with ATA in BYE
+665: Caller ID Blocking Feature Does not put the User field back 
+when generating 487 for CANCEL.
+666: Under Load conditions the Applications are getting restarted 
+by vocald.
+674: When msn messanger sends BYE instead of cancel in ringing, 
+sipset does not clean up the call.
+675: sendMessage script must delete the temp file once done 
+sending the voice mail.
+677: Feature Server for CB feature server should look at Request 
+URI and To both to determine Blocking Number.
+678: Call return and Call blocking feature interaction is broken 
+in PSTN calls.
+
+Known Bugs:
+
+682: Call Blocking Feature should allow local calls if dailed with
+     full E164 number.
+     This is a limitation of the Long Distant Call Blocking Feature
+     server using the pattern 1+ to determine if a call is a long
+     distant call or not. In order to allow some 1+ dialing calls
+     to go through, the Java provisioning GUI code, generated CPL
+     and feature server code need to be modified.
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+

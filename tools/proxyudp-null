@@ -1,0 +1,138 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# this version of proxyudp is essentially a UDP black hole , like /dev/null
+
+use Socket;
+require "getopts.pl";
+
+&Getopts("i:");
+
+$interval = 10;
+
+if($opt_i) { 
+    $interval = $opt_i; 
+}
+
+
+$src{"gateway"} = "2427";
+
+if ($ARGV[0]) { 
+    $src{"gateway"} = $ARGV[0];
+}
+
+foreach(sort keys %src) {
+    $FROM{$_} = $_;
+    &mksocket($src{$_}, $FROM{$_});
+}
+
+foreach(sort keys %dest) {
+    $x = $_;
+
+    ($host, $port) = split(/:/, $dest{$x});
+    ($name,$aliases,$type,$len,$host_addr) = gethostbyname($host);
+    $sockaddr = "S n a4 x8";
+    $TO{$x} = pack($sockaddr, PF_INET, $port, $host_addr);
+    print "TO: $x : $TO{$x}\n";
+}
+
+
+sub mksocket {
+    local($port, $socket) = @_;
+    
+    $sockaddr = "S n a4 x8";
+    ($name,$aliases,$proto) = getprotobyname('udp');
+    chomp($hostname  = `hostname`);
+    ($name,$aliases,$type,$len,$myaddr) = gethostbyname($hostname);
+    $me = pack($sockaddr,PF_INET, $port, $myaddr);
+    
+    print "myaddr: $hostname\n";
+    print "port: $port\n";
+    
+    socket($socket, PF_INET, SOCK_DGRAM, $proto) || die $!;
+    bind($socket , $me) || die "died with port $port $!";
+    
+}
+
+$count = 0;
+
+
+$first_time = $last_time = time();
+
+while(1) {
+    $rin = '';
+    foreach(sort keys %FROM) {
+	vec($rin, fileno($FROM{$_}), 1) = 1;
+    }
+    $this_time = time();
+
+    if(($this_time - $last_time) > $interval) {
+	print "", ($this_time - $first_time), " $count\n";
+	$last_time = $this_time;
+    }
+
+    if(select($rin, undef, undef, undef)) {
+	@bits = split(//, unpack("b*", $rin));
+	undef($data);
+	undef($new_data);
+	$flag = 0;
+	foreach(sort keys %FROM) {
+	    if($flag == 0 && $bits[fileno($FROM{$_})]) {
+		$target = $map{$FROM{$_}};
+		$myfake = $fake{$_};
+		$count++;
+#		print "got $FROM{$_}, target $target\n";
+		$data = "";
+		$his_address = recv($FROM{$_}, $data, 60000, 0);
+		$flag = 1;
+	    }
+	}
+    }
+}

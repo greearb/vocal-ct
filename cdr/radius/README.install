@@ -1,0 +1,43 @@
+The file READMEradius-1.0.0.txt is currently linked
+to the vovida.org web site and normally does not need
+to be updated. If it does need to be updated, it can be
+found in the directory ./radius1.0.0/radius/. The
+version number should be updated to the same version
+as the software.
+
+Here is an example of the directories and files
+required for a release of version 1.0.0 of the
+radius stack.
+
+The following directories and files are required:
+
+./radius1.0.0/build/*                 # copy vocal/build/*
+./radius1.0.0/tools/*                 # copy vocal/tools/*
+./radius1.0.0/util/*                  # copy vocal/util/*
+./radius1.0.0/contrib/*               # copy vocal/contrib/*
+
+./radius1.0.0/radius/Makefile         # copy vocal/cdr/radius/Makefile
+./radius1.0.0/radius/TestClient.cxx   # copy vocal/cdr/radius/TestClient.cxx
+./radius1.0.0/radius/TestClient.hxx   # copy vocal/cdr/radius/TestClient.hxx
+./radius1.0.0/radius/radtest.cxx      # copy vocal/cdr/radius/radtest.cxx
+
+./radius1.0.0/radius/RadiusStack.hxx  # copy vocal/cdr/cdrServer/RadiusStack.hxx
+./radius1.0.0/radius/RadiusStack.cxx  # copy vocal/cdr/cdrServer/RadiusStack.cxx
+./radius1.0.0/radius/VRadiusException.hxx # copy vocal/cdr/cdrServer/VRadiusException.hxx
+
+To create a release of the radius stack, create a
+temporary directory with the version number ie ./radius1.0.0
+Create the required directories and copy the files into those
+directories (see above file list). After all the files have
+been copied tar and compress the directory.
+
+eg. tar -cf radius1.0.0.tar ./radius1.0.0; gzip radius1.0.0.tar
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README.install,v 1.1 2004/05/01 04:14:55 greear Exp $

@@ -1,0 +1,12 @@
+util
+sip/sipstack
+sip/ua
+sip/gua
+sip/base
+sip/libsipua
+rtp
+heartbeat
+radius
+libmedia
+libsoundcard
+sdp/sdp2

@@ -1,0 +1,13 @@
+BeginPackage Generic
+	ModemDetect			"mt"		void	Yes		No
+	FaxToneDetect		"ft"		void	Yes		No 	
+	LongDurationConnection "ld"		void	Yes		No
+	PatternDetected		"pat(%s)"	string	Yes		OO
+	RingBackTone		"rt"		void	No		TO
+	RingBackOnConnection "rbk(%s)"	string	No		TO
+	ConfirmTone			"cf"		void	No		BR
+	NetworkCongestionTone "cg"		void	No		TO
+	InterceptTone		"it"		void	No		OO
+	PreemtionTone		"pt"		void	No		OO
+	ReportFailure		"of"		void	Yes		No
+EndPackage

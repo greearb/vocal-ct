@@ -1,0 +1,24 @@
+<user><name>1000@vovida.com</name>
+<ipaddr>192.168.20.15</ipaddr>
+<marshalgroup>SIP</marshalgroup>
+<failurecase>unknown</failurecase>
+<cfa enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>ForwardAllCallsGroup</featuregroup>
+<forwardto>none</forwardto>
+</cfa>
+<fnab enabled="true"><setfeat>ON</setfeat>
+<featuregroup>ForwardNoAnswerBusyGroup</featuregroup>
+<fna set="false"><forwardto>93831071@192.168.6.210:5060</forwardto>
+</fna>
+<cfb set="false"><forwardto>45326</forwardto>
+</cfb>
+</fnab>
+<cs enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallScreeningGroup</featuregroup>
+</cs>
+<clbl enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallBlockingGroup</featuregroup>
+<nineHundredBlocked adminSet="false" userSet="false"></nineHundredBlocked>
+<longDistanceBlocked adminSet="false" userSet="false"></longDistanceBlocked>
+</clbl>
+</user>

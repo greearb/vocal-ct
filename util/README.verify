@@ -1,0 +1,250 @@
+From bko@cisco.com Fri Jun 29 19:27:22 2001
+Date: Fri, 29 Jun 2001 19:27:10 -0700 (PDT)
+From: BRYAN OGAWA <bko@cisco.com>
+To: vocal@vovida.org
+Subject: Verify.hxx
+
+
+Hey all,
+
+here is a quick email about how to use Verify.hxx to write test cases.
+
+This information is also in Verify.hxx itself.
+
+Verify.hxx defines several macros which act much like assert() .  The
+first, and most important, is
+
+	test_verify(test_condition);
+
+where test_condition is a boolean condition (like in assert).
+Unlike assert, test_verify does not stop execution.
+
+Use test_verify each time that you want to test something.  
+
+Programs using Verify.hxx should return a value from main().  When you
+return, you must return the value of the macro 
+
+	test_return_code(number_of_test_cases, number_of_bugs);
+
+number_of_test_cases should be the number of calls to test_verify()
+made in your program.  For the moment, you should set number_of_bugs
+to 0.
+
+Here is a sample program using test_verify:
+
+Example 1 (VerifyExample01.cxx):
+
+#include "Verify.hxx"
+
+int equals(int a, int b)
+{
+    return a == b;
+}
+
+int main()
+{
+    test_verify(0 == 0);
+    test_verify(1 == 1);
+    test_verify(1 != 0);
+
+    test_verify(equals(0, 0));
+    test_verify(equals(1, 1));
+    test_verify(!equals(0, 1));
+
+    return test_return_code(6);
+}
+
+
+End Example 1
+
+the output of this program:
+
+VerifySummary:VerifyExample01.cxx:6:6:0:0:0
+
+----------------------------------------------------------------------
+Report for VerifyExample01.cxx
+
+Summary: PASS
+
+Total Number of Test Cases: 6
+Number of Test Cases run: 6
+
+test_verify()
+    Expected:   6
+    Passes:     6
+    Fails:      0
+
+test_bug()
+    Expected:   0
+    Bugs:       0
+    Fixed Bugs: 0
+
+
+======================================================================
+
+
+The reason for the value of the number of test_verify()s being passed
+to test_return_code is s that test_return_code() can insure that all
+of the calls to test_verify() were made correctly.  If we set it to a
+wrong value, this will be reflected in the error logging from the
+program.
+
+
+Example 2 (VerifyExample02.cxx):
+
+#include "Verify.hxx"
+
+int equals(int a, int b)
+{
+    return a == b;
+}
+
+int main()
+{
+    test_verify(0 == 0);
+    test_verify(1 == 1);
+    test_verify(1 != 0);
+
+    test_verify(equals(0, 0));
+    test_verify(equals(1, 1));
+    test_verify(!equals(0, 1));
+
+    return test_return_code(5); // this is wrong, 5 should be 6
+}
+
+End Example 2
+
+
+Here is the output of example 2:
+
+VerifySummary:VerifyExample02.cxx:5:6:0:0:0
+
+----------------------------------------------------------------------
+Report for VerifyExample02.cxx
+
+Summary: TEST BROKEN
+
+Total Number of Test Cases: 5
+Number of Test Cases run: 6
+
+test_verify()
+    Expected:   6
+    Passes:     6
+    Fails:      0
+
+test_bug()
+    Expected:   0
+    Bugs:       0
+    Fixed Bugs: 0
+
+
+Help With Broken Tests:
+The number of test cases and bugs specified in test_return_code() did not
+match the number of times test_verify() and/or test_bug() were called.
+To fix this, you should probably update the number of times you expect
+test_verify() and/or test_bug() to be called in the arguments to
+test_return_code().
+======================================================================
+
+You can see that the output of the program indicates that this test
+case is broken.
+
+The reason for keeping track of the number of test cases is to make
+sure that everything is OK -- that all of the test cases you planned
+on running were run.
+
+
+But what if we had not finished writing the code for equals() , and so
+had stubbed it out to always return 0? 
+
+If you have test cases which you know will be broken for a long time,
+you can replace test_verify() with test_bug() .  test_bug() still runs
+the test, but it does not consider a false result to be a "failure", but
+a "known bug". 
+
+Example 3 shows this case:
+
+
+#include "Verify.hxx"
+
+int equals(int a, int b)
+{
+    return 0;
+}
+
+int main()
+{
+    test_verify(0 == 0);
+    test_verify(1 == 1);
+    test_verify(1 != 0);
+
+    test_bug(equals(0, 0));
+    test_bug(equals(1, 1));
+    test_bug(!equals(0, 1));
+
+    return test_return_code(6);
+}
+
+
+Here's the output:
+
+
+VerifyExample03.cxx:16: test case '!equals(0, 1)' unexpected pass (passed when fail expected)
+VerifySummary:VerifyExample03.cxx:6:3:0:2:1
+
+----------------------------------------------------------------------
+Report for VerifyExample03.cxx
+
+Summary: PASS WITH KNOWN BUGS
+
+Total Number of Test Cases: 6
+Number of Test Cases run: 6
+
+test_verify()
+    Expected:   3
+    Passes:     3
+    Fails:      0
+
+test_bug()
+    Expected:   3
+    Bugs:       2
+    Fixed Bugs: 1
+
+
+======================================================================
+
+
+You'll notice that the line 
+
+	VerifyExample03.cxx:16: test case '!equals(0, 1)' unexpected pass (passed when fail expected)
+
+appears.  This indicates that a test_bug() returned true, meaning that
+the test case might have been fixed.  It reports the line number to
+make debugging easier.
+
+
+The code for Verify.hxx is in the util directory, and is working now
+on HEAD.  The example code above is in util/test .
+
+
+If you can isolate test cases down to a minimum failure case, and use
+Verify.hxx as the test driver, it will be much easier for us to
+integrate these tests into an automated framework (coming soon!) to
+help simplify testing for everyone.
+
+Questions and comments are welcome.
+
+
+-- 
+Bryan K. Ogawa  <bko@cisco.com>  http://www.vovida.org/
+
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README.verify,v 1.1 2004/05/01 04:15:33 greear Exp $

@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+my $sxt_path = $ARGV[0];
+my $bin_path = $ARGV[1];
+
+if (! (defined $bin_path && defined $sxt_path)) {
+    print STDERR <<EOF;
+Usage: $0 filename.sxt path_to_binaries
+EOF
+    exit 1;
+}
+
+if ((! -e "./session.exp") || (! -e "./interact.exp")) {
+    print "Can't find session.exp or/and interact.exp\n";
+    print "Please copy the files to current directory\n";
+    exit( 1 );
+}
+
+# Date information to be used for file extensions etc
+$datetime = time();
+$rootpf = ".$datetime.tmp";
+$datetime++;
+$userpf = ".$datetime.tmp";
+
+# save info required for a session
+$syscmd = "./session.exp $rootpf $userpf";
+system( $syscmd ); 
+
+open(F, $sxt_path) || die "can't open $ARGV[0]: $!";
+
+while(<F>) {
+    chomp;
+    s/\#.*$//;
+    if(!/^\s*$/) {
+        eval("\@cmds = ($_)");
+
+        if($#cmds == 3) {
+            &start_xterm('0', @cmds);
+        }
+        if($#cmds == 4) {
+            &start_xterm(@cmds);
+        }
+    }
+}
+
+close(F);
+
+print ".... now starting the servers,  please wait\n";
+sleep( 25 );
+system( "rm /tmp/$rootpf /tmp/$userpf" );
+
+sub start_xterm {
+    my($sleep, $title, $ssh_arg, $geometry, $ctrl_f10) = @_;
+    my($xrdb_stuff, $ssh_cmdline, $syscmd);
+    my($commands, $cd_dir, $resources_cmdline);
+    my($title_cmdline);
+
+    my($host) = $ssh_arg;
+    $host =~ s/\@//;
+    $host =~ s/^/\@/;
+    $title_cmdline = "-T '$title $host' -n '$title $host'";
+    $geometry_cmdline = "-geometry $geometry";
+    $cd_dir = "cd " . `pwd`;
+    $pwd = `pwd`;
+    chop( $pwd );
+
+    chomp($cd_dir);
+    $cd_dir .=  '\\n';
+
+    $xrdb_stuff = 'xterm*VT100.Translations: #override <Key>F10: ' . 
+                  'string("' . $cd_dir . '")' . ' ' . 
+                  'string("' . $ctrl_f10 . '")';
+
+    $resources_cmdline = "-xrm '$xrdb_stuff'";
+
+    chomp($username = `whoami`);
+    $ssh_arg =~ s/^\@/$username\@/;
+
+    $commands = $ctrl_f10;
+    $commands =~ s/\\n/\;/g;
+    $commands = '\''. "$commands" . '\'';
+
+    if($ssh_arg eq "-") {
+        $ssh_cmdline = "-e ./interact.exp " .
+                       "$sleep $pwd localhost $rootpf $userpf $commands";
+    } else {
+        $ssh_cmdline = "-e ./interact.exp " .
+                       "$sleep $pwd $ssh_arg $rootpf $userpf $commands";
+    } 
+  
+    $syscmd = "xterm $resources_cmdline -sl 10000 $geometry_cmdline " .
+              "$title_cmdline $ssh_cmdline &";
+    system ($syscmd);
+}

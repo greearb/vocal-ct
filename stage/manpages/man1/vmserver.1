@@ -1,0 +1,44 @@
+.TH vmserver 1  vovida.org 
+.\" auto-generated from vmserver\&.xml by docbook2manxml
+.SH NAME
+vmserver    \- VOCAL voice mail control server  
+.SH SYNOPSIS
+\fBvmserver\fR
+[\fBoptions\fR]
+[\fBsip-port\fR]
+.SH DESCRIPTION
+vmserver controls the voicemail system by controlling a voice mail
+user agent (UA) which actually handles the SIP calls\&. vmserver knows about
+things like answering the call, which greeting to play, and where to send
+the \&.wav file which contains the caller\&'s voice mail message\&.
+.SH OPTIONS
+.TP 
+-d
+fork into background as a daemon(NOTE: this is opposite all
+other commands)
+.TP 
+-i
+run from inetd
+.TP 
+-f arg
+specify voicemail configuration file
+.TP 
+-h arg
+specify number of VMCP handles
+.TP 
+-v arg
+specify the debugging level
+.TP 
+-m
+run in IVR mode\&. In this mode, vmserver listens on port 9024 instead of 8024\&. the corresponding option to ua is -a\&.
+.SH SEE ALSO
+\fBvocal\fR(8)
+.PP
+More information is available from http://www\&.vovida\&.org/<URL:http://www\&.vovida\&.org/>
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

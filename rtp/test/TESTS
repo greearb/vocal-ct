@@ -1,0 +1,7 @@
+#this is the format of the file.
+#exit-code signal core-dump testprogramCommand
+
+# test for the compiliation of these three programs
+0 0 0 test -x rtpPlay
+0 0 0 test -x rtpRecord
+0 0 0 test -x sampleUsage

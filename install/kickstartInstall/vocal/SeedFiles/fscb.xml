@@ -1,0 +1,3 @@
+<featureServer host="FSCBHOSTIP" port="FSCBPORT"><type value="CallBlocking"></type>
+<group value="CallBlockingGroup"></group>
+</featureServer>

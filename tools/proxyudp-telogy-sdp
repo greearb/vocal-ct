@@ -1,0 +1,653 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: proxyudp-telogy-sdp,v 1.1 2004/05/01 04:15:31 greear Exp $
+
+# this version of proxyudp proxies correctly for telogy MGCP gateway v 6.1
+
+BEGIN {
+push(@INC, "../contrib/perl/Time-HiRes-01.20/blib/lib", "../contrib/perl/Time-HiRes-01.20/blib/arch/auto/Time/HiRes");
+}
+
+use Socket;
+require "getopts.pl";
+use Time::HiRes qw(gettimeofday tv_interval);
+
+&Getopts("n:d");
+
+if($opt_d) { 
+    $debug = 1;
+}
+$number = 1;
+if($opt_n) {
+    $number = $opt_n;
+}
+
+# if($#ARGV < 1) {
+#     print "Usage:\n";
+#     print "$0 host1:<local_port1>:<remote_port1> host2:<local_port2>:<remote_port2> host3:<local_port3>:<remote_port3>\n";
+#     exit(-1);
+# }
+
+if($ARGV[0]) {
+   $agent_host = $ARGV[0];
+} else {
+   chomp($agent_host = `hostname`);
+}
+$unique_internal = 0;
+
+$flash_time = .5;
+
+$proxy_ip = "192.168.5.3";
+
+print "Agent is at $agent_host\n";
+
+$dest{"o_agent1"} = "$agent_host:5011";
+$dest{"o_agent2"} = "$agent_host:5012";
+$dest{"o_agent3"} = "$agent_host:5013";
+$dest{"o_agent4"} = "$agent_host:5014";
+
+$dest{"o_gw1"} = "192.168.5.180:2427";
+$dest{"o_gw2"} = "192.168.5.182:2427";
+
+
+$src{"rtp1"} = "8000";
+$src{"rtp2"} = "8002";
+$src{"rtp3"} = "8004";
+$src{"rtp4"} = "8006";
+$src{"rtp5"} = "8008";
+
+$src{"i_agent1"} = "5051";
+$src{"i_agent2"} = "5052";
+$src{"i_agent3"} = "5053";
+$src{"i_agent4"} = "5054";
+
+$src{"i_gw"} = "2427";
+
+$map{"i_gw"} = "";
+$map{"i_agent1"} = "o_gw1";
+$map{"i_agent2"} = "o_gw1";
+$map{"i_agent3"} = "o_gw2";
+$map{"i_agent4"} = "o_gw2";
+
+$dest{"o_rtp3"} = "0.0.0.0:9";
+$dest{"o_rtp4"} = "0.0.0.0:9";
+
+$map{"rtp3"} = "o_rtp4";
+$map{"rtp4"} = "o_rtp3";
+
+$dont_print{"rtp3"} = 1;
+$dont_print{"rtp4"} = 1;
+
+$rewrite{"i_gw"} = \&rewrite_S2;
+$rewrite{"i_agent1"} = \&rewrite_S1;
+$rewrite{"i_agent2"} = \&rewrite_S1;
+$rewrite{"i_agent3"} = \&rewrite_S1;
+$rewrite{"i_agent4"} = \&rewrite_S1;
+
+$rewrite{"rtp1"} = \&rewrite_rtp;
+$rewrite{"rtp2"} = \&rewrite_rtp;
+$rewrite{"rtp3"} = \&rewrite_rtp;
+$rewrite{"rtp4"} = \&rewrite_rtp;
+$rewrite{"rtp5"} = \&rewrite_rtp;
+
+#$fake{"rtp3"} = "rtp3";
+#$fake{"rtp4"} = "rtp4";
+$fake{"rtp3"} = "rtp4";
+$fake{"rtp4"} = "rtp4";
+
+$fake{"i_agent1"} = "i_gw";
+$fake{"i_agent2"} = "i_gw";
+$fake{"i_agent3"} = "i_gw";
+$fake{"i_agent4"} = "i_gw";
+$fake{"i_gw"} = "i_agent1";
+
+$terminal_name[1] = 'aaln/1@gw1.vovida.com';
+$terminal_name[2] = 'aaln/2@gw1.vovida.com';
+$terminal_name[3] = 'aaln/1@gw2.vovida.com';
+$terminal_name[4] = 'aaln/2@gw2.vovida.com';
+
+
+foreach(sort keys %src) {
+    $FROM{$_} = $_;
+    &mksocket($src{$_}, $FROM{$_});
+}
+
+sub rewrite_rtp {
+    return $_[0];
+}
+
+foreach(sort keys %dest) {
+    &make_dest($_);
+}
+
+sub make_dest {
+    local($x) = $_[0];
+    local($host, $port, $name, $aliasese, $type, $len, $host_addr, $sockaddr);
+
+    ($host, $port) = split(/:/, $dest{$x});
+    ($name,$aliases,$type,$len,$host_addr) = gethostbyname($host);
+    $sockaddr = "S n a4 x8";
+    $TO{$x} = pack($sockaddr, PF_INET, $port, $host_addr);
+    print "TO: $x : $host : $port : $TO{$x} : \n";
+    &debug( "TO: $x : $TO{$x}\n");
+}
+
+
+sub mksocket {
+    local($port, $socket) = @_;
+    
+    $sockaddr = "S n a4 x8";
+    ($name,$aliases,$proto) = getprotobyname('udp');
+    chomp($hostname  = `hostname`);
+    ($name,$aliases,$type,$len,$myaddr) = gethostbyname($hostname);
+    $me = pack($sockaddr,PF_INET, $port, $myaddr);
+    
+    &debug( "myaddr: $hostname\n");
+    &debug( "port: $port\n");
+    
+    socket($socket, PF_INET, SOCK_DGRAM, $proto) || die $!;
+    bind($socket , $me) || die "died with port $port $!";
+    
+}
+
+
+while(1) {
+    $rin = '';
+    foreach(sort keys %FROM) {
+	vec($rin, fileno($FROM{$_}), 1) = 1;
+    }
+
+    if(select($rin, undef, undef, 0.25)) {
+	@bits = split(//, unpack("b*", $rin));
+	undef($data);
+	undef($new_data);
+	$flag = 0;
+	foreach(sort keys %FROM) {
+	    if($flag == 0 && $bits[fileno($FROM{$_})]) {
+		&debug( "got $_, $FROM{$_}, target $target\n");
+		$data = "";
+		$his_address = recv($FROM{$_}, $data, 60000, 0);
+		&send_msg($_, $data);
+		&dequeue();
+		$flag = 1;
+	    }
+	}
+    }
+    &handle_timeouts();
+}
+
+
+sub handle_timeouts {
+
+    for($i = 1; $i <= 4; $i++) {
+	if($hookflash_timestamp[$i]) {
+#	    print "a: $hookflash_timestamp[$i]\n";
+	    $b = gettimeofday;
+#	    print "b: $b\n";
+	    $elapsed = $b - $hookflash_timestamp[$i];
+	    print "e: $elapsed\n";
+	    if($elapsed > $flash_time) {
+		# longer than a second
+		&enqueue("i_gw", "fake $in_hookflash[$i]");
+		$in_hookflash[$i]  = "";
+		$hookflash_timestamp[$i] = "";
+	    }
+	}
+	
+    }
+    &dequeue();
+}
+
+sub renumber_S2 {
+    local($_) = $_[0];
+    
+    s/^([0-9]*)\s([0-9]*)\s/$1 $map{$2} /;
+    $map{$number} = $2;
+    
+    
+    return $_;
+}
+
+sub renumber_S1 {
+    local($_) = $_[0];
+    if(s/^([a-zA-Z]*)\s([0-9]*)\s/$1 $number /) {
+	$map{$number} = $2;
+	$number++;
+    }
+    return $_;
+}
+
+sub send_msg {
+    local($_, $data) = @_;
+
+    local($target, $myfake, $new_data);
+
+    $target = $map{$FROM{$_}};
+    $myfake = $fake{$_};
+    if($data) {
+ 	if(!$dont_print{$_}) {
+	    &debug( "-----------------------------\n");
+	    &debug( "$data");
+	    &debug( "-----------------------------\n");
+	}
+	$new_data = &{$rewrite{$_}}($data);
+	if($new_data) {
+	    if(!$dont_print{$_}) {
+		&debug( "$new_data");
+		&debug( "-----------------------------\n");
+	    }
+	    &debug( "target $target fake $myfake eg: $FROM{$myfake} / $TO{$target} #\n");
+	    if($target) {
+		$x = defined(send($FROM{$myfake},$new_data,0,$TO{$target}));
+		#or die "errno= $? $!";
+	    }
+	}
+    }
+}
+
+sub enqueue {
+    local($_, $data) = @_;
+    &debug( "enqueuing $_\n");
+    push(@my_target, $_);
+    push(@my_data, $data);
+};
+
+sub dequeue {
+    local($x, $y);
+    while($x = shift(@my_target)) {
+	$y = shift(@my_data);
+	&debug( "dequeuing $x\n");
+
+	&send_msg($x, $y);
+    }
+}
+
+sub mini_send {
+    local($new_data, $myfake, $target);
+    send($FROM{$myfake},$new_data,0,$TO{$target});
+}
+
+sub rewrite_S1 {
+    # convert from the agent to the gateway
+
+    local($_) = $_[0];
+
+    $is_fake = 0;
+
+    if(/^fake [a-zA-Z]+ ([0-9]+)/i) {
+	$fake{$1} = 1;
+	$is_fake = 1;
+	s/^fake //;
+    }
+    
+    if(/^200 ([0-9]+)/i) {
+	if($fake1{$1}) {
+	    $fake1{$1} = 0;
+	    $_ = "";
+	    &debug( "deletia\n");
+	}
+    }
+    
+
+    if(/^([a-z]{4,4})\s+([0-9]+)/i) {
+	$x = $2;
+	&debug( "S1 saw\n");
+	if(/aaln\/1\@gw1\.vovida\.com/) {
+
+	    $terminal = "1";
+	    &debug( "got: $x\n");
+	    $host1{$x} = "o_agent1";
+	    $target = "o_gw1";
+	}
+	if(/aaln\/2\@gw1\.vovida\.com/) {
+	    &debug( "got: $x\n");
+
+	    $terminal = "2";
+
+	    $host1{$x} = "o_agent2";
+	    $target = "o_gw1";
+	}
+	if(/aaln\/1\@gw2\.vovida\.com/) {
+	    &debug( "got: $x\n");
+
+	    $terminal = "3";
+
+	    $host1{$x} = "o_agent3";
+	    $target = "o_gw2";
+	}
+	if(/aaln\/2\@gw2\.vovida\.com/) {
+	    &debug( "got: $x\n");
+
+	    $terminal = "4";
+
+	    $host1{$x} = "o_agent4";
+	    $target = "o_gw2";
+	}
+    }
+    
+    s/auep/AUEP/;
+    s/rqnt/RQNT/;
+    s/crcx/CRCX/;
+    s/mdcx/MDCX/;
+    s/dlcx/DLCX/;
+    s/mgcp/MGCP/;
+
+    s/\nr:/\nR:/;
+    s/\nx:/\nX:/;
+    
+    s/MGCP 0\.1/MGCP 0\.1 NCS 1\.0/;
+    
+#    s/testID/aaln\/1\@vovida\.com/;
+    s/d\/x\(d\)/\[0-9\*\#T\]\(D\), T\(N\)/;
+    s/\nd:.*/\nD: (xxxx)/;
+    s/\,/, /g;
+#    s/l\/hf\(n\)\, //;
+#    s/l\/hu\(n\), l\/hf\(n\)\, /l\/hf\(n\), [T]\(n\), T\(n\), l\/hu\(n\), /;
+#    s/l\/hu\(n\), l\/hf\(n\)\, /hf\(n\), /;
+
+#    s/l\/hu\(n\), l\/hf\(n\).*/l\/hf\(n\)/;
+
+    #hookflash implementation
+
+    if(!$is_fake) {
+	if(/l\/hf\(n\)/) {
+	    &debug("hookflash active\n"); 
+	    $hookflash[$terminal] = 1;
+	    $in_hookflash[$terminal] = "";
+	    $hookflash_timestamp[$terminal] = "";
+
+	} elsif (/^rqnt/i) {
+	    &debug("hookflash off\n"); 
+	    $hookflash[$terminal] = 0;
+	    $in_hookflash[$terminal] = "";
+	    $hookflash_timestamp[$terminal] = "";
+
+	}
+    }
+
+    s/\nl:.*/\nL: p:20, a:G.711u, e:on, s:on/;
+
+    if(!/\nv\=0/) {
+	s/\nM: sendrecv/\nM: recvonly/;
+    }
+
+    if(/\nv=0/ && !/\na=/ && !/^crcx/i && !/^mdcx/i) {
+	s/\nv=0/\n\nv=0/;
+	s/=in ip4/=IN IP4/g;
+	s/(\nm=.*\n)/$1a=ptime:20\na=recvonly\n/;
+    } elsif(/\nv=0/ && !/\na=/ && /^crcx/i) {
+	s/\nv=0/\n\nv=0/;
+    	s/(\nm=.*\n)/$1a=rtpmap:96 G.711u\n/;
+	s/=in ip4/=IN IP4/g;
+    } elsif(/\nv=0/ && !/\na=/ && /^mdcx/i) {
+	s/\nv=0/\n\nv=0/;
+    	s/(\nm=.*\n)/$1a=rtpmap:96 G.711u\n/;
+	s/=in ip4/=IN IP4/g;
+	s/\ns=.*//;
+	s/\no=.*//;
+    }
+
+
+    if(/^([0-9]*) ([0-9]*)/) {
+	if($fake{$2}) {
+	    &debug( " xx fake\n");
+	    $_ = "";
+	}
+	$target = $host{$2};
+    }
+
+    $_ = &renumber_S1($_);
+    return $_;
+}
+
+
+sub rewrite_S2 {
+    # convert from the gateway to the agent
+
+    local($_) = $_[0];
+    local($nosend) = 0;
+    
+    $_ = &renumber_S2($_);
+
+    $is_fake = 0;
+    
+    if(/^fake [a-zA-Z]+ ([0-9]+)/i) {
+	$fake1{$1} = 1;
+ 	$is_fake = 1;
+	s/^fake //;
+    }
+    
+    if(/^200 ([0-9]+)/i) {
+	if($fake{$1}) {
+	    $fake{$1} = 0;
+	    $_ = "";
+	}
+    }
+    
+    if(s/^nosend //) {
+	$nosend = 1;
+    }
+    
+
+    if(s/aaln\/\*\@gw1.vovida\.com/aaln\/1\@gw1.vovida.com/i) {
+	&debug( "matched\n");
+    }
+
+    if(s/aaln\/\*\@gw2.vovida\.com/aaln\/1\@gw2.vovida.com/i) {
+	&debug( "matched\n");
+    }
+
+    if(/^([a-z]{4,4})\s+([0-9]+)/i) {
+	$x = $2;
+	$transaction_id = $x;
+	&debug( "S2 saw $x\n");
+	if(/aaln\/1\@gw1\.vovida\.com/) {
+	    &debug( "1/1 got: $x\n");
+	    $terminal = 1;
+	    $host{$x} = "o_gw1";
+	    $target = "o_agent1";
+	}
+	if(/aaln\/2\@gw1\.vovida\.com/) {
+	    &debug( "2/1 got: $x\n");
+	    $terminal = 2;
+	    $host{$x} = "o_gw1";
+	    $target = "o_agent2";
+	}
+	if(/aaln\/1\@gw2\.vovida\.com/) {
+	    &debug( "1/2 got: $x\n");
+	    $terminal = 3;
+	    $host{$x} = "o_gw2";
+	    $target = "o_agent3";
+	}
+	if(/aaln\/2\@gw2\.vovida\.com/) {
+	    &debug( "2/2 got: $x\n");
+	    $terminal = 4;
+	    $host{$x} = "o_gw2";
+	    $target = "o_agent4";
+	}
+    }
+
+    s/ NCS 1\.0//;
+    s/\ni:(.*)/\nI: $1/i;
+
+    if(/^([0-9]*) ([0-9]*)/) {
+	if($fake{$2}) {
+	    &debug( " xx fake\n");
+	    $_ = "";
+	}
+	$target = $host1{$2};
+    }
+
+    # hookflash implementation
+
+    if(!$is_fake) {
+	if(/^ntfy /i) {
+	    if($in_hookflash[$terminal]) {
+		&debug("in the middle of hookflash\n");
+		if(/\no:.*hd/i) {
+		    &debug("REPLACING hd with hf\n");
+		    # then this was a flash, so eat it
+		    $in_hookflash[$terminal] =~ s/hu/l\/hf/i;
+		    $_ = $in_hookflash[$terminal];
+		    $in_hookflash[$terminal] = "";		
+		    $hookflash_timestamp[$terminal] = "";
+		    &enqueue("i_gw", $_);
+		    &enqueue("i_agent1", &renumber_S1("200 $transaction_id ok\n"));
+		    $_ = "";
+		    $hookflash[$terminal] = 0;
+		}
+	    } elsif(/\no:.*hu/i) {
+		# start of hookflash
+		&debug("starting hookflash\n");
+		if($hookflash[$terminal]) {
+		    # send pseudo-message to gateway
+		    &debug("got hookflash start\n");
+		    &enqueue("i_agent1", &renumber_S1("200 $transaction_id ok\n"));
+		    $unique = &unique();
+		    &enqueue("i_agent1", "fake rqnt 65000 $terminal_name[$terminal] mgcp 0.1\nR: l/hd(n)\nx: $unique\n");
+		    $in_hookflash[$terminal] = $_;
+		    $_ = "";
+		    $hookflash_timestamp[$terminal] = gettimeofday();
+		}
+	    }
+	}
+    }
+
+
+    if(s/(v=0[\000-\377]*)$//) {
+
+	$sdp = $1;
+
+	print "got sdp; killed sdp\n";
+
+	$ip_address = "0.0.0.0"; $ip_port = 9;
+
+	if($sdp =~ /ip4 ([0-9.]+)\n/i) {
+	    $ip_address = $1;
+	}
+
+	if($sdp =~/\nm=audio ([0-9]+) /) {
+	    $ip_port = $1;
+	}
+
+	if($terminal == 3) {
+	    $_ .= "v=0\no=aaln/1 2 0 IN IP4 $proxy_ip\ns=phonecall\nc=IN IP4 $proxy_ip\nm=audio $src{rtp3} rtp/avp 0\na=rtpmap:96 G.711u\n";
+	    $dest{"o_rtp4"} = "$ip_address:$ip_port";
+	    &make_dest("o_rtp4");
+
+	} elsif ($terminal == 4) {
+	    $_ .= "v=0\no=aaln/2 2 0 IN IP4 $proxy_ip\ns=phonecall\nc=IN IP4 $proxy_ip\nm=audio $src{rtp4} rtp/avp 0\na=rtpmap:96 G.711u\n";
+	    $dest{"o_rtp3"} = "$ip_address:$ip_port";
+	    &make_dest("o_rtp3");
+
+	}
+    }
+
+    
+    s/auep/AUEP/;
+    s/rqnt/RQNT/;
+    s/crcx/CRCX/;
+    s/mdcx/MDCX/;
+    s/dlcx/DLCX/;
+    s/mgcp/MGCP/;
+    s/\*/ep1/;
+    
+    s/\nO:/\nO: /i;
+    s/\nX:/\nX: /i;
+    
+    s/hd/l\/hd/;
+    s/hu/l\/hu/;
+    
+#    s/\,l\/hf\(n\)//ig;
+    if(y/\0//d) {
+	&debug( "killed \\0!\n");
+    }
+    
+    s/\n\s+\n/\n\n/g;
+    y/\r//d;
+    s/\n+$/\n/;
+    s/\n\n$/\n/g;
+    #    s/\n+/\n/g; 
+    s/\n/\r\n/g;
+    if(s/([^\r\n])(\r\n)+$/$1\r\n/g) {
+	&debug( "2 ate \\r\\n\n");
+    }
+    
+    if(/^rqnt/i) {
+	s/,d\/x\(n\)//i;
+    }
+    
+    
+    if(/^crcx/i) {
+	if(!/v\=0/i) {
+	    s/sendrecv/recvonly/;
+	}
+    }
+    
+    s/RM:restart//;
+    
+    if($nosend) {
+	&debug( "nosend:\n$_----------\n");
+	$_ = "";
+    }
+
+    return $_;
+}
+
+sub debug {
+    if($debug) {
+	print @_;
+    }
+}
+
+sub unique {
+    $unique_internal++;
+}

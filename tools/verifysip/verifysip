@@ -1,0 +1,829 @@
+#! /bin/sh
+
+# the following is magic to allow perl to run with multiple locations of
+# perl.  It only works with perls that have the -x switch, however!
+exec `which perl` -x $0 ${1+"$@"}
+exit
+#!perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000-2003 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: verifysip,v 1.1 2004/05/01 04:15:31 greear Exp $ 
+
+use Socket;
+use IO::Handle;
+require "getopts.pl";
+
+$VOCAL_BASE = "/usr/local/vocal";  # VOCAL_BASE
+$VOCAL_BASE_CONFIGURED = '@prefix@';
+if($VOCAL_BASE_CONFIGURED ne '@'.'prefix@') {
+    $VOCAL_BASE = $VOCAL_BASE_CONFIGURED;
+}
+
+$bindir = "$VOCAL_BASE/bin";
+
+&Getopts("aiDdif:t:vh");
+
+$debug = $opt_d;
+$fndebug = $opt_D;
+
+$fail_time = 10;
+$from_user = 1000;
+$to_user = 1001;
+
+if($opt_f) {
+    $from_user = $opt_f;
+}
+
+if($opt_t) {
+    $to_user = $opt_t;
+}
+
+if($opt_a) {
+    # automatic mode!
+    $from_user = "test1000";
+    $to_user = "test1001";
+}
+
+$VERSION = do { my @r = (q$Revision: 1.1 $ =~ /\d+/g); sprintf "%d."."%02d" x $#r, @r };
+
+$sleeptime = .1;
+
+
+
+if($opt_h) {
+    &usage();
+}
+
+
+sub get_pass {
+
+    if(!$password) {
+	# query for password, and create the user
+	print "Enter VOCAL administrator password: ";
+	system "stty -echo";
+	chomp($password = <STDIN>);
+	print "\n";
+	system "stty echo";
+    }
+    return $password;
+}
+
+
+sub add_users {
+    my $password = &get_pass();
+    open(F, "|$bindir/manageusers -q -L $bindir/webpages -c test1000 test1001") || die "cannot run manageusers: $!";
+    print F $password, "\n";
+    return close(F);
+}
+
+
+sub del_users {
+    # try to delete users
+    my $password = &get_pass();
+    open(F, "|$bindir/manageusers -Qq -L $bindir/webpages -d test1000 test1001") || die "cannot run manageusers: $!";
+    print F $password, "\n";
+    return close(F);
+}
+
+
+if($opt_a) {
+    &del_users(); # don't care about return value
+    &add_users() || die "could not create users test1000 and test1001\n";
+
+    sleep 1;
+}
+
+$LOCAL_PORT = "8500";
+
+($name,$aliases,$proto) = getprotobyname('udp');
+
+chomp($local_hostname = `hostname`);
+($name,$aliases,$type,$len,$local_addr) = gethostbyname($local_hostname);
+
+if($ARGV[0]) {
+    &set_proxy($ARGV[0]);
+} else {
+    &set_proxy($local_hostname);
+}
+
+#$hostname = $ARGV[0];
+
+socket(S, PF_INET, SOCK_DGRAM, $proto) || die $!;
+bind(S, sockaddr_in($LOCAL_PORT, INADDR_ANY)) || die $!;
+
+my $matchlist = {};
+my $resultlist = [];
+
+
+my @eventqueue;
+my @delayqueue;
+
+$interactive = 1;
+
+if( ! $opt_i ) {
+    $quiet = 1 if (!$opt_v);
+    $quiet = 2 if ($opt_q);
+    print "verifysip version $VERSION\n" if ($quiet < 2);
+    print "Use -h to see more options\n" if ($quiet < 2);
+    print "Running test against vocal system at $current_proxy...\n" if ($quiet < 2);
+    $interactive = 0;
+
+    %report_list = ( "reg1000" => run, "reg1001" => run, "inv" => run );
+
+    sub report {
+	my($handle, $result) = @_;
+
+	$report_list{$handle} = $result ? "pass" : "fail";
+
+	$done = 1;
+
+	foreach (sort keys %report_list) {
+	    $done = 0 if($report_list{$_} eq "run") ;
+	}
+
+	$pass = 1;
+
+	if($done) {
+	    foreach (sort keys %report_list) {
+		$pass = 0 if($report_list{$_} eq "fail") ;
+	    }
+	    if($pass) {
+		print "VOCAL basic call test passed\n";
+	    } else {
+		print "VOCAL basic call test failed\n";
+	    }
+
+	    if($opt_a) {
+		&del_users();
+	    }
+
+	    exit;
+	}
+    }
+
+    push(@eventqueue, { process => \&test_register, args => [ $from_user, \&report, "reg1000" ] });
+    push(@eventqueue, { process => \&test_register, args => [ $to_user, \&report, "reg1001" ] });
+
+
+    &add_delayqueue({ process => \&test_invite, args => [ $from_user, $to_user, \&report, "inv" ],
+		    time => time() + 1});
+}
+
+
+if($interactive) {
+    &output("Welcome to verifysip version $VERSION\n");
+    &output("'h' for help, 'q' to quit\n");
+}
+
+
+%command_hash = (
+		 "r" => \&test_register,
+		 "i" => \&test_invite,
+		 "p" => \&set_proxy,
+		 "s" => \&show_stats,
+		 "c" => \&clear_stats,
+		 "q" => \&quit,
+		 "h" => \&help,
+		);
+
+
+
+$at_prompt = 0;
+
+while(1) {
+    my $rin;
+    my $delay = undef;
+    my $event;
+
+    $delay = &process_delayqueue();
+
+    while(@eventqueue) {
+	$event = shift(@eventqueue);
+
+	&run_event($event);
+    }
+
+    # the event is always run at the end
+
+    $rin = '';
+    vec($rin, fileno(S),1) = 1;
+    vec($rin, fileno(STDIN),1) = 1;
+
+    my $result;
+
+    if($interactive) {
+	print "\n> ";
+	STDOUT->flush();
+	$at_prompt = 1;
+    }
+    $result = select($rout=$rin, undef, undef, $delay);
+
+    if( $result > 0 ) {
+        @bits = split(//, unpack("b*", $rout));
+
+	if($bits[fileno(STDIN)]) {
+	    chomp($input = <STDIN>);
+	    $at_prompt = 0;
+	    &commandline($input);
+
+	} elsif ($bits[fileno(S)]) {
+	    # do something useful here...
+	    ($msg, $addr) = &recv_msg();
+
+	    &match($msg, $matchlist, $resultlist);
+
+	    if($debug) {
+		print "Got:\n";
+		print "----\n";
+		print "$msg";
+		print "----\n";
+	    }
+	}
+    }
+    # run event if it's OK.
+}
+
+
+exit;
+
+######################################################################
+######################################################################
+
+
+sub usage {
+    print STDERR <<USAGE
+Usage: $0 [-ivdD] [-f from-user] [-t to-user] [proxy-addr]
+
+Where proxy-addr is in the form host:port
+
+Options:
+
+-a              fully automatic mode, where verifysip creates/destroys the
+                users automatically before/after testing.
+-f from-user    set from user
+-t to-user      set to user
+-i              interactive mode (command line interface)
+-d              debug mode
+-D              function debug mode
+-v              be more verbose
+-h              this message
+-q              be quieter
+USAGE
+  ;
+    exit;
+}
+
+
+
+sub add_delayqueue {
+    my($event) = @_;
+
+    push(@delayqueue, $event);
+    @delayqueue = sort { $a->{time} <=> $b->{time} } @delayqueue;
+
+    foreach(@delayqueue) {
+	print $_->{time}, "\n" if $debug;
+    }
+}
+
+
+sub process_delayqueue {
+    my $delay;
+
+    while(@delayqueue && ($delayqueue[0]->{time} - time() <= 0)) {
+	push(@eventqueue, shift(@delayqueue));
+    }
+    if(@delayqueue) {
+	$delay = $delayqueue[0]->{time} - time();
+	if($delay < 0) {
+	    $delay = 0;
+	}
+    } else {
+	$delay = undef;
+    }
+    return $delay;
+}
+
+
+sub event_output {
+    my ($msg) = @_;
+
+    if(!$quiet) {
+	if($at_prompt) {
+	    $at_prompt = 0;
+	    print "\n";
+	}
+	print $msg;
+    }
+}
+
+sub output {
+    my(@args) = @_;
+    my($msg) = join(' ', @args);
+
+    push(@eventqueue, { process => \&event_output, args => [ $msg ] });
+}
+
+
+sub run_event {
+    my($event) = @_;
+
+    print "running event...\n" if $debug;
+    print "$event->{process}\n" if $debug;
+    print "args: ", join (" ", @{$event->{args}}), "\n" if $debug;
+    &{$event->{process}} (@{$event->{args}});
+}
+
+
+sub quit {
+    exit();
+}
+
+
+sub help {
+    my($output);
+
+    $output = <<USAGE
+Commands:
+
+r <user>             register user
+i <user1> <user2>    call from user1 to user2
+p <server:port>      set the proxy server to call through
+p                    show the currently set proxy server
+q                    quit
+s                    show statistics
+c                    clear statistics
+h                    this menu
+USAGE
+    ;
+    &output($output);
+}
+
+
+sub show_stats {
+    # quit
+    &output("Test Results:\n");
+    
+    foreach(@$resultlist) {
+	&output($_, "\n");
+    }
+}
+
+sub clear_stats {
+
+}
+
+
+sub set_proxy {
+    my($proxy) = @_;
+
+    if(!$proxy) {
+	&output("Proxy Server: $current_proxy\n");
+    } else {
+	$current_proxy = $proxy;
+	&output("Setting proxy server to $current_proxy\n");
+
+	my ($host, $port) = split(/:/, $current_proxy);
+
+	if(!$port) {
+	    $port = "5060";
+	}
+
+	my ($name,$aliases,$type,$len,$dest) = gethostbyname($host);
+
+	$dest_addr = $dest;
+	print "proxy addr: " , &text_addr($dest_addr), "\n" if $debug;
+	
+	my $sockaddr = "S n a4 x8";
+
+	$dest_sockaddr = pack($sockaddr, PF_INET, $port, $dest);
+    }
+}
+
+sub commandline {
+    my($cmdline) = @_;
+
+    $cmdline =~ s/^\s*//;
+
+    my(@args) = split(/\s+/, $cmdline);
+    my($cmd) = shift(@args);
+
+    if($command_hash{$cmd}) {
+	&{$command_hash{$cmd}}(@args);
+    } else {
+	&help();
+    }
+
+    # do something based on the commandline entry
+}
+
+
+
+sub register_ok {
+    my ($msg, $hash) = @_;
+
+    if(!defined($hash)) {
+	die "bad hash!\n";
+    }
+    if($msg =~ /^SIP\/2.0 ([0-9]*)/) {
+	$rescode = $1;
+
+	&output("Received STATUS ($rescode) for REGISTER [User: $$hash{user}]\n");
+
+	if($rescode >= 200 && $rescode < 300) {
+	    return 1;
+	} elsif ($rescode >= 300) {
+	    return -1;
+	}
+	return 0;
+    }
+}
+
+
+sub invite_ok {
+    local($msg, $hash) = @_;
+
+    if(!defined($hash)) {
+	die "bad hash!\n";
+    }
+
+    if($msg=~ /^INVITE/) {
+	&send_msg(&respond($msg, "<sip:$$hash{to}\@". &text_addr($local_addr) . ":$LOCAL_PORT>"));
+    }
+
+    if($msg =~ /^SIP\/2.0 ([0-9]*)/) {
+	$rescode = $1;
+
+	&output("Received STATUS ($rescode) for INVITE [F: $$hash{from} T: $$hash{to}]\n");#print "invite: $rescode\n";
+	if($rescode >= 200) {
+	    $$hash{got_200} = 1;
+
+	    $response = &ack_msg($msg, &text_addr($local_addr), $$hash{request_uri});
+	    &send_msg($response, &text_addr($local_addr));
+	    if($rescode >= 300) {
+		return -1;
+	    }
+	} 
+    }
+
+    if($msg =~ /^ACK/) {
+	&output("Received ACK for INVITE [F: $$hash{from} T: $$hash{to}]\n");#	    print "ACK: ", $response, "\n";
+#	print "invite: ACK\n";
+	if(!$$hash{got_200}) {
+	    &output("Warning:  Did not receive 200 for this INVITE [F: $$hash{from} T: $$hash{to}]\n");
+	}
+	return 1;
+    }
+
+    return 0;
+}
+
+
+sub test_invite {
+    my($from, $to, $callback, $handle) = @_;
+
+    if(!$from || !$to) {
+	&output("Usage:  i <from-user> <to-user>\n");
+	return;
+    }
+
+    print "test_invite: $from $to\n" if($fndebug);
+
+
+    $callid =  &new_call_id();
+    $$matchlist{$callid} = { x=> "",
+			     callback => \&invite_ok,
+			     description => "Call from $from to $to",
+			     hash => { 
+				      request_uri => "$to\@" . &text_addr($dest_addr),
+				      from => $from,
+				      to => $to
+				     },
+			     handle => $handle, 
+			     result_callback => $callback
+			   };
+
+    &add_delayqueue({ process => \&cleanup_call, args => [ $callid ],
+		    time => time() + $fail_time});
+
+    &send_msg(&invite_msg("$from\@" . &text_addr($dest_addr),
+			  "$to\@" . &text_addr($dest_addr),
+			  "$from\@" . &text_addr($local_addr) . ":$LOCAL_PORT",
+			  &text_addr($local_addr),
+			  $callid
+			  
+			 ));
+}
+
+
+sub place_result {
+    my ($callid, $result) = @_;
+    my ($result_callback);
+
+    $result_callback = $$matchlist{$callid}->{result_callback};
+    if($result_callback) {
+	&$result_callback($$matchlist{$callid}->{handle}, ($result > 0));
+    }
+    undef $$matchlist{$callid};
+}
+
+
+sub cleanup_call {
+    my ($callid) = @_;
+
+    if($$matchlist{$callid}) {
+	# this failed
+	&place_result($callid, -1);
+    }
+}
+
+
+sub test_register {
+    my ($user, $callback, $handle) = @_;
+
+    if(!$user) {
+	&output("Usage:  r <user>\n");
+	return;
+    }
+
+    print "test_register: $user\n" if($fndebug);
+
+    &output("Trying to register user '$user'\n");
+
+    $callid =  &new_call_id();
+    
+    $$matchlist{$callid} = { x=> "", 
+			     callback => \&register_ok,
+			     hash => { user => $user },
+			     description => "Register $user",
+			     handle => $handle, 
+			     result_callback => $callback
+			   };
+
+    &add_delayqueue({ process => \&cleanup_call, args => [ $callid ],
+		    time => time() + $fail_time});
+
+    &send_msg(&register_msg($user, 
+			    &text_addr($local_addr), 
+			    &text_addr($dest_addr), 
+			    $callid ));
+}
+
+
+sub new_call_id {
+    &random_string(20) . "\@" . &text_addr($local_addr);
+}
+
+
+sub match {
+    my($msg, $matchlist, $resultlist) = @_;
+
+    # get the right bits -- callid / from / to / cseq  (branch of via?)
+    my($from) = &get_header("From", $msg);
+    my($to) = &get_header("To", $msg);
+    my($callid) = &get_header("Call-ID", $msg);
+    my($cseq) = &get_header("CSeq", $msg);
+
+    $callid =~ s/^\s*//;
+    $callid =~ s/\s*$//;
+
+
+    if($$matchlist{$callid}->{callback}) {
+	# call the callback
+	my $hash = $$matchlist{$callid}->{hash};
+	if(!defined($hash)) {
+	    $hash = {};
+	}
+
+	my $result = &{$$matchlist{$callid}->{callback}}($msg, $hash);
+	if($result != 0) {
+	    # done, so delete this
+	    print "deleting record for $callid\n" if ($debug);
+	    &place_result($callid, $result);
+	} else {
+	    $$matchlist{$callid}->{hash} = $hash;
+	}
+    }
+
+}
+
+
+sub send_msg {
+    local($msg) = @_;
+
+    # this is the send command
+    defined(send(S,$msg,0,$dest_sockaddr)) || die "failed: $! $?";
+}
+
+sub recv_msg {
+    local($his_address);
+    local($data);
+    $his_address = recv(S, $data, 60000, 0);
+    return ($data, $his_address);
+}
+
+
+sub text_addr {
+    local(@addr) =  unpack('C4', $_[0]);
+    return join '.', @addr;
+}
+
+
+sub register_msg {
+    local($user, $local_ip, $dest_ip, $callid) = @_;
+    local($register_msg) = <<EOREGISTER
+REGISTER sip:$dest_ip SIP/2.0
+Via: SIP/2.0/UDP $local_ip:$LOCAL_PORT
+From:  <sip:$user\@$dest_ip;user=phone>
+To:  <sip:$user\@$dest_ip;user=phone>
+Call-ID: $callid
+CSeq: 1 REGISTER
+Contact:  <sip:$user\@$local_ip:$LOCAL_PORT;user=phone;transport=udp>;expires=1
+User-Agent: verifysip $VERSION
+Expires: 3600
+Content-Length: 0
+
+EOREGISTER
+  ;
+    $register_msg =~ s/\n/\r\n/g;
+    return $register_msg;
+}
+
+
+sub invite_msg {
+    local($from_addr, $to_addr, $contact_addr, $local_ip, $callid) = @_;
+    local($random_tag) = &random_string(32);
+
+
+    local($msg) = <<EOINVITE
+INVITE sip:$to_addr SIP/2.0
+Via: SIP/2.0/UDP $local_ip:$LOCAL_PORT
+From: <sip:$from_addr>;tag=$random_tag
+To: <sip:$to_addr>
+Call-ID: $callid
+Date: Tue, 03 Dec 2002 02:23:42 GMT
+CSeq: 101 INVITE
+User-Agent: verifysip $VERSION
+Contact: sip:$contact_addr
+Expires: 180
+Content-Length: 0
+
+EOINVITE
+  ;
+    $msg =~ s/\n/\r\n/g;
+    return $msg;
+}
+
+
+sub ack_msg {
+    local($orig_msg, $local_ip, $request_uri) = @_;
+
+    local($random) = &random_string(20);
+    local($random_tag) = &random_string(32);
+
+    # get the proper bits
+    my (@route_list, $rl);
+
+    @route_list = split(/,/, &get_header("Record-Route", $orig_msg));
+
+    # should i reverse the route list ? I don't think so.
+
+    push(@route_list, &get_header("Contact", $orig_msg));
+
+    my ($from, $to, $callid, $cseq);
+
+    $from = &get_header("From", $orig_msg);
+    $to = &get_header("To", $orig_msg);
+    $callid = &get_header("Call-ID", $orig_msg);
+    $cseq = &get_header("CSeq", $orig_msg);
+
+    $cseq =~ s/INVITE/ACK/;
+
+    my $req_uri, $route;
+
+    $req_uri = shift(@route_list);
+    $req_uri =~ s/^\s*\<//;
+    $req_uri =~ s/>\s*$//;
+    $req_uri =~ s/;maddr=.*$//;
+    $route = join(',', @route_list);
+
+    if(!$req_uri) {
+	$req_uri = $request_uri;
+    }
+
+    my $full_route;
+    if($route)  {
+	$full_route = "Route: $route\n";
+    }
+
+    local($msg) = <<EOINVITE
+ACK $req_uri SIP/2.0
+Via: SIP/2.0/UDP $local_ip:$LOCAL_PORT
+From: $from
+To: $to
+Call-ID: $callid
+Date: Tue, 03 Dec 2002 02:31:54 GMT
+CSeq: $cseq
+User-Agent: verifysip $VERSION
+${full_route}Content-Length: 0
+
+EOINVITE
+  ;
+    $msg =~ s/\n/\r\n/g;
+    return $msg;
+}
+
+sub respond {
+    local($msg, $new_contact) = @_;
+    local($random_tag) = &random_string(32);
+
+
+    $msg =~ s/INVITE.*\n/SIP\/2.0 200 OK\r\n/;
+    $msg =~ s/Contact:.*\n/$new_contact/;
+    $msg =~ s/Max-Forwards:.*\n//;
+    $msg =~ s/Expires:.*\n//;
+    $msg =~ s/Accept:.*\n//;
+    $msg =~ s/User-Agent:.*\n//;
+    $msg =~ s/Content-Type:.*\n//;
+
+    $msg =~ s/(CSeq:.*)\n/\1\nContact: $new_contact\r\n/;
+    $msg =~ s/(To:[^\r\n]*)\r?\n/\1;tag=$random_tag\r\n/;
+#    $msg =~ s/Content-Length:.*\n//;
+
+    print $msg, "\n" if $debug;
+    return $msg;
+}
+
+sub get_header {
+    my($header_name, $msg) = @_;
+    my($header_value);
+
+    if($msg =~ /\n$header_name:(.*)\n/) {
+	$header_value = $1;
+	$header_value =~ s/\r$//;
+    }
+    return $header_value;
+}
+
+sub random_string {
+    local($length) = @_;
+    local($string);
+
+
+    while($length--) {
+	$string .= ('.', '/', 0..9, 'A'..'Z', 'a'..'z')[ rand 64 ];
+    }
+    return $string;
+}
+
+
+### Local Variables: ###
+### mode: cperl ###
+### End: ###

@@ -1,0 +1,370 @@
+====================================================================
+VOCAL Release 1.5.0 Voice Mail Server README 
+====================================================================
+Module:       Voice Mail Server
+Release:      1.5.0
+Release Date: March  2003
+
+====================================================================
+LICENSE AND COPYRIGHT 
+====================================================================
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+This software consists of voluntary contributions made by Vovida
+Networks, Inc. and many individuals on behalf of Vovida Networks,
+Inc.  For more information on Vovida Networks, Inc., please see
+http://www.vovida.org/.
+
+All third party licenses and copyright notices and other required
+legends also need to be complied with as well.
+
+====================================================================
+INTRODUCTION 
+====================================================================
+
+This directory contains the classes used by the Voice Mail Server
+(VmServer). The VmServer Consits of a SIP talking front end called
+User Agent Voice Mail (UAVM), Voice Mail Feature Server (FSVM ) and
+Vmserver. Uavm and VmServer talk VMCP : Voice Mail Control Protocol,
+which is a proprietary protocol.  Vmserver is used to play a recorded
+greeting, and to send a recorded voice message as a email attachment
+to a user.
+
+Once the request arrives at vmserver, it forks a process to serve the 
+request. Vm Server then plays a greeting file to the caller. The 
+location for the greeting file is specified in the configuration file 
+for voicemail server. Once the greeting file has been played, vmserver 
+starts recording the incoming message. Once the recording is done,
+vmserver sends the message (.wav file) through email as a attachment
+to user (callee) whose number has been called.
+
+        If the callee is not configured in the system then a Invalid.wav 
+gets played by vmserver and then the call gets disconnected by vmserver.
+
+See also /vocal/sip/ua for more details on UAVM (User Agent Voicemail)
+and vocal/proxies/fs/vm for FSVM (Feature Server Voice Mail)
+ 
+VMCP Protocol:
+--------------
+Event types:
+        Empty, Close, Invalid, Ack, Nack, SessionInfo, ReqSessionInfo, 
+	Play file, Start play, Stop play, Play stopped, Record file, Start
+        record, Stop record, Record stopped. 
+
+Server Methods :
+        Accept(), Wait(), Assign(), GetListenSocket()
+
+Client Methods:
+        connect()
+
+Common methods:
+        sendClose(), sendAck(), sendNack(), getMsg(), setSessionInfo(), 
+	reqSessionInfo(), playFile(), startPlay(), stopPlay(), playStopped(),
+        recordFile(), startRecord(), stopRecord(), recordStopped().
+   
+====================================================================
+KNOWN LIMITATIONS
+====================================================================
+
+VmServer and Uavm need to access the 'tempRoot' which is specified in 
+the voicemail.config file (please see the USING THE SOFTWARE section).
+temproot is a Path where the tempoary files will created.
+
+The tempRoot location must be accessible by the VM server as well
+as UA VMs.  If the VM server and the UA VMs are 
+
+Vmserver always listens on port 8024 only.
+
+This code has some code related to IMAP functionality but this code
+has not been tested and thus is commented out.
+
+====================================================================
+GETTING STARTED
+====================================================================
+--------------------------------------------------------------------
+HARDWARE OR SOFTWARE REQUIREMENTS
+--------------------------------------------------------------------
+Refer to http://www.vovida.org/applications/downloads/vocal/platform/1_5_0.html
+for details.
+Refer to http://www.vovida.org/applications/downloads/vocal/test/1_5_0.html
+for test results.
+
+--------------------------------------------------------------------
+BUILD OR COMPILE INSTRUCTIONS
+--------------------------------------------------------------------
+
+			       vmserver
+
+The Voice Mail Server executable can be built in the following way:
+
+    cd ../vocal/
+    make vmserver 
+
+The executable 'vmserver' is installed at:
+
+    ../vocal/vm/vmserver/bin.<hardwareArchitecture>/vmserver
+
+
+				 uavm
+
+The UAVM (User Agent for Voice Mail) functionality is part of the
+default vocal UA (user agent).  To build it, build the user agent:
+
+    cd ../vocal/
+    make gua 
+
+There is a change in configuration of VoiceMail in 1.5.0.
+
+Prior to 1.5.0, the components needed for VoiceMail feature were
+vmserver, fsvm and group of uavms(user agent in voice mail mode).
+
+callToVoiceMail ---> fsvm(fs running at 5110) ---> uavm---> Vmserver
+                                                   uavm--->
+                                                   uavm---> 
+
+With 1.5.0, the number of compnents have been reduced. The configuration
+now looke like
+
+callToVoiceMail ---> fsvm( gua running at 5110) ---> vmserver
+
+--------------------------------------------------------------------
+USING THE SOFTWARE
+--------------------------------------------------------------------
+VoiceMail Server Configuration requires the following steps :
+
+   1.  Configure server
+   2.  Add a new user
+   3.  Record user greeting
+   4.  Run the server
+   5.  Configure fsvm
+   6.  Add entry to digital dial plan
+   7.  Enable Redirect Reason in SIP
+   8.  Configure Call Forward No Answer / Call Forward Busy for user
+  9.   Using vocalctl 
+
+
+1. Configure server
+-------------------
+
+The voicemail system reads configuration records from the file
+voicemail.config .  A sample configuration is in the directory
+config/vm/voicemail.config
+
+
+Config records are:
+   voiceRoot, a string - Path to common voice files
+          (common prompts, default greeting, etc...)
+
+   homeRoot, a string  - Path to vm user home (not unix homes) directories
+
+   tempRoot, a string  - Path there the tempoary files created
+          * This tempRoot should be accessible by both Vmserver and Uavm.
+          as They can run on different machines too * 
+
+   InputTimeout, a int - Maximum time to wait for user input
+          before any action in msec
+
+   MaxRecordTime, a int (eg. 60000) - Maximum message size in msec
+
+   LogLevel, a int (eg. 7) - Logging level
+
+   LogFileName, a string - Log file name
+
+   LogConsole, a int  - Should log also go to console (0/1)?
+
+2. Add a new user
+-----------------
+
+To add a user create a directory with the SIP address of the user in
+the 'homeRoot' directory.
+
+For example, if the homeRoot is set to /vmhome/, and the user address
+is 1000, you should create a directory /vmhome/1000 .
+
+You should place a config file and optionally a pre-recorded greeting
+into the user directory.  The config file should be named "config" and
+have one of each of the following items:
+
+Field name	Type	value
+Name            string  <User Name> - User realname
+SendTo          string  <email@user.domain> - e-mail address to send the voice
+					     messages to.
+Greeting	string  <filename.wav> - Greeting filename (ONLY A FILENAME)
+
+Example config file:
+
+	Name      string  Joe
+	SendTo    string  joe@domain.com
+	Greeting  string  greeting.wav
+
+
+We describe the greeting message in the next section.
+
+
+3. Record user greeting
+-----------------------
+
+The greeting files should be 8Khz mU-Law coded WAV files. Vmclient
+does not do any check on the format, so if the file is in any
+different format the caller will hear noise instead of a greeting.
+
+A greeting could be recorded on Linux with 'rec' command.
+
+rec -c 1 -b -U -r 8000 greeting.wav
+
+If your sound card driver does not support this format you can make
+your greeting in 2 steps:
+
+  1. Record a greeting with any format supported by your sound card
+
+  For example, if your card supports 44100 KHz, 16-bit, Mono., try
+
+    rec -c 1 -r 44100 -w temp.wav
+    
+  2. Convert it to 8Khz mU-law
+
+      sox temp.wav -c 1 -b -U -r 8000 greeting.wav
+
+
+4. Run the server (vmserver)
+----------------------------
+
+Usage: vmserver [OPTIONS]
+
+Options: -d  run in daemon mode
+         -f <log file>  path to configuration file
+         -v LOG_LEVEL 
+            LOG_EMERG
+            LOG_ALERT
+            LOG_CRIT
+            LOG_ERR
+            LOG_WARNING
+            LOG_NOTICE
+            LOG_INFO
+            LOG_DEBUG
+            LOG_DEBUG_STACK
+            LOG_DEBUG_OPER
+            LOG_DEBUG_HB
+
+
+Example: vmserver -f ./voicemail.config -vLOG_DEBUG
+
+
+5.  Configure voice mail feature server (fsvm)
+----------------------------------------------
+In 1.5.0, fsvm is not a feature server, instead it had been 
+replaced with gua ( new user agent running in voice mail mode).
+From provisioning perspective, there is still a featuer server 
+provisioned for voice mail, however the binary is gua.
+This feature server is similar to the other feature servers.  It is
+located in the technician UI under featureServers, server type
+Voicemail. In such a feature server configuration, the configuration
+of "UA VM Servers:" is ignored.
+
+To run the fsvm
+./gua -m -f uavm.cfg 
+
+The uavm.cfg file is same as ua.cfg except that the LOCAL_SIP_PORT is
+the port for fsvm (configured in the provisioning GUI) and it should
+have a list of Vmservers with their IP adresses.
+
+eg: VmServer 	string	192.170.123.200
+      .
+      .
+    VmServer	string  192.170.123.201
+    
+Whenever Uavm receives the Invite it goes to the uavm.cfg to look for
+the VmServer location in order to connect to it.
+
+For more information on the ua.cfg file, please see vocal/sip/ua/README
+
+6.  Add entry to digital dial plan
+----------------------------------
+
+In order to forward your calls to the voice mail system, you must also
+add an entry to your digital dial plan for the voice mail.  If your
+voice mail is to be at DN 7000, you must add an entry to the digital
+dial plan like this:
+
+	Key:         ^sip:7000
+	Contact:     sip:7000@<FSVM-LOCATION>;user=phone
+
+where <FSVM-LOCATION> is the location of the voice mail feature
+server, e.g. 192.168.2.2:5110 .
+
+
+7.  Enable Redirect Reason in SIP
+---------------------------------
+
+The voice mail system must know which user it is answering the call
+for in order to play the appropriate prompt for the called user and to
+deliver the voice mail to that user.  This information is provided by
+the calling UA in the Redirect reason, which is NOT turned on by
+default.  To turn it on:
+
+In the provisioning GUI, log in as a technician.  choose
+provisioning/system/globalConfiguration from the left directory
+structure, and make sure that the checkbox "Redirect Reason in SIP" is
+checked.
+
+8.  Configure Call Forward No Answer / Call Forward Busy for user
+-----------------------------------------------------------------
+
+For each user who you wish to have voice mail enabled, configure them
+to have the user 7000 as their Forward Unanswered and Forward Busy
+number.  Make sure that for each user the Forward Unanswered and
+Forward Busy checkboxes are checked.
+
+If you are configuring the call forward no answer / call forward busy
+information in the Administrator GUI (versus the User GUI), you must
+check the box for User
+
+
+9.  Using vocalctl 
+---------------------------------
+
+Insure the voicemail server, the user agent for voicemail
+are running by executing vocalctl status.
+
+fsvm 5110             <processId>
+vmserver              <processId>
+
+
+
+====================================================================
+SOURCE CODE INFORMATION
+====================================================================
+Refer to programmer's documentation on vovida.org website.
+
+====================================================================
+DIRECTORY STRUCTURE 
+====================================================================
+The directories are : mail
+                      media_server
+		      vme
+		      vmcp
+		      vmserver
+
+mail: This directory is not being used in this release. This is for
+      feture release.
+media_server: This directory is not being used in this release. This is for
+      feture release.
+vme:  Voice mail engine, this directory contains the files wjich handles 
+      the events and sessions and states.
+vmcp: voice mail control protocol, this directory contains the classes 
+      which define the protocol as well as handle streamio sockets.
+vmserver: These files do server related functions as sending the commands 
+      to uavm as play file, start recording etc. It also handles the session
+      ans states per request.
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:38 greear Exp $

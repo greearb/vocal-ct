@@ -1,0 +1,3 @@
+export MGCP_VERSION=0.1.22
+export RTP_VERSION=0.1.22
+export SIP_VERSION=0.1.5

@@ -1,0 +1,33 @@
+<featureservers>
+    <feature>
+        <type>ForwardAllCalls</type>
+        <group>
+            <servergroup>ForwardAllCallsGroup</servergroup>
+        </group>
+    </feature>
+    <feature>
+        <type>ForwardNoAnswerBusy</type>
+        <group>
+            <servergroup>ForwardNoAnswerBusyGroup</servergroup>
+        </group>
+    </feature>
+    <feature>
+        <type>CallBlocking</type>
+        <group>
+            <servergroup>CallBlockingGroup</servergroup>
+        </group>
+    </feature>
+    <feature>
+        <type>CallScreening</type>
+        <group>
+            <servergroup>CallScreeningGroup</servergroup>
+        </group>
+    </feature>
+    <feature>
+        <type>Voicemail</type>
+        <group>
+            <servergroup>VoiceMailGroup</servergroup>
+            <hostname>192.168.5.15</hostname>
+        </group>
+    </feature>
+</featureservers>

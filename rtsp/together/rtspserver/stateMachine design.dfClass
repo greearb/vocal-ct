@@ -1,0 +1,226 @@
+package id2nbl2cmlaayuzcmlalc6k;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:cpp#Class#OpAnnounce:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference {
+}/**
+@__ref <oiref:cpp#Class#OpDescribe:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference1 {
+}/**
+@__ref <oiref:cpp#Class#Operator:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference2 {
+}/**
+@__ref <oiref:cpp#Class#OpOptions:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference3 {
+}/**
+@__ref <oiref:cpp#Class#OpPause:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference4 {
+}/**
+@__ref <oiref:cpp#Class#OpPauseInvalid:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference5 {
+}/**
+@__ref <oiref:cpp#Class#OpPauseOk:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference6 {
+}/**
+@__ref <oiref:cpp#Class#OpPlay:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference7 {
+}/**
+@__ref <oiref:cpp#Class#OpPlayInvalid:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference8 {
+}/**
+@__ref <oiref:cpp#Class#OpRecord:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference9 {
+}/**
+@__ref <oiref:cpp#Class#OpRecordInvalid:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference10 {
+}/**
+@__ref <oiref:cpp#Class#OpSetParameter:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference11 {
+}/**
+@__ref <oiref:cpp#Class#OpSetup:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference12 {
+}/**
+@__ref <oiref:cpp#Class#OpSetupInvalid:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference13 {
+}/**
+@__ref <oiref:cpp#Class#OpTeardown:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference14 {
+}/**
+@__ref <oiref:cpp#Class#OpTeardownOk:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference15 {
+}/**
+@__ref <oiref:cpp#Class#State:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference16 {
+}/**
+@__ref <oiref:cpp#Class#StateEvent:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference17 {
+}/**
+@__ref <oiref:cpp#Class#StateInit:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference18 {
+}/**
+@__ref <oiref:cpp#Class#StateMachine:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference19 {
+}/**
+@__ref <oiref:cpp#Class#StatePausePlay:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference20 {
+}/**
+@__ref <oiref:cpp#Class#StatePauseRecord:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference21 {
+}/**
+@__ref <oiref:cpp#Class#StatePlaying:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference22 {
+}/**
+@__ref <oiref:cpp#Class#StateReadyPlay:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference23 {
+}/**
+@__ref <oiref:cpp#Class#StateReadyRecord:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference24 {
+}/**
+@__ref <oiref:cpp#Class#StateRecording:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference25 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:cpp#Extends#OpSetParameter#Operator:oiref>=2217,825,2217,815,748,741:oigroup>
+<oigroup:<oiref:cpp#Extends#OpRecordInvalid#Operator:oiref>=1325,825,696,741:oigroup>
+<oigroup:<oiref:cpp#Class#State:oiref>=561,142,203,185,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpTeardown#Operator:oiref>=1548,825,709,741:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePlaying#State:oiref>=1036,413,710,327:oigroup>
+<oigroup:<oiref:cpp#Class#OpTeardownOk:oiref>=1893,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpPauseInvalid:oiref>=1670,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpSetupInvalid#Operator:oiref>=879,825,670,741:oigroup>
+<oigroup:<oiref:cpp#Class#OpPlay:oiref>=332,825,203,138,1:oigroup>
+<oigroup:<oiref:cpp#Class#StatePlaying:oiref>=953,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#StateRecording:oiref>=579,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpAnnounce:oiref>=-783,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StateRecording#State:oiref>=658,413,658,327:oigroup>
+<oigroup:<oiref:cpp#Extends#OpAnnounce#Operator:oiref>=-682,825,-682,815,578,741:oigroup>
+<oigroup:<oiref:cpp#Class#StateInit:oiref>=392,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPlayInvalid#Operator:oiref>=210,825,631,741:oigroup>
+<oigroup:<oiref:cpp#Class#OpSetup:oiref>=1001,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpPlayInvalid:oiref>=109,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPlay#Operator:oiref>=433,825,644,741:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyRecord#State:oiref>=849,413,684,327:oigroup>
+<oigroup:<oiref:cpp#Class#OpOptions:oiref>=555,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpSetupInvalid:oiref>=778,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpSetParameter:oiref>=2116,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpRecord:oiref>=-560,825,203,138,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StateReadyPlay#State:oiref>=101,413,585,327:oigroup>
+<oigroup:<oiref:cpp#Class#OpRecordInvalid:oiref>=1224,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPauseInvalid#Operator:oiref>=1771,825,1771,815,722,741:oigroup>
+<oigroup:<oiref:cpp#Class#StatePauseRecord:oiref>=1140,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpPause:oiref>=-1006,825,203,138,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpRecord#Operator:oiref>=-459,825,-459,815,592,741:oigroup>
+<oigroup:<oiref:cpp#Class#StatePausePlay:oiref>=205,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPauseOk#Operator:oiref>=-13,825,618,741:oigroup>
+<oigroup:<oiref:cpp#Class#StateReadyPlay:oiref>=18,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpPauseOk:oiref>=-114,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#StateEvent:oiref>=293,16,219,157,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpPause#Operator:oiref>=-905,825,-905,815,565,741:oigroup>
+<oigroup:<oiref:cpp#Extends#OpDescribe#Operator:oiref>=-236,825,605,741:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePauseRecord#State:oiref>=1223,413,737,327:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#StateMachine#myInstance:oiref>=182,271,182,321,272,321,272,231,222,231:oigroup>
+<oigroup:<oiref:cpp#Class#StateReadyRecord:oiref>=766,413,167,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#Operator:oiref>=555,584,203,157,1:oigroup>
+<oigroup:<oiref:cpp#Extends#OpOptions#Operator:oiref>=657,825,657,741:oigroup>
+<oigroup:<oiref:cpp#Class#StateMachine:oiref>=19,10,203,261,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpDescribe:oiref>=-337,825,203,119,1:oigroup>
+<oigroup:<oiref:cpp#Class#OpTeardown:oiref>=1447,825,203,157,1:oigroup>
+<oigroup:<oiref:cpp#Extends#StatePausePlay#State:oiref>=288,413,609,327:oigroup>
+<oigroup:<oiref:cpp#Extends#OpTeardownOk#Operator:oiref>=1994,825,1994,815,735,741:oigroup>
+<oigroup:<oiref:cpp#Extends#OpSetup#Operator:oiref>=1102,825,683,741:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#StateMachine#myInstance:oiref>=226,210,26,19,0:oigroup>
+<oigroup:<oiref:cpp#Extends#StateInit#State:oiref>=475,413,633,327:oigroup>
+*/
+class __positions {
+}

@@ -1,0 +1,24 @@
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+CDR Directory
+=============
+
+./cdrServer  - cdrserv binary is built from this directory
+./cdrLib     - contains CdrInterface api, used by Marshals, etc.
+./test       - test programs for cdrserv
+
+======================================================================
+TO DO:
+You might want to integrate the newer version of RADIUS stack from
+vocal/radius directory
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:14:55 greear Exp $

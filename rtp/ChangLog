@@ -1,0 +1,128 @@
+$Id: ChangLog,v 1.1 2004/05/01 04:15:23 greear Exp $
+
+RTP ChangLog
+----------------------------------
+
+----------------------------------
+$Log: ChangLog,v $
+Revision 1.1  2004/05/01 04:15:23  greear
+Initial revision
+
+Revision 1.6  2000/08/12 01:23:55  wenqing
+change for making new release
+
+Revision 1.5  2000/06/24 01:39:04  wenqing
+change for 0.1.22
+
+Revision 1.4  2000/05/26 01:20:24  wenqing
+update for the new release
+
+Revision 1.3  2000/03/28 03:27:49  wenqing
+update for new release
+
+----------------------------------
+Rlease 0.1.23, w.r.t the previous releases
+
+- Change receiver to allow SSRC = 0.
+
+Rlease 0.1.22, w.r.t the previous releases
+
+- Chopped files to more files due to file too long
+
+- Fixed problem of late packets. Add handling to reorder the out-of-order
+  packets. The lost packets are replaced by next packet available.
+
+- Fixed bug for sample rate/ pakect size issue and byte order for 
+  Linear 16 and other
+
+- Fixed/Enhanced for Sequence number checking and sequence number cycling
+
+- Add new tranmitRaw() method in RtpTransmitter.cxx to allow pass in raw data
+
+- Enhanced the half-duplex to full-duplex transmision
+
+- Fixed bugs for half-duplex mode
+
+- Fixed problem of UdpStack in util/. It's linux specific. 
+  The problem is a socket doign sendto() and recevfrom(), then
+  get connection refused for the recv. Use setsockopt(...) to fix.
+
+- Other minor bug fixes.
+
+
+----------------------------------
+
+Rlease 0.1.21, w.r.t the previous releases
+
+- Fixed memory leak problem for both RTP and RTCP
+
+- Add more call statistics API in RtpSession, and correct the Jitter and
+  Latency calculation
+
+- Upgrade test programs such as sampleUsage and phoneJack 
+
+- Other bug fixes: such as one related to race condition 
+  and one in emptyNetwork().
+
+--------------------------------
+Rlease 0.1.20, w.r.t the previous releases
+
+- New test program called *phoneJack* for testing RTP directly with 
+  Quicknet card. 
+
+- Improved test program/bug fixes for rptPlay/rtpRecord and adding explaination 
+  of how it works. 
+
+- Fixes for one-way latency problem. This is because there is time difference 
+  between the two endpoints to start audio, and the stack doesn't do catchup 
+  at the beginning of audio. So whoever start's audio late will have latency 
+  problem. Now the stack will do catch-up when the audio starts. 
+
+- Change from send() to sendto() and not doing *connect()* ports. So then the 
+  stack can receive RTP packets from other ports also can send to different 
+  port. 
+
+- inactive/Sendonly/recvonly/sendrecv/ mode exchanges are OK now. 
+
+--------------------------------
+
+Release 0.1.19, w.r.t the previous releases
+
+- various bug fixes
+
+--------------------------------
+
+Release 0.1.18, w.r.t the previous release
+
+- UDP stack, much enhanced. New object for network addresses. 
+  They have been moved to utility directory(util/). 
+
+- Now can accept any packet size from network and output any desired packet 
+  size to API. 
+
+- Bug fixes from previous releases 
+
+- Naming changes for all the files which have class objects 
+
+---------------------------------
+
+Release before 0.1.18
+
+
+
+  SESSION IMPROVEMENTS
+   - hooks for multiple CODEC and CODEC conversion
+   - implement select() usage on receive calls
+   - recovering from lost packets, reordering, and jitter
+   - allowed dymanic port allocation within a given range
+
+  RTP IMPROVEMENTS
+   - correct network to host order for interoperability with other RTP stacks
+   - fixed RTP timestamp so it relates to the sample rate
+
+  RTCP IMPROVEMENTS
+   - NTP timing corrected so stack is less clock dependent
+   - corrected RTCP calculations
+
+
+

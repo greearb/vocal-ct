@@ -1,0 +1,145 @@
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+
+This README is obsolete.  It is included for historical purposes only.
+
+====================================================================
+RADIUS README
+====================================================================
+RADIUS
+Alpha release
+September 20001
+
+====================================================================
+INTRODUCTION
+====================================================================
+The vocal/radius directory contains the C++ source for RFC2865 and
+RFC2866 implementation.
+
+RADIUS messages supported:
+1. Access-Request
+2. Access-Accept
+3. Access-Reject
+4. Accounting Request
+5. Accounting Response
+
+The RadiusAttribute class is designed to be generic, so attriubtes
+conforming to the format that is specified in RFC2865 are supported.
+However, only a portion of the attributes in RFC2865 and RFC2866
+are interpreted for debug printing.
+
+This implementation is designed to be a component that can be use
+in a Authorization, Authentication and Accounting application.
+Therefore, the AAA "transceiver" is not implemented here so that
+RADIUS can be replaced by another protocol if needed.
+
+The test sub-directory contains three test programs.
+1. radiusTest - unit test cases using vocal/util/Verify.hxx
+2. radiusClient - simulates a RADIUS client that sends RADIUS requests
+3. radiusServer - simulates a RADIUS server that sends RADIUS responses
+                  upon receiving requests from clients
+
+====================================================================
+NEW FEATURES AND FUNCTIONS IN THIS RELEASE
+====================================================================
+
+This is an Alpha release. More features and enhancements are expected
+later on.
+
+====================================================================
+BUG FIXES
+====================================================================
+This section lists fixed bugs in future releases.
+
+====================================================================
+GETTING STARTED
+====================================================================
+
+This code will compile and run on these operating systems:
+- Linux Red Hat 6.2 and 7.1
+- Solaris 2.8 with Forte 6U1
+
+To compile the RADIUS code from vocal/radius/, type:
+   make
+
+To compile the test programs from vocal/radius/test/, type:
+   cd test
+   make
+
+To compile both the RADIUS code and test programs from .../vocal/,
+type:
+   make radius
+   make radius_test
+
+Try out the test programs in .../vocal/radius/test/.
+
+====================================================================
+SOURCE CODE INFORMATION
+====================================================================
+
+radius.h
+  - Definitions of RADIUS message format, attribute format, message
+    codes, attribute types and attribute values.
+
+RadiusData.hxx
+  - A class for supporting binary data with a maximum size of a
+    radius packet.
+
+RadiusAttribute.hxx
+RadiusAttribute.cxx
+  - A generice class for a RADIUS attribute as defined in section
+    5 of RFC2865.
+
+RadiusMessage.cxx
+RadiusMessage.hxx
+  - A generic class for a RADIUS message as defined in section 3 of
+    RFC2865.
+
+VRadiusException.hxx
+  - Exception
+
+The source code under .../vocal/util/ is also used.
+
+====================================================================
+LIMITATIONS
+====================================================================
+CHAP-password encoding and decoding are not implemented.
+
+====================================================================
+TODO
+====================================================================
+1. Replace RadiusData class with more efficient code.
+2. "Configurable" attributes with types.
+3. Vendor-Specific attribute value encoding and decoding.
+
+====================================================================
+CONTRIBUTORS
+====================================================================
+This software consists of voluntary contributions made by vovida.org.
+
+====================================================================
+CONTACT INFORMATION AND WEBSITE
+====================================================================
+We welcome your feedback, suggestions and contributions.
+Contact us via email if you have questions, feedback,
+code submissions, and bug reports.
+
+For general inquiries - info@vovida.org
+
+We have a mailing list, vocal@vovida.org for the VOCAL applications.
+You can subscribe to the mailing list on www.vovida.org.
+
+You can submit bug, patches, software contributions, and feature
+requests using Bugzilla.  Access Bugzilla from www.vovida.org.
+
+====================================================================
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:22 greear Exp $

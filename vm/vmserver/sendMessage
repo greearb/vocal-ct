@@ -1,0 +1,95 @@
+#!/bin/sh
+
+if [ "z$2" = "zrecord-prompt" ]
+then
+    filename=`date +%Y%m%d%H%M%S`
+    user=`echo $3 | perl -ne 'if(/^([0-9]{5})/) { print $1,"\n";}'`
+    if [ "z$user" != "z" -a -d /usr/local/vocal/var/vmhome/${user} ]
+    then
+        cp $1 /usr/local/vocal/var/vmhome/${user}/greeting.wav
+        chmod a+w  /usr/local/vocal/var/vmhome/${user}/greeting.wav
+    else
+        echo did not work, no directory ${user}
+    fi
+else
+
+DEBUG=1
+
+
+######################################################################
+
+#  choose one of these options depending on whether you have metasend
+#  (from the metamail package), mmail (a perl script which requires
+#  Net::SMTP and MIME::Lite), or sendmime (sendMime.sh , a small shell
+#  script written solely for the purpose of voice mail support)
+#  installed.
+
+######################################################################
+
+MIME_SENDER=sendmime
+
+
+
+METASEND_CMD=metasend
+VOCAL_BASE=/usr/local/vocal # VOCAL_BASE
+VOCAL_BASE_CONFIGURED=@prefix@
+if [ "x${VOCAL_BASE_CONFIGURED}" != "x@""prefix@" ]
+then
+    VOCAL_BASE=${VOCAL_BASE_CONFIGURED}
+fi
+
+MMAIL_CMD=${VOCAL_BASE}/bin/voicemail/mmail
+
+
+SEND_MIME_CMD=${VOCAL_BASE}/bin/voicemail/sendMime.sh
+BASE64_ENCODE_CMD=${VOCAL_BASE}/bin/voicemail/base64encoder
+
+# this tries to find out where sendmail is installed on your box
+
+SENDMAIL_CMD=sendmail
+
+if [ -x /usr/bin/sendmail ]
+then
+    SENDMAIL_CMD=/usr/bin/sendmail
+fi
+
+if [ -x /usr/lib/sendmail ]
+then
+    SENDMAIL_CMD=/usr/lib/sendmail
+fi
+
+if [ -x /usr/sbin/sendmail ]
+then
+    SENDMAIL_CMD=/usr/sbin/sendmail
+fi
+
+SENDMAIL_CMD="${SENDMAIL_CMD} -t"
+
+if [ "z${DEBUG}" = "z1" ]
+then
+    echo From: $3
+    echo To: $2
+    echo Attachment: $1
+fi
+
+
+
+case ${MIME_SENDER} in
+  metasend)
+        ${METASEND_CMD} -b -D VoiceMessage.wav -e base64 -S 10485760 -f $1 -F $3 -s "VoiceMail Message" -t $2 -m "audio/wav; name=\"VoiceMessage.wav\"" ;
+        rm $1;
+	;;
+  mmail)
+	${MMAIL_CMD} -u $3 -s "VoiceMail Message" -m $1 $2;
+        rm $1;
+	;;
+  sendmime)
+	${SEND_MIME_CMD} $2 $3 $1 ${BASE64_ENCODE_CMD} | ${SENDMAIL_CMD};
+        rm $1;
+	;;
+esac
+
+fi
+
+exit
+#

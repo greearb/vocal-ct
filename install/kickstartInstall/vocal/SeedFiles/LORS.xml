@@ -1,0 +1,7 @@
+  <serverGroup
+      value="RedirectGroup">
+    <server
+        host="RSHOSTIP"
+        port="RSPORT">
+    </server>
+  </serverGroup>

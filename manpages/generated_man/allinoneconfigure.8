@@ -1,0 +1,46 @@
+.TH allinoneconfigure 8  vovida.org 
+.\" auto-generated from allinoneconfigure\&.xml by docbook2manxml
+.SH NAME
+allinoneconfigure    \-    configure an all in one vocal system\&.    
+.SH SYNOPSIS
+\fBallinoneconfigure\fR
+[\fBvyHrR \fR] 
+[\fB-p config_file_path \fR] 
+.SH DESCRIPTION
+The allinoneconfigure program initially configures a vocal(8)
+system\&. By default, allinoneconfigure interactively queries the
+user, and configures the system based on its options\&. However,
+when passed the \fB-y\fR switch, allinoneconfigure
+automatically uses its guessed values to attempt to produce a
+reasonable system\&.
+.PP
+In addition, allinoneconfigure can be passed \fB-r\fR
+or \fB-R\fR to change the passwords for the
+administrator or the system itself\&.
+.SH OPTIONS
+.TP 
+-v
+be more verbose about what is being done
+.TP 
+-y
+do not be interactive -- automatically answer all questions with default answers
+.TP 
+-H
+update the HTML code without doing anything else\&.
+.TP 
+-r
+change the administrator password
+.TP 
+-R
+change the internal system password used for processes\&.
+.TP 
+-p \fIconfig_file_path\fR
+set the path to the config files\&. This defaults to
+\fI/usr/local/vocal/bin/allinoneconfigure\fR\&.
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

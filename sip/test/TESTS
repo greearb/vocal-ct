@@ -1,0 +1,9 @@
+#this is the format of the file.
+#exit-code signal core-dump testprogramCommand
+0 0 0 InviteMsgTest
+0 0 0 CancelMsgTest
+0 0 0 AckMsgTest
+0 0 0 ByeMsgTest
+0 0 0 StatusMsgTest
+0 0 0 ParseTest
+0 0 0 SipCallLegTest

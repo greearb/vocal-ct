@@ -1,0 +1,7 @@
+<globalConfiguration>
+  <expiryTimer value="1000"/>
+  <multicastHost host="224.0.0.101"
+                 port="9000"/>
+  <maxMissedHeartbeats value="4"/>
+  <heartbeatInterval value="500"/>
+</globalConfiguration>

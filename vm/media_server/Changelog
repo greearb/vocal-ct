@@ -1,0 +1,7 @@
+- Default "tmp" location is now /usr/local/vocal/log
+- Fixed tmp file cleanup. Removes all PlayerMessage.XXXXXX & VoiceMessage.XXXXXX
+- Created new class of MailboxOptions
+- Fixed the Login & Password prompts.
+- Further improved menu navigation.  Begin groundwork of Message Forward.
+- Improved Menu Navigation.  Begin groundwork of the ability of user to record greeting via SIP UA
+- We can now send emails and receive emails from one binary!  No need for two separate binaries.  Use the -m flag to enabled IVR.

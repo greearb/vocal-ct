@@ -1,0 +1,61 @@
+.TH ms 1  vovida.org 
+.\" auto-generated from ms\&.xml by docbook2manxml
+.SH NAME
+ms    \- Marshal Server for VOCAL system\&.  
+.SH SYNOPSIS
+\fBms\fR
+[\fBoptions\fR]
+[\fBsip-port\fR]
+.SH DESCRIPTION
+The marshal server controls access to the VOCAL system by user
+agents and gateways\&. responsibilities include routing based on redirect
+server responses and authentication\&.
+.SH OPTIONS
+.TP 
+-c arg
+specify configuration file
+.TP 
+-C arg
+specify configuration directory
+.TP 
+-d
+do not fork into background (no daemon mode)
+.TP 
+-r
+disable SIP retransmission
+.TP 
+-f arg
+specify log file
+.TP 
+-v arg
+specify log level
+.TP 
+-R arg
+initial retransmission time in ms
+.TP 
+-M arg
+maximum retransmission time in ms
+.TP 
+-h
+disable multicast heartbeat
+.TP 
+-s
+use syslog for logging
+.TP 
+-n
+do not read options from any configuration file
+.TP 
+-P arg
+default provisioning server
+.TP 
+-S arg
+backup provisioning server
+.SH SEE ALSO
+More information is available from http://www\&.vovida\&.org/<URL:http://www\&.vovida\&.org/>
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

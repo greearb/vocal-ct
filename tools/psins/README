@@ -1,0 +1,29 @@
+This README is obsolete.  It is included for historical purposes only.
+
+Readme for psins.pl
+
+Usage:
+
+This script allows you to read data from the provisioning library.
+It's written in perl.
+
+this script requires the psinslib.pm library, which is in
+provisioning/web .  You need to copy that file somewhere into the
+library search path for perl (the best location is this directory).
+
+Note: The script is not supported/tested in 1.5.0 release.
+
+
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $
+
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $

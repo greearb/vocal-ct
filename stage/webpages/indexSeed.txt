@@ -1,0 +1,17 @@
+<html>
+  <title>Vovida ClassXSwitch</title>
+  <body bgcolor=\"#ffffff\">
+    <blockquote>
+      <p>
+      <ul>
+        <li><a href="http://hostNameToken1/dirToken/provisioning.cgi">Provision Switch on hostNameToken1</a>
+		<li><a href="http://hostNameToken1/dirToken/user.cgi">User Preferences on hostNameToken1</a>
+        <li><a href="http://hostNameToken2/dirToken/provisioning.cgi">Provision Switch on hostNameToken2</a>
+                <li><a href="http://hostNameToken2/dirToken/user.cgi">User Preferences on hostNameToken2</a>
+        <li><a href="http://cdrNameToken/dirToken/systemStatus.cgi">Network Management </a>
+		<li><a href="http://cdrNameToken/cdrDirectoryToken/NetMgnt/serverIndex.html">Performance Graphs </a>
+      </ul>
+      <hr width=100% noshade>
+    </blockquote>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+  <serverType
+      value="FSTYPE">
+    <serverGroup
+        value="FSTYPEGroup">
+      <server
+          host="FSHOSTIP"
+          port="FSPORT">
+      </server>
+    </serverGroup>
+  </serverType>

@@ -1,0 +1,118 @@
+#! /usr/bin/perl -w
+    eval 'exec /usr/bin/perl -S $0 ${1+"$@"}'
+        if 0; #$running_under_some_shell
+
+use strict;
+use File::Find ();
+use Getopt::Std;
+
+my %opts;
+getopts("n:l", \%opts);
+
+my $notice_filename = $opts{n};
+
+if(!$notice_filename || $#ARGV < 0) {
+    print "Usage: $0 [-l] -n <copyright-notice> list-of-endings...\n";
+    print "\n";
+    print "  The copyright-notice should be in a form which has the proper comment\n";
+    print "  structure for the files in question.\n\n";
+    print "  The list-of-endings should be the suffix for each file of the type\n";
+    print "  You wish to change, e.g. .cxx .hxx for files ending in .cxx / .hxx\n\n";
+    print "Example usage:\n\n";
+    print "$0 -n ../LICENSE-CXX .c .h .cxx .hxx\n\n";
+    print "  where ../LICENSE-CXX is a file with the LICENSE in C comment style (e.g.\n";
+    print "  what is at the head of most C++ files in the code).\n";
+    print "  This will prepend the text of LICENSE-CXX to each file ending in .c, .h,\n";
+    print "  .cxx, and .hxx in this directory and all subdirectories of this directory.\n";
+    print "  If you do NOT want to descend, then use the -l option.\n";
+    
+    exit();
+}
+
+# get the copyright notice
+
+my $notice;
+
+open(NOTICE, $notice_filename) || die "cannot read $notice_filename: $!";
+while(<NOTICE>) {
+    $notice .= $_;
+}
+close(NOTICE);
+
+#$notice = qq{$notice};
+
+#print $notice;
+
+#exit();
+# Set the variable $File::Find::dont_use_nlink if you're using AFS,
+# since AFS cheats.
+
+# for the convenience of &wanted calls, including -eval statements:
+use vars qw/*name *dir *prune/;
+*name   = *File::Find::name;
+*dir    = *File::Find::dir;
+*prune  = *File::Find::prune;
+
+if(!$opts{l}) {
+    # Traverse desired filesystems
+    File::Find::find({wanted => \&wanted}, '.');
+} else {
+    opendir(DIRZ, ".") || die "cannot read files in .: $!";
+    my @filelist = grep(!/^\.\.?$/  && -f $_, readdir(DIRZ));
+    closedir(DIRZ);
+    my $file_entry;
+    foreach $file_entry (@filelist) {
+	&add_notice($file_entry);
+    }
+    
+}
+exit;
+
+sub wanted {
+    my ($dev,$ino,$mode,$nlink,$uid,$gid);
+
+    (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) 
+      && -f _ 
+	  && &add_notice($_);
+}
+
+
+sub add_notice {
+    my ($file) = @_;
+    my $filedata = "";
+    my $has_copyright = 0;
+    my $ending;
+    my $proper_ending = 0;
+
+    foreach $ending (@ARGV) {
+	if($file =~ /\Q$ending\E$/) {
+	    $proper_ending = 1;
+	}
+    }
+
+    if($proper_ending) {
+	open(F, $file) || die "cannot read $file: $!";
+	while(<F>) {
+	    $filedata .= $_;
+	    $has_copyright = 1 if($_ =~ /copyright.*all\s+rights\s+reserved/i);
+	}
+	close(F);
+	
+	$has_copyright=1 if $filedata =~ /\Q$notice\E/m;
+	
+	if(!$has_copyright) {
+	    # rename the file
+	    rename $file, "$file.bak" || "cannot move file $file out of the way: $!";
+	    open(F, ">$file") || die "cannot write $file: $!";
+	    print F $notice;
+	    print F "\n";
+	    print F $file;
+	    close(F);
+	    print "changing $file...\n";
+	} else {
+	    print "skipping $file (already has copyright...)\n";
+	}
+    } else {
+	print "skipping $file (not proper ending...)\n";
+    }
+}

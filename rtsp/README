@@ -1,0 +1,306 @@
+====================================================================
+RTSP Server README 
+====================================================================
+RTSP Server
+Release 1.0.1
+July 31, 2001
+
+
+====================================================================
+LICENSE AND COPYRIGHT 
+====================================================================
+The Vovida Software License, Version 1.0
+Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+3. The names "VOCAL", "Vovida Open Communication Application Library",
+   and "Vovida Open Communication Application Library (VOCAL)" must
+   not be used to endorse or promote products derived from this
+   software without prior written permission. For written
+   permission, please contact vocal@vovida.org.
+
+4. Products derived from this software may not be called "VOCAL", nor
+   may "VOCAL" appear in their name, without prior written
+   permission of Vovida Networks, Inc.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+
+====================================================================
+INTRODUCTION 
+====================================================================
+The Real Time Streaming Protocol, or RTSP, is an application-level
+protocol for control over the delivery of data with real-time
+properties. RTSP provides an extensible framework to enable
+controlled, on-demand delivery of real-time data, such as audio and
+video. Sources of data can include both live data feeds and stored
+clips. This protocol is intended to control multiple data delivery
+sessions, provide a means for choosing delivery channels such as UDP,
+multicast UDP and TCP, and provide a means for choosing delivery
+mechanisms based upon RTP (RFC 1889).
+
+
+====================================================================
+NEW FEATURES AND FUNCTIONS IN THIS RELEASE 
+====================================================================
+
+KEY FEATURES - RTSP Stack
+-------------------------------------------------------------------
+This RTSP stack is fully compliant with RFC 2326 (Real Time
+Streaming Protocal, RTSP). It contains an implementation of
+SDP, for session description, which is fully compliant 
+with RFC 2327 (Session Description Protocol, SDP).
+
+This RTSP stack:
+- Written in C++
+- Supports TCP protocol (no UDP)
+- Server centric api
+
+
+KEY FEATURES - RTSP Server
+-------------------------------------------------------------------
+The RTSP Server is an application that handles basic play and
+record requests from a compliant RTSP client.
+
+- Interop with Real Player client
+- Play and record in various codecs
+- Supports *.au, *.wav, *.raw, or *.rtp file formats
+- System logging and session statistics
+- Self monitor of traffic load
+- Graceful shutdown with admin program
+
+For play requests, the RTSP Server supports:
+- Play ranges
+- Queued play requests
+- Pause
+- Up to 90 simultanous playing sessions
+
+For record requets, the RTSP Server supports:
+- Patches silence gaps and missing packets in RTP stream
+- Up to 90 simultanous recording sessions
+
+
+====================================================================
+BUG FIXES 
+====================================================================
+1.0.1 Release (July 31, 2000):
+- Dangling file descriptor in statistics logging 
+- Dangling file descriptor in tcp connections
+- Codec support (other then g711) didn't play/record correctly
+- Logic for multi framed codecs (ie, g711 in 20ms or 30ms)
+- Minor compile fix for g++ in RedHat 7
+
+
+====================================================================
+KNOWN ISSUES
+====================================================================
+- Last few packets of rtp stream maybe lost
+- RTSP stacks creates responses only, no requests
+- Doesn't support the following RTSP methods:
+    GET_PARAMETERS, SET_PARAMETERES, OPTIONS, REDIRECT
+
+
+====================================================================
+KNOWN LIMITATIONS
+====================================================================
+- Single stream container files only
+- No multicasting playback
+- No conference recording
+- RTSP messaging on TCP only, no UDP
+- No codec transcoding
+
+
+====================================================================
+IN PROGRESS
+====================================================================
+- Send RTCP BYE after playing an audio file is complete
+- Interop with QuickTime client
+- Solaris port
+
+
+====================================================================
+GETTING STARTED
+====================================================================
+
+PLATFORMS SUPPORTED
+--------------------------------------------------------------------
+The Rtsp Server will compile and run on these operating systems:
+- Linux Red Hat 6.2, 7.0, 7.1
+
+
+INSTALLATION INSTRUCTIONS
+--------------------------------------------------------------------
+1. Download the tar ball.
+2. Untar the sip stack file using one of these commands: 
+   - Linux: tar -xvzf rtsp-n.n.n.tar.gz
+
+Where: n.n.n is the version number.
+
+COMPILE INSTRUCTIONS
+--------------------------------------------------------------------
+To compile both the RTSP stack and RTSP Server from (mediaServer)
+/rtsp-n.n.n/vocal
+   make rtspserver
+
+To compile the RTSP stack from /rtsp-n.n.n/vocal/rtsp/rtspstack/
+   make 
+
+To compile the RTSP interface from /rtsp-n.n.n/vocal/rtsp/rtspif/
+   make 
+
+To compile the RTSP Server (mediaServer) from
+    /rtsp-n.n.n/vocal/rtsp/rtspserver/
+   make 
+
+Compiled mediaServer can be found at
+/rtsp-n.n.n/vocal/rtsp/rtspserver/bin.debug.i686/mediaServer
+
+See Makefile in /rtsp-n.n.n/vocal/rtsp/rtspserver/ for some useful 
+compiler directives.
+
+
+====================================================================
+USING THE RTSP SERVER
+====================================================================
+Run RTSP server as following:
+./mediaServer -v LOG_DEBUG -f mediaServer.cfg
+
+Where LOG_DEBUG is the log level, and mediaServer.cfg is the
+configuration file.  Useful log levels are LOG_DEBUG, LOG_DEBUG_STACK,
+LOG_DEBUG_HB.  See /rtsp/rtspserver/mediaServer.cfg for a sample
+configuration file.
+
+A sample RTSP client is provided as a test program.  See 
+/vocal/rtsp/rtspclient/README for more information.
+
+Copy /vocal/rtsp/rtspserver/sounds into /tmp (default AudioDirectory) as
+sample sounds files.
+
+
+====================================================================
+SOURCE CODE INFORMATION
+====================================================================
+The RTSP code release mainly contains two portions: 
+
+The RTSP stack includes following classes:
+    RtspMsg - rtsp msg base class
+       RtspRequest - rtsp requests
+       RtspResponse - rtsp responses
+       RtspXXXMsg
+       RtspXXXHdr
+       RtspSdp - rtsp sdp content body
+    RtspMsgParser - parser
+       CharData
+       CharDataParser
+       RtspUtil - utilities for parser
+       RtspBadDataException
+    RtspTransceiver - sending and receiving RTSP messages
+       RtspTcpConnection - accepts new client TCP connections
+       RtspTcpBuffer - process per client TCP connection
+
+The RTSP server include following classes/files:
+    mediaServer.cxx - main program
+       RtspServer - process RTSP requests
+       RtspServerStats - server statistics
+       RtspConfiguration - server configuration processor
+       RtspCommandLine - commandline processor
+    StateMachine - state handling
+       StateXXX
+       StateEvent
+       Operator
+       OpXXX
+    RtspFileHandler - file handling
+       RtspFileManager - file locking
+       RtspFileXXX - plugable file formats
+    RtspRtpProcessor - play and record rtp traffic for all session
+       RtpFileType.hxx - plugable codec parameters
+    RtspSession - per session information
+       RtspSessionManager - session manager
+       RtspSessionStats - per session statistics
+
+   
+====================================================================
+DIRECTORY STRUCTURE 
+====================================================================
+The rtsp-n.n.n directory contains the following subdirectories and
+files:
+
+rtspstack - Contains the source code that implements the RTSP protocal
+
+rtspif - Contains the source code for rtsp interface. 
+         It is a wrapper of RTSP stack
+
+rtspserver - Contains the source code that implements the RTSP Server
+
+rtspclient - Sample test programs to test RTSP requests
+
+
+====================================================================
+CONTRIBUTORS 
+====================================================================
+This software consists of voluntary contributions made by Cisco 
+Systems, Inc., and many individuals.
+
+Kim Le
+Wenqing Jin
+Marc Chiu
+
+ 
+====================================================================
+CONTACT INFORMATION AND WEBSITE
+====================================================================
+We welcome your feedback, suggestions and contributions. Contact us 
+via email if you have questions, feedback, code submissions, and
+bug reports.
+
+For general inquiries - info@vovida.org
+
+We have mailing lists for the VOCAL applications and protocol stacks: 
+VOCAL - vocal@vovida.org
+COPS - cops@vovida.org
+MGCP - mgcp@vovida.org
+RADIUS - radius@vovida.org
+RTP - rtp@vovida.org
+RTSP - rtsp@vovida.org
+SIP - sip@vovida.org
+TRIP - trip@vovida.org
+SIPTiger - SIPTiger@vovida.org
+WinRTP - WinRTP@vovida.org
+You can subscribe to the mailing lists on www.vovida.org. 
+
+You can submit bug, patches, software contributions, and feature
+requests using Bugzilla.  Access Bugzilla from www.vovida.org. 
+
+
+====================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:23 greear Exp $

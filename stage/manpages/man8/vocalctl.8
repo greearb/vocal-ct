@@ -1,0 +1,69 @@
+.TH vocalctl 8  vovida.org 
+.\" auto-generated from vocalctl\&.xml by docbook2manxml
+.SH NAME
+vocalctl    \- control a VOCAL system  
+.SH SYNOPSIS
+\fBvocalctl\fR
+[\fB-dn\fR]
+[\fBcommand\fR]
+.SH DESCRIPTION
+\fBvocalctl\fR(8)
+is a frontend to the \fBvocald\fR(8)
+process controller for VOCAL\&. It
+.SH COMMANDS
+vocalctl takes a number of commands, or if no command is passed, it
+lists the commands which can be used\&.
+.TP 
+respawn <process>
+enable automatic respawning of tasks if the task e
+.TP 
+config
+print vocal\&.conf configuration values
+.TP 
+stop
+stop vocald
+.TP 
+shutdown
+stop vocald (no error if not running)
+.TP 
+status
+show status of processes
+.TP 
+start
+start vocald
+.TP 
+reload
+reread vocal\&.conf configuration file
+.TP 
+norespawn <process>
+disable automatic respawning of tasks if the task
+.TP 
+disable <process>
+disable process (or all if no argument)
+.TP 
+enable <process>
+enable process (or all if no argument)
+.TP 
+restart
+restart vocald (or start if not running)
+.SH OPTIONS
+.TP 
+-d
+run vocald in debugging mode (and in no daemon mode) to allow
+debugging messages to appear on the console\&.
+.TP 
+-n
+do not interact with the user if there are problems (suitable
+for scripting)\&.
+.SH SEE ALSO
+\fBvocal\fR(8)
+\fBvocald\fR(8)
+.PP
+More information is available from http://www\&.vovida\&.org/<URL:http://www\&.vovida\&.org/>
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

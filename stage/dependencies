@@ -1,0 +1,7 @@
+$BIN/ua: 			sip/ua/$BIN/ua
+#$BIN/ldap2vocaluser: 		tools/ldap2vocaluser/ldap2vocaluser
+#$BIN/fs:			proxies/fs/base/$BIN/fs
+#$BIN/inet_mrshl:		proxies/marshal/base/$BIN/inet_ms
+#$BIN/pserver:			provisioning/pserver/$BIN/pserver
+#$BIN/FileDataStoreWrapper:	provisioning/conversion/$BIN/FileDataStoreWrapper
+

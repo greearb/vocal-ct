@@ -1,0 +1,163 @@
+.TH b2bua 1  vovida.org 
+.\" auto-generated from b2bua\&.xml by docbook2manxml
+.SH NAME
+b2bua    \- SIP based Back to Back User Agent\&.  
+.SH SYNOPSIS
+\fBb2bua\fR
+[\fBoptions\fR]
+.PP
+\fBb2bua\fR
+[\fB[options]\fR]
+[\fBpserver_host:port\fR]
+[\fBbackup_pserver_host:port\fR]
+.SH DESCRIPTION
+B2bUa is basically two UAs working back-to-back and thus controlling
+the calls going through it\&. Unlike a SIP proxy, a b2bua will take an
+incoming call, modify it and present it in other form to final
+destination\&. B2bUa is in the call-signalling-path all the times\&. There are
+numerous applications in which b2bUa can be used either as a media
+negotiator or simply supervising the calls between two parties\&. The
+software provides a basic framework for B2Bua and we have added a prepaid
+billing application on top of that framework\&.
+.PP
+The B2bUa can be confgured either by using the file b2bConfig\&.xml or
+using provisioning system\&. If the provisioning system is used, the
+pserver_host:port and backup_pserver_host:port must be supplied\&.
+.SH OPTIONS
+.TP 
+-c arg
+specify configuration file
+.TP 
+-d
+do not fork into background (no daemon mode)
+.TP 
+-f arg
+specify log file
+.TP 
+-v arg
+specify log level
+.TP 
+default provisioning server
+.TP 
+backup provisioning server
+.SH CONFIGURATION FILE
+Here is the details of each field in the configuration file\&.
+.PP
+.nf
+// The block defines the SIP configuration of the B2bUa
+<SIP> 
+     //Sip Port and transport used by B2BUa
+     <Local>  
+       <Port>5065</Port>
+       <Transport>UDP</Transport>
+     </Local>
+     //Outbound proxy server address
+     <Proxy_Server> 
+       <Address>172\&.19\&.175\&.156</Address>
+       <Port>5069</Port>
+     </Proxy_Server>
+     //B2bUa can optinally register itself with SIP Registrar
+     //Currently not implemented\&.
+     <Registration>
+       //Possible values (no, yes)
+       <Register>no</Register> 
+       <Address>vocal\&.vovida\&.org</Address>
+       <Port>5060</Port>
+       //Registration expiration time in Seconds
+       <Expires>600</Expires> 
+     </Registration>
+</SIP>
+
+///The following block defines the Radius server connectivity     
+  <RADIUS>
+     //Deprecated, will be removed in future releases
+     <Local> 
+       <Authentication_Port>1812</Authentication_Port>
+       <Accounting_Port>1812</Accounting_Port>
+     </Local>
+    //Ports where Radius server is listening for Authrozation and
+    //and accouting requests from B2Ua\&. Password is used by B2bUA to 
+    //authenticate itself with Radius Server\&.
+    <Billing_Server>
+       <Address>172\&.19\&.175\&.156</Address>
+       <Authentication_Port>1812</Authentication_Port>
+       <Accounting_Port>1813</Accounting_Port>
+       <Password>vovida</Password>
+    </Billing_Server>
+  </RADIUS>
+
+//The following block defines the B2bUa billing configuration for pre-paid 
+//and post-paid calls\&.
+  <PrePaid>
+    <Billing>
+       //The option is either free, mandatory or optional\&.
+       //If option is "free", B2bUA will ignore the user authorization 
+       // and will set the call duration to be infinite\&.It will attempt 
+       // to generate the billing records, but if it can not talk to the 
+       // billing server , it will ignore the records
+       //If option is "optional", B2bUa will do the authorization however
+       //the billing records will be treated the same as "free" option\&.
+       //If option is "mandatory", B2bUa will do the authorization\&.If billing
+       //Records can not be sentto the billing server, the call will be aborted
+       //Note: This funtinality needs to be implemented though\&. 
+       <Option>mandatory</Option>
+
+       //Frequency in seconds at with the intermittent billing records 
+       // Will be sent from B2bUa to Radius server during a call\&.
+       <Refresh_Time>60</Refresh_Time>
+       //One of the sip header to look for User Id\&. User ID is taken as raw
+       //data and sent to the Radius srever\&.Radius server sould be aware 
+       //of any encryption scheme User id is encryted with and do the right
+       // thing to extracxt the User Id from raw data\&.
+       <Extract_User_Id_From>Proxy-Authorization</Extract_User_Id_From>
+       //Not used currently, intent was to give hint on the Uid decoding
+       //scheme, though B2bUa do not have any plans to use it\&.
+       <User_Id_Decode_Scheme>Basic</User_Id_Decode_Scheme>
+    </Billing>
+       //Possible values (yes, no)\&. Used in pre-paid billing, if yes a SIP
+       //Info message is used to indicate the user his/her available credit\&.
+       <Use_SIP_INFO>no</Use_SIP_INFO>
+       //Possible values (yes,no)\&. Used in click-to-dial scenario\&.If yes, B2bUa
+       //would process the Http event\&. ( Currently not implemented)
+       <Use_HTTP>no</Use_HTTP>
+  </PrePaid>
+.fi
+
+.SH EXAMPLE
+Example scenario:
+.PP
+.nf
+  UA1  <----------->  B2BUA   <----> UA2
+192\&.168\&.1\&.0          192\&.168\&.1\&.1     192\&.168\&.1\&.2
+.fi
+
+.PP
+Configuration you need:
+.TP 
+1
+If using VOCAL UA, the Proxy_Server line in configuration file
+should point to 192\&.168\&.1\&.1\&. For other UA\&'s make sure the procy
+setting points to 192\&.168\&.1\&.1
+.TP 
+2
+In B2bConfig\&.xml, Proxy_Server->Address should point to
+192\&.168\&.1\&.2 and Proxy_server->Port should be the sip-port of the
+UA2\&.
+.TP 
+3
+To disable the authentication and billing, set
+PrePaid->Billing->Option to "free"\&.
+.TP 
+4
+When billing is enabled, set
+RADIUS->Billing_Server->Address to the address of billing
+server\&.
+.SH SEE ALSO
+More information is available from http://www\&.vovida\&.org/<URL:http://www\&.vovida\&.org/>
+.SH COPYRIGHT
+Copyright 2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS,
+WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE\&.

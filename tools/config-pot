@@ -1,0 +1,179 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+$number_eps = 50;
+
+$agent_host = "localhost";
+chomp($billing_server = `hostname`);
+
+require "getopts.pl";
+
+&Getopts("a:n:b:");
+
+if($opt_b) {
+    $billing_server = $opt_b;
+} 
+if($opt_n) {
+    $number_eps = $opt_n;
+}
+
+if($opt_a) {
+    $agent_host = $opt_a;
+}
+
+
+$start_gw_number = 0;
+$start_port = 5050;
+$original_start_dn = 5000;
+$original_start_ep = 0;
+
+
+#$number_eps = 50;
+$gw_count = 0;
+$start_dn = $original_start_dn;
+$start_ep = $original_start_ep;
+
+foreach(@ARGV) {
+    open(POT, ">pot$gw_count.cfg");
+
+    print POT "# this file automatically generated\n\n";
+    print POT "domainName string $_\n";
+    print POT "gatewayName string Residential-gateway\n";
+    print POT "remotePort int ", ($start_port + $gw_count), "\n";
+    print POT "proxyAddress string $_\n";
+    print POT "proxyPort int ",  ($start_port + $gw_count), "\n";
+    print POT "endpoint string 1\@pot$gw_count.cfg\n";
+    if(($gw_count % 4) > 1) {
+	print POT "inputQueue int 1\n";
+    } else {
+	print POT "inputQueue int 0\n";
+    }
+
+    close(POT);
+
+    open(AT_POT, ">1\@pot$gw_count.cfg");
+    print AT_POT "# this file automatically generated\n\n";
+    for($i = 0; $i < $number_eps; $i++) {
+	print AT_POT "directoryNumber string ep", ($i + $start_ep), "\@$_ ", ($i + $start_dn), "\n";
+    }
+    close(AT_POT);
+
+    $start_ep = $start_ep + $number_eps;
+    $start_dn = $start_dn + $number_eps;
+    $gw_count++;
+}
+
+open(CA, ">ca.cfg");
+
+print CA "# this file automatically generated\n\n";
+print CA "localPort int 2427\n";
+print CA "maxNumberOfEndpoints int ", ($gw_count  * $number_eps), "\n";
+print CA "maxNumberOfCalls int ", ($gw_count * $number_eps), "\n";
+print CA "billingServer string $billing_server\n";
+print CA "billingServerPort int 1812\n";
+
+print CA "numberOfThreads int 2\n";
+for($i = 0; $i < $gw_count; $i++) {
+    print CA "residentialGateway string pot$i.cfg\n";
+}
+
+close(CA);
+
+# now, do the gateways
+
+$j = 0;
+$start_dn = $original_start_dn;
+$start_ep = $original_start_ep;
+
+foreach(@ARGV) {
+    mkdir("gw$j", 0755);
+    open(GW, ">gw$j/gw.cfg");
+
+    print GW "# this file automatically generated for gw$j\n\n";
+
+    print GW "GatewayHardware            string   null\n";
+    print GW "GatewayPort                int      ", ($start_port + $j), "\n";
+    print GW "GatewayAgentHostname       string   $agent_host\n";
+    print GW "GatewayAgentPort           int      2427\n";
+    print GW "GatewayNumEndpoints        int      ", $number_eps, "\n"; 
+    print GW "GatewayCntsPerEndpt        int      1\n";
+    print GW "GatewayFirstRtpPort        int      6050\n";
+
+    print GW "GatewayEndpoint            int      ", ($start_ep), "\n";
+
+    print GW "\n";
+
+    if($j % 2) {
+	print GW "GatewayRunMode             string   CallingGW\n";
+    } else {
+	print GW "GatewayRunMode             string   ReceiveGW\n";
+    }
+    print GW "GatewayCallDuration        int      2000\n";
+    print GW "GatewayCallDelay           int      10\n";
+    print GW "GatewayAnswerDelay         int      50\n";
+
+    print GW "DebugMsgInterval           int      14\n";
+
+#    if($j % 2) {
+#	print GW "ReceiveGWHU                int      0\n";
+#    } else {
+	print GW "ReceiveGWHU                int      1\n";
+#    }
+
+    
+    print GW "DialNumber               string     ", ($start_dn - $number_eps), "\n";
+
+    close(GW);
+
+    $start_ep += $number_eps;
+    $start_dn += $number_eps;
+    $j++;
+}
+

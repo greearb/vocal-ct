@@ -1,0 +1,162 @@
+# this is our autoconf generator.  in reality, autoconf does much less
+# work than in a "traditional" make system.  This is a feature, not a bug.
+
+AC_INIT(build/Makefile.pre)dnl
+
+AC_LANG(C++)
+
+AC_PREFIX_DEFAULT(default)
+
+AC_DEFUN(AC_CHECK_DIR, echo $ac_n checking for "$2" directory... "" ; 
+if test -d "$2" ; then HAVE_$1=1 ; echo 'found' ; else HAVE_$1=0 ; echo 'not found' ; fi
+ )dnl
+AC_SUBST(HAVE_DO_NOT_DISTRIBUTE)dnl
+
+AC_CHECK_DIR(DO_NOT_DISTRIBUTE, do-not-distribute)dnl
+AC_PATH_PROG(GNU_MAKE, make, '', $PATH:/usr/bin:/usr/local/bin)dnl
+
+
+# allow alternate toolchains
+
+AC_ARG_WITH(toolchain, [
+Build options:
+  --with-toolchain=gnu		  use alternate toolchain to compile.],
+	[VOCAL_USE_TOOLCHAIN=$with_toolchain],
+	[VOCAL_USE_TOOLCHAIN=default])
+AC_SUBST(VOCAL_USE_TOOLCHAIN)dnl
+
+# allow alternate toolchain root
+
+AC_ARG_WITH(template-repository, [
+  --with-template-repository	  use a template repository with gcc.],
+	[VOCAL_USE_GCC_REPO=true],
+	[VOCAL_USE_GCC_REPO=false])
+AC_SUBST(VOCAL_USE_GCC_REPO)dnl
+
+
+AC_ARG_WITH(builddir, [
+Toolchain options:
+  --with-builddir=/path/to/builddir      build in a local directory],
+	[echo USE_BUILDDIR=$with_builddir > .make_prefs])
+
+AC_ARG_WITH(crossroot, [
+  --with-crossroot=/path/to/bin   root directory for alternate toolchain
+                                  (only active for toolchain=armcross)],
+	[VOCAL_CROSS_ROOT=$with_crossroot],
+	[VOCAL_CROSS_ROOT=default])
+AC_SUBST(VOCAL_CROSS_ROOT)dnl
+
+
+AC_ARG_WITH(sphinx, [
+  --with-sphinx=/path/to/sphinx   path to CMU's sphinx libraries],
+	[VOCAL_SPHINX_PATH=$with_sphinx],
+	[VOCAL_SPHINX_PATH=default])
+AC_SUBST(VOCAL_SPHINX_PATH)dnl
+
+
+AC_ARG_WITH(ar, [
+  --with-ar=/usr/local/bin/ar     path to GNU ar],
+	[VOCAL_AR_PATH=$with_ar])
+
+AC_SUBST(VOCAL_AR_PATH)dnl
+
+
+AC_ARG_WITH(socklen, [
+  --with-socklen=int              type used for socklen_t],
+	[VOCAL_SOCKLEN_TYPE=$with_socklen],
+        [VOCAL_SOCKLEN_TYPE=socklen_t])
+        
+AC_SUBST(VOCAL_SOCKLEN_TYPE)dnl
+
+
+AC_ARG_WITH(socket-buffer, [
+  --with-socket-buffer=char       type used for socket buffer],
+	[VOCAL_SOCKET_BUFFER_TYPE=$with_socket_buffer],
+        [VOCAL_SOCKET_BUFFER_TYPE=void])
+AC_SUBST(VOCAL_SOCKET_BUFFER_TYPE)dnl
+
+AC_ARG_WITH(shared-libs, [
+  --with-shared-libs              build with shared libraries],
+	[VOCAL_BUILD_SHARED_LIBS=$with_shared_libs],
+	[VOCAL_BUILD_SHARED_LIBS=no])
+AC_SUBST(VOCAL_BUILD_SHARED_LIBS)dnl
+
+AC_ARG_WITH(gprof, [
+  --with-gprof              Compile with gprof stubs],
+	[VOCAL_BUILD_GPROF=$with_gprof],
+	[VOCAL_BUILD_GPROF=no])
+AC_SUBST(VOCAL_BUILD_GPROF)dnl
+
+AC_ARG_WITH(lanforge, [
+  --with-lanforge              Compile with LANforge integration],
+	[VOCAL_USE_LANFORGE=$with_lanforge],
+	[VOCAL_USE_LANFORGE=no])
+AC_SUBST(VOCAL_USE_LANFORGE)dnl
+
+AC_ARG_WITH(voiceage, [
+  --with-voiceage              Compile with VoiceAge integration],
+	[VOCAL_USE_VOICEAGE=$with_voiceage],
+	[VOCAL_USE_VOICEAGE=no])
+AC_SUBST(VOCAL_USE_VOICEAGE)dnl
+
+AC_ARG_WITH(compile-type, [
+  --with-compile-type              Compile with specific compile type: opt, gopt, debug, nodebug, small],
+	[VOCAL_COMPILE_TYPE=$with_compile_type],
+	[VOCAL_COMPILE_TYPE=debug])
+AC_SUBST(VOCAL_COMPILE_TYPE)dnl
+
+AC_ARG_WITH(optimize-level, [
+  --with-optimize-level            Compile with optimization (compile-type must be specified), options: 1, 2, 3],
+	[VOCAL_OPTIMIZE_LEVEL=$with_optimize_level],
+	[VOCAL_OPTIMIZE_LEVEL=2])
+AC_SUBST(VOCAL_OPTIMIZE_LEVEL)dnl
+
+AC_ARG_WITH(system-libs, [
+  --with-system-libs              build using system libraries instead of 
+                                  contrib where possible],
+	[VOCAL_USE_SYSTEM_LIBS=$with_system_libs],
+	[VOCAL_USE_SYSTEM_LIBS=no])
+AC_SUBST(VOCAL_USE_SYSTEM_LIBS)dnl
+
+AC_ARG_WITH(openssl, [
+  --with-openssl                  include TLS support via OpenSSL],
+	[VOCAL_USE_OPENSSL=true],
+	[VOCAL_USE_OPENSSL=false])
+AC_SUBST(VOCAL_USE_OPENSSL)dnl
+
+
+if test "x$VOCAL_USE_OPENSSL" = "xtrue"
+then
+    if pkg-config --exists openssl 2> /dev/null
+    then
+	VOCAL_OPENSSL_PKGCONFIG=true
+	VOCAL_OPENSSL_INCLUDES=`pkg-config --cflags openssl`
+	VOCAL_OPENSSL_LDLIBS=`pkg-config --libs openssl`
+    fi
+fi
+AC_SUBST(VOCAL_OPENSSL_PKGCONFIG)
+AC_SUBST(VOCAL_OPENSSL_INCLUDES)
+AC_SUBST(VOCAL_OPENSSL_LDLIBS)
+
+
+AC_ARG_WITH(newprov, [
+  --with-newprov		  enable the new provisioning system],
+	[VOCAL_USE_NEWPROV=true],
+	[VOCAL_USE_NEWPROV=false])
+AC_SUBST(VOCAL_USE_NEWPROV)dnl
+	
+
+AC_CHECK_LIB(pq,PQconnectdb,
+	VOCAL_HAS_POSTGRESQL=true,
+	VOCAL_HAS_POSTGRESQL=false)
+AC_SUBST(VOCAL_HAS_POSTGRESQL)dnl
+
+AC_ARG_WITH(enum, [
+  --with-enum		  enable ENUM support (untested)],
+	[VOCAL_USE_ENUM=true],
+	[VOCAL_USE_ENUM=false])
+AC_SUBST(VOCAL_USE_ENUM)dnl
+
+# vocalconfig.h is NOT to be generated via AC_CONFIG_HEADER(S) but by
+# AC_OUTPUT.
+AC_OUTPUT(build/Makefile.conf build/installpath)dnl

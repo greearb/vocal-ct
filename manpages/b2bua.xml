@@ -1,0 +1,248 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: b2bua.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="b2bua">
+  <refmeta>
+    <refentrytitle>b2bua</refentrytitle>
+
+    <manvolnum>1</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>b2bua</refname>
+
+    <refpurpose>SIP based Back to Back User Agent.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>b2bua</command>
+
+      <arg choice="opt">options</arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>b2bua</command>
+
+      <arg>[options]</arg>
+
+      <arg>pserver_host:port</arg>
+
+      <arg>backup_pserver_host:port</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>B2bUa is basically two UAs working back-to-back and thus controlling
+    the calls going through it. Unlike a SIP proxy, a b2bua will take an
+    incoming call, modify it and present it in other form to final
+    destination. B2bUa is in the call-signalling-path all the times. There are
+    numerous applications in which b2bUa can be used either as a media
+    negotiator or simply supervising the calls between two parties. The
+    software provides a basic framework for B2Bua and we have added a prepaid
+    billing application on top of that framework.</para>
+
+    <para>The B2bUa can be confgured either by using the file b2bConfig.xml or
+    using provisioning system. If the provisioning system is used, the
+    pserver_host:port and backup_pserver_host:port must be supplied.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-c arg</term>
+
+        <listitem>
+          <para>specify configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>do not fork into background (no daemon mode)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f arg</term>
+
+        <listitem>
+          <para>specify log file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-v arg</term>
+
+        <listitem>
+          <para>specify log level</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term></term>
+
+        <listitem>
+          <para>default provisioning server</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term></term>
+
+        <listitem>
+          <para>backup provisioning server</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Configuration File</title>
+
+    <para>Here is the details of each field in the configuration file.</para>
+
+    <para><literallayout>// The block defines the SIP configuration of the B2bUa
+&#60;SIP&#62; 
+     //Sip Port and transport used by B2BUa
+     &#60;Local&#62;  
+       &#60;Port&#62;5065&#60;/Port&#62;
+       &#60;Transport&#62;UDP&#60;/Transport&#62;
+     &#60;/Local&#62;
+     //Outbound proxy server address
+     &#60;Proxy_Server&#62; 
+       &#60;Address&#62;172.19.175.156&#60;/Address&#62;
+       &#60;Port&#62;5069&#60;/Port&#62;
+     &#60;/Proxy_Server&#62;
+     //B2bUa can optinally register itself with SIP Registrar
+     //Currently not implemented.
+     &#60;Registration&#62;
+       //Possible values (no, yes)
+       &#60;Register&#62;no&#60;/Register&#62; 
+       &#60;Address&#62;vocal.vovida.org&#60;/Address&#62;
+       &#60;Port&#62;5060&#60;/Port&#62;
+       //Registration expiration time in Seconds
+       &#60;Expires&#62;600&#60;/Expires&#62; 
+     &#60;/Registration&#62;
+&#60;/SIP&#62;
+
+///The following block defines the Radius server connectivity     
+  &#60;RADIUS&#62;
+     //Deprecated, will be removed in future releases
+     &#60;Local&#62; 
+       &#60;Authentication_Port&#62;1812&#60;/Authentication_Port&#62;
+       &#60;Accounting_Port&#62;1812&#60;/Accounting_Port&#62;
+     &#60;/Local&#62;
+    //Ports where Radius server is listening for Authrozation and
+    //and accouting requests from B2Ua. Password is used by B2bUA to 
+    //authenticate itself with Radius Server.
+    &#60;Billing_Server&#62;
+       &#60;Address&#62;172.19.175.156&#60;/Address&#62;
+       &#60;Authentication_Port&#62;1812&#60;/Authentication_Port&#62;
+       &#60;Accounting_Port&#62;1813&#60;/Accounting_Port&#62;
+       &#60;Password&#62;vovida&#60;/Password&#62;
+    &#60;/Billing_Server&#62;
+  &#60;/RADIUS&#62;
+
+//The following block defines the B2bUa billing configuration for pre-paid 
+//and post-paid calls.
+  &#60;PrePaid&#62;
+    &#60;Billing&#62;
+       //The option is either free, mandatory or optional.
+       //If option is &#34;free&#34;, B2bUA will ignore the user authorization 
+       // and will set the call duration to be infinite.It will attempt 
+       // to generate the billing records, but if it can not talk to the 
+       // billing server , it will ignore the records
+       //If option is &#34;optional&#34;, B2bUa will do the authorization however
+       //the billing records will be treated the same as &#34;free&#34; option.
+       //If option is &#34;mandatory&#34;, B2bUa will do the authorization.If billing
+       //Records can not be sentto the billing server, the call will be aborted
+       //Note: This funtinality needs to be implemented though. 
+       &#60;Option&#62;mandatory&#60;/Option&#62;
+
+       //Frequency in seconds at with the intermittent billing records 
+       // Will be sent from B2bUa to Radius server during a call.
+       &#60;Refresh_Time&#62;60&#60;/Refresh_Time&#62;
+       //One of the sip header to look for User Id. User ID is taken as raw
+       //data and sent to the Radius srever.Radius server sould be aware 
+       //of any encryption scheme User id is encryted with and do the right
+       // thing to extracxt the User Id from raw data.
+       &#60;Extract_User_Id_From&#62;Proxy-Authorization&#60;/Extract_User_Id_From&#62;
+       //Not used currently, intent was to give hint on the Uid decoding
+       //scheme, though B2bUa do not have any plans to use it.
+       &#60;User_Id_Decode_Scheme&#62;Basic&#60;/User_Id_Decode_Scheme&#62;
+    &#60;/Billing&#62;
+       //Possible values (yes, no). Used in pre-paid billing, if yes a SIP
+       //Info message is used to indicate the user his/her available credit.
+       &#60;Use_SIP_INFO&#62;no&#60;/Use_SIP_INFO&#62;
+       //Possible values (yes,no). Used in click-to-dial scenario.If yes, B2bUa
+       //would process the Http event. ( Currently not implemented)
+       &#60;Use_HTTP&#62;no&#60;/Use_HTTP&#62;
+  &#60;/PrePaid&#62;
+</literallayout></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Example</title>
+
+    <para>Example scenario:</para>
+
+    <para><literallayout>  UA1  &#60;-----------&#62;  B2BUA   &#60;----&#62; UA2
+192.168.1.0          192.168.1.1     192.168.1.2</literallayout></para>
+
+    <para>Configuration you need:</para>
+
+    <orderedlist>
+      <listitem>
+        <para>If using VOCAL UA, the Proxy_Server line in configuration file
+        should point to 192.168.1.1. For other UA&#39;s make sure the procy
+        setting points to 192.168.1.1</para>
+      </listitem>
+
+      <listitem>
+        <para>In B2bConfig.xml, Proxy_Server-&#62;Address should point to
+        192.168.1.2 and Proxy_server-&#62;Port should be the sip-port of the
+        UA2.</para>
+      </listitem>
+
+      <listitem>
+        <para>To disable the authentication and billing, set
+        PrePaid-&#62;Billing-&#62;Option to &#34;free&#34;.</para>
+      </listitem>
+
+      <listitem>
+        <para>When billing is enabled, set
+        RADIUS-&#62;Billing_Server-&#62;Address to the address of billing
+        server.</para>
+      </listitem>
+    </orderedlist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para>More information is available from <ulink
+    url="http://www.vovida.org/">http://www.vovida.org/</ulink></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Copyright</title>
+
+    <para>Copyright 2003, Cisco Systems, Inc.</para>
+
+    <para>THE INFORMATION HEREIN IS PROVIDED ON AN &#34;AS IS&#34; BASIS,
+    WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+    INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,186 @@
+BeginPackage Generic
+    ModemDetect	"mt"		void	Yes		No
+    FaxToneDetect	"ft"		void	Yes		No 	
+    LongDurationConnection "ld"		void	Yes		No
+    PatternDetected	"pat(%s)"	string	Yes		OO
+    RingBackTone	"rt"		void	No		TO
+    RingBackOnConnection "rbk(%s)"	string	No		TO
+    ConfirmTone		"cf"		void	No		BR
+    NetworkCongestionTone "cg"		void	No		TO
+    InterceptTone	"it"		void	No		OO
+    PreemtionTone	"pt"		void	No		OO
+ReportFailure	"of"		void	Yes		No
+EndPackage
+
+
+BeginPackage DTMF
+    DTMF_0	"0"	void	Yes	BR
+    DTMF_1	"1"	void	Yes	BR
+    DTMF_2	"2"	void	Yes	BR
+    DTMF_3	"3"	void	Yes	BR
+    DTMF_4	"4"	void	Yes	BR
+    DTMF_5	"5"	void	Yes	BR
+    DTMF_6	"6"	void	Yes	BR
+    DTMF_7	"7"	void	Yes	BR
+    DTMF_8	"8"	void	Yes	BR
+    DTMF_9	"9"	void	Yes	BR
+    DTMF_Hash	"#"	void	Yes	BR
+    DTMF_Star	"*"	void	Yes	BR
+    DTMF_A	"A"	void	Yes	BR
+    DTMF_B	"B"	void	Yes	BR
+    DTMF_C	"C"	void	Yes	BR
+    DTMF_D	"D"	void	Yes	BR
+    LongDurationIndicator	"L"	void	Yes	
+    WildcardMatch	"X"	void	Yes	
+    AnyDigit_0_9	""	void	No	
+    InterdigitTimer	"T"	void	Yes	
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage MF
+    MF_0	"0"	void	Yes	BR
+    MF_1	"1"	void	Yes	BR
+    MF_2	"2"	void	Yes	BR
+    MF_3	"3"	void	Yes	BR
+    MF_4	"4"	void	Yes	BR
+    MF_5	"5"	void	Yes	BR
+    MF_6	"6"	void	Yes	BR
+    MF_7	"7"	void	Yes	BR
+    MF_8	"8"	void	Yes	BR
+    MF_9	"9"	void	Yes	BR
+    WildcardMatch	"X"	void	Yes	
+    AnyDigit_0_9	""	void	No	
+    InterdigitTimer	"T"	void	Yes	
+    MFK0	"K0"	void	Yes	BR
+    MFK1	"K1"	void	Yes	BR
+    MFK2	"K2"	void	Yes	BR
+    MFS0	"S0"	void	Yes	BR
+    MFS1	"S1"	void	Yes	BR
+    MFS2	"S2"	void	Yes	BR
+    MFS3	"S3"	void	Yes	BR
+    Wink	"wk"	void	Yes	BR
+    WinkOff	"wko"	void	Yes	BR
+    IncomingSeizure	"is"	void	Yes	OO
+    ReturnSeizure	"rs"	void	Yes	OO
+    UnseizeCircuit	"us"	void	Yes	OO
+    ReportFailure	"of"	void	Yes	
+EndPackage
+BeginPackage Trunk
+    ContinuityTone	"co1"	void	Yes	OO
+    ContinuityTest	"co2"	void	Yes	OO
+    Loopback	"lb"	void	No	OO
+    OldMilliwattTone	"om"	void	Yes	OO
+    NewMilliwattTone	"nm"	void	Yes	OO
+    TestLine	"tl"	void	Yes	OO
+    NoCircuit	"zz"	void	Yes	OO
+    AnswerSupervision	"as"	void	Yes	OO
+    ReorderTone	"ro"	void	Yes	TO
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage Line
+    AdsiDisplay	"adsi(%s)"	string	No	BR
+    VisualMessageWaitingIndicator	"vmwi"	void	No	TO
+    OffHookTransition	"hd"	void	Yes	
+    OnHookTransition	"hu"	void	Yes	
+    FlashHook	"hf"	void	Yes	
+    AnswerTone	"aw"	void	Yes	OO
+    BusyTone	"bz"	void	No	TO
+    CallerId	"ci(%s)"	string	No	BR
+    CallWaitingTone	"wt"	void	No	TO
+    DialTone	"dl"	void	No	TO
+    MessageWaitingInd	"mwi"	void	No	TO
+    NetworkBusy	"nbz"	void	Yes	OO
+    Ringing	"rg"	void	No	TO
+    DistinctiveRinging	"r(%s)"	string	No	TO
+    Ringsplash	"rs"	void	No	BR
+    PromptTone	"p"	void	Yes	BR
+    ErrorTone	"e"	void	Yes	BR
+    StutterDialtone	"sdl"	void	No	TO
+    AlertingTone	"v"	void	No	OO
+    RecorderWarningTone	"y"	void	No	OO
+    SITTone	"sit"	void	No	
+    CallingCardServiceTone	"z"	void	No	OO
+    ReportOnCompletion	"oc"	void	Yes	
+    OffHookWarningTone	"ot"	void	No	TO
+    DistinctiveTonePattern	"s(%s)"	string	Yes	BR
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage Handset
+    AdsiDisplay	"adsi(string)"	string	Yes	BR
+    TeletypeDeviceForDeaf	"tdd"	void	No	
+    VisualMessageWaitingIndicator    	"vmwi"	void	No	
+    OffHookTransition	"hd"	void	Yes	OO
+    OnHookTransition	"hu"	void	Yes	OO
+    FlashHook	"hf"	void	Yes	BR
+    AnswerTone	"aw"	void	Yes	OO
+    BusyTone	"bz"	void	Yes	OO
+    CallWaitingTone	"wt"	void	Yes	TO
+    DialTone	"dl"	void	Yes	TO
+    NetworkBusy	"nbz"	void	Yes	OO
+    Ringing	"rg"	void	Yes	TO
+    DistinctiveRinging	"r(%s)"	string	Yes	TO
+    PromptTone	"p"	void	Yes	BR
+    ErrorTone	"e"	void	Yes	BR
+    StutterDialtone	"sdl"	void	Yes	TO
+    AlertingTone	"v"	void	Yes	OO
+    RecorderWarningTone	"y"	void	Yes	OO
+    SITTone	"t"	void	Yes	
+    CallingCardServiceTone	"z"	void	Yes	OO
+    ReportOnCompletion	"oc"	void	Yes	
+    OffHookWarningTone	"ot"	void	Yes	OO
+    DistinctiveTonePattern	"s(%s)"	string	Yes	BR
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage RTP
+    UsedCodecChanged	"UC"	void	Yes	
+    SamplingRateChanged	"SR(%s)"	string	Yes	
+    JitterBufferSizeChanged	"JI(%s)"	string	Yes	
+    PacketLossExceeded	"PL(%s)"	string	Yes	
+    QualityAlert	"qa"	void	Yes	
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage NetworkAccessServer
+    PacketArrival	"pa"	void	Yes	
+    CallBackRequest	"cbk"	void	Yes	
+    CarrierLost	"cl"	void	Yes	
+    AuthorizationSucceeded	"au"	void	Yes	
+    AuthorizationDenied	"ax"	void	Yes	
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage Announcement
+    PlayAnAnnouncement	"ann(%s,%s)"	string,string	No	TO
+    ReportOnCompletion	"oc"	void	Yes	
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+
+BeginPackage Script
+    LoadAJavaScript	"java(%s)"	string	No	TO
+    LoadAPerlScript	"perl(%s)"	string	No	TO
+    LoadATCLScript	"tcl(%s)"	string	No	TO
+    LoadAnXMLScript	"xml(%s)"	string	No	TO
+    ReportOnCompletion	"oc"	void	Yes	
+    ReportFailure	"of"	void	Yes	
+EndPackage
+
+BeginPackage VoiceMail
+    CallingName		"adsi(%s)"	string	No	BR
+    Caller-id		"ci(%s)"	string	No	BR
+    ReasonCallForward	"fwd"		void	No	BR
+    ReasonForwardNoAnswer	"fna"	void	No	BR
+    ReasonForwardBusy	"fbsy"		void	No	BR
+    ReasonForwardOnTime	"ft(%s)"	string	No	BR
+    MailboxNumber	"mb(%s)"	string	Yes	BR
+    MessageWaitingInd	"mwi(%s)"	string	Yes	BR
+EndPackage

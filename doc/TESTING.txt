@@ -1,0 +1,88 @@
+====================================================================
+
+                    AUTOMATED UNIT TESTS AND VOCAL
+
+====================================================================
+
+
+VOCAL contains a number of automated unit tests, generally under the
+Verify framework.
+
+The code for writing verify test cases lives in util/Verify.hxx and
+util/Verify.cxx -- look at Verify.hxx for more usage instruction to
+construct test cases.
+
+Once verify-style test cases have been made, however, the build system
+supports some additional make targets which automatically run your
+verify test cases.  We will look at the util test cases, stored in
+util/test :
+
+First, you need to add your verify test cases using a different
+variable than the standard TESTPROGRAMS variable.  Instead, use the
+VERIFY_TESTCASES variable, as shown in this excerpt from
+util/test/Makefile :
+
+    VERIFY_TESTCASES = \
+	    VerifyTest.cxx \
+	    VerifyTestShort.cxx\
+	    UdpStackVerify.cxx\
+	    NetworkAddressVerify.cxx\
+	    Md5Test.cxx\
+	    VerifyExample01.cxx \
+	    VerifyExample02.cxx \
+	    VerifyExample03.cxx \
+	    SptrTest08.cxx
+
+Now, two new targets can be made from inside util/test.  The first is
+"make verify".
+
+    % make verify
+
+when you do this, you will see the make files rebuild the test cases
+(if needed), and after having rebuilt them all successfully, you will
+see some additional output, like this:
+
+    VerifySummary:VerifyTest.cxx:6:5:0:1:0
+    VerifySummary:VerifyTestShort.cxx:2:1:1:0:0
+    VerifySummary:UdpStackVerify.cxx:0:3:0:0:0
+    VerifySummary:NetworkAddressVerify.cxx:0:7:1:0:0
+    VerifySummary:Md5Test.cxx:3:2:0:0:0
+    VerifySummary:VerifyExample01.cxx:6:6:0:0:0
+    VerifySummary:VerifyExample02.cxx:5:6:0:0:0
+    VerifySummary:VerifyExample03.cxx:6:3:0:2:1
+    VerifySummary:SptrTest08.cxx:2:2:0:0:0
+
+these results report the results for the test cases in the
+VERIFY_TESTCASES result.  For each, it reports the name of the test
+case file (e.g. VerifyTest.cxx), followed by 5 numbers.  These five
+numbers represent the following:
+
+    Total number of expected test cases 
+    Number of Passing tests
+    Number of Failing tests
+    Number of Known failing tests
+    Number of Expected failed tests which pass
+
+(TODO: explain more about what each of the above mean.  right now,
+there's info in Verify.hxx)
+
+Second, there is a rule which shows all of the test cases with some number
+
+     make verify_fails
+
+which reports ONLY test cases with failures.
+
+(TODO: this should be a better explanation)
+
+(TODO: should explain how to run the binaries individually for more
+information)
+
+======================================================================
+
+Copyright 2001-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: TESTING.txt,v 1.1 2004/05/01 04:15:15 greear Exp $

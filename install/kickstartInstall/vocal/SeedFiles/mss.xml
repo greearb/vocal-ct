@@ -1,0 +1,9 @@
+<marshalServer host="MSHOSTIP" port="MSPORT"><type value="MSTYPE"></type>
+<group value="MSTYPEGroup"></group>
+<gateway host="PSTNGATEWAYIP" port="PSTNGATEWAYPORT"></gateway>
+<noResponseTimer value="100"></noResponseTimer>
+<allowUnbillableCalls value="true"></allowUnbillableCalls>
+<conferenceBridge><bridgeNumber value="none"></bridgeNumber>
+<accessList></accessList>
+</conferenceBridge>
+</marshalServer>

@@ -1,0 +1,7 @@
+<globalConfiguration><expiryTimer value="3600"></expiryTimer>
+<multicastHost host="MULTICASTIP" port="MULTICASTPORT"></multicastHost>
+<maxMissedHeartbeats value="8"></maxMissedHeartbeats>
+<heartbeatInterval value="250"></heartbeatInterval>
+<proxyAuthKey value="VovidaClassXSwitch"></proxyAuthKey>
+<redirectReasonInSIP value="false"></redirectReasonInSIP>
+</globalConfiguration>

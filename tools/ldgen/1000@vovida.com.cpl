@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!DOCTYPE cpl SYSTEM "cpl.dtd">
+<!--Feature to call forward if called party does not answer, is busy, -->
+<!--or returns a failure code -->
+<cpl>
+<incoming>
+  <lookup clear="yes" source="sip:XXXX@vovida.com:5060;user=phone">
+   <success>
+    <!-- timeout of 15 seconds approximates to 4 rings --> 
+    <proxy timeout="15" ordering="first-only">
+      <busy>
+        <location clear="yes" url="sip:8000@vovida.com;user=phone">
+          <redirect></redirect>
+        </location>
+      </busy>
+      <noanswer>
+        <location clear="yes" url="sip:8000@vovida.com;user=phone">
+          <proxy ordering="first-only"></proxy> 
+        </location>
+      </noanswer>
+      <failure>
+        <location clear="yes" url="sip:8000@vovida.com;user=phone">
+          <redirect/>
+        </location>
+      </failure>
+    </proxy>
+   </success>
+   <notfound>
+       <reject status="reject" />
+   </notfound>
+  </lookup>
+</incoming>
+</cpl>

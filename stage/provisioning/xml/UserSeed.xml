@@ -1,0 +1,42 @@
+<user><name>USERNAME</name>
+<password>6f7d5634f65192a3b9c8479cee3b655</password>
+<ipaddr>USERIP</ipaddr>
+<marshalgroup>UserAgentGroup</marshalgroup>
+<staticRegistration value="false"><terminatingContactList><contact value="UserAgentGroup"></contact>
+<contact value="000.000.000.000:0000"></contact>
+</terminatingContactList>
+</staticRegistration>
+<authenticationType value="None"><authenticationPassword value="password"></authenticationPassword>
+</authenticationType>
+<failurecase>unknown</failurecase>
+<cfa enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>ForwardAllCallsGroup</featuregroup>
+<forwardto>none</forwardto>
+</cfa>
+<fnab enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>ForwardNoAnswerBusyGroup</featuregroup>
+<fna set="false"><forwardto>none</forwardto>
+</fna>
+<cfb set="false"><forwardto>none</forwardto>
+</cfb>
+</fnab>
+<cs enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallScreeningGroup</featuregroup>
+</cs>
+<clbl enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallBlockingGroup</featuregroup>
+<nineHundredBlocked adminSet="false" userSet="false"></nineHundredBlocked>
+<longDistanceBlocked adminSet="false" userSet="false"></longDistanceBlocked>
+</clbl>
+<callReturn enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallReturnGroup</featuregroup>
+</callReturn>
+<callerIdBlocking enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>CallerIdBlockingGroup</featuregroup>
+</callerIdBlocking>
+<voicemail enabled="false"><setfeat>OFF</setfeat>
+<featuregroup>VoiceMailGroup</featuregroup>
+</voicemail>
+<userGroup>Kazoo</userGroup>
+<aliases></aliases>
+</user>

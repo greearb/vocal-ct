@@ -1,0 +1,93 @@
+PURPOSE
+
+This document is to provide a simple, high level description of RTSP stack
+design and implementation.
+
+KEY FEATURES
+
+The RTSP stack is intented to implement the RFC 2326 RTSP protocol. It mainly
+has three components: RTSP MSG, RTSP MSG Parser, RTSP Transceiver. 
+
+RtspMsg is the base data structure of a RTSP message. It has dervied classes
+such as RtspRequest, RtspResponse and RtspXXXMsg. It is also related to class
+RtspXXXHdr and RtspSdp, which are different components of a RTSP message. The
+RTSP msg encoding is the main functionality of each RTSP msg.
+
+RtspMsgParser is to handle RTSP message parsing. It uses CharData and
+CharDataPasrser as basic character parser, and RtspUtil as RTSP parser
+utilities. 
+
+RtspTransceiver is related to two other classes: RtspTcpConnection and
+RtspTcpBuffer. The three consist of the main component of the RTSP stack which
+handles TCP connection and message receiving and sending functionalities.
+
+LIMITATION
+
+The stack is now still server-centric. i.e. It is more complete on message
+decoding and encoding on the RTSP server side than that on the RTSP client
+side. So some message or header classes have only decoding and some have only
+encoding. But it should be easy to just add whatever missing into the
+corresponding classes or the parser class.
+
+Some methods are not complete functional and there are also feature limitation.
+The details of these can be found in the REAME file in rtsp directory.  
+
+DATA STRUCTURES
+
+CharData is a simple class for character array. It has a main function to do
+case insensitive comparison. CharDataPaser uses this class to implement basic
+character parsing functionalties. Using CharData is to increase the speed of
+the parser in character matching.
+
+Data is the basic data structure used by RtspMsg. Once the parser recognized a
+RTSP message from the TCP stream, it will store the data in a bunch of
+data members in RtspMsg, which are mostly in Data data structure. Using Data
+is mainly because we need the data structure appendable because we are keeping
+process data from TCP stream.
+
+THREAD USAGE
+
+RtspTcpConnection has the message receiving thread for all the TCP
+connections. It has a TCP connection map, which includes all the connections
+that it has accepted. This thread is to be listening on the server port and all
+the connections in the map for ever.
+
+RTSP TRANSCEIVER
+
+RtspTransceiver is mainly to handle message sending and receiving.
+RtspTcpConnection accepts new client TCP connection. RtspTcpBuffer is to
+process per clinet TCP connection.
+
+One thing that needs to mention is that RtspTcpBuffer has a 1024 bytes buffer
+to store the TCP stream raw data. The buffer size can be changed if it is put
+into mediaServer.cfg. The RtspMsgParser will scan the data in this buffer
+after one read. Once it finds a complete message, it will save that message
+into the message Fifo and keep scanning. If it reaches the end of the buffer
+but the message is not complete, it will still save the data in the RtspMsg
+and store the msg object in RtspTcpBuffer object. Then the buffer can be
+completely trashed and reused by the next read. For the next read, the new
+data will be appended to the saved incomplete msg.
+
+RTSP MSG
+
+According to the above description, the trick of the RtspMsg is that its
+object can be either a complete message or an incomplete message. The
+MsgCompletionFlag will tell the truth. If the message is not complete, any new
+data read will be appended to the message.
+
+This is to avoid the TCP buffer data shuffling when there is incomplete
+portion.
+
+RTSP MSG PARSER
+
+In order to increase the parsing speed, the parser is doing a *lazy parsing*
+mechanism. That is, to parse the header only; when necessary, i.e when
+queried, parse the content of the headers. The parsing of the content of
+headers is usually invoked in the get functions in RtspMsg or its derived
+classes.
+
+The preParse() function looked complecated. It is because it needs to consider
+the parsing can be started at any position of a incomplete message left from
+last read. Of course, in the case of the beginning of the parsing or there is
+no leftover of last time, incomplete message is an empty message.
+

@@ -1,0 +1,39 @@
+192.168.2.204
+Link in /etc/rc.d/rc3.d/ already exists
+Cannot write provisioning data without at least one Provisioning Server running.
+writeToPserver /tmp/192.168.2.204:5060.xml Marshals 192.168.2.204:5060.xml
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+readFromPserver ListOfMarshalServers SystemConfiguration
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data read.
+writeToPserver /tmp//LOMS.xml SystemConfiguration ListOfMarshalServers
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+writeToPserver /tmp/192.168.2.204:5085.xml Redirects 192.168.2.204:5085.xml
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+readFromPserver ListOfRedirectServers SystemConfiguration
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data read.
+writeToPserver /tmp//LORS.xml SystemConfiguration ListOfRedirectServers
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+writeToPserver /tmp/192.168.2.204:.xml Heartbeats 192.168.2.204:.xml
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+readFromPserver ListOfHeartbeatServers SystemConfiguration
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data read.
+writeToPserver /tmp//LOHS.xml SystemConfiguration ListOfHeartbeatServers
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+writeToPserver /tmp/192.168.2.204:5086.xml Features 192.168.2.204:5086.xml
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.
+readFromPserver ListOfFeatureServers SystemConfiguration
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data read.
+writeToPserver /tmp//LOFS.xml SystemConfiguration ListOfFeatureServers
+Cannot open connection to either main or backup pserver. No provisioning data written.
+Provisioning Server not running. No data written.

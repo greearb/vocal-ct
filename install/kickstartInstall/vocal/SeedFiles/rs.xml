@@ -1,0 +1,3 @@
+<redirectServer host="RSHOSTIP" port="RSPORT"><group value="RedirectGroup"></group>
+<syncPort value="22002"></syncPort>
+</redirectServer>

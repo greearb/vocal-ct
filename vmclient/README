@@ -1,0 +1,29 @@
+This README is obsolete.  It is included for historical purposes only.
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+Vovida Software README
+
+Vovida VoiceMail Client (vmclient) 
+August 14, 2000
+
+1.  Introduction
+
+This director contains an IMAP voicemail client that Linux
+users can use to retrieve thier voicemail.
+
+2. HOW TO USE VMCLIENT
+
+2.1 Usage of the software
+
+usage: vmclient
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:40 greear Exp $

@@ -1,0 +1,7 @@
+  <serverGroup
+      value="HBSTYPEGroup">
+    <server
+        host="HBSHOSTIP"
+        port="0">
+    </server>
+  </serverGroup>

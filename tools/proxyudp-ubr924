@@ -1,0 +1,261 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+use Socket;
+require "getopts.pl";
+
+&Getopts("n:");
+
+$number = $opt_n;
+
+if($#ARGV < 1) {
+  print "Usage:\n";
+  print "$0 a:b:c d:e:f g\n";
+  print "where,\n";
+  print "a = agent host e.g. 192.168.5.1\n";
+  print "b = gateway sends to this port e.g. 2427\n";
+  print "c = agent listens to this port e.g. 5010\n";
+  print "d = gateway host e.g. 192.168.5.171\n";
+  print "e = agent sends to this port e.g. 5050\n";
+  print "f = gateway listens to this port e.g. 2427\n";
+  print "g = filter file\n";
+  print "e.g.\n$0 192.168.5.1:2427:5011 192.168.5.171:5051:2427\n";
+  print "$0 192.168.5.1:2427:5012 192.168.5.171:5052:2427\n";
+  exit(-1);
+}
+
+open(F, $ARGV[0]);
+while(<F>) {
+  chomp;
+  if(/^listener/) {
+    #listener  name        port     filter            default-sender
+    ($file, $in_name, $in_port, $in_filter_name, $in_default_sender) = split(/\s+/);
+    &mksocket($in_port, "IN_$in_name");
+
+    $in_port{$in_name} = $in_port;
+    $in_filter{$in_name} = $in_filter_name;
+    $in_sender{$in_name} = $in_default_sender;
+
+    
+  } elsif(/^sender/) {
+    #sender   sender-name   destination-ip   destination-port   listener-name
+
+    ($file, $in_name, $in_port, $in_filter_name, $in_default_sender) = split(/\s+/);
+  }
+
+}
+close(F);
+
+
+($host1, $local_port1, $remote_port1) = split(/:/, $ARGV[0]);
+($host2, $local_port2, $remote_port2) = split(/:/, $ARGV[1]);
+
+&mksocket($local_port1, S1);
+&mksocket($local_port2, S2);
+
+($name,$aliases,$type,$len,$host1_addr) = gethostbyname($host1);
+($name,$aliases,$type,$len,$host2_addr) = gethostbyname($host2);
+
+$them_S1 = pack($sockaddr,PF_INET, $remote_port1, $host1_addr);
+$them_S2 = pack($sockaddr,PF_INET, $remote_port2, $host2_addr);
+
+# ($name,$aliases,$type,$len,$host3_addr) = gethostbyname("192.168.5.1");
+# $them_agent1 = pack($sockaddr,PF_INET, "5012", $host3_addr);
+# $them_agent2= pack($sockaddr,PF_INET, "5011", $host3_addr);
+
+sub mksocket {
+  local($port, $socket) = @_;
+  
+  $sockaddr = "S n a4 x8";($name,$aliases,$proto) = getprotobyname('udp');
+  chomp($hostname  = `hostname`);
+  #$hostname  = "192.168.10.12";
+  
+  ($name,$aliases,$type,$len,$myaddr) = gethostbyname($hostname);
+  
+  $me   = pack($sockaddr,PF_INET, $port, $myaddr);
+  
+  print "myaddr: $myaddr\n";
+  print "port: $port\n";
+  
+  socket($socket, PF_INET, SOCK_DGRAM, $proto) || die $!;
+  bind($socket , $me) || die "died with port $port $!";
+  
+}
+
+
+while(1) {
+  $rin = '';
+  vec($rin, fileno(S1), 1) = 1;
+  vec($rin, fileno(S2), 1) = 1;
+  #        @bits = split(//, unpack("b*", $rin));
+  #	if($bits[fileno(S)]) {
+  #		print "got S\n";
+  #	}
+  if(select($rin, undef, undef, undef)) {
+    @bits = split(//, unpack("b*", $rin));
+    undef($data);
+    undef($new_data);
+    if($bits[fileno(S1)]) {
+      print "got S1\n";
+      $data = "";
+      $his_address = recv(S1, $data, 60000, 0);
+      if($data) {
+	print "-----------------------------\n";
+	print "$data";
+	print "-----------------------------\n";
+        $new_data = &rewrite_S1($data);
+        if($new_data) {
+	  print "$new_data";
+	  print "-----------------------------\n";
+	  defined(send(S2,$new_data,0,$them_S1)) || die $!;
+        }
+      }
+    } elsif($bits[fileno(S2)]) {
+      print "got S2\n";
+      $data = "";
+      $his_address = recv(S2, $data, 60000, 0);
+      if($data) {
+	print "-----------------------------\n";
+	print "$data";
+	print "-----------------------------\n";
+        $new_data = &rewrite_S2($data);
+        if($new_data) {
+	  print "$new_data";
+	  print "-----------------------------\n";
+	  defined(send(S1,$new_data,0,$them_S2)) || die $!;
+        }
+      }
+    }
+  }
+}
+#$them = pack($sockaddr,PF_INET, $port, $myaddr);
+#send(S,$msg,0,$them) || die $!;
+
+
+sub renumber_S2 {
+  local($_) = $_[0];
+  
+  s/^([0-9]*)\s([0-9]*)\s/$1 $map{$2} /;
+  $map{$number} = $2;
+  
+  return $_;
+}
+
+
+sub renumber_S1 {
+  local($_) = $_[0];
+  if(s/^([a-zA-Z]*)\s([0-9]*)\s/$1 $number /) {
+    $map{$number} = $2;
+    $number++;
+  }
+  return $_;
+}
+
+
+# incoming messages to the call agent
+sub rewrite_S1
+{
+  local($_) = $_[0];
+#  if(y/\0//d) {
+#    print "killed \\0!\n";
+#  }
+
+  # pretend a wild card is actually for the first endpoint
+#  s/\*\@ubr/aaln\/0\@ubr/;
+  # Use _ instead of / due to parsing problems (also change ubr924 to galileo)
+  s/\*\@ubr924/aaln_0\@galileo/;
+#  s/aaln\/0\@ubr924/aaln_0\@galileo/g;
+  s/aaln\/([0-1])\@ubr924/aaln_\1\@galileo/g;
+
+  # split up dialed digits
+#  s/O: D\/9/o: d\/5\,d\/0\,d\/0\,d\//;
+  s/O: D\/9([0-9])([0-9])([0-9])([0-9])([0-9])([0-9])([0-9])/o: d\/9\,d\/\1\,d\/\2\,d\/\3\,d\/\4\,d\/\5\,d\/\6\,d\/\7/;
+  s/O: D\/([0-9])([0-9])([0-9])([0-9])/o: d\/\1\,d\/\2\,d\/\3\,d\/\4/;
+
+
+  return $_;
+}
+
+
+# outgoing messages to the MGCP gateways
+sub rewrite_S2 
+{
+  local($_) = $_[0];
+  if(y/\0//d)
+  {
+    print "killed \\0!\n";
+  }
+
+#  s/\#\[0-9\]/5/;
+#  s/\[0-9\]/x/g;
+#  s/\[2-9\]/9/;
+
+  # Change _ back to /   (also change galileo back to ubr924)
+  s/aaln_([0-1])\@galileo/aaln\/\1\@ubr924/g;
+
+  # change the use of wildcard x to explicit [0-9#*T], but it T needed here?
+  s/d\/x\(d\)/d\/\[0-9\#\*T\]\(D\)/;
+
+  if (/crcx/)
+  {
+      if (!/v=0/)
+      {
+          s/M: sendrecv/M: recvonly/;
+      }
+  }
+
+#  if (/mdcx/)
+#  {
+#      s/v=0/\r\nv=0/;
+#  }
+
+  return $_;
+}
+

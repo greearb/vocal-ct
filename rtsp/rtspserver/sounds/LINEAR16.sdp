@@ -1,0 +1,9 @@
+v=0
+o=- 12345 12345 IN IP4 0.0.0.0
+s=Vovida RTSP Session
+t=0 0
+m=audio 0 RTP/AVP 10
+a=rtpmap:11 L16M/8000
+a=control:rtsp://www.vovida.com/sounds/LINEAR16-PCMU.raw
+a=range:npt=0-19.08
+a=ptime:20

@@ -1,0 +1,12 @@
+#!/usr/local/bin/perl
+print "REGISTER sip:5225\@192.168.66.103:5060 SIP/2.0\r\n";
+print "Via: SIP/2.0/UDP 192.168.36.80:5060\r\n";
+print "From: UserAgent<sip:5225\@192.168.66.103:5060>\r\n";
+print "To: 5225<sip:5225\@192.168.66.103:5060>\r\n";
+print "Call-ID: 39679564\@192.168.36.80\r\n";
+print "CSeq: 1 REGISTER\r\n";
+print "Expires: 6000\r\n";
+print "Contact: <sip:5225\@192.168.36.80:5060>;action=proxy\r\n";
+print "Content-Length: 0\r\n";
+print "\r\n";
+print "\r\n";

@@ -1,0 +1,13 @@
+$<html>
+$<body text="#000000" bgcolor="#FFFFCC" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+$
+$<center>
+$<h1>
+$<b><font color="#330000"><font size=+4>MRTG&nbsp;&nbsp; GRAPHS</font></font></b></h1></center>
+$
+$
+$<h2>
+$<b><u><font color="#330000">SERVERS</font></u></b></h2>
+@SERVERLINK
+$</body>
+$</html>

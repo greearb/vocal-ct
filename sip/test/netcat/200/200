@@ -1,0 +1,8 @@
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP 192.168.36.80:5060
+From: <sip:5225@192.168.36.80:5060>;tag=c2943000eda620-0
+To: <sip:5105@192.168.6.5:5060>
+Call-ID: c2943000-1be062-43f932-2e323931@192.168.6.20
+CSeq: 101 BYE
+Server: Cisco IP Phone/ Rev. 1/ SIP enabled
+Content-Length: 0

@@ -1,0 +1,11 @@
+CLASSES=none
+BASEDIR=/usr/local
+TZ=PST
+PATH=/sbin:/usr/sbin:/usr/bin:/usr/sadm/install/bin
+PKG=VOCALb
+NAME=Vocal
+VERSION=1.4.0alpha1
+CATEGORY=system
+DESC=Sip based Basic IP telephony system
+VENDOR=VOVIDA.ORG
+EMAIL=veer@vovida.org

@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<!DOCTYPE cpl SYSTEM "cpl.dtd">
+<cpl>
+  <incoming>
+    <location clear="yes" url="callreturn">
+      <redirect/>
+    </location>    </incoming>
+</cpl>

@@ -1,0 +1,64 @@
+This README is obsolete.  It is included for historical purposes only.
+code generation package for the MGCP interface layer.
+
+The tool is not supported in 1.5.0 release.
+
+Licensing:
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+
+Todo:
+
+
+add API for the networking (who do you pass a port and IP address to)?
+
+
+agent/gateway object has a sendto method -- which sends the object to
+that device.
+
+
+threading model and interactions for the networking model.
+
+
+event handling
+
+
+
+DONE: 	think about how events are handled in the sense of how to they
+        contain other events (e.g. what are the relationships between events?)
+
+
+endpoints and connections -- no classes -- just message based at this
+level.
+
+
+would a gateway connect to more than one agent?
+
+
+ -- look at switchover
+
+
+sample code.
+
+
+Need support for (a) the fact that Notify originates on the Mg, not
+Mgc, side, as well as the dual nature of DeleteConnection .
+
+
+add stuff for restartInProgress
+
+
+DONE: add the ability to comment the configuration files (using # on the
+      first column)
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $

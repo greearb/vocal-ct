@@ -1,0 +1,107 @@
+$Id: NOTES.txt,v 1.1 2004/05/01 04:15:26 greear Exp $
+
+Technical information and notes on the SIP stack.
+
+
+Known issues
+
+1.  Quoted strings are not translated to users that is, users are
+expected to pass quoted values to the system, e.g.
+
+	 SipFrom from;
+
+	 // note -- the next line is enough quotation to form the
+	 // literal string \"SecondQuote\"
+	 
+	 from.setDisplayName("\\\"SecondQuote\\\"");
+
+
+will produce the text
+
+     From: \"SecondQuote\"
+
+on encoding as the display-name.  this is in opposition to an
+"idealized" system where the need to quote would be caught
+automatically, and this would work:
+
+	 // note -- the next line is enough quotation to form the
+	 // literal string "SecondQuote" -- note there is no '\'
+	 // character explicitly added to the text here.
+	 
+	 from.setDisplayName("\"SecondQuote\"");
+
+producing the text
+
+    From: \"SecondQuote\"
+
+as the display name, but, when the user gets the display name for
+printing, or something, they get
+
+         "SecondQuote"
+
+without having to match the \'s.
+
+this isn't entirely needed, but it sure might be nice.
+
+It is, however, needed for translating quoted URLs, e.g.
+
+    sip:4000@abc.com
+
+being equal to
+
+    sip:4000@%41%42%43.com
+
+
+
+How To Add A New Header
+
+In order to add a new header, you will have to take a few steps:
+
+1.  You must create a new class, which derives publicly from SipHeader
+(see SipHeader.hxx).
+
+2.  You need to add a new SipHeaderType for the message.  See
+SipHeader.hxx for where this should be done.  Add this in alphabetical
+order, or you will have a lot of trouble later.  Make sure that
+SIP_UNKNOWN_HDR is last -- sipHeaderNameCount, which sizes these
+arrays, is equal to SIP_UNKNOWN_HDR + 1.
+
+3.  You need to add an entry to the sipHeaderTable in SipHeader.cxx .
+This is also in alphabetical order.  The entry you add needs to be in
+the exact same place as the entry in SipHeaderType.  The
+sipHeaderTable is used to populate the sipHeaderNames table, which is
+used to determine which type a given sipHeader is.
+
+4.  Fill out decodeHeader so that a new sipHeader can get constructed
+based on a SipHeaderType.  If you have a new header named NewHeader,
+with SipHeaderType SIP_NEW_HEADER_HDR, and class SipNewHeader, for the
+text
+
+    NewHeader: content of the new header
+
+the function decodeHeader will be passed
+
+    decodeHeader( SIP_NEW_HEADER_HDR, Data("content of the new header") );
+
+and will expect back a new SipNewHeader object allocated on the heap.
+
+5.  *IMPORTANT* You also need to fill out the sipHeaderOutputOrder
+struct in SipRawHeaderContainer.cxx.  If you do not fill this out,
+your header will never be printed.  This header specifies the order in
+which the headers will be output when encode() is called.  The headers
+which appear first in the sipHeaderOutputOrder will appear first,
+while later ones will appear later.  note that sipHeaderOutputOrder
+must contain all of the headers to be output -- if the header does not
+appear in this struct, it will not be encoded.
+
+
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: NOTES.txt,v 1.1 2004/05/01 04:15:26 greear Exp $

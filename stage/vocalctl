@@ -1,0 +1,339 @@
+#! /bin/sh
+
+# the following is magic to allow perl to run with multiple locations of
+# perl.  It only works with perls that have the -x switch, however!
+exec `which perl` -x $0 ${1+"$@"}
+exit
+#!perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: vocalctl,v 1.1 2004/05/01 04:15:29 greear Exp $
+
+# control program
+
+require "getopts.pl";
+use Fcntl ':flock'; # import LOCK_* constants
+use Socket;
+
+local $SIG{PIPE} = 'IGNORE';
+
+# options
+
+# -d     debug vocald (do not start vocald as daemon)
+# -n     operate non-interactively
+# -D     pass debug option directly, but start vocald as daemon 
+
+&Getopts("dnD:t");
+
+if($opt_d) {
+    $vocald_debug = " -d -D 1 &";
+}
+
+if($opt_D) {
+    $vocald_debug = " -D $opt_D";
+}
+
+
+$VOCAL_BASE = "/usr/local/vocal"; # VOCAL_BASE
+$VOCAL_BASE_CONFIGURED = '/usr/local/vocal';
+if($VOCAL_BASE_CONFIGURED ne '@'.'prefix@') {
+    $VOCAL_BASE = $VOCAL_BASE_CONFIGURED;
+}
+
+$controldir = "$VOCAL_BASE/var";
+$bindir = "$VOCAL_BASE/bin";
+
+#$out_fifo = "$controldir/vocalctl.in";
+#$in_fifo  = "$controldir/vocalctl.out";
+$admin_socket = "$controldir/vocalctl_socket/socket";
+$guest_socket = "$controldir/vocalctl_guest_socket/socket";
+$pid_file = "$controldir/vocald.pid";
+
+$config_file = "$VOCAL_BASE/etc/vocal.conf";
+$vocald_path = "$bindir/vocald";
+$default_conf = $config_file;
+
+$allinoneconfigure = "$bindir/allinoneconfigure/allinoneconfigure";
+
+$cmd_list = { "stop" => { startup => 0,
+			  usage => "stop vocald"
+			}, 
+	      "start" => { startup => 1,
+			   usage => "start vocald"
+			 }, 
+	      "disable" => { startup => 0, 
+			     args => "<process>",
+			     usage => "disable process (or all if no argument)"
+			   },
+	      "enable" => { startup => 0, 
+			    args => "<process>",
+			  usage => "enable process (or all if no argument)"
+			  },
+	      "status" => { startup => 0,
+			    usage => "show status of processes", 
+			  },
+	      "shutdown" => { startup => 0,
+			      usage => "stop vocald (no error if not running)"
+			      }, 
+	      "restart" => { startup => 1,
+			     usage => "restart vocald (or start if not running)"
+			     },
+	      "reload" => { startup => 0,
+			    usage => "reread vocal.conf configuration file"
+			    },
+	      "config" => {
+			   startup => 0,
+			   usage => "print vocal.conf configuration values"
+			  },
+	      "respawn" => {
+			    startup => 0,
+			    args => "<process>",
+			    usage => "enable automatic respawning of tasks if the task exits"
+			   },
+	      "norespawn" => {
+			      startup => 0,
+			      args => "<process>",
+			      usage => "disable automatic respawning of tasks if the task exits"
+			     }
+
+	    };
+
+# this function tries to start vocald
+
+$vocal_started = 0;
+
+sub start_vocald {
+
+    return if($vocal_started);
+    # check to make sure that there is an appropriate configuration
+    # for this system.
+    
+    if(!-f $config_file) {
+	if(!$opt_n) {
+	    print "The configuration file $config_file does not exist.\n";
+	    print "Would you like to run $allinoneconfigure\n";
+	    print "to create a simple default configuration?\n";
+	    while (!$answer) {
+		print " (y/n) [y]: ";
+		chomp($answer = <STDIN>);
+		$answer =~ y/A-Z/a-z/;
+		if($answer =~ "y" || $answer eq "") {
+		    $answer = "y";
+		} elsif ($answer =~ /n/) {
+		    $answer = "n";
+		} else {
+		    $answer = "";
+		}
+	    }
+	    if($answer eq "y") {
+		exec($allinoneconfigure);
+	    } else {
+		print STDERR "vocald cannot continue because $config_file does not exist\n";
+		exit(-1);
+	    }
+	} else {
+	    print STDERR "\nvocald requires configuration file $config_file.  Quitting.\n";
+	    exit(-1);
+	}
+    }
+    
+
+    $ENV{PGPASSWORD} = "vocal";
+    print "clearing update listener table...\n";
+    open(PSQL, "| psql -U vocal") or die("Could not start psql process...\n");
+    print PSQL "delete from updatereg ;\n";
+    print PSQL "\\q\n";
+    close(PSQL);
+
+    print "starting vocald...\n" if !$opt_n;
+    if($opt_t) {
+	$ret = system("env PERLDB_OPTS=\"NonStop=1 LineInfo=/usr/local/vocal/log/datalog frame=2\" perl -d -x $vocald_path $vocald_debug");
+    } else {
+	$ret = system("$vocald_path" . "$vocald_debug");
+    }
+    if($ret) {
+	print STDERR "\nvocald could not be started.\n";
+	exit -1;
+    }
+    $vocal_started = 1;
+}
+
+
+if(defined($$cmd_list{$ARGV[0]})) {
+
+    $isdead = 1;
+
+#     if(-e $pid_file) {
+# 	open(PID_FILE, $pid_file) || die "can't open $pid_file: $!";
+# 	$ret = flock(PID_FILE, LOCK_EX);
+# 	# locking isn't working, so make sure it's OK
+# 	chomp($pid = <PID_FILE>);
+# 	close(PID_FILE);
+# 	$num = kill 0, $pid;
+# 	if($num == 1) {
+# 	    # looks OK
+# 	    $isdead = 0;
+# 	}
+#     }
+
+    if(-S $guest_socket) {
+	socket(S, PF_UNIX, SOCK_STREAM, 0) || die "socket: $!"; 
+	$result2 = connect(S, sockaddr_un($guest_socket));
+	$err = $!;
+	close(SOCKET);
+	if(!$result2) {
+#	    print "$guest_socket $err\n";
+	    $isdead = 1;
+#	    print "dead dead dead\n";
+	} else {
+	    print "live connection\n" if $debug;
+	    $isdead = 0;
+	}
+    }
+
+    if($$cmd_list{$ARGV[0]}{startup} == 1) { 
+
+	# if this is true, then vocal should be started in these cases
+
+	if($isdead) {
+	    &start_vocald();
+	    $isdead = 0;
+	}
+    }
+
+    if(!$isdead) {
+	$count = 3;
+	while($count && !(-S $guest_socket)) {
+	    sleep(1); 
+	    $count--;
+	} 
+	if(!(-S $guest_socket)) {
+	    die "missing socket: $admin_socket\n";
+	}
+
+
+	$count = 3;
+	$done = 0;
+	while(($count-- > 0) && !$done) {
+	    socket(SOCKET, PF_UNIX, SOCK_STREAM, 0) || die "socket: $!"; 
+	    $result = connect(SOCKET, sockaddr_un($admin_socket));
+	    $admin_error = $!;
+
+	    if(!$result) {
+		$result2 = connect(SOCKET, sockaddr_un($guest_socket));
+		if(!$result2) {
+		    if($count == 0) {
+			die "connect failed on $admin_socket: $admin_error\n    and\nconnect failed on $guest_socket: $!"; 
+		    } else {
+			# try to start vocald
+			&start_vocald();
+			sleep(1);
+		    }
+		}
+	    }
+
+	    if($result || $result2) {
+		$done = 1;
+	    }
+	}
+
+	$oldfh = select(SOCKET); $| = 1; select($oldfh);
+
+	
+	$cmd = join(' ', @ARGV);
+	print SOCKET "$cmd\n";
+
+	print "waiting\n" if $debug;
+
+	$rin = '';
+	$ein = '';
+	vec($rin, fileno(SOCKET), 1) = 1;
+	vec($ein, fileno(SOCKET), 1) = 1;
+	
+	$nfound = select($rin, undef, $ein, 10.0);
+	if($nfound > 0) {
+	    while(<SOCKET>) {
+		chomp;
+		if (/^end ?([0-9])?$/) {
+		    if($1) {
+			exit($1);
+		    } else {
+			exit 0;
+		    }
+		}
+		print if !$opt_n;
+		print "\n" if !$opt_n;
+	    } 
+	} elsif($nfound == 0) {
+	    die "timed out while trying to communicate with vocald\n";
+	} else {
+	    die "error communicating with vocald: $!\n";
+	}
+
+	close(SOCKET);
+    } else {
+	print "vocald is not running.\n" if !$opt_n;
+	exit -1 if $ARGV[0] ne "shutdown";
+    }
+} else {
+    # print usage
+    print "Usage: $0 <command>\n";
+    print "\n";
+    print "Where command is one of the following:\n";
+    foreach $cmd (keys %$cmd_list) {
+	printf ( "    %-20.20s   %-50.50s\n", 
+		 "$cmd $$cmd_list{$cmd}{args}", $$cmd_list{$cmd}{usage} );
+    }
+}
+
+
+### Local Variables: ###
+### mode: cperl ###
+### End: ###

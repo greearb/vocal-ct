@@ -1,0 +1,41 @@
+
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<TITLE>
+HTML Test Page
+</TITLE>
+</HEAD>
+<BODY>
+<!--"CONVERTED_APPLET"-->
+<!-- CONVERTER VERSION 1.0 -->
+<OBJECT classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+WIDTH = 321 HEIGHT = 210 NAME = "System Status" ALIGN = middle VSPACE = 0 HSPACE = 0  codebase="http://java.sun.com/products/plugin/1.2/jinstall-12-win32.cab#Version=1,2,0,0">
+<PARAM NAME = CODE VALUE = "vocal.systemStatus.SNMPApplet.class" >
+<PARAM NAME = CODEBASE VALUE = "." >
+<PARAM NAME = ARCHIVE VALUE = "SNMPClient.jar" >
+<PARAM NAME = NAME VALUE = "System Status" >
+
+<PARAM NAME="type" VALUE="application/x-java-applet;version=1.2">
+<PARAM NAME = "host" VALUE  = "hostNameToken">
+<PARAM NAME = "port" VALUE  = "33606">
+<PARAM NAME = "debug_level" VALUE  = "7">
+<COMMENT>
+<EMBED type="application/x-java-applet;version=1.2" java_CODE = "vocal.systemStatus.SNMPApplet.class" java_CODEBASE = "." java_ARCHIVE = "SNMPClient.jar" NAME = "System Status" WIDTH = 321 HEIGHT = 210 ALIGN = middle VSPACE = 0 HSPACE = 0  host =  "hostNameToken" port =  "33606" debug_level =  "7"  pluginspage="http://java.sun.com/products/plugin/1.2/plugin-install.html"><NOEMBED></COMMENT>
+
+</NOEMBED></EMBED>
+</OBJECT>
+
+<!--
+<APPLET  CODE = "vocal.systemStatus.SNMPApplet.class" CODEBASE = "." ARCHIVE = "SNMPClient.jar" WIDTH = 321 HEIGHT = 210 NAME = "System Status" ALIGN = middle VSPACE = 0 HSPACE = 0 >
+<PARAM NAME = "host" VALUE  = "hostNameToken">
+<PARAM NAME = "port" VALUE  = "33606">
+<PARAM NAME = "debug_level" VALUE  = "7">
+
+
+</APPLET>
+-->
+<!--"END_CONVERTED_APPLET"-->
+
+</BODY>
+</HTML>

@@ -1,0 +1,2 @@
+kill -9 `ps -eaf |grep 'xterm -xrm' | grep -v '^.*grep' |awk '{print $2}'`
+kill -9 `ps ax |grep 'pserver' | grep -v '^.*grep' |awk '{print $1}'` 

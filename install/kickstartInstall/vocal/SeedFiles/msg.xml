@@ -1,0 +1,9 @@
+<marshalServer host="MSGHOSTIP" port="MSGPORT"><type value="Gateway"></type>
+<group value="GatewayGroup"></group>
+<gateway host="PSTNGATEWAYIP" port="PSTNGATEWAYPORT"></gateway>
+<noResponseTimer value="100"></noResponseTimer>
+<allowUnbillableCalls value="true"></allowUnbillableCalls>
+<conferenceBridge><bridgeNumber value=""></bridgeNumber>
+<accessList></accessList>
+</conferenceBridge>
+</marshalServer>

@@ -1,0 +1,1002 @@
+=========================================================================
+
+                          VOCAL CHANGELOG
+
+=========================================================================
+
+This file documents major changes to VOCAL.  Please keep in sync with
+the appropriate section of the README.txt .
+
+Changelog Format: yyyy-mm-dd (component/component/...): <report> .
+List of components: sip ms ua rs fs util h323 mgcp ps java install loadgen
+                    fsvm
+----------------------------------------------------------------------
+
+2003-05-07 (sip)
+
+Automatic call timeout if not answered, new TimerThread class tracks calls that haven't been answered and sends a 480 to the calling party and a CANCEL to the called party if the call isn't picked up in a certain amount of time. The timeout is specified in call container.
+  
+2003-05-07 (ps)
+
+New provisiong system added. The new provisioning system uses a postgres database backend to store most of the provisioning system. See readme files in newprov directory and bug 697. The new provisioning system partially replaces the old one but some things (notably features) require provisioned in both at the moment. The README file in newprov contains the full list of issues and work remaining.
+
+
+2003-05-07 
+
+Support for G729 VoiceAge library added. See notes in libmedia directory. The code compiles without the library present and uses a 'fake' G729 implementation (which will just produce garbage!). The VoiceAge library can just be placed in the directory and the correct lines commented in in the Makefile to enable it.
+
+
+New features in 1.5.0:
+
+Provisioning Security
+
+This release includes a number of fixes for provisioning security.  As
+a consequence, users upgrading existing installations must upgrade the
+provisioning server, HTML and Java GUIs, and all applications
+simultaneously.
+
+Users choosing to upgrade must create new files for provisioning
+passwords, change their HTML files, and the like.
+
+Please see doc/UPGRADING.txt for (incomplete) information on upgrading
+a running VOCAL 1.4 system to VOCAL 1.5.
+
+In addition, TLS support can be enabled at compile time via configure.
+Please see README_BUILD.txt for details.
+
+More information about provisioning security can be found in the file
+provisioning/README.secprov .
+
+SIPSet
+
+This release also includes the source code to SIPSet.  More
+information about SIPSet is available on the VOCAL web site at
+
+	    http://www.vovida.org/applications/downloads/sipset/
+
+
+CERT Advisory
+
+CERT has released an advisory concerning SIP software, at
+href="http://www.cert.org/advisories/CA-2003-06.html. VOCAL 1.5.0
+fixes a number of buffer overflow vulnerabilities revealed by these
+test cases.
+
+Configured Routing
+
+The RS generates a route set that the request must traverse. The code to
+determine the route set and the position of the querying Vocal server in the
+route using the top Via in the request are not changed. However, in addition
+to return the next hop URI in the contact, the rest of route set, including
+the next hop and before any forking, will be embedded with the "?" mechanism
+in the Contact URI.  Note that it is not necessary to add the embedded part if
+the next hop is the only URI in the rest of the route set. For example, a
+common MS for both the UAC and UAS of a dialog.
+
+A Vocal server (e.g. MS) proxies a SIP request to the RS for routing
+information if the Route header is not found in the message and the request is
+not part of an existing dialog.  If the in-coming SIP request has a Route
+header, the proxy forwards the message to the next hop.  If there is no route
+and the request is part of an existing dialog, the proxy (dialog stateful)
+sends the message to the address and port in the request URI.
+
+The server which gets the 302 (Moved Temporary) response will then extract the
+embedded route set and place them in the Route header of the SIP request
+before proxying the message to the next hop.  A dialog stateful proxy adds
+itself to the Record-Route header and creates an entry in its list of active
+dialogs.  The SIP stack sends the message according to the Route header.  Note
+that the entries in the route set can be loose or straight routing URIs, but
+they don't affect the operation of Configured Route at all.
+
+
+Loose Routing Support in SIP stack.
+Note that Vocal components are still strict routing applications.
+
+
+2003/03/28
+
+Fixed bugs : 425, 632, 652, 665, 669, 677, 678
+
+
+New features in 1.5.0:
+
+Provisioning Security
+
+This release includes a number of fixes for provisioning security.  As
+a consequence, users upgrading existing installations must upgrade the
+provisioning server, HTML and Java GUIs, and all applications
+simultaneously.
+
+Users choosing to upgrade must create new files for provisioning
+passwords, change their HTML files, and the like.
+
+Please see doc/UPGRADING.txt for (incomplete) information on upgrading
+a running VOCAL 1.4 system to VOCAL 1.5.
+
+In addition, TLS support can be enabled at compile time via configure.
+Please see README_BUILD.txt for details.
+
+More information about provisioning security can be found in the file
+provisioning/README.secprov .
+
+SIPSet
+
+This release also includes the source code to SIPSet.  More
+information about SIPSet is available on the VOCAL web site at
+
+	    http://www.vovida.org/applications/downloads/sipset/
+
+
+ATA Autoprovisioning
+
+ATA Autoprovisioning allows you to plug an ATA into a network running
+VOCAL and have the ATA receive the necessary provisioning parameters
+to make calls in the system, while simultaneously creating the
+appropriate entries in the VOCAL configuration.  Please see
+provisioning/auto/README for more information about ATA
+autoprovisioning.
+
+
+2003/02/19
+Re-factor the temp file creation in SIP user agent for named pipe to 
+address security issues.Support for NAT traversal using NATIP field in 
+configuration.
+
+
+2003/02/19
+Re-factor the temp file creation in SIP user agent for named pipe to 
+address security issues.Support for NAT traversal using NATIP field in 
+configuration.
+
+
+2003/02/19
+
+fixed bug: 620
+
+user-visible changes for 620 include a new program called manageusers
+which offers simplified adding and deleting of users, as well as
+removing the default creation of users 1000 and 1001 from
+initialprovdata.  also, verifysip sports a new -a option which will
+automatically create two users named test1000 and test1001.
+
+
+2003/02/18
+
+fixed bugs: 614, 619, 612
+
+
+2003/02/07
+
+fixed bugs: 599
+
+2003/02/04
+
+fixed bugs: 603, 606, 607
+
+2003/01/20
+
+Fixed bugs: 586, 591
+
+2002/12/19
+
+fixed bug 584 .
+
+
+2002/12/17
+Moved the media handling from gua (SIP user agent) to the libmedia library.
+The library provides flexible framework to add new third pary codec and 
+RTP implementations.
+
+Sipset now provides support for Video by using MPEG4IP open source
+implementation.  Refer to HowToSipSetVideo.txt for details.
+
+SipSet and Vocal Servers now support IPv6.
+
+2002/12/13
+Changes Made to the Routing Architecture of vocal, code changes in RS, FS, MS
+went in along with B_LEXUS2 routing branch merge,
+please refer the Document in documentation/vocal/proxies/routingchanges.txt
+Use cvs co documentation for the above doc.
+
+2002/12/13
+Following Bug ID, Bugs from Bugzilla are Fixed,
+469, 519, 511, 550, 533, 433, 569, 568, 521, 559, 563
+
+bug 580, interaction between HTML and Java provisioning, was fixed
+
+
+2002/12/13
+Added Configuration File(gua.cfg) based NAT support in Sipset
+
+
+2002/12/12
+
+Fix for uavm brokenness.  It would pick up, but not save the audio
+files.
+
+changed it so that the media_server is now being used as the default
+vmserver rather than vmserver.
+
+integrated Dustin's changes so that vocald can start a vmserver as
+vmadmin, the IVR-style voice mail administrator.  thanks to dustin
+wildes for these changes.
+
+Note that the prompts and configuration files for vmadmin are missing
+from the current version and so the version of vmadmin will not do
+anything interesting.
+
+integrated changes into the java gui so that vmail and vmadmin servers
+can be distinguished.
+
+2002/12/11
+
+updates to java GUI:
+ fix for bug 582
+ update to java GUI to indicate applet problems for 579
+
+updated the HTML GUI so that changes made to users in the Java GUI
+should not be overwritten by the HTML GUI.  Testing is welcome!
+
+2002/12/05
+
+updated man pages -- now there are man pages for most of VOCAL's tools.
+
+refactored the CGI provisioning to use a new XML sort-of-parser as
+well as to break up the code more cleanly.
+
+checked in updated version of vocald/vocalctl which (hopefully) will
+fix hang problem where vocald stops responding and pserver is dead. (bug 572)
+
+added new verifysip SIP verification tool in
+tools/verifysip/verifysip.  this tool is designed as a simplistic
+replacement for verifyinstall.
+
+2002/11/21
+
+fix for SIP bug 522
+
+2002/11/18
+
+add fix from georg schwartz for libcext_lgpl Makefile in contrib.
+
+MGCP: commited fixes from stan hu for bugs 547, 548, 549, 551, 571
+
+2002/11/15
+
+fixed java provisioning to report when login is incorrect.  updated
+version number of java applet to 1.5.0alpha1.
+
+2002/11/13
+
+add code to put -V option into fs/rs/ms .  this option prints the
+version (controlled by build/vocal_version.h) of the executables
+compiled, so that people have some sense of what version was installed
+on a machine (this isn't perfect).
+
+changed default log level via allinoneconfigure to LOG_NOTICE .  this
+should turn off printing of msgs.
+
+changed around vocald/vocalctl options to be more sensible.
+
+
+
+2002/11/10
+Added code to cache the size of the Fifo in FifoBase. In the previous code, 
+it was computing the size of a std::list everytime it wanted to know if 
+there was a message available in the fifo. std::list::empty() is a much
+more efficient call than std::list::size() == 0. The change actually 
+maintains a cached version of the Fifo size. 
+
+Changed the implementation of TimerContainer to use std::multiset instead
+of std::list. This greatly improves performance when there are many timers
+floating around. 
+
+2002/11/08
+Merged B_LR branch into head. This involves a number of changes to
+vocal/sip/sipstack. There are some interface changes in the message
+constructors. There is also a call to do the postprocessing step described in
+rfc3261. Some of the constructors have been completely rewritten, so some
+applications may break as a result. 
+
+Replaced Data with a copy always version. There is an extensive unit
+test for Data2 in util/test/testData2.cxx. As a result, the
+CopyOnWrite and other versions of Data have been removed from the
+build. All mutexes have been removed from the Data class. Data.hxx now
+just includes Data2.hxx.
+
+Also made a number of minor fixes to the apps to allow compilation in
+gcc-3.2.
+
+2002/10/25
+
+create manpages for pserver/ms/rs/fs/vocalctl/vocald .  these may not
+be perfect, but they are a start.
+
+commited fix for bug 567, contributed by russel anson, for win32
+issues in DNS resolution.
+
+
+2002/10/21
+
+checked in fix for bug 502 - call disconnects on pressing # in vm.
+bug 506 is working - vmserver requires kill -9 to kill
+
+
+2002/10/02
+Updated most of the README files in preparation for vocal-1.5.0alpha1.
+
+2002-08-31
+Added support for auto-prvisioning of ATA186 ( Cisco Analog Phone Adaptor).
+Refer to vocal/provisioning/auto/README for more details.
+
+2002/09/16
+Introduced a new state in Libsipua to handle
+HOLD, UaStateHold, this will be used in b2bua
+And gua to handle hold.
+
+2002/09/16
+Fixed gua to handle the Redirect 302 , Introduced
+A new state introduced in libsipua UaStateRedirect both 
+b2bua and gua.
+
+2002-09-09
+vocal/provisioning/web/provactions.pm
+Change voice mailbox dir permission so user greeting can be written by
+recording tool.
+
+vocal/vm/vmserver/sendMessage
+Change sendMessage script to look for "record-prompt" trigger.
+
+2002-08-28
+Fixed bug #528 - SdpHandler.cxx checkType is too complex for VC++ SP5
+
+2002-08-28
+Fixed bug #535 - Memory access error: Array bounds read
+
+2002-08-12 (install) remove SNMP link from the webpage generated by
+allinoneconfigure
+
+2002-08-12 (vocald) cause vocald to default to redirecting the stdout
+and stderr of its children to /dev/null .  If you would like vocald to
+redirect to a file (e.g. ms-5060_stdout.log and ms-5060_stderr.log),
+set the variable LOG_STDOUT to 1 in the vocal.conf file.
+
+2002-08-09(b2bUa)
+1. Change asserts to log messages and wherever appropriate send the
+status message.
+2. Make the CallDB and Call-Controller thread-safe.
+3. More fixes in Re-invite scenerios
+4. Handle registration messages in b2bUa and let it proxy these message.
+5. Correctly handle out od dialog BYE and Cancel messages.
+6. Handle MSN client which sends BYE instead of a CANCEL prior to a
+final response during call-setup.
+
+2002-08-09
+Fixed bug #537 - CRASH! Memory error under Sun Workshop compiler
+
+2002-08-09
+Fixed bug #538 - The hash code for xyz@foo.com and xyz@foo.com:5060 is different
+
+2002-08-09
+Fixed bug #539 - SDP 'b' line parsing error
+
+2002/07/20
+Conducted Memory tests using Purifier, checked
+in changes reqeried in Data class 
+CopyOnWriteData::parse() & CopyOnWriteData::getline()
+both function had memory leak, which is fixed.
+
+ATA Autoprovisioning
+
+ATA Autoprovisioning allows you to plug an ATA into a network running
+VOCAL and have the ATA receive the necessary provisioning parameters
+to make calls in the system, while simultaneously creating the
+appropriate entries in the VOCAL configuration.  Please see the VOCAL
+documentation page for more information about ATA autoprovisioning.
+ATA Autoprovisioning was not tested for the 1.5.0 release of VOCAL.
+
+
+2002/07/13
+Fixed RS to expire the registrations, 
+RS will expire the registrations when expire time
+is met.
+
+
+2002/07/11
+INET_MS changes,
+
+Made Changes to the internet marhsal (Proxy) code,
+By this change the  applications with in the vocal
+system will not modify the Request URI, (only 
+exception is Gateway MARSHAL it will modify the
+Request URI before sending it to gateway) By making
+this change the when request Arrives the Internet 
+Marshal it knows that it has to do DNS A lookup on the
+request URI and proxy the Message.
+
+Now, INET_MS no longer need pairing which it used 
+use before, so it's  been removed from the
+provisioning Interface also.
+
+2002-07-10
+vocal/provisioning/java/src/vocal/data/CplGenerator.java
+Change CFB and CFNA URI code not to prepend and append address with
+"sip:" and ";user=phone", respectively.
+
+vocal/provisioning/web/provactions.pm
+Expand number of valid subscriber id digits from 4 to 16.
+
+vocal/provisioning/web/webconf.cgi
+Sort users when they are shown under change and delete.
+Change the order of Add, Change and Delete in main menu.
+
+2002-07-06
+Removed const warnings from the vocal code.
+example: const char* const name() const
+is changed to const char*  name() const,
+
+
+2002-06-28
+Vocal Sipstack and sip-applications ported and Added Support 
+of INTEL c/c++ compiler, Made changes all over the Vocal to compile.
+
+2002-06-06
+Fixed bug #529 - Probable memory leak in Redirect Server
+
+
+2002-05-23 (ms/rs):
+added support for subscribe/notify messages to pass thru vocal system, similar
+to invite message, 'coz they may not have route in the message and our ms
+tries to proxy them (unsuccessfully) and finally drops them.
+
+
+The following changes occured for 1.4.0 (2002-05-16)
+----------------------------------------------------------------------
+
+2002-05-09 (install) Fixes for local domain sockets in vocalctl/vocald.
+
+
+The following changes occured for 1.4.0alpha3 (2002-05-07)
+----------------------------------------------------------------------
+
+2002-05-07 (install) changed vocalctl/vocald to use local domain
+sockets instead of named pipes.  this improves reliability of
+vocalctl/vocald and allinoneconfigure on all platforms, but especially
+freebsd and solaris which had a lot of trouble with the named pipe
+implementation.
+
+
+The following changes occured for 1.4.0alpha2 (2002-04-27)
+----------------------------------------------------------------------
+
+2002-04-25 (fsvm)
+fsvm assumes all uavm's are alive when "-h" (no heartbeat) option is used
+
+2002-04-24 (Makefile):
+Top level makefile is modified to include pkg as target
+to build solaris package, to enble easy installation of
+VOCAL.
+
+2002-04-23 (Contrib):
+Makefile is modified, so that libxml shared objects
+and library should not build, since it not been used 
+, all the applications the link libxml statically .
+it's been a problem with some compilers on some platforms,
+that static linking fails and it falls back to shared
+library, even though static link is desired.
+
+2002-04-23 (loadgen)
+added many new features and improved functionality of loadgen. more info can
+be found in loadgen/elgee/Doc.
+
+2002-04-23 (sip):
+added sendto kind of functionality in siptransceiver. hence both SipUdp_impl
+and SipTcpConnection were changed so that next hop for sip Requests can be
+other than Req URI [default behaviour]. to use this feature host:port can be
+specified optionally as arguments of SipTransciever::send()
+
+2002-04-18 (java):
+
+removed Jtapi from Provisioning
+
+
+2002-04-15 (install):
+
+can now install using a path other than /usr/local/vocal .  use
+./configure --prefix=... to set it.  at least basic calls work with
+this.
+
+cdr server now starts if the appropriate settings are set in the
+provisioning data.
+
+There is now an automated install tool which is installed into
+/usr/local/vocal/bin/allinoneconfigure/verifyinstall .  Run it after
+you think you have the system configured and running.
+
+allinoneconfigure now accepts the -y option to automatically answer as
+many questions as it can.
+
+
+2002-04-15 (pserver):
+
+changed pserver number of bins option from -n to -N.  -n disables conf
+file reading.
+
+pserver also reads from vocal.conf and uses many of the new command
+line options.
+
+
+2002-04-15 (util):
+
+added new vocald / vocalctl to replace vocalstart.  vocald
+automatically starts the appropriate processes by inspecting
+provisioning data.
+
+vocal processes which use commandline.cxx (fs/rs/ms/hbs) now read the
+/usr/local/vocal/etc/vocal.conf config file and use these values for
+configuration.
+
+added new command line options for starting ms/fs/rs.
+
+added new rc.d file for starting vocal.
+
+
+2002-03-19 (sip):
+
+Put SIP stack and base code into the Vocal namespace
+
+
+2002/02/25 (sdp):
+
+Created sdp2 code which uses Data instead of string.
+
+2002-02-24 (util):
+
+Removed interface getData() and replaced it with interfaces
+
+	const char*getData(LocalScopeAllocator& lo);
+	const char*getData(char* buf, int bufLen);
+	const char*logData();
+
+Added locking in the Sptr operators to make it thread-safe.
+
+Added locking in CopyOnWriteData to make it thread-safe.
+
+
+2002-02-13 (sip/ms/ua):
+
+cleaned up the authentication code in the system.  Now, the marshal
+always challenges using 407 on both REGISTER and INVITE.  cleaned up a
+number of bugs in authentication code.  UA now will respond to a 407
+on a REGISTER or an INVITE.  It should also respond to a 401 on a
+REGISTER or an INVITE, but right now we have not tested that.
+
+
+
+=========================================================================
+
+                      OLD VOCAL CHANGELOG (in old format)
+
+=========================================================================
+
+Changes since 1.3.0:
+
+1.4.0alpha2 includes support for the following items:
+
+---Sip stack:
+
+1.  REFER and NOTIFY methods are now supported. Thanks to Yuk-Ming
+    Lam for his contributions.
+2.  Initial Session Timer support.
+3.  Initial im: and pres: URL support.
+4.  Re-write part of REFER encoding code and add automated testcases
+    under sip/test/.
+5.  Add "202 Accepted" for REFER response.
+6.  Ordering of To, From, Refer-To and Referred-By header in SIP
+    messages are changed to be consistent with samples in RFC
+    and drafts.
+7.  Improved Load Generator (see loadgen/elgee/Doc/index.html).
+8.  Persistent TCP connection support. When using TCP as transport,once a 
+    connection is open to a desitnation host/port, the connection is kept
+    alive until the destination closes the connection. When receiving requests
+    on TCP, the stack maintains a mapping of the SIP transaction id and socket 
+    number on which the request is received. The mapping is used to make sure 
+    that the status follows the same TCP connection as the request.
+9.  Bug Fix for SIP Authorization header parameter parsing.
+
+---Marshal:
+
+1.  REFER and NOTIFY methods are now proxied.
+
+2.  Gateway marshals now will now notice and update the gateway
+    address when changed through the GUI.  However, there are some issues
+    with this, e.g. if there are live calls through a gateway, those calls
+    may not get torn down correctly because the gateway may reject
+    further SIP messages from those gateways.
+
+3.  Persistent TCP connection support
+
+---User Agent:
+
+1.  Persistent TCP connection support
+
+---Feature Server:
+
+1.  REFER and NOTIFY methods are now proxied.
+
+---Registration and Redirect server:
+
+1.  Support for fetch REGISTER request.  A fetch REGISTER request will
+    now list the current bindings for a UA.
+
+---Provisioning:
+
+1.  New non-java provisioning. This provisioning is not a replacement
+    for the Java-based provisioning GUI, but is instead intended to allow
+    provisioning of basic functionality from any web browser. Right now,
+    this includes basic call and voicemail support. A side effect of this
+    development is that Java is no longer required for installing the
+    software.
+
+---Build:
+
+1.  Preliminary RPM support. Right now, we have a basic RPM for the
+    purposes of installing binaries. This RPM does not follow the RPM
+    philosophy, in that it does not include and build the files from
+    source. Instead, the RPM is used to package the binaries by including
+    a .tar.gz of binaries (like a binary-only RPM). This allows the RPM
+    building process to be integrated with the rest of the VOCAL process.
+
+2.  PKG support is added to the Makefiles to, create solaris
+    package for purpose of installing vocal system binaries
+    this is integrated with the rest of the VOCAL process.
+
+Changes since 1.3.0-RC2:
+
+---Sip stack:
+1.  Added SIP stack debugging interface that can be enabled
+    by setting the environment variable VOCAL_SIP_REPORTER to a number 
+    in the range 1-65535 prior to starting your program. The SIP stack 
+    will start a TCP connection on that port number. One can telnet to the 
+    specified port to connect to the debugging interface. At the moment, 
+    the debugging interface has two commands:
+        status  -       print out statistical information about the
+                        transaction database
+        quit    -       quit the interface
+    At most, one user can be connected to the debugging interface at one time.
+
+2.  Check for out of sequence requests. Within a call-leg a request with
+    lower/equal Cseq number than previous requests is rejected by Sip stack 
+    with 400. Exception to the rule are ACK and CANCEL messages that must 
+    have the same Cseq number as the request being acknowledged or cancelled.
+
+3.  Enforce the TO-tag in final responses being same for a given call-leg
+    when running in a non-proxy mode.
+
+4.  The Ack messages for non-200 final responses should not contain the
+    record route header.
+
+5.  Changed "CC-Diversion" header label back to "Diversion".
+
+---Registration and Redirect server:
+    Redirect server now honors URL parameters in the contact.
+
+---UA and redirection: 
+    Better handling of transport when handling redirection and sending final 
+    responses.
+
+---Vocalstart script:
+1.  Fixed bug in vocalstart script that prevented stopping of serevrs on 
+    Solaris.
+
+2.  Starting/stopping a spacific server on a given port now works.
+
+---All-in-one configuration:
+    Added support for Linux RedHat 7.2.
+
+---Provisioning:
+    Fixed bug in provisioning that did not allow addition of new servers in
+    a configured system. It errorneously reported that server already exists.
+
+---Stability
+    The release has been tested on both Linux RH7.1, RH6.2 and Solaris 
+    uniprocessor platforms for more than 48 hours stability.
+
+---Performance
+    On Solaris 2.8 running on sparcv9 processor operating at 450 MHz.,
+    1GB RAM , performance ratings of 7 calls per second (cps)
+    have been achieved over a minimum system consisting of 2 Marshal
+    Servers(MS's) and 1 Redirect Server(RS). The binaries used were
+    optimized. If logging is totally disabled by stubbing out
+    the cpLogs, a callrate of 14cps can be achieved. 
+
+During performance testing, a call was defined as follows:
+   1.  1 SIP endpoint called another SIP endpoint
+   2.  The called endpoint answered the call
+   3.  The called endpoint held the call for 1/2 seconds
+   4.  The calling endpoint tore down the call.
+
+Changes since 1.3.0-RC1:
+
+---Round Robin:
+
+    In cases where there are multiple RS's, and each RS is assigned a
+    unique set of UA's, the MS uses a Round Robin method to make sure that
+    the UA's message is forwarded to the correct RS. This method requires
+    the MS to generate a hash code from the information passed in the From
+    field of the SIP message from the UA. By regularly forwarding the
+    messages correctly, the system can take advantage of the RS's user
+    caching function.
+
+    The From field normally contains the SIP URL of the sender and a
+    random tag that the MS uses for authentication purposes. If the MS
+    includes the tag in the hash, as it was in previous releases of VOCAL,
+    the result is unpredictable and prevents the MS from reliably
+    forwarding the message to the correct RS. In this release, the MS
+    ignores the tag and calculates the hash from the UA's SIP URL, which
+    is static and, therefore, reliable and useful for ensuring that the MS
+    forwards the message correctly.
+
+
+---Voicemail:
+
+    When the voicemail box received a call, the caller was hearing an
+    invalid user greeting. This was because the messages' To URL did not
+    contain the correct, original To URL. Most often, the To URL contained
+    "7000," which is the number used for calling the voice mail
+    server. Now, the To URL contains the sender's address.
+
+
+---CallerId Blocking
+    CallerId blocking is now working.
+
+
+---PServer
+
+    The PServer was crashing on Solaris systems running dual
+    processors. The problem was caused to an incorrect use of a function
+    pointer (VFunctor in VThreadPool.cxx). This has been fixed.
+
+
+---CANCEL
+
+    When a call is cancelled by a caller, the FS was not proxying the
+    Status 487 for the cancelled INVITE upstream. The FS now proxies this
+    message correctly.
+
+
+---Unprovisioned Users
+
+    The MS was crashing when an unprovisioned user initiated a
+    call. Marshl.cxx was fixed to return a 404 status if the user is not
+    found in provisioning.
+
+
+---Unique Branches in Via Header
+
+    The FS now uses a unique branch value in the SIP Via header. Before,
+    when the branch was not unique, it caused subscriber features to fail
+    on all-in-one installations.
+
+
+---200 Retransmission
+
+    Fixed the Proxy servers so that they do not retransmit 200 status
+    messages.
+
+
+---Proxy Authentication at MS
+    Proxy authentication at MS is now working.
+
+
+---SIP Response Retransmission
+
+    The SIP stack was not resending its responses. If the last response was
+    lost in the network, the retransmitted request from the UA was being
+    filtered out by the stack. This has been fixed: the SIP stack resends
+    lost responses.
+
+
+---Triggering Asserts
+
+    An assert was being triggered, when both sides were out of sync, after
+    the silent packet patching code. The assert has been removed and the
+    UA's can tolerate missing more than one packet from an RTP stream.
+
+
+---UA Registration & Transport
+
+    Fixed registration in UA to use the intended transport layer
+    protocol. If TCP is intended, TCP is used. Before, UDP was being used
+    for all messages regardless of instructions to use TCP.
+
+
+---Route, Record Route and Transport
+
+    Fixed Route and Record Route to consider the intended transport layer
+    protocol. This is also for messages intended for TCP.
+
+
+---SIP-1.2.1 in Head
+    SIP-1.2.1 changes merged into head. The head should compile on Windows(r).
+
+
+---Mirrored REGISTER Messages
+
+    When sending mirrored REGISTER messages to redundant RS's, the RS was
+    including itself repeatedly in the Via field as an additional entry on
+    each transmission. Now it only includes itself once in the Via.
+
+
+---Garbage Collection
+
+    In the SIP stack, transactions are queued for 32 seconds and garbage
+    collection is executed only after the stack has received a definitive
+    (final) response.
+
+
+Changes since 1.3.0-RC0:
+
+---Deploy:
+
+    There is a new allinone make target.  Users should now be able to 
+    do:
+
+	make all
+	make allinone
+
+    and have a basic working all in one system (with two users -- 1000 
+    and 1001) built and installed into /usr/local/vocal.
+
+    "make allinone" does not replace deploy for deploying multiuser
+    systems, although the intent is to eventually replace it.
+
+    See INSTALL for more details.
+
+
+---Directory Structure change:
+
+    The VOCAL make system stores its objects and binaries in a
+    subdirectory relative to the code, named obj.{objecttype}.{arch} and
+    bin.{objecttype}.{arch}, respectively, where {objecttype} is the
+    object type (typically "debug"), and {arch} is the machine type (such
+    as sun4u for sun sparc boxes, and i686 for intel machines).
+
+    These directories have been renamed to obj.{objecttype}.{os}.{arch}
+    and bin.{objecttype}.{os}.{arch}.  In the new scheme, os stands in for
+    the operating system, such as SunOS, Linux, or FreeBSD.  Doing this
+    makes it easier to build VOCAL for multiple operating systems when
+    mounted over NFS.
+
+---TCP Support:
+
+    TCP support has been enhanced, thanks to contributions submitted by
+    members of the Vovida.org community.
+
+    1.A number of bugs in the way a TCP stream was split into messages
+    has been fixed.  it should be possible to type in SIP messages via
+    a telnet connection and get the stack to recognize it correctly.
+
+
+    1.A number of bugs in the way a TCP stream was split into messages
+    has been fixed.  it should be possible to type in SIP messages via
+    a telnet connection and get the stack to recognize it correctly.
+
+
+---UA Marshal Server:
+
+    The UAMS responds to SIP CANCEL requests with a 200, OK response. 
+    Before, the UAMS was not handling the CANCEL message correctly.
+
+    Simplified view of the old scenario:
+
+  UA1                       UAMS                        UA2
+   |---------CANCEL--------->|----------CANCEL--------->|
+   |                         |<---------200-------------|
+   |---------CANCEL--------->|                          |
+   |---------CANCEL--------->|                          |
+   |---------CANCEL--------->|                          |
+   |---------CANCEL--------->|                          |
+
+
+   Simplified view of the new scenario:
+
+  UA1                       UAMS                        UA2
+   |---------CANCEL--------->|                          |
+   |<---------200------------|                          |
+   |                         |----------CANCEL--------->| 
+   |                         |<---------200-------------|
+
+
+---H.323 Translator:
+
+    The H.323 Translator now supports gateway trunking. Before, it was
+    only supporting NetMeeting as endpoints.
+
+
+Changes since 1.2.0:
+
+---Platform: 
+
+    Redhat 7.1 and 7.2 / Solaris 8 with g++ Support
+
+    This RC contains support for compilation under Redhat 7.1 and 7.2, as
+    well as Solaris 8 using g++ as the C++ compiler.
+
+---Performance:
+
+    500 Calls Per Second
+
+    On Linux RedHat 6.2, performance ratings of 40 calls per second (cps)
+    have been achieved over a minimum system consisting of 2 Marshal
+    Servers(MS's) and 1 Redirect Server(RS). This performance is scalable
+    and has been demonstrated processing up to 500 cps over 26 MS's, 4
+    RS's, and a Provisioning Server. This marks a four-fold improvement
+    over vocal 1.2.0.
+
+    During performance testing, a call was defined as follows: 
+
+    1.  1 SIP endpoint called another SIP endpoint 
+    2.  The called endpoint answered the call 
+    3.  The called endpoint held the call for two seconds 
+    4.  The calling endpoint tore down the call.
+
+    For more information about the performance testing, see the VOCAL
+    Performance Specification Document:
+
+    http://www.vovida.org/document/pdf/perfNumber.pdf
+
+---SIP Stack:
+
+    Enhanced TCP Support 
+
+    The new release candidate, vocal 1.3.0-RC0 offers more reliable and 
+    stable support for SIP over TCP than vocal 1.2.0.
+
+    2.whitespace before the METHOD of a message is ignored.
+
+3.The limitation that SipContact was unable to accept user-defined
+parameters was fixed.
+
+4.The stack now knows the context in which it is running,either in
+proxy mode or user agent mode.Default is User Agent mode.
+The application would have to pass this context
+while initializing sipstack via SipTransceiver.
+The two modes, currently supported are
+   APP_CONTEXT_GENERIC -User Agent mode
+   APP_CONTEXT_PROXY   -Proxy mode
+
+In the old code, a 200 for Invite when received by proxy, will be
+retransmitted by proxy locally till Ack is received.With the
+change,when sip stack is running in proxy mode, a 200 received is just
+proxied.
+
+
+    2.whitespace before the METHOD of a message is ignored.
+
+3.The limitation that SipContact was unable to accept user-defined
+parameters was fixed.
+
+4.The stack now knows the context in which it is running,either in
+proxy mode or user agent mode.Default is User Agent mode.
+The application would have to pass this context
+while initializing sipstack via SipTransceiver.
+The two modes, currently supported are
+   APP_CONTEXT_GENERIC -User Agent mode
+   APP_CONTEXT_PROXY   -Proxy mode
+
+In the old code, a 200 for Invite when received by proxy, will be
+retransmitted by proxy locally till Ack is received.With the
+change,when sip stack is running in proxy mode, a 200 received is just
+proxied.
+
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: CHANGELOG.txt,v 1.1 2004/05/01 04:15:15 greear Exp $

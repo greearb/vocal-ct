@@ -1,0 +1,70 @@
+package id4434rcml7xck3cml7yvh3;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:cpp#Class#RtspFile:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference {
+}/**
+@__ref <oiref:cpp#Class#RtspFileAu:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference5 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileHandler:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference6 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileManager:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference7 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileRaw:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference8 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileRtp:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference9 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileWav:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference10 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:MemberLink#<oiref:cpp#Member#RtspFileHandler#m_xRtspFile:oiref>=243,245,344,245:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileRtp:oiref>=679,673,203,261,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileManager:oiref>=567,10,203,242,1:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileAu#RtspFile:oiref>=44,673,367,584,367,480:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileRaw#RtspFile:oiref>=390,673,390,480:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileWav#RtspFile:oiref>=486,673,486,480:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspFileManager#myInstance:oiref>=774,189,26,19,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspFileManager#myInstance:oiref>=730,252,730,302,820,302,820,212,770,212:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileAu:oiref>=10,673,203,299,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspFileHandler#m_xRtspFile:oiref>=314,222,26,19,0:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspFileRtp#RtspFile:oiref>=780,673,516,480:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileRaw:oiref>=233,673,203,261,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileHandler:oiref>=40,10,203,603,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileWav:oiref>=456,673,203,299,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFile:oiref>=344,10,203,470,1:oigroup> 
+*/
+class __positions {
+}

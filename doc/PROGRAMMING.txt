@@ -1,0 +1,191 @@
+==================================================================== 
+
+		 A Programmer's Introduction to VOCAL
+
+==================================================================== 
+
+VOCAL Design documentation
+--------------------------
+
+A number of preliminary documents concerning VOCAL are available from
+
+	http://www.vovida.org/document/protocol.html
+
+and
+
+	http://www.vovida.org/document/applications.html
+
+
+There is a series of slides covering VOCAL system architecture 
+available at: 
+
+http://www.vovida.org/document/Training/2_VOCAL_Architecture/index_files/v3_document.htm
+
+
+Generating Documentation using Doc++ 
+---------------------------------------------- 
+
+You can use Doc++ to generate API documentation. Doc++ generates an 
+alphabetical and hierarchical index of classes, functions, and 
+variables. 
+
+To use Doc++: 
+1. Download Doc++ from http://www.zib.de/Visual/software/doc++/ 
+2. Untar the file. 
+3. Locate the doc++ and docify files. These files should be in 
+   the /bin directory. 
+4. Copy the doc++ and docify files to directory where the source 
+   code is located. 
+5. Type: make doc 
+6. Doc++ generated documentation will be saved in a html directory. 
+7. Select index.html from the html directory. 
+
+
+
+Directory Structure
+---------------------------------------------- 
+
+Our source code tree structure: 
+The vocal directory contains the following subdirectories:
+
+2. Makefile -- top level makefile from which all software components 
+               (ie. targets) can be built. Type "make" to see a list 
+               of available targets
+
+4. build -- includes the make files 
+5. cdr --  includes source code for RADIUS stack and CDR server
+6. config -- includes configuration files for all endpoints 
+7. contrib -- includes all the packages that have been used in our 
+              software 
+8. heartbeat -- includes the Heartbeat Server's source code. 
+9. install -- includes the source code for deploy 
+10. mgcp -- includes information about Media Gateway Control 
+            Protocol 
+11. policy -- includes policyServer executable 
+12. provisioning -- includes source code for provisioning 
+13. proxies -- includes base code, Feature Server, Marshal Server,
+               Redirect Server, Network Manager source code 
+14. release -- includes scripts to generate and test the SIP, 
+               MGCP and RTP stacks
+15. rtp -- includes Real-time Transfer Protocol source code 
+16. sdp -- includes Session Description Protocol stack source code 
+17. sip -- includes Session Initiation Protocol stack source code 
+18. snmp -- includes source code for Simple Network Management 
+            Protocol (SNMP) manager and client 
+19. snmp++ -- includes the C++ wrapper for portion of SNMP used 
+              by proxies and NetMgnt
+20. stage -- the executables are staged here
+21. tools -- includes various development, debugging, and testing 
+             tools
+22. translators -- includes source code for H.323 translators and 
+                   MGCP endpoints 
+23. util -- includes all utils which has been used for our software
+24. vm -- includes source code for the Voice Mail Server 
+25. vmclient -- includes source code for the Voice Mail Client 
+
+
+Branches in CVS
+---------------
+
+Here is information on a few branches and tags in VOCAL:
+
+R_VOCAL_1_5_0
+	the tag for the 1.5.0 release of VOCAL.  It is on B_VOCAL_1_5
+
+R_VOCAL_1_5_0_ALPHA_2
+        the tag for the 1.5.0alpha2 release of VOCAL.  this tag is on the HEAD.
+
+R_VOCAL_1_5_0_ALPHA_1
+	the tag for the 1.5.0alpha1 release of VOCAL.  this tag is on the HEAD.
+
+B_VOCAL_1_5
+	this is the branch for 1.5.0 releases of VOCAL.  It includes
+	fixes to VOCAL 1.5.0.
+
+B_VOCAL_1_4
+	this is the branch for 1.4.0 releases of VOCAL.  It includes
+	fixes to VOCAL 1.4.0.
+
+
+Naming Conventions for VOCAL releases
+-------------------------------------
+
+We have chosen to use the naming convention "unstable release" instead of
+"release candidate" because release candidate already has a meaning in
+most software development projects.
+
+A release candidate is so named because it is a version of a software
+project which is being considered for release -- that is, if no major
+issues are found with that version, that EXACT version of the software
+will be released to the public.
+
+Our prior VOCAL release candidates were not indended for stable systems,
+but were intended for early adopters, testers, and developers to get a
+chance to see what we were working on.  As such, these versions of the
+software were more akin to open source "unstable branch" releases -- that
+is, some degree of functionality is tested, but the primary intent of the
+release is to give everyone a chance to see what's coming up.
+
+In short, "release candidate" was a bad name.  We think that "unstable
+release" is a better one.
+
+We've chosen the new naming scheme N.N.NalphaN , e.g. 1.4.0alpha2 .
+In this case, this means that this is the first unstable release prior
+to the 1.4.0 version (that is what the number after the alpha means).
+So, the second unstable release will be 1.4.0alpha2, then 1.4.0alpha3,
+etc.  Eventually, we will move to beta versions: 1.4.0beta1,
+1.4.0beta2, 1.4.0beta3.  Finally, there will be a real 1.4.0 .  Stable
+releases have no words after the digit.
+
+
+
+What gets installed:
+--------------------
+
+(A copy of this information is kept in INSTALL.txt)
+
+
+Application	Description			Source Code Location
+----------------------------------------------------------------------
+callAgent	MGCP call agent			translators/mgcp
+cdrserv		CDR server			cdr/cdrServer
+deploy		deployment script (obsolete)	install
+FileDataStoreWrapper
+		installation program for	provisioning/conversion
+		provisioning
+fs		CPL feature server		proxies/fs/base
+
+hbs		heartbeat server		heartbeat/hbs
+ldap2vocaluser	LDAP to VOCAL user converter	tools/ldap2vocaluser
+ms		marshal server			proxies/marshal/base
+netMgnt		network management server	proxies/netMgnt
+psClient.jar	provisioning client		provisioning/java
+pserver		provisioning server		provisioning/pserver
+README		VOCAL installation README	install
+rs		redirect server			proxies/rs
+sample-ua-config
+		sample UA configurations	sip/ua/SampleConfigFiles
+SNMPClient.jar	SNMP client			provisioning/java
+snmpd		SNMP server			snmp/vovidaSnmp
+snmpget		SNMP get client			snmp/vovidaSnmp
+snmpset		SNMP set client			snmp/vovidaSnmp
+snmptrapd	SNMP trap daemon		snmp/vovidaSnmp
+snmpwalk	SNMP tree walking client	snmp/vovidaSnmp
+ua		SIP user agent			sip/ua
+vocalstart	startup script for VOCAL	config/release
+voicemail/
+  fsvm		voice mail feature server	proxies/fs/vm
+  sendMessage	message sending scrip		vm/vmserver
+  vmserver	voice mail control server	vm/vmserver
+xerces.jar	Xerces XML parser library	contrib/xerces-1_0_3
+
+
+====================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: PROGRAMMING.txt,v 1.1 2004/05/01 04:15:15 greear Exp $

@@ -1,0 +1,224 @@
+This README is obsolete.  It is included for historical purposes only.
+====================================================================
+LDAP2VOCALUSER tool README 
+====================================================================
+Module Name: ldap2vocaluser
+Version: 1.0
+Release Date: 01/15/01
+Author of README: Eddie Mendonca eddiem@cisco.com
+
+====================================================================
+LICENSE AND COPYRIGHT 
+====================================================================
+The license applies to all software incorporated in the "Vovida
+Open Communication Application Library" except for those portions
+incorporating third party software specifically identified as being
+licensed under separate license.
+
+The Vovida Software License, Version 1.0 
+Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+3. The names "VOCAL", "Vovida Open Communication Application Library",
+   and "Vovida Open Communication Application Library (VOCAL)" must
+   not be used to endorse or promote products derived from this
+   software without prior written permission. For written
+   permission, please contact vocal@vovida.org.
+
+4. Products derived from this software may not be called "VOCAL", nor
+   may "VOCAL" appear in their name, without prior written
+   permission of Vovida Networks, Inc.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+----------------------------------------------------------------------
+
+This software consists of voluntary contributions made by Vovida
+Networks, Inc. and many individuals on behalf of Vovida Networks,
+Inc.  For more information on Vovida Networks, Inc., please see
+http://www.vovida.org/.
+
+All third party licenses and copyright notices and other required
+legends also need to be complied with as well.
+
+====================================================================
+INTRODUCTION 
+====================================================================
+ldap2vocaluser is an export tool that allows you to export user
+information from an LDAP server, into the Vocal user database format.
+ldap2vocaluser expects the following 4 LDAP attributes be present 
+in your LDAP schema:
+
+   vocalPhonenumber
+   vocalIP
+   vocalFNA
+   vocalCFB
+
+If these attributes are not present in your schema, the tool will 
+still work,  but it will place 'fillers' in these fields when writing
+the user xml files. For direction on how to add the above attributes
+to your LDAP server, refer to the "USING THE SOFTWARE:" section of 
+this document.
+
+====================================================================
+DIRECTORY STRUCTURE 
+====================================================================
+ldap2vocaluser - Executable, can be placed in any executable
+  directory.  Normally resides in /usr/local/vocal/tools
+
+vocal-schema.conf - LDAP Schema additions that can be used to expand 
+  your schema to use the Vocal LDAP attributes.  Put this file in 
+  your LDAP server's config directory (wherever your slapd.conf is)
+
+====================================================================
+NEW FEATURES IN THIS RELEASE 
+====================================================================
+None
+
+====================================================================
+BUG FIXES 
+====================================================================
+None, First release
+
+====================================================================
+KNOWN LIMITATIONS
+====================================================================
+Running the tool without a binddn and bindpw will normally only 
+give you the first 500 users.  To export an entire LDAP of over
+500 users, use the binddn and bindpw options.
+
+====================================================================
+GETTING STARTED
+====================================================================
+HARDWARE OR SOFTWARE REQUIREMENTS
+
+Tested on Linux Redhat 6.2 with the following kernels:
+2.2.14, 2.2.16, 2.2.18.
+
+INSTALLATION INSTRUCTIONS:
+Copy the ldap2vocaluser binary to /usr/local/vocal/tools
+
+BUILD OR COMPILE INSTRUCTIONS:
+In order to build ldap2vocaluser, your must have the LDAP development
+API libraries/headers (ldap.h/lber.h) installed.  The rpm package name
+for this API is openldap-devel.  The current build is tested with 
+version 1.2.9-6 of openldap-devel.  You may also download the LDAP 
+API source from www.openldap.org.  After installing the LDAP API, 
+you can build the software using the existing Makefile.
+
+USING THE SOFTWARE:
+Usage: ldap2vocaluser -h ldaphost 
+                      -b basedn 
+                      -d output_directory 
+                     [-p ldap_port] 
+                     [-k datastore hash key]
+                     [-D binddn -w password] 
+
+-h ldaphost is the hostname of the LDAP server you're going to 
+   export data from.
+   
+-b basedn is the Base Distinguished Name of the LDAP tree you're going
+   to export data from.
+   
+-d output_directory is the local filesystem you want the LDAP user
+   data to be exported to.  This directory is always going to be the
+   vocal provisioning user directory.  The user directory is normally
+   in /usr/local/vocal/provisioning_data
+
+-p ldap_port is optional, default is 389.
+
+-k datastore hash key argument is for compatibilty with the vocal 
+   provisioning server and can largely be ignored.  The default hash
+   key value is 6.
+
+-D binddn is what you what to bind to your LDAP server as
+
+-w password is the LDAP password for the given binddn.  The binddn and 
+   password are optional. Use these opotions if you'd like to change 
+   any LDAP server options. In some cases, with large LDAP databases, 
+   you will need to change the server option called 'LDAP_OPT_SIZELIMIT'.  
+   This is defaulted to 500 on most LDAP servers.  Binding as Directory 
+   Manager will assume you want to search the entire database, and the 
+   search size limit will be set to infinite. 
+
+Adding the Vocal Schema to your LDAP server:
+
+In order to take advantage of this tool, you will need to add the
+vocal attributes to your existing ldap server.  If you're using
+openldap, you can add vocal attributes to your schema as follows:
+1) Shutdown your LDAP server (/etc/rc.d/init.d/ldap stop)
+2) Copy the vocal-schema.conf file to your LDAP config directory.
+   This directory is normally in /etc/openldap
+3) Edit your slapd.conf and add the following line under your existing
+   'include' lines:
+   include /etc/openldap/vocal-schema.conf
+4) Start your LDAP server (/etc/rc.d/init.d/ldap start)
+
+====================================================================
+SOURCE CODE INFORMATION
+====================================================================
+ldap2vocaluser expects the following 4 LDAP attributes be present 
+in your LDAP schema:
+
+   vocalPhonenumber
+   vocalIP
+   vocalFNA
+   vocalCFB
+
+If these attributes are not present in your schema, the tool will 
+still work,  but it will place 'fillers' in these fields when writing
+the user xml files.  These fillers can be changed by changing the 
+*_NOT_IN_LDAP static constants in the source files.
+====================================================================
+CONTACT INFORMATION AND WEBSITE
+====================================================================
+We welcome your feedback, suggestions and contributions. Contact us via email 
+if you have questions, feedback, code submissions, and bug reports.
+
+For general inquiries - info@vovida.org
+
+We have mailing lists for the VOCAL applications and proctocol stacks: 
+VOCAL - vocal@vovida.org
+COPS - cops@vovida.org
+MGCP - mgcp@vovida.org
+RADIUS - radius@vovida.org
+RTP - rtp@vovida.org
+SIP - sip@vovida.org
+TRIP - trip@vovida.org
+You can subscribe to the mailing lists on www.vovida.org. 
+
+You can submit bug, patches, software contributions, and feature requests using 
+Bugzilla.  Access Bugzilla from www.vovida.org. 
+
+====================================================================
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $

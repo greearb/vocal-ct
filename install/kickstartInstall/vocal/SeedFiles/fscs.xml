@@ -1,0 +1,3 @@
+<featureServer host="FSCSHOSTIP" port="FSCSPORT"><type value="CallScreening"></type>
+<group value="CallScreeningGroup"></group>
+</featureServer>

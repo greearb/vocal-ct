@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: vocald.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="vocald">
+  <refmeta>
+    <refentrytitle>vocald</refentrytitle>
+
+    <manvolnum>8</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>vocald</refname>
+
+    <refpurpose>control a VOCAL system</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>vocald</command>
+
+      <arg choice="opt">-dn</arg>
+
+      <arg choice="opt">-f config_file</arg>
+
+      <arg choice="opt">-D debug_level</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>The vocald server controls the processes in a vocal(8) system.
+    People only wishing to run VOCAL and not debug it should run vocalctl(8)
+    instead.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>run vocald in no daemon mode to allow debugging messages to
+          the console.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-D <filename>debug_level</filename></term>
+
+        <listitem>
+          <para>set the debugging level.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f <filename>config_file</filename></term>
+
+        <listitem>
+          <para>set the config file (which defaults to
+          /usr/local/vocal/etc/vocal.conf).</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para><citerefentry><refentrytitle>vocalctl</refentrytitle><manvolnum>8</manvolnum></citerefentry><citerefentry><refentrytitle><citerefentry><refentrytitle>vocalconf</refentrytitle><manvolnum>5</manvolnum></citerefentry>vocal</refentrytitle><manvolnum>8</manvolnum></citerefentry></para>
+  </refsect1>
+<refsect1>
+<title>Copyright</title>
+<para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+<para>
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</para>
+</refsect1>
+
+</refentry>

@@ -1,0 +1,10 @@
+  <serverType
+      value="MSTYPE">
+    <serverGroup
+        value="MSTYPEGroup">
+      <server
+          host="MSHOSTIP"
+          port="MSPORT">
+      </server>
+    </serverGroup>
+  </serverType>

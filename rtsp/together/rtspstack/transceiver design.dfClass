@@ -1,0 +1,101 @@
+package id3z0zicmqybdckcmqyslmg;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:cpp#Class#RtspTcpBuffer:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference {
+}/**
+@__ref <oiref:cpp#Class#RtspTcpConnection:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference1 {
+}/**
+@__ref <oiref:cpp#Class#RtspTransceiver:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference2 {
+}/**
+@__ref <oiref:cpp#Class#RtspUtil:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference3 {
+}/**
+@__ref <oiref:cpp#Class#RtspMsgParser:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference4 {
+}/**
+@__ref <oiref:cpp#Class#CharData:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference5 {
+}/**
+@__ref <oiref:cpp#Class#CharDataParser:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference6 {
+}/**
+@__ref <oiref:cpp#Class#RtspBadDataException:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference7 {
+}/**
+@__ref <oiref:cpp#Class#RtspMsg:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference8 {
+}/**
+@__ref <oiref:cpp#Class#Rtsp:oiref><oihard>
+@__modelType reference
+@__imported 
+*/
+class reference29 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myVersion:oiref>=1170,366,1108,366:oigroup>
+<oigroup:<oiref:cpp#Class#RtspUtil:oiref>=1170,323,203,261,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspBadDataException:oiref>=1489,422,203,99,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myStatusCodeStrings:oiref>=835,471,889,471:oigroup>
+<oigroup:<oiref:cpp#Class#CharData:oiref>=889,323,219,337,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspMsgParser:oiref>=1489,545,203,100,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspTcpBuffer:oiref>=1724,23,219,356,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspMsg:oiref>=1720,420,219,812,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myStatusStrings:oiref>=1170,409,1108,409:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myMethods:oiref>=835,571,889,571:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myVersion:oiref>=835,372,889,372:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myStatusStrings:oiref>=835,421,889,421:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myHeaders:oiref>=1170,496,1108,496:oigroup>
+<oigroup:<oiref:cpp#Class#RtspTcpConnection:oiref>=1491,20,203,356,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspTransceiver#myTcpConnection:oiref>=1374,121,1491,121:oigroup>
+<oigroup:<oiref:cpp#Class#RtspTransceiver:oiref>=1171,19,203,204,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myHeaders:oiref>=835,521,889,521:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myStatusCodeStrings:oiref>=1170,452,1108,452:oigroup>
+<oigroup:<oiref:cpp#Class#Rtsp:oiref>=632,322,203,299,1:oigroup>
+<oigroup:<oiref:cpp#Class#CharDataParser:oiref>=890,681,219,413,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myMethods:oiref>=1170,540,1108,540:oigroup> 
+*/
+class __positions {
+}

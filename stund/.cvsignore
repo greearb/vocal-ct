@@ -1,0 +1,12 @@
+*.ncb
+*.suo
+*~
+.dependlibs
+bin.debug.Linux.i686
+client
+core.*
+obj.debug.Linux.i686
+server
+stund
+stunq
+tlsServer

@@ -1,0 +1,48 @@
+<!ELEMENT deployedServers (featureServer|marshalServer|redirectServer|cdrServer|policyServer|jtapiServer|heartbeatServer)*>
+
+<!ELEMENT featureServer EMPTY>
+<!ATTLIST featureServer		host CDATA #REQUIRED
+													port CDATA #REQUIRED
+													type ( ForwardAllCalls | ForwardNoAnswerBusy | CallBlocking | CallScreening | Voicemail | CallReturn | CallerIdBlocking ) #REQUIRED
+													uaVMHost CDATA #IMPLIED
+													uaVMFirstPort CDATA #IMPLIED
+													uaVMLastPort CDATA #IMPLIED
+>
+
+<!ELEMENT marshalServer EMPTY>
+<!ATTLIST marshalServer		host CDATA #REQUIRED
+													port CDATA #REQUIRED
+													type ( UserAgent | Gateway | ConferenceBridge | Internetwork ) #REQUIRED
+													gatewayHost CDATA #IMPLIED
+													gatewayPort CDATA #IMPLIED
+													conferenceBridgeNumber CDATA #IMPLIED
+>
+
+<!ELEMENT redirectServer EMPTY>
+<!ATTLIST redirectServer	host CDATA #REQUIRED
+													port CDATA #REQUIRED
+													syncPort CDATA #REQUIRED
+>
+
+<!ELEMENT cdrServer EMPTY>
+<!ATTLIST cdrServer     	host CDATA #REQUIRED
+													port CDATA #REQUIRED
+													radiusServerHost CDATA #REQUIRED
+													radiusSecretKey CDATA #REQUIRED
+													billingDirPath CDATA #REQUIRED
+>
+
+<!ELEMENT policyServer EMPTY>
+<!ATTLIST policyServer host CDATA #REQUIRED
+>
+
+<!ELEMENT jtapiServer EMPTY>
+<!ATTLIST jtapiServer     host CDATA #REQUIRED
+													callingPort CDATA #REQUIRED
+													calledPort CDATA #REQUIRED
+													clientPort CDATA #REQUIRED
+>
+
+<!ELEMENT heartbeatServer EMPTY>
+<!ATTLIST heartbeatServer host CDATA #REQUIRED
+>

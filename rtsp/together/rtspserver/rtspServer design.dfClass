@@ -1,0 +1,100 @@
+package id3uue0cml8rml8cml8s4h7;
+
+/**
+@version 2.0
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:cpp#Class#RtspCommandLine:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference {
+}/**
+@__ref <oiref:cpp#Class#RtspConfiguration:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference29 {
+}/**
+@__ref <oiref:cpp#Class#RtspFileManager:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference30 {
+}/**
+@__ref <oiref:cpp#Class#RtspRtpProcessor:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference31 {
+}/**
+@__ref <oiref:cpp#Class#RtspServer:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference32 {
+}/**
+@__ref <oiref:cpp#Class#RtspServerStats:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference33 {
+}/**
+@__ref <oiref:cpp#Class#RtspSessionManager:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference34 {
+}/**
+@__ref <oiref:cpp#Class#RtspSession:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference35 {
+}/**
+@__ref <oiref:cpp#Class#RtspSessionStats:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference36 {
+}/**
+@__ref <oiref:cpp#Class#StateMachine:oiref><oihard>
+@__modelType reference
+@__imported*/
+class reference37 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspFileManager#myInstance:oiref>=1126,687,26,19,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspSession#myStats:oiref>=1671,822,1752,822:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspFileManager#myInstance:oiref>=1095,647,1072,647,1060,647,1060,723,1113,723,1150,723,1150,718,1150,687:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspRtpProcessor#myInstance:oiref>=1324,1620,1324,1670,1414,1670,1414,1580,1364,1580:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#myStats:oiref>=1607,190,1752,190:oigroup>
+<oigroup:<oiref:cpp#Class#RtspSessionManager:oiref>=748,397,203,394,1:oigroup>
+<oigroup:<oiref:cpp#Class#StateMachine:oiref>=1095,64,203,261,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspSessionManager#myInstance:oiref>=748,751,711,751,711,787,711,822,712,822,785,822,785,796,785,791:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspFileManager#lnkRtspServer:oiref>=1188,463,1444,407:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspConfiguration#myInstance:oiref>=603,498,603,548,693,548,693,458,643,458:oigroup>
+<oigroup:<oiref:cpp#Class#RtspSession:oiref>=1452,509,219,983,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspRtpProcessor#myInstance:oiref>=1368,1559,26,19,0:oigroup>
+<oigroup:<oiref:cpp#Class#RtspFileManager:oiref>=1095,445,203,242,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#myInstance:oiref>=1567,407,1567,457,1657,457,1657,367,1607,367:oigroup>
+<oigroup:<oiref:cpp#Class#RtspConfiguration:oiref>=440,9,203,489,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspServer#myInstance:oiref>=1611,346,26,19,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspCommandLine#lnkRtspServer:oiref>=964,36,1330,36,1404,37:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#StateMachine#lnkRtspServer:oiref>=1289,192,1404,192:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspConfiguration#myInstance:oiref>=647,437,26,19,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#StateMachine#myInstance:oiref>=1258,325,1258,375,1348,375,1348,285,1298,285:oigroup>
+<oigroup:<oiref:cpp#Class#RtspCommandLine:oiref>=746,13,203,242,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#lnkRtspSessionManager:oiref>=1404,367,951,437:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#StateMachine#myInstance:oiref>=1302,264,26,19,0:oigroup>
+<oigroup:<oiref:cpp#Class#RtspServerStats:oiref>=1752,14,203,565,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspServer#lnkRtspRtpProcessor:oiref>=1485,407,1262,789:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#RtspSessionManager#myInstance:oiref>=761,791,26,19,0:oigroup>
+<oigroup:<oiref:cpp#Class#RtspServer:oiref>=1404,13,203,394,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspConfiguration#lnkRtspCommandLine:oiref>=643,129,761,129:oigroup>
+<oigroup:<oiref:cpp#Class#RtspSessionStats:oiref>=1752,616,203,413,1:oigroup>
+<oigroup:<oiref:cpp#Class#RtspRtpProcessor:oiref>=1161,789,203,831,1:oigroup>
+*/
+class __positions {
+}

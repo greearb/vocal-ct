@@ -1,0 +1,3 @@
+#!/bin/sh
+metasend -b -D VoiceMessage.wav -e base64 -S 10485760 -f $1 -F $3 -s "\"Voice Message\"" -t $2 -m "audio/wav; name=\"VoiceMessage.wav\""
+#

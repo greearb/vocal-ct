@@ -1,0 +1,38 @@
+  Header                        SIP stack support			SIP parser support
+1. Accept	                    Yes	 				Yes
+2. Accept-Encoding                  Yes					Yes
+3. Accept-Language	            Yes					Yes
+4. CallID			    Yes					Yes
+5. Contact			    Yes					Yes
+6. CSeq				    Yes					Yes
+7. Date				    Yes					Yes
+8. Encryption			    Yes					Yes
+9. Expires			    Yes 				Yes
+10.From				    Yes					Yes
+11.Record-Route			    Yes					Yes
+12.Timestamp			    Yes          			Yes
+13.To				    Yes					Yes
+14.Via				    Yes					Yes
+15.Content-Encoding		    Yes					Yes
+16.Content-Length		    Yes				        Yes
+17.Content-Type			    Yes					Yes
+18.Authorization		    Yes					Yes
+19.Contact			    Yes					Yes
+20.Hide				    Yes					Yes
+21.Max-Forwards		            Yes					Yes
+22.Organization			    Yes					Yes
+23.Priority			    Yes					Yes
+24.Proxy-Authorization		    Yes					Yes
+25.Proxy-Require		    Yes					Yes
+26.Route			    Yes					Yes
+27.Require			    Yes					Yes
+28.Response-Key			    Yes					Yes
+29.Subject			    Yes					Yes
+30.User-Agent			    Yes					Yes
+31.Allow			    Yes					Yes
+32.Proxy-Authenticate		    Yes					Yes
+33.Retry-After			    Yes					Yes
+34.Server			    Yes					Yes
+35.Unsupported			    Yes                                 Yes
+36.Warning			    Yes					Yes
+37.WWW-Authenticate		    Yes					Yes

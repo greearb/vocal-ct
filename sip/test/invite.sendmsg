@@ -1,0 +1,20 @@
+---- start ----
+INVITE sip:6500@192.168.5.3:5065;user=phone SIP/2.0
+Via: SIP/2.0/UDP 192.168.5.3:5064
+From: 6400<sip:6400@192.168.5.3:5064>
+To: 6500<sip:6500@192.168.5.3:5065;user=phone>
+Call-ID: 247515495@192.168.5.3
+CSeq: 1 INVITE
+Subject: VovidaINVITE
+Contact: <sip:6400@192.168.5.3:5064>
+Content-Length: 160
+
+v=0
+o=- 99513809 99513809 IN IP4 192.168.5.3
+s=VOVIDA Session
+c=IN IP4 192.168.5.3
+t=962892393 0
+m=audio 3456 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+a=ptime:20
+---- end ----

@@ -1,0 +1,184 @@
+$# Add a WorkDir: /some/path line to this file
+$
+$
+@WORKDIR
+$
+$
+$# run as a deamon every 5 minute poll
+$RunAsDaemon:Yes
+$Interval:5
+$# add 14all.cg later
+$#UseRRDTool: Yes
+$
+$#--------------------------------------------------------------
+$# Ethernet Traffic
+$
+$Suppress[_]: ym
+$MaxBytes[_]: 1250000
+$
+@ETHSTART
+$
+$#---------------------------------------------------------------
+$# SIP MEssages
+$Suppress[_]: ym
+$MaxBytes[_]: 1250000
+$Options[_]: dorelpercent noinfo perminute
+$YLegend[_]: Msgs / min
+$ShortLegend[_]: #/min
+$LegendI[_]:In Msgs
+$LegendO[_]:Out Msgs
+$Legend1[_]: All Incomming per minute
+$Legend2[_]: All Outgoing per minute
+$Legend3[_]: (In )/(Out ) * 100
+$Title[_]: SipMessages
+$
+$#------------------------------------------
+$#
+$#sipSummaryInRequests sipSummaryOutRequests
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.1.1.1.1/applIndex&enterprises.5738.3.1.2.2.1.1.1.2/applIndex:private@~
+@%TARGET:req
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipSummaryInRequests:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipSummaryOutRequests:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:req
+$
+$#-----------------------------------------
+$#
+$#sipSummaryTotalTransactions
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.1.1.1.5/applIndex:private@~
+@%TARGET:trans
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipSummaryTotalTransactions:</TD><TD>In Green</TD></TR>
+$  </TABLE>
+@&PAGE:trans
+$
+$#------------------------------------------
+$#
+$#sipSummaryInResponses sipSummaryOutResponses
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.1.1.1.3/applIndex&enterprises.5738.3.1.2.2.1.1.1.4/applIndex:private@~
+@%TARGET:res
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipSummaryInResponses:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipSummaryOutResponses:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:res
+$
+$#------------------------------------------
+$#
+$#sipStatsInviteIns sipStatsInviteOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.2.1.1.1/applIndex&enterprises.5738.3.1.2.2.2.1.1.2/applIndex:private@~
+@%TARGET:invite
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsInviteIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsInviteOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:invite
+$
+$#----------------------------------------
+$#
+$#sipStatsAckIns sipStatsAckOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.2.1.1.3/applIndex&enterprises.5738.3.1.2.2.2.1.1.4/applIndex:private@~
+@%TARGET:ack
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsAckIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsAckOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:ack
+$
+$#----------------------------------------
+$#
+$#sipStatsByeIns sipStatsByeOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.2.1.1.5/applIndex&enterprises.5738.3.1.2.2.2.1.1.6/applIndex:private@~
+@%TARGET:byte
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsByeIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsByeOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:byte
+$
+$#----------------------------------------
+$#
+$#sipStatsCancelIns sipStatsCancelOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.2.1.1.7/applIndex&enterprises.5738.3.1.2.2.2.1.1.8/applIndex:private@~
+@%TARGET:cancel
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsCancelIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsCancelOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:cancel
+$
+$#----------------------------------------
+$#
+$#sipStatsSuccessClassIns sipStatsSuccessClassOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.3.1.1.3/applIndex&enterprises.5738.3.1.2.2.3.1.1.4/applIndex:private@~
+@%TARGET:successclass
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsSuccessClassIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsSuccessClassOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:successclass
+$
+$#----------------------------------------
+$#
+$#sipStatsReqFailClassIns sipStatsReqFailClassOuts
+$#
+$
+$NoSpaceChar: ~
+$Target[^]: enterprises.5738.3.1.2.2.3.1.1.7/applIndex&enterprises.5738.3.1.2.2.3.1.1.8/applIndex:private@~
+@%TARGET:ReqFailClass
+$
+$PageTop[$]:
+$ <TABLE>
+$   <TR><TD>sipStatsReqFailClassIns:</TD><TD>In Green</TD></TR>
+$   <TR><TD>sipStatsReqFailClassOuts:</TD><TD>Out Blue</TD></TR>
+$   <TR><TD>Ratio in/out </TD><TD>Amber</TD></TR>
+$  </TABLE>
+@&PAGE:ReqFailClass

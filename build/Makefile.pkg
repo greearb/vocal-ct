@@ -1,0 +1,775 @@
+# $Id: Makefile.pkg,v 1.1 2004/05/01 04:14:55 greear Exp $
+
+# The license applies to all software incorporated in the "Vovida
+# Open Communication Application Library" except for those portions
+# incorporating third party software specifically identified as being
+# licensed under separate license.
+# 
+# 
+# 
+# The Vovida Software License, Version 1.0 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+# 
+# 
+# All third party licenses and copyright notices and other required
+# legends also need to be complied with as well.
+# 
+
+# this file defines packages -- each one needs to be of the form
+
+
+
+
+######################################################################
+
+# include files from other directories.  right now, this is only the
+# contrib directory, but there are a number that are there.  if we can
+# move the rules out toward the edges, it will be easier for others to
+# add elements.
+
+######################################################################
+
+-include $(ROOT)/contrib/Makefile.pkg
+
+
+######################################################################
+
+
+PAM_INCLUDEDIRS :=
+PAM_LIBDIRS :=
+ifeq ($(OSTYPE),Linux)
+#
+# Debian Woody needs -lnsl where yp_get_default_domain is defined
+# -lnsl can be removed otherwise
+#
+ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
+  PAM_LDLIBS_LAST :=  -lpam -lnsl
+else
+  PAM_LDLIBS_LAST :=  $(LD_STATIC) -lpam -lnsl $(LD_DYNAMIC)
+endif
+endif
+
+ifeq ($(ARCH),sh)
+HITACHI_INCLUDEDIRS := $(ROOT)/contrib/hitachi
+HITACHI_LIBDIRS := $(ROOT)/contrib/hitachi
+HITACHI_LIBNAME := hitachi
+HITACHI_LDFLAGS :=
+HITACHI_DEPENDS := $(ROOT)/contrib/hitachi/libhitachi.a
+HITACHI_DEFINES := HW_HITACHI
+
+$(HITACHI_DEPENDS):
+	cd $(ROOT)/contrib/hitachi; $(MAKE)
+endif
+
+SUACOMMON_INCLUDEDIRS := $(ROOT)/sip/sua/common
+SUACOMMON_LIBDIRS := $(ROOT)/sip/sua/common/obj.$(TARGET_NAME)
+SUACOMMON_LIBNAME := suacommon
+SUACOMMON_LDFLAGS :=
+SUACOMMON_DEPENDS := $(ROOT)/sip/sua/common/obj.$(TARGET_NAME)/libsuacommon.a
+
+LGCOM_INCLUDEDIRS := $(ROOT)/sip/sua/lgcom
+LGCOM_LIBDIRS := $(ROOT)/sip/sua/lgcom/obj.$(TARGET_NAME)
+LGCOM_LIBNAME := lgcom
+LGCOM_LDFLAGS :=
+LGCOM_DEPENDS := $(ROOT)/sip/sua/lgcom/obj.$(TARGET_NAME)/liblgcom.a
+
+SIP_INCLUDEDIRS := $(ROOT)/sip/sipstack 
+SIP_LIBDIRS := $(ROOT)/sip/sipstack/obj.$(TARGET_NAME) 
+SIP_LIBNAME := sip
+SIP_LDFLAGS :=
+SIP_DEPENDS := $(ROOT)/sip/sipstack/obj.$(TARGET_NAME)/libsip.a
+
+$(SIP_DEPENDS):
+	cd $(ROOT)/sip/sipstack;$(MAKE)
+
+MGCP_INCLUDEDIRS := $(ROOT)/mgcp/libmgcp $(ROOT)/mgcp/lowlevel
+MGCP_LIBDIRS := $(ROOT)/mgcp/libmgcp/obj.$(TARGET_NAME)
+MGCP_LIBNAME := mgcp
+MGCP_LDFLAGS :=
+MGCP_DEPENDS := $(ROOT)/mgcp/libmgcp/obj.$(TARGET_NAME)/libmgcp.a
+
+$(MGCP_DEPENDS):
+	cd $(ROOT);$(MAKE) libmgcp
+
+PROXYBASE_INCLUDEDIRS := $(ROOT)/sip/base
+PROXYBASE_LIBDIRS := $(ROOT)/sip/base/obj.$(TARGET_NAME)
+PROXYBASE_LIBNAME := proxyBase
+PROXYBASE_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+PROXYBASE_DEPENDS := $(ROOT)/sip/base/obj.$(TARGET_NAME)/libproxyBase.so
+else
+PROXYBASE_DEPENDS := $(ROOT)/sip/base/obj.$(TARGET_NAME)/libproxyBase.a
+endif
+$(PROXYBASE_DEPENDS):
+	cd $(ROOT)/sip/base;$(MAKE)
+
+
+YARROW_INCLUDEDIRS := $(ROOT)/contrib/yarrow.$(OS_ARCH)
+YARROW_LIBDIRS := $(ROOT)/contrib/yarrow.$(OS_ARCH)
+YARROW_LIBNAME := yarrow 
+YARROW_LDFLAGS := 
+YARROW_LDLIBS_LAST := $(OPENSSL_LDFLAGS) #-lssl -lcrypto
+YARROW_DEPENDS := $(ROOT)/contrib/yarrow.$(OS_ARCH)/libyarrow.a
+
+$(YARROW_DEPENDS):
+	cd $(ROOT)/contrib/yarrow; $(MAKE) yarrow
+
+######################################################################
+
+ifeq ($(VOCAL_USE_OPENSSL),true)
+  ifeq ($(VOCAL_OPENSSL_PKGCONFIG),true)
+    OPENSSL_INCLUDES := $(VOCAL_OPENSSL_INCLUDES)
+    OPENSSL_LDFLAGS := $(VOCAL_OPENSSL_LDLIBS)
+  else
+    OPENSSL_LIBNAME := ssl crypto
+    OPENSSL_LDFLAGS :=
+  endif
+DEFINES += VOCAL_HAS_OPENSSL
+
+
+endif
+
+
+######################################################################
+
+ifeq ($(OSTYPE),OpenBSD)
+     CRYPT_LIBNAME =
+else
+     CRYPT_LIBNAME := crypt
+endif
+
+#BIND_INCLUDEDIRS := /usr/local/bind-8.2.2p7/src/include
+#BIND_LIBDIRS := /usr/local/bind-8.2.2p7/src/lib
+BIND_INCLUDEDIRS := /usr/src/redhat/SOURCES/bind8/src/include
+BIND_LIBDIRS := /usr/src/redhat/SOURCES/bind8/src/lib
+BIND_LIBNAME := bind
+BIND_LDFLAGS :=
+# BIND_DEPENDS := /usr/src/redhat/SOURCES/bind8/src/bind/lib/libbind.a
+
+
+LIBSNDCARD_INCLUDEDIRS := $(ROOT)/libsoundcard
+LIBSNDCARD_LIBDIRS := $(ROOT)/libsoundcard/obj.$(TARGET_NAME)
+LIBSNDCARD_LIBNAME := soundcard
+LIBSNDCARD_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+LIBSNDCARD_DEPENDS := $(ROOT)/libsoundcard/obj.$(TARGET_NAME)/libsoundcard.so
+else
+LIBSNDCARD_DEPENDS := $(ROOT)/libsoundcard/obj.$(TARGET_NAME)/libsoundcard.a
+endif
+
+$(LIBSNDCARD_DEPENDS):
+	cd $(ROOT);$(MAKE) libsoundcard
+
+
+RTP_INCLUDEDIRS := $(ROOT)/rtp
+RTP_LIBDIRS := $(ROOT)/rtp/obj.$(TARGET_NAME)
+RTP_LIBNAME := rtp
+RTP_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+RTP_DEPENDS := $(ROOT)/rtp/obj.$(TARGET_NAME)/librtp.so
+else
+RTP_DEPENDS := $(ROOT)/rtp/obj.$(TARGET_NAME)/librtp.a
+endif
+
+$(RTP_DEPENDS):
+	cd $(ROOT);$(MAKE) rtp
+
+RTSP_INCLUDEDIRS := $(ROOT)/rtsp/rtspstack/
+RTSP_LIBDIRS := $(ROOT)/rtsp/rtspstack/obj.$(TARGET_NAME)
+RTSP_LIBNAME := rtsp
+RTSP_LDFLAGS :=
+RTSP_DEPENDS := $(ROOT)/rtsp/rtspstack/obj.$(TARGET_NAME)/librtsp.a
+
+$(RTSP_DEPENDS):
+	cd $(ROOT);$(MAKE) rtsp
+
+RTSPIF_INCLUDEDIRS := $(ROOT)/rtsp/rtspif/
+RTSPIF_LIBDIRS := $(ROOT)/rtsp/rtspif/obj.$(TARGET_NAME)
+RTSPIF_LIBNAME := rtspif
+RTSPIF_LDFLAGS :=
+RTSPIF_DEPENDS := $(ROOT)/rtsp/rtspif/obj.$(TARGET_NAME)/librtspif.a
+
+$(RTSPIF_DEPENDS):
+	cd $(ROOT);$(MAKE) rtspif
+
+SDP2_INCLUDEDIRS := $(ROOT)/sdp/sdp2
+SDP2_LIBDIRS := $(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)
+SDP2_LIBNAME := sdp2
+SDP2_LDFLAGS :=
+SDP2_DEPENDS := $(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)/libsdp2.a
+
+$(SDP2_DEPENDS):
+	cd $(ROOT);$(MAKE) sdp2
+
+SDP_INCLUDEDIRS := $(ROOT)/sdp
+SDP_LIBDIRS := $(ROOT)/sdp/obj.$(TARGET_NAME)
+SDP_LIBNAME := sdp
+SDP_LDFLAGS :=
+SDP_DEPENDS := $(ROOT)/sdp/obj.$(TARGET_NAME)/libsdp.a
+
+$(SDP_DEPENDS):
+	cd $(ROOT);$(MAKE) sdp
+
+UTIL_INCLUDEDIRS :=     $(ROOT)/util $(ROOT)/util/threads $(ROOT)/util/logging \
+                        $(ROOT)/util/crypto $(ROOT)/util/statistics \
+                        $(ROOT)/util/snmp $(ROOT)/util/signals \
+                        $(ROOT)/util/behavior $(ROOT)/util/io \
+                        $(ROOT)/util/services $(ROOT)/util/transport \
+                        $(ROOT)/util/config $(ROOT)/util/dnssrv \
+                        $(ROOT)/util/deprecated \
+			$(ROOT)/util/adt
+UTIL_LIBDIRS := $(ROOT)/util/obj.$(TARGET_NAME)
+UTIL_LIBNAME := vutil
+UTIL_LDFLAGS := 
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+UTIL_DEPENDS := $(ROOT)/util/obj.$(TARGET_NAME)/libvutil.so
+else
+UTIL_DEPENDS := $(ROOT)/util/obj.$(TARGET_NAME)/libvutil.a
+endif
+
+$(UTIL_DEPENDS):
+	cd $(ROOT);$(MAKE) util
+
+
+HTTP=$(ROOT)/http
+HTTP_INCLUDEDIRS := $(HTTP)/msg
+HTTP_LIBDIRS := $(HTTP)/obj.$(TARGET_NAME)
+HTTP_LIBNAME := http
+HTTP_LIB := lib$(HTTP_LIBNAME).a
+HTTP_LDFLAGS :=
+HTTP_DEPENDS := $(ROOT)/http/obj.$(TARGET_NAME)/$(HTTP_LIB)
+
+$(HTTP_DEPENDS):
+	cd $(HTTP) && $(MAKE)
+
+HEARTBEAT_INCLUDEDIRS := $(ROOT)/heartbeat
+HEARTBEAT_LIBDIRS := $(ROOT)/heartbeat/obj.$(TARGET_NAME)
+HEARTBEAT_LIBNAME := heartbeat
+HEARTBEAT_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+HEARTBEAT_DEPENDS := $(ROOT)/heartbeat/obj.$(TARGET_NAME)/libheartbeat.so
+else
+HEARTBEAT_DEPENDS := $(ROOT)/heartbeat/obj.$(TARGET_NAME)/libheartbeat.a
+endif
+$(HEARTBEAT_DEPENDS):
+	cd $(ROOT);$(MAKE) heartbeat 
+
+RADIUS_INCLUDEDIRS := $(ROOT)/radius
+RADIUS_LIBDIRS := $(ROOT)/radius/obj.$(TARGET_NAME)
+RADIUS_LIBNAME := radius
+RADIUS_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+RADIUS_DEPENDS := $(ROOT)/radius/obj.$(TARGET_NAME)/libradius.so
+else
+RADIUS_DEPENDS := $(ROOT)/radius/obj.$(TARGET_NAME)/libradius.a
+endif
+$(RADIUS_DEPENDS):
+	cd $(ROOT);$(MAKE) radius
+
+
+ifeq ($(OSTYPE),Linux)
+BSAFE_OS := linux/i386-libc6
+endif
+
+ifeq ($(OSTYPE),SunOS)
+BSAFE_OS := solaris/solaris26
+endif
+
+BSAFE_INCLUDEDIRS := $(ROOT)/do-not-distribute/BSAFE-NEW/cryptoc43/$(BSAFE_OS)/library/include
+BSAFE_CXXFLAGS := -D_REENTRANT -DOSP_SDK
+BSAFE_LIBDIRS := $(ROOT)/do-not-distribute/BSAFE-NEW/cryptoc43/$(BSAFE_OS)/library/lib
+BSAFE_LIBNAME :=  bsafe
+
+ifeq ($(OSTYPE),Linux)
+OSP_OS := linux
+endif
+
+ifeq ($(OSTYPE),SunOS)
+OSP_OS := solaris
+endif
+
+OSPSDK_INCLUDEDIRS := $(ROOT)/contrib/osp.$(OS_ARCH)/src
+OSPSDK_CXXFLAGS := -D_REENTRANT -DOSP_SDK
+OSPSDK_LIBDIRS := $(ROOT)/contrib/osp.$(OS_ARCH)/lib/client/$(OSP_OS)
+
+# don't change the repetition of osp bsafe osp -- this is needed
+# because osp depends on bsafe's MD5/crypto, while bsafe depends on
+# the definition of T_malloc and other memory fns, which are in osp.
+# yes, this is confusing. yes, this is horrible.
+
+OSPSDK_LIBNAME :=  osp
+#OSPSDK_LIBNAME :=  osp bsafe osp ssl crypto
+OSPSDK_LDFLAGS := 
+#OSPSDK_DEPENDS := $(ROOT)/do-not-distribute/osptk-2.5.1/lib/client/linux/libosp.a
+#OSPSDK_DEPENDS := $(ROOT)/contrib/osptk-2.5.1/lib/client/linux/libosp.a
+#OSPSDK_DEPENDS := $(ROOT)/contrib/OSPToolkit-2.5.2/lib/client/linux/libosp.a
+OSPSDK_DEPENDS := $(ROOT)/contrib/osp.$(OS_ARCH)/lib/client/$(OSP_OS)/libosp.a
+#$(OSPSDK_DEPENDS):
+#	cd $(ROOT)/do-not-distribute/osptk-2.5.1/src; ./osp_sdk_compile.ksh -d client
+$(OSPSDK_DEPENDS):
+	cd $(ROOT)/contrib/OSPToolkit-2.5.2/src; ./osp_sdk_compile.ksh -d client
+
+#cd $(ROOT)/contrib/osptk-2.5.1/src; ./osp_sdk_compile.ksh -d client
+
+OSP_INCLUDEDIRS := $(ROOT)/policy/libOSP
+OSP_LIBDIRS := $(ROOT)/policy/libOSP/obj.$(TARGET_NAME)
+OSP_LIBNAME := OSP
+OSP_LDFLAGS :=
+OSP_DEPENDS := $(ROOT)/policy/libOSP/obj.$(TARGET_NAME)/libOSP.a
+$(OSP_DEPENDS):
+	cd $(ROOT)/policy/libOSP;$(MAKE)
+
+PSLIB_INCLUDEDIRS := $(ROOT)/provisioning/psLib
+PSLIB_LIBDIRS := $(ROOT)/provisioning/psLib/obj.$(TARGET_NAME)
+PSLIB_LIBNAME := ps
+PSLIB_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+PSLIB_DEPENDS := $(ROOT)/provisioning/psLib/obj.$(TARGET_NAME)/libps.so
+else
+PSLIB_DEPENDS := $(ROOT)/provisioning/psLib/obj.$(TARGET_NAME)/libps.a
+endif
+
+
+$(PSLIB_DEPENDS):
+	cd $(ROOT)/provisioning/psLib/;$(MAKE)
+
+PROVLIB_INCLUDEDIRS := $(ROOT)/prov/cpp/psLib
+PROVLIB_LIBDIRS := $(ROOT)/prov/cpp/psLib/obj.$(TARGET_NAME)
+PROVLIB_LIBNAME := ps
+PROVLIB_LDFLAGS :=
+PROVLIB_DEPENDS := $(ROOT)/prov/cpp/psLib/obj.$(TARGET_NAME)/libps.a
+
+PROVCOMMON_INCLUDEDIRS := $(ROOT)/prov/cpp/common
+PROVCOMMON_LIBDIRS := $(ROOT)/prov/cpp/common/obj.$(TARGET_NAME)
+PROVCOMMON_LIBNAME := pscommon
+PROVCOMMON_LDFLAGS :=
+PROVCOMMON_DEPENDS := $(ROOT)/prov/cpp/common/obj.$(TARGET_NAME)/libpscommon.a
+$(PROVCOMMON_DEPENDS):
+	cd $(ROOT)/prov/cpp/common/;$(MAKE)
+
+PSAGENT_INCLUDEDIRS := $(ROOT)/prov/cpp/psAgent
+PSAGENT_LIBDIRS := $(ROOT)/prov/cpp/psAgent/obj.$(TARGET_NAME)
+PSAGENT_LIBNAME := psagent 
+PSAGENT_LDFLAGS :=
+PSAGENT_DEPENDS := $(ROOT)/prov/cpp/psAgent/obj.$(TARGET_NAME)/libpsagent.a
+
+$(PSAGENT_DEPENDS):
+	cd $(ROOT)/prov/cpp/psAgent ; $(MAKE)
+
+
+
+
+CDRLIB_INCLUDEDIRS := $(ROOT)/cdr/cdrLib
+CDRLIB_LIBDIRS := $(ROOT)/cdr/cdrLib/obj.$(TARGET_NAME)
+CDRLIB_LIBNAME := cdr
+CDRLIB_LDFLAGS :=
+CDRLIB_DEPENDS := $(ROOT)/cdr/cdrLib/obj.$(TARGET_NAME)/libcdr.a
+
+$(CDRLIB_DEPENDS):
+	cd $(ROOT)/cdr/cdrLib/;$(MAKE) 
+
+PSUTILIB_INCLUDEDIRS := $(ROOT)/provisioning/util
+PSUTILIB_LIBDIRS := $(ROOT)/provisioning/util/obj.$(TARGET_NAME)
+PSUTILIB_LIBNAME := psutil
+PSUTILIB_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+PSUTILIB_DEPENDS := $(ROOT)/provisioning/util/obj.$(TARGET_NAME)/libpsutil.so
+else
+PSUTILIB_DEPENDS := $(ROOT)/provisioning/util/obj.$(TARGET_NAME)/libpsutil.a
+endif
+$(PSUTILIB_DEPENDS):
+	cd $(ROOT)/provisioning/util/;$(MAKE) 
+
+
+DBMODULES_INCLUDEDIRS := $(ROOT)/prov/cpp/pserver/dbmodules
+DBMODULES_LIBDIRS := $(ROOT)/prov/cpp/pserver/dbmodules/obj.$(TARGET_NAME)
+DBMODULES_LIBNAME := dbmodules
+DBMODULES_LDFLAGS :=
+DBMODULES_DEPENDS := $(ROOT)/prov/cpp/pserver/dbmodules/obj.$(TARGET_NAME)/libdbmodules.a
+
+$(DBMODULES_DEPENDS):
+	cd $(ROOT)/prov/cpp/pserver/dbmodules/;$(MAKE)
+
+VCPL_INCLUDEDIRS := $(ROOT)/proxies/fs/cpl
+VCPL_LIBDIRS := $(ROOT)/proxies/fs/cpl/obj.$(TARGET_NAME)
+VCPL_LIBNAME := vcpl
+VCPL_LDFLAGS :=
+VCPL_DEPENDS := $(ROOT)/proxies/fs/cpl/obj.$(TARGET_NAME)/libvcpl.a
+
+$(VCPL_DEPENDS):
+	cd $(ROOT)/proxies/fs/cpl;$(MAKE) 
+
+ENUM_INCLUDEDIRS := $(ROOT)/contrib/enum.$(OS_ARCH)/include
+#ENUM_LIBDIRS := $(ROOT)/contrib/enum.$(OS_ARCH)/lib /usr/local/bind-8.2.2p7/src/lib
+ENUM_LIBDIRS := $(ROOT)/contrib/enum.$(OS_ARCH)/lib /usr/src/redhat/SOURCES/bind8/src/lib
+ENUM_LIBNAME := ENUM bind
+ENUM_LDFLAGS :=
+ENUM_DEPENDS := $(ROOT)/contrib/enum.$(OS_ARCH)/lib/libENUM.a
+
+$(ENUM_DEPENDS):
+	cd $(ROOT)/contrib/enum.$(OS_ARCH); $(MAKE)
+
+# xerces-c C++ library
+#XERCES_INCLUDEDIRS := $(ROOT)/contrib/xerces-c-src1_7_0.$(OS_ARCH)/include
+#XERCES_LIBDIRS := $(ROOT)/contrib/xerces-c-src1_7_0.$(OS_ARCH)/lib
+#XERCES_LIBNAME := xerces-c1_7_0
+#XERCES_DEPENDS := $(ROOT)/contrib/xerces-c-src1_7_0.$(OS_ARCH)/lib/libxerces-c1_7_0.so
+
+# OpenLDAP libraries
+LDAP_LIBNAME := ldap lber
+LDAP_DEPENDS := /usr/lib/libldap.a /usr/lib/liblber.a
+
+
+ifeq ($(VOCAL_HAS_POSTGRESQL),true)
+
+# PostgreSQL libraries
+PGSQL_INCLUDEDIRS := /usr/include/pgsql
+PGSQL_LIBNAME := pq
+PGSQL_DEPENDS := /usr/lib/libpq.a
+
+endif
+
+# MySQL libraries
+
+ifeq ($(OSTYPE),FreeBSD)
+  MYSQL_INCLUDEDIRS := /usr/local/include/mysql /usr/local/sqlplus/
+  MYSQL_LIBNAME := sqlodbc
+  MYSQL_DEPENDS :=
+endif
+
+ifeq ($(OSTYPE),Linux)
+  MYSQL_INCLUDEDIRS := /usr/include/mysql /usr/include/sqlplus
+  MYSQL_LIBNAME := sqlplus
+  MYSQL_DEPENDS := /usr/lib/libsqlplus.a
+endif
+
+ifeq ($(OSTYPE),SunOS)
+  MYSQL_INCLUDEDIRS := /usr/local/include/mysqlcppapi /usr/local/sparc-sun-solaris2.8/include
+  MYSQL_LIBNAME := mysqlcppapi
+  MYSQL_DEPENDS := /usr/local/lib/libmysqlcppapi.a
+endif
+
+COPS_INCLUDEDIRS := $(ROOT)/policy/copsstack 
+COPS_LIBDIRS := $(ROOT)/policy/copsstack/obj.$(TARGET_NAME) 
+COPS_LIBNAME := cops 
+COPS_LDFLAGS :=
+COPS_DEPENDS := $(ROOT)/policy/copsstack/obj.$(TARGET_NAME)/libcops.a
+
+$(COPS_DEPENDS):
+	cd $(ROOT)/policy/copsstack; $(MAKE)
+
+COPSCOMMON_INCLUDEDIRS := $(ROOT)/policy/common 
+COPSCOMMON_LIBDIRS := $(ROOT)/policy/common/obj.$(TARGET_NAME) 
+COPSCOMMON_LIBNAME := copscommon 
+COPSCOMMON_LDFLAGS :=
+COPSCOMMON_DEPENDS := $(ROOT)/policy/common/obj.$(TARGET_NAME)/libcopscommon.a
+
+$(COPSCOMMON_DEPENDS):
+	cd $(ROOT)/policy/common; $(MAKE)
+
+LIBPEP_INCLUDEDIRS := $(ROOT)/policy/libpep 
+LIBPEP_LIBDIRS := $(ROOT)/policy/libpep/obj.$(TARGET_NAME) 
+LIBPEP_LIBNAME := pep 
+LIBPEP_LDFLAGS :=
+LIBPEP_DEPENDS := $(ROOT)/policy/libpep/obj.$(TARGET_NAME)/libpep.a
+
+$(LIBPEP_DEPENDS):
+	cd $(ROOT)/policy/libpep; $(MAKE)
+
+LIBPDP_INCLUDEDIRS := $(ROOT)/policy/libpdp 
+LIBPDP_LIBDIRS := $(ROOT)/policy/libpdp/obj.$(TARGET_NAME) 
+LIBPDP_LIBNAME := pdp 
+LIBPDP_LDFLAGS :=
+LIBPDP_DEPENDS := $(ROOT)/policy/libpdp/obj.$(TARGET_NAME)/libpdp.a
+
+$(LIBPDP_DEPENDS):
+	cd $(ROOT)/policy/libpdp; $(MAKE)
+
+PROXYAGENT_INCLUDEDIRS := $(ROOT)/proxies/agent
+PROXYAGENT_LIBDIRS := $(ROOT)/proxies/agent/obj.$(TARGET_NAME)
+PROXYAGENT_LIBNAME := proxyAgent
+PROXYAGENT_LDFLAGS :=
+PROXYAGENT_DEPENDS := $(ROOT)/proxies/agent/obj.$(TARGET_NAME)/libproxyAgent.a
+
+$(PROXYAGENT_DEPENDS):
+	cd $(ROOT)/proxies/agent;$(MAKE)
+
+SNMPLIB_INCLUDEDIRS := $(ROOT)/snmp/vovidaSnmp/snmplib $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)
+SNMPLIB_LIBDIRS := $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/snmplib
+SNMPLIB_LIBNAME :=  snmp
+SNMPLIB_LDFLAGS :=
+SNMPLIB_DEPENDS := $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/snmplib/libsnmp.a
+ifeq ($(OSTYPE),SunOS)
+SNMPLIB_LDLIBS_LAST := -lkstat
+endif
+
+$(SNMPLIB_DEPENDS):
+	cd $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/snmplib; $(MAKE) 
+
+SNMPPLUSPLUS_INCLUDEDIRS :=  $(ROOT)/util  $(ROOT)/snmp++ $(ROOT)/snmp/vovidaSnmp/snmplib $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)
+SNMPPLUSPLUS_LIBDIRS := $(ROOT)/snmp++/obj.$(TARGET_NAME)
+SNMPPLUSPLUS_LIBNAME := snmp++
+SNMPPLUSPLUS_LDFLAGS :=
+SNMPPLUSPLUS_DEPENDS := $(ROOT)/snmp++/obj.$(TARGET_NAME)/libsnmp++.a
+
+$(SNMPPLUSPLUS_DEPENDS):
+	cd $(ROOT)/snmp++; $(MAKE)
+
+SNMPAGENT_INCLUDEDIRS := $(ROOT)/snmp/vovidaSnmp/agent
+SNMPAGENT_LIBDIRS := $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/agent 
+SNMPAGENT_LIBNAME := ucdagent
+SNMPAGENT_LDFLAGS := 
+SNMPAGENT_DEPENDS := $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/agent/libucdagent.a
+
+$(SNMPAGENT_DEPENDS):
+	cd $(ROOT)/snmp/vovidaSnmp.$(OS_ARCH)/agent; $(MAKE) 
+
+PAM_INCLUDEDIRS :=
+PAM_LIBDIRS :=
+PAM_LIBNAME := pam
+ifeq ($(OSTYPE),OpenBSD)
+PAM_LIBNAME :=
+endif
+PAM_LDFLAGS :=
+PAM_DEPENDS :=
+
+$(PAM_DEPENDS):
+
+
+TRIP_INCLUDEDIRS := $(ROOT)/tripstack/tripcore 
+TRIP_LIBDIRS := $(ROOT)/tripstack/tripcore/obj.$(TARGET_NAME) 
+TRIP_LIBNAME := tripcore 
+TRIP_LDFLAGS :=
+TRIP_DEPENDS := $(ROOT)/tripstack/tripcore/obj.$(TARGET_NAME)/libtripcore.a
+
+$(TRIP_DEPENDS):
+	cd $(ROOT)/tripstack/tripcore; $(MAKE)
+
+TRIPLS_INCLUDEDIRS := $(ROOT)/tripstack/lsfunctions 
+TRIPLS_LIBDIRS := $(ROOT)/tripstack/lsfunctions/obj.$(TARGET_NAME) 
+TRIPLS_LIBNAME := lsfunc 
+TRIPLS_LDFLAGS :=
+TRIPLS_DEPENDS := $(ROOT)/tripstack/lsfunctions/obj.$(TARGET_NAME)/liblsfunc.a
+
+$(TRIPLS_DEPENDS):
+	cd $(ROOT)/tripstack/lsfunctions; $(MAKE)
+
+LSAPI_INCLUDEDIRS := $(ROOT)/tripstack/lsapi 
+LSAPI_LIBDIRS := $(ROOT)/tripstack/lsapi/obj.$(TARGET_NAME) 
+LSAPI_LIBNAME := lsapi 
+LSAPI_LDFLAGS :=
+LSAPI_DEPENDS := $(ROOT)/tripstack/lsapi/obj.$(TARGET_NAME)/liblsapi.a
+
+$(LSAPI_DEPENDS):
+	cd $(ROOT)/tripstack/lsapi; $(MAKE)
+
+#PTHREAD_INCLUDEDIRS :=
+#PTHREAD_LIBDIRS :=
+ifneq ($(OSTYPE),FreeBSD)
+PTHREAD_LIBNAME := pthread
+else
+PTHREAD_LDFLAGS := -pthread
+PTHREAD_LIBNAME := c_r
+endif
+
+ifeq ($(OSTYPE),IRIX64)
+PTHREAD_LDFLAGS := 
+endif
+
+
+ifeq ($(OSCLASS),VXWORKS)
+PTHREAD_LDFLAGS :=
+PTHREAD_LIBNAME :=
+endif
+
+ifeq ($(OSTYPE),Linux)
+PTHREAD_LDFLAGS := #--thread
+endif
+
+ifeq ($(OSTYPE),Solaris)
+PTHREAD_LDFLAGS := --thread
+endif
+
+ifeq ($(OSTYPE),QNX)
+PTHREAD_DEFINES := USE_PTHREADS
+PTHREAD_LDFLAGS := 
+PTHREAD_LIBNAME :=
+endif
+
+PTHREAD_TARGETS := 
+
+ifeq ($(LARCH),ia32)
+ifeq ($(OSTYPE),Linux)
+QUICKNET_INCLUDEDIRS := $(ROOT)/contrib/quicknet/ixj
+QUICKNET_LIBDIRS := $(ROOT)/contrib/quicknet/ixj
+QUICKNET_LIBNAME := 
+QUICKNET_LDFLAGS :=
+QUICKNET_DEPENDS := $(ROOT)/contrib/quicknet/ixj/ixjuser.h
+QUICKNET_DEFINES := HW_QUICKNET
+
+$(QUICKNET_DEPENDS):
+	cd $(ROOT);$(MAKE) contrib
+endif
+endif
+
+VMCP_INCLUDEDIRS := $(ROOT)/vm/vmcp
+VMCP_LIBDIRS := $(ROOT)/vm/vmcp/obj.$(TARGET_NAME)
+VMCP_LIBNAME := vmcp
+VMCP_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+VMCP_DEPENDS := $(ROOT)/vm/vmcp/obj.$(TARGET_NAME)/libvmcp.so
+else
+VMCP_DEPENDS := $(ROOT)/vm/vmcp/obj.$(TARGET_NAME)/libvmcp.a
+endif
+
+
+$(VMCP_DEPENDS):
+	cd $(ROOT)/vm/vmcp; $(MAKE)
+
+VME_INCLUDEDIRS := $(ROOT)/vm/vme
+VME_LIBDIRS := $(ROOT)/vm/vme/obj.$(TARGET_NAME)
+VME_LIBNAME := vme
+VME_LDFLAGS :=
+VME_DEPENDS := $(ROOT)/vm/vme/obj.$(TARGET_NAME)/libvme.a
+
+
+MAIL_INCLUDEDIRS := $(ROOT)/vm/mail/
+MAIL_LIBDIRS := $(ROOT)/vm/mail/obj.$(TARGET_NAME)
+MAIL_LIBNAME := mail
+MAIL_LDFLAGS :=
+MAIL_DEPENDS := $(ROOT)/vm/mail/obj.$(TARGET_NAME)/libmail.a             
+
+LIBLDAP_INCLUDEDIRS := /usr/local/include
+
+SIPUA_INCLUDEDIRS := $(ROOT)/sip/libsipua \
+                     $(ROOT)/sip/libsipua/uaState
+SIPUA_LIBDIRS := $(ROOT)/sip/libsipua/obj.$(TARGET_NAME)
+SIPUA_LIBNAME := sipua
+SIPUA_LDFLAGS := 
+ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
+SIPUA_DEPENDS := $(ROOT)/sip/libsipua/obj.$(TARGET_NAME)/libsipua.so
+else
+SIPUA_DEPENDS := $(ROOT)/sip/libsipua/obj.$(TARGET_NAME)/libsipua.a
+endif
+
+$(SIPUA_DEPENDS):
+	cd $(ROOT)/sip/libsipua; $(MAKE) 
+
+
+SIP2_INCLUDEDIRS := $(ROOT)
+
+SIPSTACK2_INCLUDEDIRS := $(ROOT)/sip2
+SIPSTACK2_LIBDIRS := $(ROOT)/sip2/sipstack/obj.$(TARGET_NAME) 
+SIPSTACK2_LIBNAME := sip2
+SIPSTACK2_LDFLAGS :=
+SIPSTACK2_DEPENDS := $(ROOT)/sip2/sipstack/obj.$(TARGET_NAME)/libsip2.a
+
+$(SIPSTACK2_DEPENDS):
+	cd $(ROOT)/sip2/sipstack;$(MAKE)
+
+
+UTIL2_INCLUDEDIRS := $(ROOT)/sip2
+UTIL2_LIBDIRS := $(ROOT)/sip2/util/obj.$(TARGET_NAME) 
+UTIL2_LIBNAME := util2
+UTIL2_LDFLAGS :=
+UTIL2_DEPENDS := $(ROOT)/sip2/util/obj.$(TARGET_NAME)/libutil2.a
+
+$(UTIL2_DEPENDS):
+	cd $(ROOT)/sip2/util;$(MAKE)
+
+
+MEDIALIB_INCLUDEDIRS := $(ROOT)/libmedia
+MEDIALIB_LIBDIRS := $(ROOT)/libmedia/obj.$(TARGET_NAME)
+MEDIALIB_LIBNAME := media
+MEDIALIB_LDFLAGS :=
+MEDIALIB_DEPENDS := $(ROOT)/libmedia/obj.$(TARGET_NAME)/libmedia.a
+ 
+$(MEDIALIB_DEPENDS):
+	cd $(ROOT)/libmedia; $(MAKE)
+
+
+#
+# New targets for new SQL provisioning system
+#
+
+CACHELIB_INCLUDEDIRS := $(ROOT)/newprov/cpp/cacheLibrary
+CACHELIB_LIBDIRS := $(ROOT)/newprov/cpp/cacheLibrary/obj.$(TARGET_NAME)
+CACHELIB_LIBNAME := cache
+CACHELIB_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+CACHELIB_DEPENDS := $(ROOT)/newprov/cpp/cacheLibrary/obj.$(TARGET_NAME)/libcache.so
+else
+CACHELIB_DEPENDS := $(ROOT)/newprov/cpp/cacheLibrary/obj.$(TARGET_NAME)/libcache.a
+endif
+
+
+$(CACHELIB_DEPENDS):
+	cd $(ROOT)/newprov/cpp/cacheLibrary/;$(MAKE)
+
+RECORDLIB_INCLUDEDIRS := $(ROOT)/newprov/cpp/dataObjects/
+RECORDLIB_LIBDIRS := $(ROOT)/newprov/cpp/dataObjects/obj.$(TARGET_NAME)
+RECORDLIB_LIBNAME := records
+RECORDLIB_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+RECORDLIB_DEPENDS := $(ROOT)/newprov/cpp/dataObjects/obj.$(TARGET_NAME)/librecords.so
+else
+RECORDLIB_DEPENDS := $(ROOT)/newprov/cpp/dataObjects/obj.$(TARGET_NAME)/librecords.a
+endif
+
+$(RECORDLIB_DEPENDS):
+	cd $(ROOT)/newprov/cpp/dataObjects/;$(MAKE)
+
+DBMANAGER_INCLUDEDIRS := $(ROOT)/newprov/cpp/DBManager
+DBMANAGER_LIBDIRS := $(ROOT)/newprov/cpp/DBManager/obj.$(TARGET_NAME)
+DBMANAGER_LIBNAME := dbmanager
+DBMANAGER_LDFLAGS :=
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+DBMANAGER_DEPENDS := $(ROOT)/newprov/cpp/DBManager/obj.$(TARGET_NAME)/libdbmanager.so
+else
+DBMANAGER_DEPENDS := $(ROOT)/newprov/cpp/DBManager/obj.$(TARGET_NAME)/libdbmanager.a
+endif
+$(DBMANAGER_DEPENDS):
+	cd $(ROOT)/newprov/cpp/DBManager/;$(MAKE)

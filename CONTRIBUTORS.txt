@@ -1,0 +1,217 @@
+====================================================================
+
+                         CONTRIBUTORS TO VOCAL
+
+====================================================================
+
+
+This is a list of some of the many community members that have contributed
+to the open source projects found on Vovida.org. If you have contributed
+to any of the projects on Vovida.org and would like to be recognized on
+this page please contact us at www@vovida.org.
+
+Documentation
+    Julie Chan
+    David Kelly
+    Nicholas Bachmann - Index for User's Guide, proofreading, and corrections
+
+COPS
+    Surendra Prajapat
+
+MGCP
+    Hong Liu - MGCP STACK, MGCP translator
+    Hsin-shi Lo - MGCP translator
+    Mallikarjun Medala - MGCP STACK, MGCP translator
+    Stan Hu - bug fixes
+
+RTP
+    Wenqing Jin
+    Kim Le
+
+RADIUS
+    Francisco Hong
+
+SIP
+    Eoin Canny - SIPSTACK, UA
+    CUseeMe Networks - Win32 Platform Support
+    Russell Anson - SIP-1.5 Win32 Platform Support
+    Jeff Gao - UA
+    Cullen "Fluffy" Jennings
+    Jack Liou - UA
+    Sunitha Kumar - SIPSTACK
+    Krishan Veer - SIPSTACK: SIP Parser
+    Mahesh Shankar - UA
+    Mitch Zollinger - UA
+    Amit Bhadoria - SIPSTACK: SIP Transceiver, Transaction State Machine
+    Surendra Prajapat - SIPSTACK- SIP Transceiver, IPV6 support, LIBSIPUA
+    Mike Saywell - IPV6 support
+    David G. Mills - IPV6 support
+    Tim Chown - IPV6 support
+    Chengxin Li - IPv6
+    Xing Jiang - IPv6
+    Jason Fischl - SIP stack
+    Raghavan Kripakaran - SIP Base code
+    Ian Cahoon -  SIP Base code
+    Amit Choksi - SIPSTACK snmp
+    Alan Hawrylyshen - bug fixes
+    Ben Greear - Bind-to-local-IP fixes and locking fixes
+
+SIPRG - SIP Residential Gateway
+    Mohit A. Lad
+    Manish S. Jalan
+
+SIPset - GUI based SIP User Agent
+    Chok Lam
+    Bryan Ogawa
+    Surendra Prajapat
+    Barbara Samson
+    Krishan Veer
+
+STUN -  Simple Traversal of UDP through NATs
+    Alan Hawrylyshen
+
+B2BUA - SIP based back to back User Agent:
+    Chok Lam
+    Surendra Prajapat
+    Maxim Sobolev
+    Alan Hawrylyshen - bug fixes
+
+TRIP
+    Kevin McDermott
+    Surendra Prajapat
+
+VOCAL
+    Wendy Breu - Policy Server
+    David A. Bryan - Provisioning
+    Ian Cahoon - SIP-H.323 call signaling gateway, infrastructure and
+    	portability
+    Eoin Canny - Marshal Server
+    Riva Canton - Marshal Server, H.323 translator
+    Charles Eckel - Marshal Server
+    Kenny Hom - Feature Server
+    Francisco Hong - CDR module
+    Wenqing Jin - RTSP Server
+    Evgeny Kluev - H.323 Translator
+    Neetha Kumar - SNMP/NetMgnt
+    Kim Le - RTSP Sever
+    Jack Liou - JTAPI Server
+    Tom Maneri - netMgnt, snmp, deploy
+    Kevin McDermott - JTAPI
+    Eddie Mendonca - ldap2vocaluser tool
+    Deepali Rashingkar - Voicemail server
+    Oleg Rastoskuev - RTSP Server
+    Marc Luettchau - Redirect Server
+    Grace Huang - Redirect Server
+    Raghavan Kripakaran - Redirect Server
+    Vincent Ribiere - Feature Server, Voicemail Server
+    Barbara Samson - Java Client for Provisioning Server
+    Mahesh Shankar - Deploy
+    Sergey Vasiliev - Voicemail, RTSP Server
+    Krishan Veer - Solaris port, Lexus Routing, Marshal & Redirect Server
+    Surendra Prajapat - IPV6 support, Marshal Server, Provisioning Server
+    Michael Foxworthy - Unknown caller support
+    Yuk-Ming Lam - REFER header support
+    Satish Bhagavatula - Regular Expression dial plan
+    Hemant Agrawal - RS synchronization fix
+    Georg Schwarz <geos@epost.de> - use system libraries instead of contrib, 
+         FreeBSD help
+    Michael Suessner <Michael.Suessner@utanet.at> - Mac OS X port
+    Alejandro Perez - patches for Java GUI
+    Dustin Wildes - VoiceMail server extensions, IRC channel
+    Jon Ringle - shared library build patches
+    Maxim Sobolev - UA, FreeBSD, RADIUS, B2BUA fixes
+    Vladislav Zubarev - SIP-H.323 call signaling gateway
+    Nick Bachmann - fix for allinoneconfigure
+    Gonzalo Valencia - H.323 fix
+
+Thanks To:
+    Steve A.
+    Teju A.
+    Casey B.
+    Shervin B.
+    Laura B.
+    Vicki B.
+    Amit B.
+    Wendy B.
+    David B.
+    Eoin C.
+    Riva C.
+    Amit C.
+    Renee C.
+    Ian C.
+    Dion C.
+    Julie C.
+    Enlai C.
+    Luan D.
+    Mikey D.
+    Charles E.
+    Rick F.
+    Jeff G.
+    Amy G.
+    Ray G.
+    James G.
+    Don G.
+    Kenny H.
+    Cisco H.
+    Doug H.
+    Grace H.
+    Wenqing J.
+    Amber J.
+    Cullen J.
+    Alan K.
+    David K.
+    Sharon K.
+    Mason K.
+    Raghavan K.
+    Sunitha K.
+    Tarun K.
+    Neetha K.
+    Kim L.
+    Chok L.
+    Jack L.
+    Hong L.
+    Hsin-Shi L.
+    Marc L.
+    Bob L.
+    Rob M.
+    Mallik M.
+    Kevin M.
+    Par M.
+    Tom M.
+    Eddie M.
+    Matt N.
+    Bryan O.
+    Sean O.
+    Surendra P.
+    Alejandro Perez 
+    Deepali R.
+    Vincent R.
+    Mahesh S.
+    Erin S.
+    James S.
+    Barbara S.
+    Monika S.
+    Jennifer S.
+    Oscar T.
+    Cheung T.
+    Larry T.
+    Rick T.
+    Krishan V.
+    Mai V.
+    Doug W.
+    Quinn W.
+    Han Y.
+    Tina Z.
+    Jenny Z.
+    Mitch Z.
+    Vlad Z.
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: CONTRIBUTORS.txt,v 1.1 2004/05/01 04:14:55 greear Exp $

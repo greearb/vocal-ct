@@ -1,0 +1,58 @@
+package id1cg26cml8rml8cml8s4f9;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:design#Class#idfapncml7ohuxcml7s7ia.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspstack.test:oiref> 
+*/
+class reference16 {
+}/**
+@__ref <oiref:design#Class#id1bb0dcmqybdckcmqza663.diagram:oiref><oihard>
+@__modelType reference
+@__fqn <oiref:#Package#rtspstack.doc:oiref> 
+*/
+class reference27 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myVersion:oiref>=1466,458,1466,398:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspRecordMsg#RtspRequest:oiref>=1902,1521,1902,1260:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspRequest#RtspMsg:oiref>=1962,942,1962,872:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspPlayMsg#RtspRequest:oiref>=2380,1521,1946,1459,1946,1260:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspAnnounceMsg#RtspRequest:oiref>=1663,1521,1880,1260:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myStatusCodeStrings:oiref>=1684,210,1640,210:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspOptionsMsg#RtspRequest:oiref>=2141,1521,1924,1467,1924,1260:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspSetupMsg#RtspRequest:oiref>=946,1521,1814,1260:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspPauseMsg#RtspRequest:oiref>=2858,1521,1990,1439,1990,1260:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myStatusStrings:oiref>=1500,458,1500,398:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myMethods:oiref>=1684,310,1640,310:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspDescribeMsg#RtspRequest:oiref>=1424,1521,1858,1260:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myVersion:oiref>=1684,110,1640,110:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myStatusStrings:oiref>=1684,160,1640,160:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspMsg#myHeaderMap:oiref>=2132,107,2170,107:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myHeaders:oiref>=1568,458,1568,398:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspTeardownMsg#RtspRequest:oiref>=1185,1521,1836,1260:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspTransceiver#myTcpConnection:oiref>=1139,305,1184,305:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspResponse#RtspMsg:oiref>=2082,942,2082,872:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Rtsp#myHeaders:oiref>=1684,260,1640,260:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myStatusCodeStrings:oiref>=1534,458,1534,398:oigroup>
+<oigroup:<oiref:cpp#Extends#RtspSetParameterMsg#RtspRequest:oiref>=2619,1521,1968,1449,1968,1260:oigroup>
+<oigroup:<oiref:design#Class#id1bb0dcmqybdckcmqza663.diagram:oiref>=934,74,63,63,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#RtspUtil#myMethods:oiref>=1602,458,1602,398:oigroup>
+<oigroup:<oiref:design#Class#idfapncml7ohuxcml7s7ia.diagram:oiref>=1030,74,63,63,1:oigroup>
+*/
+class __positions {
+}

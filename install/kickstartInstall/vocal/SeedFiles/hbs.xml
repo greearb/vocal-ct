@@ -1,0 +1,2 @@
+<heartbeatServer host="HBSHOSTIP" port="0"><group value="HeartbeatGroup"></group>
+</heartbeatServer>

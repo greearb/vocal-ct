@@ -1,0 +1,16 @@
+---- start ----
+fake rsip 4000 aaln/1@gw1.vovida.com mgcp 0.1
+
+---- end ----
+---- start ----
+fake rsip 4000 aaln/2@gw1.vovida.com mgcp 0.1
+
+---- end ----
+---- start ----
+fake rsip 4000 aaln/1@gw2.vovida.com mgcp 0.1
+
+---- end ----
+---- start ----
+fake rsip 4000 aaln/2@gw2.vovida.com mgcp 0.1
+
+---- end ----

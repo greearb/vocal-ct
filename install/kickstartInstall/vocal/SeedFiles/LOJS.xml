@@ -1,0 +1,5 @@
+<jtapiServers><serverGroup displayGroup="JtapiGroup" type="calling" value="JtapiGroupCalling">
+</serverGroup>
+<serverGroup displayGroup="JtapiGroup" type="called" value="JtapiGroupCalled">
+</serverGroup>
+</jtapiServers>

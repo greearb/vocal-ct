@@ -1,0 +1,6 @@
+#txt
+ToConfig:1
+OpFlags:0x3
+cfgInterval:5
+SipOutBoundProxy:0
+UseSip:1

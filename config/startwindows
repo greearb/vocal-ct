@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ "x$OSTYPE" = "xsolaris" ]
+then
+	PATH=/usr/ucb:/usr/openwin/bin:$PATH
+fi
+
+EXIT=0
+P=`whoami`
+if [ $? -ne 0 ] 
+then
+	echo "you must add the location of whoami to your PATH"
+	EXIT=1
+fi
+
+P=`xterm -e false`
+if [ $? -ne 0 ] 
+then
+	echo "you must add the location of xterm to your PATH"
+	EXIT=1
+fi
+
+P=`expect </dev/null`
+if [ $? -ne 0 ] 
+then
+	echo "you must add the location of expect to your PATH"
+	EXIT=1
+fi
+
+if [ $EXIT -eq 1 ]
+then
+	exit 1
+fi
+
+cp ../tools/start-xterms/session.exp  .
+cp ../tools/start-xterms/interact.exp  .
+../tools/start-xterms/start-xterms $1 $2

@@ -1,0 +1,149 @@
+(from doc_deb_rtsp_sock - socket debugs(messages exchanged ) )
+(I think this is the 200 OK - kimle )
+
+DESCRIBE rtsp://rtsp-cisco.cisco.com:554/en_welcome.au RTSP/1.0
+CSeq: 0
+
+RTSP/1.0 200 OK
+Content-length: 482
+Content-type: application/sdp
+Content-base: rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/
+Last-Modified: Thu, 07 Oct 1999 13:51:28 GMT
+X-TSPort: 7802
+vsrc: http://rtsp-cisco.cisco.com:8080/viewsource/template.html?nuyhtgywkgz6mc9AbhC4gn5gBsqp4eA1v1yeC3d4ngEt5o5gwuw4t6x05jbhcv66ngE8xg8f
+Set-Cookie: cbid=ekeghhiljgekgihheoqohpptrrjrktlufkegkioihgjfdlplrnqogpoqlrpskqnuffgjcmcl;path=/;expires=Thu,31-Dec-2037 23:59:59 GMT
+Date: Mon, 10 Apr 2000 15:39:17 GMT
+CSeq: 0
+v=0
+o=- 939300688 939300688 IN IP4 1.13.79.6
+s=<No title>
+i=<No author> <No copyright>
+a=StreamCount:integer;1
+t=0 0
+m=audio 0 RTP/AVP 0
+a=control:streamid=0
+a=rtpmap:0 L8/8000/1
+a=length:npt=3.249000
+a=range:npt=0-3.249000
+a=mimetype:string;"audio/x-pn-au"
+a=StartTime:integer;0
+a=AvgBitRate:integer;64000
+a=AvgPacketSize:integer;320
+a=Preroll:integer;0
+a=MaxPacketSize:integer;320
+a=MaxBitRate:integer;64000
+a=OpaqueData:buffer;"AQABAEAfAAA="
+a=StreamName:string;"audio/x-pn-au"
+
+
+
+-------------------------------------------------------------
+(from doc_deb_rtsp_sock - socket debugs(messages exchanged ) )
+
+DESCRIBE rtsp://rtsp-cisco.cisco.com:554/en_welcome.au RTSP/1.0
+CSeq: 0
+
+
+SETUP rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+CSeq: 1
+Transport: rtp/avp;unicast;client_port=18074
+
+RTSP/1.0 200 OK
+CSeq: 1
+Date: Mon, 10 Apr 2000 15:31:04 GMT
+Session: 24455-1
+Transport: rtp/avp;unicast;client_port=18074-18075;server_port=15562-15563
+
+
+
+PLAY rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+Session: 24455-1
+CSeq: 2
+
+RTSP/1.0 200 OK
+CSeq: 2
+Date: Mon, 10 Apr 2000 15:31:04 GMT
+
+
+TEARDOWN rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+Session: 24455-1
+CSeq: 3
+
+RTSP/1.0 200 OK
+CSeq: 3
+Date: Mon, 10 Apr 2000 15:31:09 GMT
+
+
+
+
+-------------------------------------------------------------
+(from doc_deb_rtsp_ses - Generic client debugs)
+
+DESCRIBE rtsp://rtsp-cisco.cisco.com:554/en_welcome.au RTSP/1.0
+CSeq: 0
+
+
+SETUP rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+CSeq: 1
+Transport: rtp/avp;unicast;client_port=18084
+
+
+PLAY rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+Session: 24457-1
+CSeq: 2
+
+TEARDOWN rtsp://rtsp-cisco.cisco.com:554/en_welcome.au/streamid=0 RTSP/1.0
+Session: 24457-1
+CSeq: 3
+
+
+
+-------------------------------------------------------------
+(email - recording)
+
+ANNOUNCE rtsp://rtsp-ws:1554/sample.au RTSP/1.0
+CSeq: 0
+Content-Length: 21
+Content-Type: application/sdp
+
+m=audio 0 RTP/AVP 0
+
+
+RTSP/1.0 201 Created
+CSeq: 0
+Content-Length: 0
+Server: Columbia RTSP Server 0.0
+
+
+
+SETUP rtsp://rtsp-ws:1554/sample.au RTSP/1.0
+CSeq: 1
+Transport: rtp/avp;unicast;client_port=16998;mode=record
+
+
+RTSP/1.0 200 OK
+CSeq: 1
+Session: 3813183488;timeout=60
+Transport: rtp/avp;unicast;server_port=12000-12001;client_port=16998-16999
+Content-Length: 0
+Server: Columbia RTSP Server 0.0
+
+
+
+RECORD rtsp://rtsp-ws:1554/sample.au RTSP/1.0
+Session: 3813183488;timeout=60
+CSeq: 2
+
+
+RTSP/1.0 200 OK
+CSeq: 2
+Session: 3813183488;timeout=60
+Content-Length: 0
+Server: Columbia RTSP Server 0.0
+
+
+
+
+TEARDOWN rtsp://rtsp-ws:1554/sample.au RTSP/1.0
+Session: 3813183488;timeout=60
+CSeq: 3

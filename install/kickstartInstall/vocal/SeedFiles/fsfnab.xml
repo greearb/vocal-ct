@@ -1,0 +1,3 @@
+<featureServer host="FSFNABHOSTIP" port="FSFNABPORT"><type value="ForwardNoAnswerBusy"></type>
+<group value="ForwardNoAnswerBusyGroup"></group>
+</featureServer>

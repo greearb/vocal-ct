@@ -1,0 +1,509 @@
+>>>> START util/test ( 2000-05-11-17-00-34 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-00-34 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-00-47 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-00-47 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-01-10 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-01-10 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-02-21 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-02-21 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-02-50 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-02-50 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-03-07 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-03-07 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-07-33 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-07-33 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-07-40 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-07-40 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-07-43 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-07-43 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-07-45 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-07-45 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-09-00 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-09-00 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-09-04 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-09-04 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-09-25 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+FAILED: HostMatchTest:1: HostMatch test 8
+FAILED: HostMatchTest:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-09-25 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-09-38 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-09-38 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-19-21 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+FAILED: HostMatchTest:: (exit code: 139, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-19-21 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-19-38 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+PASSED: HostMatchTest:1: HostMatch test 11
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-19-38 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-19-48 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+PASSED: HostMatchTest:1: HostMatch test 11
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-19-48 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-19-55 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+FAILED: HostMatchTest:: (exit code: 139, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-19-55 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-22-10 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+FAILED: HostMatchTest:1: HostMatch test 11
+FAILED: HostMatchTest:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-22-10 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-23-39 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+PASSED: HostMatchTest:1: HostMatch test 11
+PASSED: HostMatchTest:1: HostMatch test 12
+PASSED: HostMatchTest:1: HostMatch test 13
+FAILED: HostMatchTest:1: HostMatch test 14
+FAILED: HostMatchTest:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-23-39 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-26-04 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+PASSED: HostMatchTest:1: HostMatch test 11
+PASSED: HostMatchTest:1: HostMatch test 12
+PASSED: HostMatchTest:1: HostMatch test 13
+FAILED: HostMatchTest:1: HostMatch test 14
+FAILED: HostMatchTest:: (exit code: 1, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-26-04 ) ( bin.debug.i686 )
+>>>> START util/test ( 2000-05-11-17-33-49 ) ( bin.debug.i686 )
+PASSED: SptrTest01:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest02:: (exit code: 134, signal: 0, core: 0)
+PASSED: SptrTest03:: (exit code: 134, signal: 0, core: 0)
+PASSED: VTestTest:0: VTest test 0
+FAILED: VTestTest:1: VTest test 1
+FAILED: VTestTest:2: VTest test 2
+PASSED: VTestTest:: (exit code: 1, signal: 0, core: 0)
+PASSED: DataTest:0: test for < operator
+PASSED: DataTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f VThreadTest:: (exit code: 0, signal: 0, core: 0)
+PASSED: test -f nonexistent_file:: (exit code: 1, signal: 0, core: 0)
+PASSED: HostMatchTest:0: HostMatch test 0
+PASSED: HostMatchTest:1: HostMatch test 1
+PASSED: HostMatchTest:1: HostMatch test 2
+PASSED: HostMatchTest:1: HostMatch test 3
+PASSED: HostMatchTest:1: HostMatch test 4
+PASSED: HostMatchTest:1: HostMatch test 5
+PASSED: HostMatchTest:1: HostMatch test 6
+PASSED: HostMatchTest:1: HostMatch test 7
+PASSED: HostMatchTest:1: HostMatch test 8
+PASSED: HostMatchTest:1: HostMatch test 9
+PASSED: HostMatchTest:1: HostMatch test 10
+PASSED: HostMatchTest:1: HostMatch test 11
+PASSED: HostMatchTest:1: HostMatch test 12
+PASSED: HostMatchTest:1: HostMatch test 13
+PASSED: HostMatchTest:1: HostMatch test 14
+PASSED: HostMatchTest:: (exit code: 0, signal: 0, core: 0)
+<<<< END util/test ( 2000-05-11-17-33-49 ) ( bin.debug.i686 )

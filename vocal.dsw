@@ -1,0 +1,479 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "adt"=.\util\adt\adt.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "base"=.\sip\base\base.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "getopt"=.\contrib\win32\getopt\getopt.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libcext_bsd"=.\contrib\libcext_bsd\libcext_bsd.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libxml"=.\contrib\win32\libxml\libxml.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "pthreads"=.\contrib\win32\pthreads\pthreads.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "regex"=.\contrib\win32\regex\regex.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "rtp"=.\rtp\rtp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "rtpPlay"=.\rtp\test\rtpPlay.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rtp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_behavior
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_config
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_crypto
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_io
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_logging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_services
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_signals
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_snmp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_statistics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_threads
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_transport
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pthreads
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rtpRecord"=.\rtp\test\rtpRecord.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name rtp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_behavior
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_config
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_crypto
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_io
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_logging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_services
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_signals
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_snmp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_statistics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_threads
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_transport
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pthreads
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "sdp"=.\sdp\sdp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "sdp2"=.\sdp\sdp2\sdp2.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "sip"=.\sip\sipstack\sip.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "ua"=.\sip\ua\ua.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name base
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name getopt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libcext_bsd
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libxml
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name pthreads
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name regex
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rtp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name sdp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name sip
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_behavior
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_config
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_crypto
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_io
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_logging
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_services
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_signals
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_snmp
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_statistics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_threads
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name util_transport
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name sdp2
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "util"=.\util\util.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_behavior"=.\util\behavior\util_behavior.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_config"=.\util\config\util_config.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_crypto"=.\util\crypto\util_crypto.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_io"=.\util\io\util_io.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_logging"=.\util\logging\util_logging.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_services"=.\util\services\util_services.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_signals"=.\util\signals\util_signals.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_snmp"=.\util\snmp\util_snmp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_statistics"=.\util\statistics\util_statistics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_threads"=.\util\threads\util_threads.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "util_transport"=.\util\transport\util_transport.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

@@ -1,0 +1,130 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: lz.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="lz">
+  <refmeta>
+    <refentrytitle>lz</refentrytitle>
+
+    <manvolnum>1</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>lz</refname>
+
+    <refpurpose>SIP based Load Generator.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>lz</command>
+
+      <arg choice="opt">options</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>SIP Load Generator (ElGee).</para>
+
+    <para>ElGee is an implementation on top of the Vovida SIP stack, base
+    code, util and other supporting libraries that genrates SIP calls for load
+    and stress testing. You can test SIP calls originating from ElGee against
+    a SIP proxy server or any other SIP UAS.</para>
+
+    <para>This release of ElGee comes with enhanced features:</para>
+
+    <refsect2>
+      <title>Authentication</title>
+
+      <para>ElGee supports HTTP-Basic, HTTP-Digest and SIP-CHAP based
+      authentication. both WWW-Authenticate and Proxy-Authenticate based
+      challenges can be authenticated for INVITEs and REGISTERs.</para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>Running modes</title>
+
+    <para>This release of ElGee supports three running modes : </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Originating</para>
+      </listitem>
+
+      <listitem>
+        <para>Registration</para>
+      </listitem>
+
+      <listitem>
+        <para>Terminating</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>These running modes allow for stress load generation to simulate
+    large number of SIP clients.</para>
+
+    <refsect2>
+      <title>UDP &#38; TCP</title>
+
+      <para>ElGee supports both transport protocols. for
+      originating/registration mode, sample message should specify the
+      transport param in headers, while in terminating mode it listens for
+      both. you can use ElGee more flexibly by using a config file. see the
+      included elgee.conf for different configurable parameters</para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-f arg</term>
+
+        <listitem>
+          <para>specify configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term></term>
+
+        <listitem>
+          <para>source user#[@host[:port]]</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term></term>
+
+        <listitem>
+          <para>dest user#@host:port</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para>More information is available from <ulink
+    url="http://www.vovida.org/">http://www.vovida.org/</ulink></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Copyright</title>
+
+    <para>Copyright 2003, Cisco Systems, Inc.</para>
+
+    <para>THE INFORMATION HEREIN IS PROVIDED ON AN &#34;AS IS&#34; BASIS,
+    WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+    INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</para>
+  </refsect1>
+</refentry>

@@ -1,0 +1,301 @@
+#!/usr/bin/perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+#  $Id: gen-package,v 1.1 2004/05/01 04:15:31 greear Exp $
+
+do "config-build.pl";
+
+open(O1, ">$mgc_events");
+open(O2, ">$mg_events");
+open(O3, ">$type_file_name");
+open(IN, "package-info");
+
+
+print O1 "#include \"$type_file_name\"\n";
+print O1 "#include \"$generic_event_file\"\n";
+#print O1 "#include \"$fake_class\"\n";
+print O1 "#include <string>\n";
+print O1 "\n\n";
+
+print O2 "#include \"$type_file_name\"\n\n\n";
+print O2 "#include \"$generic_event_file\"\n";
+#print O2 "#include \"$fake_class\"\n";
+print O2 "#include <string>\n";
+print O2 "\n\n";
+
+
+
+
+while(<IN>) {
+    chomp;
+
+    # remove lines starting with "#"
+    s/^\#.*$//;
+
+    if(/BeginPackage\s+(\w+)/) {
+
+	$package_name = $1;
+	undef(@item_name);
+	undef(@item_generator);
+	undef(@argument_type);
+	undef(@item_requestable);
+	undef(@item_signal);
+
+	$item_count = 0;
+
+    } elsif(/EndPackage/) {
+
+	#output the package data
+
+
+	&output_package();
+
+
+
+
+
+
+	$package_name = "";
+    } elsif($package_name) {
+	# parse the lines
+
+	s/^\s*//;
+	s/\s*$//;
+
+	@a = split(/\s+/);
+
+	$item_name[$item_count] = $a[0];
+
+	$item_generator[$item_count] = $a[1];
+	$argument_type[$item_count] = $a[2];
+
+	if($a[3] =~ /yes/i) {
+	    $item_requestable[$item_count] = 1;
+	} else {
+	    $item_requestable[$item_count] = 0;
+	}
+
+	$a[4] =~ y/A-Z/a-z/; # make lowercase
+
+	if($a[4] ne "no") {
+	    $item_signal[$item_count] = $a[4];
+	}
+	$item_count++;
+    }
+
+	
+
+}
+close(IN);
+
+
+sub output_package {
+
+    print O3 "typedef enum\n";
+    print O3 "{\n";
+
+    for($i = 0; $i < $item_count; $i++) {
+	print O3 "    Mgc", $package_name, "Package", $item_name[$i],",\n";
+    }
+    print O3 "    Mgc",$package_name,"PackageUndefined\n";
+    print O3 "} Mgcp$package_name", "PackageItemType;\n";
+
+    print O3 "\n\n";
+
+
+    print O1 "class Mgc", $package_name, "Package\n";
+    print O1 "{\n";
+    print O1 "public:\n";
+
+    # read through the request eventable ones
+
+    for($i = 0; $i < $item_count; $i++) {
+	if($item_requestable[$i]) {
+	    print O1 "    static MgcRequestEvent ";
+	    print O1 "request$item_name[$i](";
+
+	    &print_arguments(O1, $argument_type[$i]);
+
+	    print O1 ");\n";
+	}
+    }
+
+    print O1 "\n\n";
+
+    # read through the signals
+
+    for($i = 0; $i < $item_count; $i++) {
+	if($item_signal[$i] eq "oo" || $item_signal[$i] eq "to") {
+	    # on off type
+	    print O1 "    static MgcSignalEvent signal", $item_name[$i], "On(";
+	    &print_arguments(O1, $argument_type[$i]);
+	    print O1 ");\n";
+
+	    print O1 "    static MgcSignalEvent signal", $item_name[$i], 
+	    "Off();\n";
+
+	} elsif($item_signal[$i]) {
+	    # other type
+	    print O1 "    static MgcSignalEvent signal", $item_name[$i], "(";
+	    &print_arguments(O1, $argument_type[$i]);
+	    print O1 ");\n";
+	}
+    
+    }
+
+    print O1 "};\n\n\n";
+
+    print O1 "/// This class has things the Gateway can send to the agent \n";
+    print O1 "class Mgc", $package_name, "PackageEvent : public MgcObservedEvent\n";
+    print O1 "{\n";
+    print O1 "public:\n";
+
+    print O1 "    ///\n";
+    print O1 "    Mgc", $package_name, "PackageEvent(const MgcpGenericEvent& e) : MgcObservedEvent(e) {}\n";
+
+    print O1 "    /// get the type of event that the Gateway is sending to us\n";
+    print O1 "    Mgcp", $package_name, "PackageItemType getType();\n";
+
+#    print O1 "    /// Get the i'th paramter \n";
+#    print O1 "    string getParameter(int index);\n";
+#    print O1 "    /// Get the number of paramters - usually 0 - depends on type\n";
+#    print O1 "    int getNumParameters();\n";
+    print O1 "private:\n";
+    print O1 "// only the Mgc stack can construct these \n";
+    print O1 "};\n";
+
+
+
+    # now, do the Mg
+
+
+
+
+    print O2 "class Mg", $package_name, "Package\n";
+    print O2 "{\n";
+    print O2 "public:\n";
+
+    # read through the request eventable ones
+
+    for($i = 0; $i < $item_count; $i++) {
+	if($item_requestable[$i]) {
+	    print O2 "    static MgNotificationEvent ";
+	    print O2 "notify$item_name[$i](";
+
+	    &print_arguments(O2, $argument_type[$i]);
+
+	    print O2 ");\n";
+	}
+    }
+
+    print O2 "};\n";
+    print O2 "\n\n";
+
+
+
+
+    print O2 "/// This class has things the Gateway can send to the agent \n";
+    print O2 "class Mg", $package_name, "PackageEvent : public MgEvent\n";
+    print O2 "{\n";
+    print O2 "public:\n";
+
+    print O2 "    ///\n";
+    print O2 "    Mg", $package_name, "PackageEvent(const MgcpGenericEvent& e) : MgEvent(e) {}\n";
+
+    print O2 "    /// get the type of event that the Gateway is sending to us\n";
+    print O2 "    Mgcp", $package_name, "PackageItemType getType() { return myEvent.get", $package_name, "Type();}\n";
+
+#    print O2 "    /// Get the i'th paramter \n";
+#    print O2 "    string getParameter(int index);\n";
+#    print O2 "    /// Get the number of paramters - usually 0 - depends on type\n";
+#    print O2 "    int getNumParameters();\n";
+    print O2 "private:\n";
+    print O2 "// only the Mg stack can construct these \n";
+    print O2 "};\n";
+
+
+
+
+    print O2 "/// This class has things the Gateway can send to the agent \n";
+    print O2 "class Mg", $package_name, "PackageRequestedEvent : public MgRequestedEvent\n";
+    print O2 "{\n";
+    print O2 "public:\n";
+    print O2 "    ///\n";
+    print O2 "    Mg", $package_name, "PackageRequestedEvent(const MgcpGenericEvent& e) : MgRequestedEvent(e) {}\n";
+    print O2 "    /// get the type of event that the Gateway is sending to us\n";
+    print O2 "    Mgcp", $package_name, "PackageItemType getType() { return myEvent.get", $package_name, "Type(); }\n";
+
+
+    print O2 "private:\n";
+    print O2 "/// only the Mg stack can construct these \n";
+    print O2 "};\n";
+
+}
+
+
+
+sub print_arguments {
+    local($filehandle, $arguments) = @_;
+
+    if($arguments ne "void") {
+	if($arguments =~ /\,/) {
+	    # more than one, so split and use
+	    @arglist = split(/\,/, $arguments);
+	    for($arg_count = 0 ; $arg_count <= $#arglist; $arg_count++) {
+		print $filehandle "const $arglist[$arg_count]& arg$arg_count";
+		if($arg_count < ($#arglist)) {
+		    print $filehandle ", ";
+		}
+	    }
+	} else {
+	    print $filehandle "const $arguments& arg";
+	}
+    }
+}

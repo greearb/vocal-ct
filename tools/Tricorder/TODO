@@ -1,0 +1,19 @@
+- Make tricorder.pl run with taint-checking turned on
+
+- Add POD to modules
+
+- Sort messages by time sent, not (as implicitly done now) by time received
+
+- Allow for hand-edting of server names
+
+- Allow for batch-processing of more than one file per exec()
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: TODO,v 1.1 2004/05/01 04:15:31 greear Exp $

@@ -1,0 +1,594 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>sipset</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="refentry"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="sipset">sipset</H1
+><DIV
+CLASS="refnamediv"
+><A
+NAME="AEN6"
+></A
+><H2
+>Name</H2
+>sipset, gua&nbsp;--&nbsp;sample User Agent</DIV
+><DIV
+CLASS="refsynopsisdiv"
+><A
+NAME="AEN10"><H2
+>Synopsis</H2
+><P
+><B
+CLASS="command"
+>sipset</B
+></P
+><P
+><B
+CLASS="command"
+>gua</B
+> {-f config_file}</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN16"
+></A
+><H2
+>Description</H2
+><P
+>This is a sample User Agent that uses the Vovida SIP stack.</P
+><P
+>Use sipset to get a graphical user interface. Use gua to get a
+    command-line interface.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN20"
+></A
+><H2
+>sipset Startup</H2
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="images/mainwindow.png"><DIV
+CLASS="caption"
+><P
+>Main Window</P
+></DIV
+></P
+></DIV
+><P
+>When you start up the User Agent, you will see the main screen with
+    a toolbar at the top, and a single entry field with a button labelled
+    "Talk". Once some basic configuration parameters have been
+    entered, you can make a phone call by entering a SIP URI or phone number
+    in the entry field and clicking on the Talk button.</P
+><DIV
+CLASS="tip"
+><P
+></P
+><TABLE
+CLASS="tip"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="./stylesheet-images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>For peer-peer call without a proxy/registrar, just type in the
+      address of the peer peer@host:port in the single entry field. By default
+      SipSet listens on port 5060 for SIP messages. If port 5060 is taken , it
+      tries to take the next port in increments of 1 ( exception is 5061 that 
+      is reserved for TLS). So if fails to use 5060 will try 5062,5063.. and 
+      so on. The port used by the SipSet is logged in the
+      log file and can be looked into using "View" menu option. For example 
+      if SipSet user 1000 and 1001 are running at IP1
+      and IP2 respectively and SipSet port is 5062, to make a call from 1000
+      to 1001, one will type 1001@IP2:5062 and press the talk button.</P
+></TD
+></TR
+></TABLE
+></DIV
+><P
+>In the lower right-hand corner of the main screen there is an icon
+    that lets you know whether you are registered with a SIP Proxy Server. A
+    red X indicates that you are not registered and a green check indicates
+    that you are registered.</P
+><P
+>At the bottom of the main screen is a status message field. This
+    will show you messages indicating the current status of your call.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN32"
+></A
+><H2
+>Basic Configuration</H2
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="images/basicconfig.png"><DIV
+CLASS="caption"
+><P
+>Basic Configuration Window</P
+></DIV
+></P
+></DIV
+><P
+>From the toolbar, select Settings/Basic Configuration. A dialog
+    appears with the following parameters: <P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>User
+    Name</DT
+><DD
+><P
+>Your phone number. This is a required field. If
+    you are routing your calls through VOCAL, this number must be in your
+    VOCAL provisioning. Note that 1000 and 1001 are provisioned in the
+    allinone as samples, so you could start by setting User Name to one of
+    those.</P
+><DIV
+CLASS="tip"
+><P
+></P
+><TABLE
+CLASS="tip"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="./stylesheet-images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>If using SipSet for peer-peer call, just need to
+    set up the user name and skip rest of the basic/advanced configuration.</P
+></TD
+></TR
+></TABLE
+></DIV
+></DD
+><DT
+>SIP
+    Proxy Server</DT
+><DD
+><P
+>the IP address of your SIP Proxy. In
+    most cases you will want to route your calls through a SIP Proxy and also
+    register to receive calls through that proxy. To make calls through the
+    VOCAL allinone system, set this field to the IP address of the machine
+    running the allinone.</P
+><DIV
+CLASS="tip"
+><P
+></P
+><TABLE
+CLASS="tip"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="./stylesheet-images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>The User Agent will attempt to
+    register at the address given in the SIP Proxy field. If that field is
+    left blank, the User Agent will not attempt to register. If you are not
+    registered, you can still make phone calls directly to another SIP phone.
+    If you are using the SipSet to make peer-peer call without a
+    proxy/registrar</P
+></TD
+></TR
+></TABLE
+></DIV
+></DD
+><DT
+>Password</DT
+><DD
+><P
+>for
+    SIP Proxy authentication. This field is only required if your proxy
+    requires authentication. By default, authentication is turned off in a
+    VOCAL allinone installation</P
+></DD
+></DL
+></DIV
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN57"
+></A
+><H2
+>Advanced Configuration</H2
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="images/advancedconfig.png"><DIV
+CLASS="caption"
+><P
+>Advanced Configuration Window</P
+></DIV
+></P
+></DIV
+><P
+>From the toolbar, select Settings/Advanced Configuration. A dialog
+    appears with the following parameters. Note that all of these settings are
+    optional. <P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>Display Name</DT
+><DD
+><P
+>This
+    field defaults to User Name. You may change the Display Name to show a
+    different identity when you make a call.</P
+></DD
+><DT
+>SIP
+    Transport</DT
+><DD
+><P
+>either UDP or TCP.</P
+></DD
+><DT
+>Register
+    From</DT
+><DD
+><P
+>IP of machine this user agent is registering
+    from.</P
+></DD
+><DT
+>Registrar</DT
+><DD
+><P
+>IP
+    of registrar, if different from SIP Proxy.</P
+></DD
+><DT
+>Expires</DT
+><DD
+><P
+>Time
+    (in seconds) until registration expires. The User Agent will attempt to
+    re-register after this time has elapsed.</P
+></DD
+><DT
+>Sound
+    Device</DT
+><DD
+><P
+>Location of sound card.</P
+></DD
+><DT
+>Min
+    RTP Port</DT
+><DD
+><P
+>The lowest port number used by RTP.</P
+></DD
+><DT
+>Max
+    RTP Port</DT
+><DD
+><P
+>The highest port number used by RTP.</P
+></DD
+><DT
+>Log
+    Filename</DT
+><DD
+><P
+>Name of the log that the User Agent will
+    log messages to.</P
+><DIV
+CLASS="tip"
+><P
+></P
+><TABLE
+CLASS="tip"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="./stylesheet-images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>This file must be writable by the User
+    Agent or the program will not run.</P
+></TD
+></TR
+></TABLE
+></DIV
+></DD
+><DT
+>Log
+    Level</DT
+><DD
+><P
+>Verbosity of log messages.</P
+><DIV
+CLASS="tip"
+><P
+></P
+><TABLE
+CLASS="tip"
+WIDTH="100%"
+BORDER="0"
+><TR
+><TD
+WIDTH="25"
+ALIGN="CENTER"
+VALIGN="TOP"
+><IMG
+SRC="./stylesheet-images/tip.gif"
+HSPACE="5"
+ALT="Tip"></TD
+><TD
+ALIGN="LEFT"
+VALIGN="TOP"
+><P
+>To
+    debug the User Agent, set this to LOG_DEBUG_STACK, which is the highest
+    verbosity.</P
+></TD
+></TR
+></TABLE
+></DIV
+></DD
+></DL
+></DIV
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN110"
+></A
+><H2
+>Configuration Details</H2
+><P
+>All configuration parameters are stored in a file called
+    "gua.cfg" which is located in the directory $HOME/.sipset, created
+    the first time sipset runs. The first time you run sipset, all
+    configuration parameters are set to reasonable default values that should
+    allow you to make a phone call. These defaults are determined in the
+    following way: <P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>A set of default parameters is
+    compiled into the code. These will be used if no other parameters are
+    found.</P
+></LI
+><LI
+><P
+>The file "gua.cfg" may be
+    found in the VOCAL allinone install directory (typically
+    /usr/local/vocal/etc). If that file is present, it will override all
+    parameters from the code.</P
+></LI
+><LI
+><P
+>The file
+    "gua.cfg" in your HOME directory. Any parameters in this file take
+    precedence over all others.</P
+></LI
+></OL
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN120"
+></A
+><H2
+>Making a Call</H2
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="images/calling.png"><DIV
+CLASS="caption"
+><P
+>Call in Progress</P
+></DIV
+></P
+></DIV
+><P
+>From the main screen, check to make sure you are registered. The
+    icon on the lower right of the screen will be a green check if you are
+    registered. Type the SIP uri or phone number of the phone you wish to call
+    in the dial entry field. Press Enter or click on the Talk button to
+    initiate the call.</P
+><P
+>As the call progresses, you will see the following status messages
+    at the bottom of the window: <P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>TRYING</DT
+><DD
+><P
+>The
+    User Agent is trying to contact the callee</P
+></DD
+><DT
+>RINGING</DT
+><DD
+><P
+>The
+    callee's phone is ringing</P
+></DD
+><DT
+>IN
+    CALL</DT
+><DD
+><P
+>The call is connected and you can talk.</P
+></DD
+><DT
+>LOCAL
+    HANGUP</DT
+><DD
+><P
+>You terminated the call from your end.</P
+></DD
+><DT
+>REMOTE
+    HANGUP</DT
+><DD
+><P
+>The person you were calling terminated the
+    call.</P
+></DD
+></DL
+></DIV
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN150"
+></A
+><H2
+>Call History</H2
+><P
+>The dial entry field contains a drop-down list of all the numbers
+    you have called. You may select a number from this list or type a new one
+    into the field. To clear the list, select Tools/Clear History.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN153"
+></A
+><H2
+>View Messages</H2
+><DIV
+CLASS="mediaobject"
+><P
+><IMG
+SRC="images/viewmessages.png"><DIV
+CLASS="caption"
+><P
+>View Messages Window</P
+></DIV
+></P
+></DIV
+><P
+>You may view all of the SIP transaction messages generated from and
+    received by the User Agent. Open View/Messages to see these.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN161"
+></A
+><H2
+>gua Startup</H2
+><P
+>When you start gua, you will get a command-line prompt giving you
+    directions on how to proceed. Type <TT
+CLASS="userinput"
+><B
+>h</B
+></TT
+> at any time
+    for help.</P
+><P
+>You must give the location of a configuration file on the command
+    line. A sample file called <TT
+CLASS="filename"
+>sample-gua.cfg</TT
+> is in the
+    gua source directory. Edit this file with a text editor. The following
+    sections on Basic and Advanced Configuration refer to GUI windows where
+    configuration parameters are entered. These parameters get written to a
+    file that has the same format as <TT
+CLASS="filename"
+>sample-gua.cfg</TT
+>.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN168"
+></A
+><H2
+>Copyright</H2
+><P
+>Copyright 2002-2003, Cisco Systems, Inc.</P
+><P
+>&#13;THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</P
+></DIV
+></BODY
+></HTML
+>

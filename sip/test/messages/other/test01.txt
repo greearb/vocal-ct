@@ -1,0 +1,12 @@
+MESSAGE im:user2@domain.com SIP/2.0
+Via: SIP/2.0/UDP user1pc.domain.com
+From: im:user1@domain.com
+To: im:user2@domain.com
+Call-ID: asd88asd77a@1.2.3.4
+CSeq: 1 MESSAGE
+Content-Type: text/plain
+Content-Length: 18
+
+Watson, come here.
+
+

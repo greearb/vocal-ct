@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# find the appropriate java runtime
+
+VOCAL_BASE="/usr/local/vocal"  # VOCAL_BASE
+VOCAL_BASE_CONFIGURED="/usr/local/vocal"
+
+PREFIX=prefix
+
+if [ "$VOCAL_BASE_CONFIGURED" != "@${PREFIX}@" ]
+then
+    VOCAL_BASE=${VOCAL_BASE_CONFIGURED}
+fi
+
+#echo $VOCAL_BASE
+
+JAVA_BIN=`which java 2> /dev/null`
+
+vers=0
+maxvers=0
+
+#JAVA_BIN=""
+# if you cannot find a java, go hunting for one
+if [ "x${JAVA_BIN}" = "x" ]
+then
+    JAVA_EXECS=`echo /usr/j2se*/bin/java /usr/j2sdk*/bin/java /usr/j2re*/bin/java /usr/java/j2re1.4.*/bin/java /usr/java/j2sdk1.4.*/bin/java`
+#    echo $JAVA_EXECS
+    for i in $JAVA_EXECS
+    do
+#	echo 'in loop'
+	if [ -x "${i}" ]
+	then
+#	    echo ${i}
+	    vers=`$i -version 2>&1 | grep '^java version' | sed -e 's/^java version "//; s/"$//;' | sed -e 's/\([0-9]\)\(_\{0,1\}\([0-9]\{0,2\}\)\)$/\1\3/; s/\.\([0-9]\)$/0\100/; s/\./0/g;'`
+
+#	    echo $vers x $maxvers
+	    if [ "${vers}" -gt "${maxvers}" ]
+	    then
+#	    echo ${vers}
+		maxvers=${vers}
+		JAVA_BIN=${i}
+	    fi
+	fi
+    done
+fi
+
+if [ ! -x "${JAVA_BIN}" ]
+then
+    echo "Could not find java binary to run provisioning with.  Please try again."
+    exit
+else
+    ${JAVA_BIN} -jar ${VOCAL_BASE}/bin/psClient.jar $@
+fi

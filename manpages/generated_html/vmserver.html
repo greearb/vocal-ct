@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>vmserver</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="refentry"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="vmserver">vmserver</H1
+><DIV
+CLASS="refnamediv"
+><A
+NAME="AEN6"
+></A
+><H2
+>Name</H2
+>vmserver&nbsp;--&nbsp;VOCAL voice mail control server</DIV
+><DIV
+CLASS="refsynopsisdiv"
+><A
+NAME="AEN9"><H2
+>Synopsis</H2
+><P
+><B
+CLASS="command"
+>vmserver</B
+> [options] [sip-port]</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN14"
+></A
+><H2
+>Description</H2
+><P
+>vmserver controls the voicemail system by controlling a voice mail
+    user agent (UA) which actually handles the SIP calls. vmserver knows about
+    things like answering the call, which greeting to play, and where to send
+    the .wav file which contains the caller's voice mail message.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN17"
+></A
+><H2
+>Options</H2
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>-d</DT
+><DD
+><P
+>fork into background as a daemon(NOTE: this is opposite all
+          other commands)</P
+></DD
+><DT
+>-i</DT
+><DD
+><P
+>run from inetd</P
+></DD
+><DT
+>-f arg</DT
+><DD
+><P
+>specify voicemail configuration file</P
+></DD
+><DT
+>-h arg</DT
+><DD
+><P
+>specify number of VMCP handles</P
+></DD
+><DT
+>-v arg</DT
+><DD
+><P
+>specify the debugging level</P
+></DD
+><DT
+>-m</DT
+><DD
+><P
+>run in IVR mode.  In this mode, vmserver listens on port 9024 instead of 8024.  the corresponding option to ua is -a.</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN44"
+></A
+><H2
+>See Also</H2
+><P
+><SPAN
+CLASS="citerefentry"
+><SPAN
+CLASS="refentrytitle"
+>vocal</SPAN
+>(8)</SPAN
+></P
+><P
+>More information is available from <A
+HREF="http://www.vovida.org/"
+TARGET="_top"
+>http://www.vovida.org/</A
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN52"
+></A
+><H2
+>Copyright</H2
+><P
+>Copyright 2002-2003, Cisco Systems, Inc.</P
+><P
+>&#13;THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</P
+></DIV
+></BODY
+></HTML
+>

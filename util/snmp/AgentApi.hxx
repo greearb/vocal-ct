@@ -1,0 +1,162 @@
+#ifndef AgentApi_H
+#define AgentApi_H
+
+/* ====================================================================
+ * The Vovida Software License, Version 1.0 
+ * 
+ * Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 
+ * 3. The names "VOCAL", "Vovida Open Communication Application Library",
+ *    and "Vovida Open Communication Application Library (VOCAL)" must
+ *    not be used to endorse or promote products derived from this
+ *    software without prior written permission. For written
+ *    permission, please contact vocal@vovida.org.
+ *
+ * 4. Products derived from this software may not be called "VOCAL", nor
+ *    may "VOCAL" appear in their name, without prior written
+ *    permission of Vovida Networks, Inc.
+ * 
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+ * NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+ * NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+ * IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * ====================================================================
+ * 
+ * This software consists of voluntary contributions made by Vovida
+ * Networks, Inc. and many individuals on behalf of Vovida Networks,
+ * Inc.  For more information on Vovida Networks, Inc., please see
+ * <http://www.vovida.org/>.
+ *
+ */
+
+
+
+
+
+static const char* const AgentApiHeaderVersion =
+    "$Id: AgentApi.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+/*
+  This file is used by both the server (RS/FS...) C++ code and the snmp agent process
+  (snmpd ) C code.  The snmpd uses only the type definitions.
+*/
+
+#if defined(__sparc)|| defined(__SUNPRO_CC)
+#if !defined(MAXHOSTNAMELEN)
+#include <netdb.h>
+#if !defined(MAXHOSTNAMELEN)
+#define MAXHOSTNAMELEN 64
+#endif /* !defined(MAXHOSTNAMELEN) */
+#endif /* !defined(MAXHOSTNAMELEN) */
+#endif /* defined(__sparc) */
+
+
+#ifdef __cplusplus
+#include "Sptr.hxx"
+#include "SnmpCommon.h"
+#include "UdpStack.hxx"
+#include "ThreadIf.hxx"
+#include "cpLog.h"
+#include "Mutex.hxx"
+
+#endif /* __cplusplus */
+#include "AgentRegister.hxx"
+#include "AgentApiMibVars.hxx"
+
+#define MANAGERTRAPPORT 33603
+#define NWMUISOCKET 33606
+
+/* global inter process communications timeouts in uSec */
+/* put in file later */
+#define RSAGENTIPCTIMEOUT 1000000
+
+/* return value for statistics not yet implemented */
+#define VO_NA_INT -1
+#define VO_NA_STRING "Not Implemented"
+
+typedef enum
+{
+    Get = 1,
+    Set,
+    Trap,
+    Response,
+    Register,
+    Register_Req
+} actionT;
+
+#define PARM1SIZE 128
+#define PARM2SIZE 1024
+typedef struct
+{
+    actionT action;
+    AgentApiMibVarT mibVariable;
+    unsigned long transactionNumber;
+    char parm1[PARM1SIZE];
+    char parm2[PARM2SIZE];
+}
+ipcMessage;
+
+#ifdef __cplusplus
+
+static Mutex myLock;
+
+class AgentApi: public ThreadIf
+    {
+        public:
+            AgentApi(ServerType inSrvType = SERVER_Unknown, string appName = "unknown");
+            virtual ~AgentApi();
+
+            virtual voReturnStatus processMessage(ipcMessage *message, NetworkAddress *sender) = 0;
+
+            // The following are generally used by the server processes
+            voReturnStatus sendTrap(int trapType, string parameter);
+            ///
+            voReturnStatus sendResponse(int val, NetworkAddress *sender);
+            voReturnStatus sendResponse(unsigned long val, NetworkAddress *sender);
+            voReturnStatus sendResponse(string parameter, NetworkAddress *sender);
+            voReturnStatus sendResponse(void *inData, NetworkAddress *sender);
+
+            //  The following are generally used by the agent processes
+            voReturnStatus sendRequest(string indexName, string setValue);
+            voReturnStatus sendRequest(string indexName, int setValue);
+
+        protected:
+            ///
+            virtual void thread();
+
+        private:
+            ///
+            Sptr < AgentRegister > agentRegister;
+            Sptr < UdpStack > udpStack;
+            int SockNum, MaxSockNum;
+            ipcMessage trapMessage;
+            ipcMessage message;
+            ipcMessage message1;
+            string agentIpStr;
+            ServerType myServerType;
+            string myApplName;
+    };
+
+#endif /* __cplusplus */
+#endif /* AgentApi_H */

@@ -1,0 +1,145 @@
+package id34d3ycjj1c9b7cjj24cb9;
+
+/**
+@version 2.0
+@physicalPackage
+@__modelType diagram 
+*/
+class diagram {
+/**
+@__ref <oiref:cpp#Class#Feature:oiref><oihard>
+@__modelType reference 
+*/
+class reference {
+}/**
+@__ref <oiref:cpp#Class#SipProxyEvent:oiref><oihard>
+@__modelType reference 
+*/
+class reference1 {
+}/**
+@__ref <oiref:cpp#Class#DeviceEvent:oiref><oihard>
+@__modelType reference 
+*/
+class reference2 {
+}/**
+@__ref <oiref:cpp#Class#CallContainer:oiref><oihard>
+@__modelType reference 
+*/
+class reference3 {
+}/**
+@__ref <oiref:cpp#Class#BasicProxy:oiref><oihard>
+@__modelType reference 
+*/
+class reference4 {
+}/**
+@__ref <oiref:cpp#Class#StateMachnData:oiref><oihard>
+@__modelType reference 
+*/
+class reference5 {
+}/**
+@__ref <oiref:cpp#Class#BaseCommandData:oiref><oihard>
+@__modelType reference 
+*/
+class reference6 {
+}/**
+@__ref <oiref:cpp#Class#HeartLessProxy:oiref><oihard>
+@__modelType reference 
+*/
+class reference8 {
+}/**
+@__ref <oiref:cpp#Class#State:oiref><oihard>
+@__modelType reference 
+*/
+class reference9 {
+}/**
+@__ref <oiref:cpp#Class#Builder:oiref><oihard>
+@__modelType reference 
+*/
+class reference10 {
+}/**
+@__ref <oiref:cpp#Class#SipThread:oiref><oihard>
+@__modelType reference 
+*/
+class reference11 {
+}/**
+@__ref <oiref:cpp#Class#WorkerThread:oiref><oihard>
+@__modelType reference 
+*/
+class reference12 {
+}/**
+@__ref <oiref:cpp#Class#TimerEvent:oiref><oihard>
+@__modelType reference 
+*/
+class reference13 {
+}/**
+@__ref <oiref:cpp#Class#SipEvent:oiref><oihard>
+@__modelType reference 
+*/
+class reference14 {
+}/**
+@__ref <oiref:cpp#Class#Operator:oiref><oihard>
+@__modelType reference 
+*/
+class reference15 {
+}/**
+@__ref <oiref:cpp#Class#CallInfo:oiref><oihard>
+@__modelType reference 
+*/
+class reference16 {
+}}/**
+@__tags
+@shapeType ClassDiagram 
+*/
+class __tags {
+}/**
+@__options 
+*/
+class __options {
+}/**
+@__positions <oigroup:<oiref:cpp#Class#State:oiref>=1148,793,503,288,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#CallInfo#myState:oiref>=1046,882,1148,882:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#HeartLessProxy#mySipThread:oiref>=1084,107,1141,107:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#HeartLessProxy#myCallContainer:oiref>=606,251,606,255,357,445:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#WorkerThread#myBuilder:oiref>=155,204,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Extends#BasicProxy#HeartLessProxy:oiref>=834,298,834,251:oigroup>
+<oigroup:<oiref:cpp#Extends#DeviceEvent#SipProxyEvent:oiref>=309,979,309,920:oigroup>
+<oigroup:<oiref:cpp#Class#SipThread:oiref>=1141,26,503,163,1:oigroup>
+<oigroup:<oiref:cpp#Class#WorkerThread:oiref>=13,17,503,163,1:oigroup>
+<oigroup:<oiref:cpp#Class#HeartLessProxy:oiref>=581,23,503,228,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#HeartLessProxy#myWorkerThread:oiref>=581,75,516,75:oigroup>
+<oigroup:<oiref:cpp#Class#Feature:oiref>=1303,570,339,168,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#WorkerThread#myBuilder:oiref>=189,180,189,223:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#CallInfo#myCallData:oiref>=1000,579,1000,551,1229,502:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#HeartLessProxy#myWorkerThread:oiref>=520,56,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Class#StateMachnData:oiref>=1229,407,409,118,1:oigroup>
+<oigroup:<oiref:cpp#Class#Builder:oiref>=11,223,355,168,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#HeartLessProxy#mySipThread:oiref>=1109,87,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Class#DeviceEvent:oiref>=94,979,440,88,1:oigroup>
+<oigroup:<oiref:cpp#Class#CallInfo:oiref>=594,579,452,393,1:oigroup>
+<oigroup:<oiref:cpp#Class#SipEvent:oiref>=28,1096,519,288,1:oigroup>
+<oigroup:<oiref:cpp#Class#TimerEvent:oiref>=589,1152,472,213,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#CallInfo#myFeature:oiref>=1271,638,28,15,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#SipProxyEvent#myCallInfo:oiref>=525,798,594,798:oigroup>
+<oigroup:<oiref:cpp#Class#BasicProxy:oiref>=585,298,503,213,1:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#CallInfo#myCallData:oiref>=1197,482,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Extends#TimerEvent#SipProxyEvent:oiref>=704,1152,535,942,417,920:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#SipProxyEvent#myCallInfo:oiref>=562,778,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Class#CallContainer:oiref>=19,445,503,183,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#HeartLessProxy#myBuilder:oiref>=581,240,374,240,366,240:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#HeartLessProxy#myCallContainer:oiref>=325,426,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Extends#SipEvent#SipProxyEvent:oiref>=66,1096,66,920:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#CallInfo#myTimer:oiref>=786,1133,28,15,0:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#HeartLessProxy#myBuilder:oiref>=370,221,28,15,0:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#CallInfo#myFeature:oiref>=1046,658,1303,658:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#Builder#myCallContainer:oiref>=192,391,192,445:oigroup>
+<oigroup:<oiref:cpp#Class#BaseCommandData:oiref>=1321,228,166,139,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#SipProxyEvent#myCallContainer:oiref>=270,677,270,628:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#CallInfo#myState:oiref>=1116,862,28,15,0:oigroup>
+<oigroup:<oiref:cpp#Class#Operator:oiref>=1158,1142,503,193,1:oigroup>
+<oigroup:<oiref:cpp#Class#SipProxyEvent:oiref>=6,677,519,243,1:oigroup>
+<oigroup:MemberLink#<oiref:cpp#Member#CallInfo#myTimer:oiref>=820,972,820,1152:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#Builder#myCallContainer:oiref>=158,426,28,15,0:oigroup>
+<oigroup:Composite#supplierCardinality#MemberLink#<oiref:cpp#Member#SipProxyEvent#myCallContainer:oiref>=236,628,28,15,0:oigroup>
+*/
+class __positions {
+}

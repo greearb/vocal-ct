@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<HTML
+><HEAD
+><TITLE
+>b2bua</TITLE
+><META
+NAME="GENERATOR"
+CONTENT="Modular DocBook HTML Stylesheet Version 1.76b+
+"></HEAD
+><BODY
+CLASS="refentry"
+BGCOLOR="#FFFFFF"
+TEXT="#000000"
+LINK="#0000FF"
+VLINK="#840084"
+ALINK="#0000FF"
+><H1
+><A
+NAME="b2bua">b2bua</H1
+><DIV
+CLASS="refnamediv"
+><A
+NAME="AEN6"
+></A
+><H2
+>Name</H2
+>b2bua&nbsp;--&nbsp;SIP based Back to Back User Agent.</DIV
+><DIV
+CLASS="refsynopsisdiv"
+><A
+NAME="AEN9"><H2
+>Synopsis</H2
+><P
+><B
+CLASS="command"
+>b2bua</B
+> [options]</P
+><P
+><B
+CLASS="command"
+>b2bua</B
+> [[options]] [pserver_host:port] [backup_pserver_host:port]</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN18"
+></A
+><H2
+>Description</H2
+><P
+>B2bUa is basically two UAs working back-to-back and thus controlling
+    the calls going through it. Unlike a SIP proxy, a b2bua will take an
+    incoming call, modify it and present it in other form to final
+    destination. B2bUa is in the call-signalling-path all the times. There are
+    numerous applications in which b2bUa can be used either as a media
+    negotiator or simply supervising the calls between two parties. The
+    software provides a basic framework for B2Bua and we have added a prepaid
+    billing application on top of that framework.</P
+><P
+>The B2bUa can be confgured either by using the file b2bConfig.xml or
+    using provisioning system. If the provisioning system is used, the
+    pserver_host:port and backup_pserver_host:port must be supplied.</P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN22"
+></A
+><H2
+>Options</H2
+><P
+></P
+><DIV
+CLASS="variablelist"
+><DL
+><DT
+>-c arg</DT
+><DD
+><P
+>specify configuration file</P
+></DD
+><DT
+>-d</DT
+><DD
+><P
+>do not fork into background (no daemon mode)</P
+></DD
+><DT
+>-f arg</DT
+><DD
+><P
+>specify log file</P
+></DD
+><DT
+>-v arg</DT
+><DD
+><P
+>specify log level</P
+></DD
+><DT
+></DT
+><DD
+><P
+>default provisioning server</P
+></DD
+><DT
+></DT
+><DD
+><P
+>backup provisioning server</P
+></DD
+></DL
+></DIV
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN49"
+></A
+><H2
+>Configuration File</H2
+><P
+>Here is the details of each field in the configuration file.</P
+><P
+><P
+CLASS="literallayout"
+>//&nbsp;The&nbsp;block&nbsp;defines&nbsp;the&nbsp;SIP&nbsp;configuration&nbsp;of&nbsp;the&nbsp;B2bUa<br>
+&#60;SIP&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Sip&nbsp;Port&nbsp;and&nbsp;transport&nbsp;used&nbsp;by&nbsp;B2BUa<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Local&#62;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Port&#62;5065&#60;/Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Transport&#62;UDP&#60;/Transport&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Local&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Outbound&nbsp;proxy&nbsp;server&nbsp;address<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Proxy_Server&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Address&#62;172.19.175.156&#60;/Address&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Port&#62;5069&#60;/Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Proxy_Server&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//B2bUa&nbsp;can&nbsp;optinally&nbsp;register&nbsp;itself&nbsp;with&nbsp;SIP&nbsp;Registrar<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Currently&nbsp;not&nbsp;implemented.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Registration&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Possible&nbsp;values&nbsp;(no,&nbsp;yes)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Register&#62;no&#60;/Register&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Address&#62;vocal.vovida.org&#60;/Address&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Port&#62;5060&#60;/Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Registration&nbsp;expiration&nbsp;time&nbsp;in&nbsp;Seconds<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Expires&#62;600&#60;/Expires&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Registration&#62;<br>
+&#60;/SIP&#62;<br>
+<br>
+///The&nbsp;following&nbsp;block&nbsp;defines&nbsp;the&nbsp;Radius&nbsp;server&nbsp;connectivity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&#60;RADIUS&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Deprecated,&nbsp;will&nbsp;be&nbsp;removed&nbsp;in&nbsp;future&nbsp;releases<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Local&#62;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Authentication_Port&#62;1812&#60;/Authentication_Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Accounting_Port&#62;1812&#60;/Accounting_Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Local&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;//Ports&nbsp;where&nbsp;Radius&nbsp;server&nbsp;is&nbsp;listening&nbsp;for&nbsp;Authrozation&nbsp;and<br>
+&nbsp;&nbsp;&nbsp;&nbsp;//and&nbsp;accouting&nbsp;requests&nbsp;from&nbsp;B2Ua.&nbsp;Password&nbsp;is&nbsp;used&nbsp;by&nbsp;B2bUA&nbsp;to&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;//authenticate&nbsp;itself&nbsp;with&nbsp;Radius&nbsp;Server.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;Billing_Server&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Address&#62;172.19.175.156&#60;/Address&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Authentication_Port&#62;1812&#60;/Authentication_Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Accounting_Port&#62;1813&#60;/Accounting_Port&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Password&#62;vovida&#60;/Password&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Billing_Server&#62;<br>
+&nbsp;&nbsp;&#60;/RADIUS&#62;<br>
+<br>
+//The&nbsp;following&nbsp;block&nbsp;defines&nbsp;the&nbsp;B2bUa&nbsp;billing&nbsp;configuration&nbsp;for&nbsp;pre-paid&nbsp;<br>
+//and&nbsp;post-paid&nbsp;calls.<br>
+&nbsp;&nbsp;&#60;PrePaid&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;Billing&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//The&nbsp;option&nbsp;is&nbsp;either&nbsp;free,&nbsp;mandatory&nbsp;or&nbsp;optional.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//If&nbsp;option&nbsp;is&nbsp;"free",&nbsp;B2bUA&nbsp;will&nbsp;ignore&nbsp;the&nbsp;user&nbsp;authorization&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;and&nbsp;will&nbsp;set&nbsp;the&nbsp;call&nbsp;duration&nbsp;to&nbsp;be&nbsp;infinite.It&nbsp;will&nbsp;attempt&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;to&nbsp;generate&nbsp;the&nbsp;billing&nbsp;records,&nbsp;but&nbsp;if&nbsp;it&nbsp;can&nbsp;not&nbsp;talk&nbsp;to&nbsp;the&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;billing&nbsp;server&nbsp;,&nbsp;it&nbsp;will&nbsp;ignore&nbsp;the&nbsp;records<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//If&nbsp;option&nbsp;is&nbsp;"optional",&nbsp;B2bUa&nbsp;will&nbsp;do&nbsp;the&nbsp;authorization&nbsp;however<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//the&nbsp;billing&nbsp;records&nbsp;will&nbsp;be&nbsp;treated&nbsp;the&nbsp;same&nbsp;as&nbsp;"free"&nbsp;option.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//If&nbsp;option&nbsp;is&nbsp;"mandatory",&nbsp;B2bUa&nbsp;will&nbsp;do&nbsp;the&nbsp;authorization.If&nbsp;billing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Records&nbsp;can&nbsp;not&nbsp;be&nbsp;sentto&nbsp;the&nbsp;billing&nbsp;server,&nbsp;the&nbsp;call&nbsp;will&nbsp;be&nbsp;aborted<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Note:&nbsp;This&nbsp;funtinality&nbsp;needs&nbsp;to&nbsp;be&nbsp;implemented&nbsp;though.&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Option&#62;mandatory&#60;/Option&#62;<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Frequency&nbsp;in&nbsp;seconds&nbsp;at&nbsp;with&nbsp;the&nbsp;intermittent&nbsp;billing&nbsp;records&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Will&nbsp;be&nbsp;sent&nbsp;from&nbsp;B2bUa&nbsp;to&nbsp;Radius&nbsp;server&nbsp;during&nbsp;a&nbsp;call.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Refresh_Time&#62;60&#60;/Refresh_Time&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//One&nbsp;of&nbsp;the&nbsp;sip&nbsp;header&nbsp;to&nbsp;look&nbsp;for&nbsp;User&nbsp;Id.&nbsp;User&nbsp;ID&nbsp;is&nbsp;taken&nbsp;as&nbsp;raw<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//data&nbsp;and&nbsp;sent&nbsp;to&nbsp;the&nbsp;Radius&nbsp;srever.Radius&nbsp;server&nbsp;sould&nbsp;be&nbsp;aware&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//of&nbsp;any&nbsp;encryption&nbsp;scheme&nbsp;User&nbsp;id&nbsp;is&nbsp;encryted&nbsp;with&nbsp;and&nbsp;do&nbsp;the&nbsp;right<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;thing&nbsp;to&nbsp;extracxt&nbsp;the&nbsp;User&nbsp;Id&nbsp;from&nbsp;raw&nbsp;data.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Extract_User_Id_From&#62;Proxy-Authorization&#60;/Extract_User_Id_From&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Not&nbsp;used&nbsp;currently,&nbsp;intent&nbsp;was&nbsp;to&nbsp;give&nbsp;hint&nbsp;on&nbsp;the&nbsp;Uid&nbsp;decoding<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//scheme,&nbsp;though&nbsp;B2bUa&nbsp;do&nbsp;not&nbsp;have&nbsp;any&nbsp;plans&nbsp;to&nbsp;use&nbsp;it.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;User_Id_Decode_Scheme&#62;Basic&#60;/User_Id_Decode_Scheme&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&#60;/Billing&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Possible&nbsp;values&nbsp;(yes,&nbsp;no).&nbsp;Used&nbsp;in&nbsp;pre-paid&nbsp;billing,&nbsp;if&nbsp;yes&nbsp;a&nbsp;SIP<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Info&nbsp;message&nbsp;is&nbsp;used&nbsp;to&nbsp;indicate&nbsp;the&nbsp;user&nbsp;his/her&nbsp;available&nbsp;credit.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Use_SIP_INFO&#62;no&#60;/Use_SIP_INFO&#62;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//Possible&nbsp;values&nbsp;(yes,no).&nbsp;Used&nbsp;in&nbsp;click-to-dial&nbsp;scenario.If&nbsp;yes,&nbsp;B2bUa<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//would&nbsp;process&nbsp;the&nbsp;Http&nbsp;event.&nbsp;(&nbsp;Currently&nbsp;not&nbsp;implemented)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#60;Use_HTTP&#62;no&#60;/Use_HTTP&#62;<br>
+&nbsp;&nbsp;&#60;/PrePaid&#62;<br>
+</P
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN54"
+></A
+><H2
+>Example</H2
+><P
+>Example scenario:</P
+><P
+><P
+CLASS="literallayout"
+>&nbsp;&nbsp;UA1&nbsp;&nbsp;&#60;-----------&#62;&nbsp;&nbsp;B2BUA&nbsp;&nbsp;&nbsp;&#60;----&#62;&nbsp;UA2<br>
+192.168.1.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;192.168.1.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;192.168.1.2</P
+></P
+><P
+>Configuration you need:</P
+><P
+></P
+><OL
+TYPE="1"
+><LI
+><P
+>If using VOCAL UA, the Proxy_Server line in configuration file
+        should point to 192.168.1.1. For other UA's make sure the procy
+        setting points to 192.168.1.1</P
+></LI
+><LI
+><P
+>In B2bConfig.xml, Proxy_Server-&#62;Address should point to
+        192.168.1.2 and Proxy_server-&#62;Port should be the sip-port of the
+        UA2.</P
+></LI
+><LI
+><P
+>To disable the authentication and billing, set
+        PrePaid-&#62;Billing-&#62;Option to "free".</P
+></LI
+><LI
+><P
+>When billing is enabled, set
+        RADIUS-&#62;Billing_Server-&#62;Address to the address of billing
+        server.</P
+></LI
+></OL
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN69"
+></A
+><H2
+>See Also</H2
+><P
+>More information is available from <A
+HREF="http://www.vovida.org/"
+TARGET="_top"
+>http://www.vovida.org/</A
+></P
+></DIV
+><DIV
+CLASS="refsect1"
+><A
+NAME="AEN73"
+></A
+><H2
+>Copyright</H2
+><P
+>Copyright 2003, Cisco Systems, Inc.</P
+><P
+>THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS,
+    WITHOUT ANY WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY,
+    INCLUDING WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT,
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</P
+></DIV
+></BODY
+></HTML
+>

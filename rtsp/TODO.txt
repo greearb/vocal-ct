@@ -1,0 +1,44 @@
+BUGS:
+
+* last few packets of rtp stream lost, or miscalculations somewhere
+* Windows Media Player doesn't display correct size of *.au file
+
+
+
+TODO:
+
+* add rtcp ports in creating rtp session
+
+* RTCP BYE needs to be handled for RTSP
+RTSP spec doesn't provide a mechanism through which a server could
+indicate the client about the end of a playout. The way currently it's
+handled is that the server indicates the duration of a presentation as
+part of session setup(actually part of DESCRIBE response). Once the play
+has started, the client starts a timer and at the expiry of timer it's
+assumed that the play is over - which is true in almost all cases. But
+there are cases where server doesn't know the duration of a play
+ahead(during session setup). For eg., TTS(Text to speech) environment
+the server doesn't know the actual duration of playout. One way to
+handle this is to send the client max duration(say 3 min or so) and once
+the play is done, the server would be sending RTCP BYE.  Remember, RTSP
+uses RTP/RTCP for play out(just like voice call). When the RTCP bye is
+received, the client could go ahead and close the session.
+
+
+
+PENDING CODE REVIEW COMMENTS:
+
+* OpPlay, use internal pause events.  Instead of static process functions
+
+* RtspServer, pass around the sessionId instead of the state
+    remove state information form RtspServer
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: TODO.txt,v 1.1 2004/05/01 04:15:23 greear Exp $

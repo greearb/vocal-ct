@@ -1,0 +1,51 @@
+Stage Tools
+$Id: README,v 1.1 2004/05/01 04:15:28 greear Exp $
+
+This directory contains staging tools for VOCAL.  The staging tools
+are used to decide which files are needed to be copied to a VOCAL
+installation, to copy those files, and to produce binary packages
+(both tar.gz and RPM) from these file lists.
+
+Files include:
+
+	filelist.conf -- this contains a list of the files which are
+	copied from elsewhere in the VOCAL tree to a binary install.
+
+	version.conf -- the version of VOCAL for this release.  we
+	should update this periodically
+
+	rpmversion.conf -- the version of the RPM spec for the
+	vocalbin spec file.
+
+	vocalbin.spec.in -- the RPM spec file for a binary release of
+	VOCAL.  the vocalbin.spec.in produces vocalbin.spec via a sed
+	subsititution to produce vocalbin.spec, which produces a
+	binary-only RPM, like a closed source product, by building the
+	binaries using the traditional VOCAL process and then RPMizing
+	these binaries, instead of building from source like a
+	traditional RPM does.
+
+	However, this fits better into the VOCAL process, and it's
+	easier to get this sort of RPM right because you don't have to
+	keep rebuilding VOCAL over and over and over.  vocalbin.
+
+	vocal.spec -- this is an RPM spec file that follows the RPM
+	philosophy and contains a tar.gz of VOCAL.  However, it
+	doesn't work yet...
+
+	stage/newstage.pl -- this is the script which copies the files
+	over from the rest of the VOCAL tree to here.
+
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:28 greear Exp $

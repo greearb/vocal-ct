@@ -1,0 +1,164 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+
+<!--
+$Id: vocalconf.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+-->
+
+<refentry
+id="vocalconf"
+revision="$Id: vocalconf.xml,v 1.1 2004/05/01 04:15:16 greear Exp $"
+><refmeta
+><refentrytitle
+>vocalconf</refentrytitle
+><manvolnum
+>5</manvolnum
+><refmiscinfo
+class="title"
+>vovida.org</refmiscinfo
+></refmeta
+><refnamediv
+><refname
+>vocalconf</refname
+><refpurpose
+><acronym
+>VOCAL</acronym
+> configuration file</refpurpose
+></refnamediv
+><refsynopsisdiv
+><cmdsynopsis
+><command
+>/usr/local/vocal/etc/vocal.conf</command
+></cmdsynopsis
+></refsynopsisdiv
+><refsect1
+><title
+>Description</title
+><para
+><filename
+>vocal.conf</filename
+> is a file for controlling the behavior of <abbrev
+>VOCAL</abbrev
+>components. Lines which begin with <literal
+>#</literal
+>are comments. Each line of the <filename
+>vocal.conf</filename
+> file consists of two parts. First, is the parameter name, which is typically in all caps. after that, a single space, which is followed by the value of that entry.</para
+><para
+></para
+></refsect1
+><refsect1
+><title
+>Options</title
+><para
+>The following options are available in the <filename
+>vocal.conf</filename
+>file.</para
+><variablelist
+><varlistentry
+><term
+>VOCALUSER</term
+><listitem
+><para
+>The user for vocald to run programs as. this should be set to something like <literal
+>nobody</literal
+>.</para
+></listitem
+></varlistentry
+><varlistentry
+><term
+>PSERVER</term
+><listitem
+><para
+>The default pserver, in the form <literal
+>IPADDR:PORT</literal
+></para
+></listitem
+></varlistentry
+><varlistentry
+><term
+>PSERVERBACKUP</term
+><listitem
+><para
+>The backup pserver, in the form <literal
+>IPADDR:PORT</literal
+></para
+></listitem
+></varlistentry
+><varlistentry
+><term
+>PSERVERMCAST</term
+><listitem
+><para
+>The multicast address for redundant pservers, in the form <literal
+>IPADDR:PORT</literal
+></para
+></listitem
+></varlistentry
+><varlistentry
+><term
+>REQUIRE_TLS</term
+><listitem
+><para
+>Require clients to connect via TLS.</para
+></listitem
+></varlistentry
+></variablelist
+></refsect1
+><refsect1
+><title
+>See Also</title
+><para
+><citerefentry
+><refentrytitle
+>vocal</refentrytitle
+><manvolnum
+>8</manvolnum
+></citerefentry
+><citerefentry
+><refentrytitle
+>vocald</refentrytitle
+><manvolnum
+>8</manvolnum
+></citerefentry
+><citerefentry
+><refentrytitle
+>vocalctl</refentrytitle
+><manvolnum
+>8</manvolnum
+></citerefentry
+></para
+></refsect1
+><refsect1
+><title
+>Diagnostics</title
+><para
+></para
+></refsect1
+><refsect1
+><title
+>Bugs</title
+><para
+></para
+></refsect1
+><refsect1
+><title
+>Authors</title
+><address
+></address
+></refsect1
+>
+<refsect1>
+<title>Copyright</title>
+<para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+<para>
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</para>
+</refsect1>
+
+</refentry
+>

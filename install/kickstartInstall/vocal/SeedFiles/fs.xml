@@ -1,0 +1,3 @@
+<featureServer host="FSHOSTIP" port="FSPORT"><type value="FSTYPE"></type>
+<group value="FSTYPEGroup"></group>
+</featureServer>

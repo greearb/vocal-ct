@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use Socket;
+require "getopts.pl";
+
+$sleeptime = .1;
+
+&Getopts("H:p:c:s:");
+
+if($opt_s) { 
+    $sleeptime = $opt_s;
+}
+
+$hostname = "localhost";
+
+if($opt_H) {
+	$hostname = $opt_H;
+}
+$port = "2427";
+if($opt_p) {
+	$port = $opt_p;
+}
+$sockaddr = "S n a4 x8";($name,$aliases,$proto) = getprotobyname('udp');
+
+chop($local_hostname = `hostname`);
+($name,$aliases,$type,$len,$myaddr) = gethostbyname($local_hostname);
+
+($name,$aliases,$type,$len,$broadaddr) = gethostbyname($hostname);
+
+$me   = pack($sockaddr,PF_INET, 7000,     $myaddr);
+$them = pack($sockaddr,PF_INET, $port, $broadaddr);
+
+socket(S, PF_INET, SOCK_DGRAM, $proto) || die $!;
+bind(S, $me) || die $!;
+
+open(F, $ARGV[0]) or die "can't open $ARGV[0] $!";
+while(<F>) {
+    if($_ =~ /^\-\-\-\- start \-\-\-\-/) {
+	$msg = "";
+	$flag = 1;
+    } elsif ($_ =~ /^\-\-\-\- end \-\-\-\-/) {
+	print "$msg";
+	if($opt_c) {
+	    $win = '';
+	    vec($win, fileno(S),1) = 1;
+	    for($i = 0; $i < $opt_c ; $i++) {
+		if(select(undef, $wout=$win, undef, undef)) {
+		    print ".";
+		    defined(send(S,$msg,0,$them)) || die "failed: $! $?";
+		} else {
+		    die "select problem!";
+		}
+#		select undef, undef, undef, $sleeptime;
+	    }
+	} else {
+	    send(S,$msg,0,$them) || die $!;
+	}
+	$flag = 0;
+    } elsif ($flag == 1) {
+	$msg .= $_;
+    }
+}
+close(F);
+

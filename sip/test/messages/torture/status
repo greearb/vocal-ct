@@ -1,0 +1,44 @@
+test
+
+
+1	n
+2	y
+3	n need to support non-sip urls
+4	y
+5	y
+6	n mangles content-data area when trying to fix continuing lines
+7	y
+8	n ( should stack correct method / cseq mismatch ? )
+9	n missing authorization
+10	n should only interpret topmost msg (e.g. content-length issue)
+11	y should stack warn due to missing to / from / callid
+12	n stack should warn due to duplicated From and Call-ID.
+13	n expires header gets whacked
+14	y need proxy behavior cleanup
+15	n needs to reject messages like this
+16	n fixes content-length for bad message (?)
+17      n fixes content-length for bad message (?)
+18	n needs to ignore bad data
+19	
+20	
+21	n cleaner error form...
+22	n cleaner error form...
+23	n needs to eat whitespace or return an error
+24	n should we return the unescaped values of parameters?
+25	n needs to return unescaped values of parameters...
+26      n failed to parse non-uri
+27	y
+28	y
+29	y
+30	y
+31	y
+32	
+33	n needs to not accept escaped headers here.
+34	y
+
+37	y
+38	y
+39	y
+40	?
+41	? should parser warn or something here?
+42	? should parser warn or something here?

@@ -1,0 +1,34 @@
+.TH vocald 8  vovida.org 
+.\" auto-generated from vocald\&.xml by docbook2manxml
+.SH NAME
+vocald    \- control a VOCAL system  
+.SH SYNOPSIS
+\fBvocald\fR
+[\fB-dn\fR]
+[\fB-f config_file\fR]
+[\fB-D debug_level\fR]
+.SH DESCRIPTION
+The vocald server controls the processes in a vocal(8) system\&.
+People only wishing to run VOCAL and not debug it should run vocalctl(8)
+instead\&.
+.SH OPTIONS
+.TP 
+-d
+run vocald in no daemon mode to allow debugging messages to
+the console\&.
+.TP 
+-D \fIdebug_level\fR
+set the debugging level\&.
+.TP 
+-f \fIconfig_file\fR
+set the config file (which defaults to
+/usr/local/vocal/etc/vocal\&.conf)\&.
+.SH SEE ALSO
+\fBvocalctl\fR(8)\fBvocalconf(5)vocal\fR(8)
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

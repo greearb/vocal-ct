@@ -1,0 +1,281 @@
+#!/usr/bin/expectk -f
+## *********************************************************************
+## 
+## $Id: getcacert.tk,v 1.1 2004/05/01 04:15:31 greear Exp $
+## 
+## *********************************************************************
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal\@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+## 
+## *********************************************************************
+## 
+## $Log: getcacert.tk,v $
+## Revision 1.1  2004/05/01 04:15:31  greear
+## Initial revision
+##
+## Revision 1.4  2001/03/08 16:36:21  wbreu
+## use Vocal license instead of GNU
+##
+## Revision 1.3.4.1  2001/03/08 23:27:13  wbreu
+## Replace GNU license text with Vocal license.
+##
+## Revision 1.3  2000/12/05 22:38:29  wbreu
+## rearranged the GUI layouts so that they all have the same
+## look and feel, and automatically set the default paths
+## if $MY_TCLTK_PATH and $OPENSSL_PATH environment variables
+## are not set.
+##
+## Revision 1.2  2000/07/05 22:59:33  hyu
+## Merging BRANCH_CURD into HEAD.
+##
+## Revision 1.1.2.1  2000/06/27 23:13:02  wbreu
+## Tk/expect scripts to do device enrollment
+##
+##
+## *********************************************************************
+## expectk gui to get CA certificate info (public key info) from 
+## CA authority
+##
+## Output files:
+## CACertB64.dat  - CA certificate in PEM format
+## cert_00001.dat - CA certificate in DER format (needed by OSP client)
+
+
+# set window title  "." is the main window
+wm title . "Enroll getcacert"
+
+# proc CommandEntry { name label width command args } {
+proc CommandEntry { name label width args } {
+    frame $name -borderwidth 10
+    label $name.label -text $label -width $width -anchor w
+    eval { entry $name.entry -relief sunken -width 45} $args
+    pack $name.label -side left
+    pack $name.entry -side left -fill x -expand true
+    # bind $name.entry <Return> $command
+    return $name.entry
+}
+
+# Let CommandEntry to create a frame for each label/entry
+# caurl is a required field
+# fprint is optional
+CommandEntry .caurl  caURL        20 -textvariable caurl
+CommandEntry .fprint fprint_file  20 -textvariable fprint_file
+
+label .info1 -text "./CACertB64.dat stores the CA certificate in PEM format" \
+            -width 60 -anchor w
+label .info2 -text "./cert_00001.dat stores the CA certificate in DER format" \
+            -width 60 -anchor w
+
+set caurl "http://sherbet/cgi-bin/osp_server_iis.dll"
+
+# set fingerprint
+# default fingerprint (as per TransNexus OSP Server, beta version):
+set fprint "BF41D962D8F0CA9468C7A459B95629556D3F3807"
+#set fprint "a112e84aa68b4cca9aeb89ff2c4c7bb9473f5720"
+
+# set default finger print file:
+set fprint_file "./caFprint.dat"
+
+
+# Create buttons
+frame  .button
+button .button.quit -text "Quit" -command Quit
+set but [button .button.run -text "Run" -command Run]
+button .button.help -text "Help" -command Help
+pack .button.quit .button.run .button.help -side right
+
+pack .button -side top -anchor w -ipadx 190
+pack .caurl .fprint -side top 
+pack .info1 -side left -ipadx 22 -side top
+pack .info2 -side left -ipadx 22 -side top
+
+# set up key binding equivalents to the buttons
+bind .caurl      <Return> Run
+bind .caurl      <Control-c> Stop
+focus .caurl  
+
+# create a text widget to log the output 
+frame .t
+set log [text .t.log -width 80 -height 10 \
+    -borderwidth 2 -relief raised -setgrid true \
+    -yscrollcommand {.t.scroll set}]
+scrollbar .t.scroll -command {.t.log yview}
+pack .t.scroll -side right -fill y
+pack .t.log -side left -fill both -expand true
+pack .t -side top -fill both -expand true
+
+# get path to access openssl
+global myssl_path
+if [info exists env(OPENSSL_PATH)] {
+    set myssl_path "$env(OPENSSL_PATH)"
+} else {
+    $log insert end "default env(OPENSSL_PATH) to ./\n"
+    set myssl_path "./"
+}
+
+# keep a trace log of this script:
+global fileId
+set fileId [open /tmp/getcacert.out w 0600]
+
+global firstLine
+set firstLine 0
+
+#display help text:
+proc Help {} {
+    global log
+    set helptxt \
+"Enter the following fields:\ncaurl - url for the Certificate Authority\nfprint_file - file name containing the CA's fingerprint\n"
+    $log insert end $helptxt\n
+}
+
+# run the program and arrange to read its input
+proc Run {} {
+    global caurl fprint input log but fprint_file 
+
+    # read fingerprint from specified file
+    if {[file exists $fprint_file] == 1} {
+        set fp [open $fprint_file r]
+        if {[gets $fp line] >= 0} {
+            puts [format "debug: fingerprint=%s" $line]
+            set fprint $line
+        }
+        close $fp 
+    }  
+    # else, use default fingerprint
+
+    set cmdStr [format \
+       "./osptnep enroll -function getcacert -caurl %s -fprint %s" $caurl $fprint]
+    puts [format "debug: %s" $cmdStr]
+    if [catch {open "|$cmdStr"} input] {
+        # catch bogus command
+        $log insert end $input\n
+        return
+    } else {
+        # bind $input to Log {}:
+        fileevent $input readable Log
+        $log insert end $caurl\n
+        $but config -text Stop -command Stop
+        $log insert end "CA certificate is stored in file, ./CACertB64.dat\n"
+        $log see end
+    }
+}
+
+proc ConvertCACert {} {
+    global log myssl_path
+
+    if [file exists ./CACertB64.dat] {
+       # CA cert exists
+        $log insert end "CA certificate is generated\n"
+     } else {
+        $log insert end "CA certificate is not generated\n"
+        $log see end
+        return
+     }
+
+    #  convert CA certificate from PEM to DER format:
+    if [ catch [set pid "spawn $myssl_path/openssl"] reason ] {
+       $log insert end "failed to spawn openssl: $reason\n"
+       return
+    }
+    set timeout 10
+    expect { 
+        timeout { puts "openssl timed out\n" }
+        "OpenSSL>" { $log insert end $expect_out(buffer) }
+    }
+    exp_send "base64 -d -in CACertB64.dat -out cert_00001.dat\r"
+    expect "OpenSSL>" {
+        exp_send "bye\r"
+        $log insert end $expect_out(buffer)
+        $log insert end "\nCA cert is converted to DER, request completes\n"
+        $log see end
+        return
+    }
+}
+
+# read and log output from the program
+proc Log {} {
+    global input log fileId firstLine
+    set getcacert "inprogress"
+    if [eof $input] {
+        Stop
+    } else {
+        # skip logging first line
+        if {$firstLine == 0} {
+            incr firstLine 1
+            puts [format "debug: firstLine encountered=%s\n" $input]
+            return
+        } else {
+            gets $input line
+            puts $line
+            $log insert end $line\n
+            # display the end of the log
+            $log see end
+            # write output to /tmp/getcert.out; create file if it
+            # does not exist
+            puts $fileId $line
+            if [string match "Program ends" $line] {
+                ConvertCACert
+            }
+        }
+    }
+}
+
+# stop the program and fix up the button
+proc Stop {} {
+    global input but
+    catch {close $input}
+    $but config -text "Run" -command Run
+}
+
+proc Quit {} {
+    global fileId fprint_file
+    # close /tmp/tkTest.out
+    close $fileId 
+    exit
+}
+
+# end of getcacert.tcl

@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: vocalctl.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="vocalctl">
+  <refmeta>
+    <refentrytitle>vocalctl</refentrytitle>
+
+    <manvolnum>8</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>vocalctl</refname>
+
+    <refpurpose>control a VOCAL system</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>vocalctl</command>
+
+      <arg choice="opt">-dn</arg>
+
+      <arg>command</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para><citerefentry><refentrytitle>vocalctl</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    is a frontend to the <citerefentry><refentrytitle>vocald</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    process controller for VOCAL. It</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Commands</title>
+
+    <para>vocalctl takes a number of commands, or if no command is passed, it
+    lists the commands which can be used.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term>respawn &#60;process&#62;</term>
+
+        <listitem>
+          <para>enable automatic respawning of tasks if the task e</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>config</term>
+
+        <listitem>
+          <para>print vocal.conf configuration values</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>stop</term>
+
+        <listitem>
+          <para>stop vocald</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>shutdown</term>
+
+        <listitem>
+          <para>stop vocald (no error if not running)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>status</term>
+
+        <listitem>
+          <para>show status of processes</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>start</term>
+
+        <listitem>
+          <para>start vocald</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>reload</term>
+
+        <listitem>
+          <para>reread vocal.conf configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>norespawn &#60;process&#62;</term>
+
+        <listitem>
+          <para>disable automatic respawning of tasks if the task</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>disable &#60;process&#62;</term>
+
+        <listitem>
+          <para>disable process (or all if no argument)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>enable &#60;process&#62;</term>
+
+        <listitem>
+          <para>enable process (or all if no argument)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>restart</term>
+
+        <listitem>
+          <para>restart vocald (or start if not running)</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>run vocald in debugging mode (and in no daemon mode) to allow
+          debugging messages to appear on the console.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-n</term>
+
+        <listitem>
+          <para>do not interact with the user if there are problems (suitable
+          for scripting).</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para><citerefentry><refentrytitle>vocal</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+    <citerefentry><refentrytitle>vocald</refentrytitle><manvolnum>8</manvolnum></citerefentry></para>
+
+    <para>More information is available from <ulink
+    url="http://www.vovida.org/">http://www.vovida.org/</ulink></para>
+  </refsect1>
+<refsect1>
+<title>Copyright</title>
+<para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+<para>
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</para>
+</refsect1>
+
+</refentry>

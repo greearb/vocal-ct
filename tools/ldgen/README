@@ -1,0 +1,51 @@
+This README is obsolete.  It is included for historical purposes only.
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+The tool is not supported in 1.5.0 release.
+
+This directory contains scripts to:
+
+genFeatures.pl - generate feature cpl files 
+genUsers.pl    - generate user account xml files
+ranLoadGen.pl  - perl driver of start-uaxterms srcipt,
+                 it randomly selects a pair of call ids given a
+                 range, and fix up the ua.cfg files in the call
+                 and rec directories respectively, then start
+                 up ua for x (user provided parameters) times,
+                 then repeat the select user ids, fix up cfg
+                 files and run ua's again.
+
+Generate users:
+--------------
+
+   This script will generate a large number of users and put them in
+the correct directories within the provisioning data. It starts at
+the specified start user # and increments from there.
+
+ ../vocal/tools/ldgen/genPutUsers.pl
+
+ usage:  ./genPutUsers.pl <start user #> <number of users>
+
+The script relies upon a c++ executable called PutMultipleFiles.
+In order to use this you will need to do the following:
+  ../vocal/provisioning/conversion/make
+Then copy the resulting executable into the directory where you
+want to run genPutUsers.
+  Need to create a file called 'tplate' which is an xml file that
+will be used as the template for the generated users. It is best
+to generate a valid one via the GUI and then copy the file over.
+
+Note: You may want to modify genPutUsers.pl if your provisioning data
+is not in: /usr/local/vocal/provisioning_data
+
+Once you have the users generated you can begin registering them.
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $

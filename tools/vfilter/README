@@ -1,0 +1,98 @@
+This README is obsolete.  It is included for historical purposes only.
+VFilter readme
+
+Tool deprecated and not supported in 1.5.0 release.
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+
+simple filtering class.
+
+
+VFilter is a simple filtering class. 
+
+To use VFilter, do the following:
+
+1.  run unix.  there is no vxworks support in it right now.
+
+2.  define the environment variable SIP_FILTER !  This is important!
+use
+
+	setenv SIP_FILTER 1
+        # to undefine, use:  unsetenv SIP_FILTER
+
+in tcsh, or 
+
+	SIP_FILTER=1 ; export SIP_FILTER
+
+in bash to enable.
+
+VFilter prints out information as it starts running about this.
+
+3.  run the appropriate infilter.pl and outfilter.pl code to filter
+the incoming and outgoing sides of the connections.  this code is in
+the vfilter directory under tools .
+
+You must run the infilter.pl and outfilter.pl in the correct
+directory.  this is the same directory that you ran your sip
+application in.  If you have started the sip program with SIP_FILTER
+set, you should now see the following files in your directory:
+
+	
+	sip-inpipe.in
+	sip-inpipe.in.ctl
+	sip-inpipe.out
+	sip-inpipe.out.ctl
+	sip-outpipe.in
+	sip-outpipe.in.ctl
+	sip-outpipe.out
+	sip-outpipe.out.ctl
+
+these are named pipes (unix fifos) which are used by the perl side.
+
+Now, if you run the infilter.pl and outfilter.pl, you should see
+something like:
+
+	# ./infilter.pl
+
+	waiting for message
+
+	# ./outfilter.pl
+
+	waiting for message
+
+now, all code going sent to/from the SIP code goes through this filter.
+
+
+
+about the perl scripts
+
+
+the perl scripts are essentially identical apart from the name of the
+fifos which it sits on.
+
+the actual loop where messages are modified is at the bottom of the
+perl code.  It looks like this:
+
+
+while (1) {
+    print "waiting for message\n";
+    $buf = recMsg();
+    print "got msg... parsing and retransmitting\n";
+    $buf = &filter($buf);
+    sendMsg($buf);
+}
+
+this code receives a message, prints out the "got msg..." notice, then
+calls a function &filter.  the result of &filter() is sent back to the
+SIP stack.
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:31 greear Exp $

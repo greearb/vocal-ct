@@ -1,0 +1,98 @@
+====================================================================
+LICENSE AND COPYRIGHT
+====================================================================
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+====================================================================
+INTRODUCTION
+====================================================================
+
+The focus of this Media Server is to consolidate all
+of VOCAL's end-user messaging into one system.
+The first version will be based off the current voicemail
+server code.
+
+After a stable media server is created, we can then focus
+on creating different modules like controlling XML services,
+Music-on-Hold, Intercom, Instant Messaging, Video Conferencing,
+etc....
+
+The sip agent of this project will revolve around the Cisco
+7940/7960 phone.  After the server is stable and running
+correctly with the Cisco phone, we then will start adding
+support for agents.
+
+
+--Dustin Wildes
+dustin@wildespc.com
+
+Please see
+
+	http://www.wildespc.com/voip/
+
+for more details.
+
+==========================
+== System Initial Setup ==
+==========================
+
+The Mailbox Administrator (vmadmin) listens on port 9024
+and uses a fsvm server on port 5210 with uavm's 5270-5279.
+This is the default configuration and will be easier to modify
+in the future.
+
+Here is a small run-down of how the player works:
+
+<initial connection>
+===Play Prompt:  LOGIN
+<user enters 4 digit ext & presses '#'
+===Play Prompt:  PASSWORD
+<user enters password & presses '#'
+
+If login is successful:
+===Play Prompt: HEADER
+===Play Prompt: MAINMENU
+
+If login is unseccessful:
+===Play Prompt:  LOGININCORRECT
+**REPEAT LOGIN PROCEDURE**
+
+The REPEAT loop will go one for 3 login attempts.
+If the user doesn't correctly login within 3 attempts,
+the session is terminated.
+
+
+=====================
+== MENU NAVIGATION ==
+=====================
+
+After Login is successful and after Prompts HEADER &
+MAINMENU play, the user is given navigational options:
+
+2 --	Plays current Message
+3 --	Plays Time & Date message was received <not implemented yet>
+4 --	Goes to previous message & automatically plays it
+5 --	Forwards message to another mailbox <not implemented yet>
+6 --	Goes to next message & automatically plays it
+7 --	Restore Current Deleted Message
+8 --	Delete Current Message
+9 --	Enter Administration Menu <not implemented yet>
+
+
+=========================
+== ADMINISTRATION MENU ==
+=========================
+
+This feature isn't implemented yet
+======================================================================
+
+Portions of this file are 
+Copyright 2002-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:38 greear Exp $

@@ -1,0 +1,365 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; U; Linux 2.2.18 i686) [Netscape]">
+</head>
+<body>
+0.&nbsp; Move more of the server code or common to client part into stack
+library.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Mime library is needed
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; sdp stack needs improvements
+and easier API
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return by value doens't
+need const
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return by ref needs const
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; suppress copy constructor
+as private
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; add "Noncopyable" to prevent
+copying
+<p>1.&nbsp; license on all files
+<p>2.&nbsp; need doc++ param
+<p>2.&nbsp; surpess copy and assignment operators
+<p>3. RtspTransceiver:
+<br>&nbsp;&nbsp;&nbsp; Ptr -> reference for both data mem
+<br>&nbsp;&nbsp;&nbsp;&nbsp; remove closeConnection
+<br>&nbsp;&nbsp;&nbsp;&nbsp; .cxx line 57 and 58 swap
+<p>&nbsp;4. move all function in RtspUtil to RtspTransceiver
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; use conn.writeData
+<p>4.&nbsp; RtspTransceiver.hxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove closeTcpConnection
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove myREcvFifo data
+member, not used anywhere
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove references to Udp
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - assert in send rtsp msg
+since it's not done
+<p>&nbsp;5. RtspTcpConnection
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - take out the udp related commenting
+codes
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - TreadWrapper -> extern "C" function,
+Sun does not like it
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Put into
+source and make it static.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - Constructor use reference
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - ShareRecv -> msgFifo
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - All Copy constructor / operator =
+for server, declare it in private
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; because no copy or assign
+allowed
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - SigTerm put in the beginning of the
+server
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - select() is not good for windows,
+use WSAsync?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - only thing should be in public is
+Constructor and destroctor
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - make recvTcpThread and wrapper
+private
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - combine destory() and close() into
+destructor
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - do shutdown right after select()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - do better error checking for select()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; EAGAIN,
+EINT
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - if a fd is not in the map, want
+to remove from FD set,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; handle
+this error.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - FD_ISSET is not protable,
+easier to do the connMap
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+way. Put a big warning in line 77. or assert
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -print debug messgae of
+select woke and nothing was processed
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - rethink tcp connection
+aging design
+<p>6. RtspTcpBuffer
+<br>&nbsp;&nbsp;&nbsp; - virtual deconstructor
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - put const in several mem function
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - remove myPrevCSeq and code checking prevCSeq
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - pull rtspParser outside of the while loop
+and make that function static.
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - don't need static cast in line 102.
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - same for all the operator=, == assignement
+<br>&nbsp;&nbsp;&nbsp;&nbsp; - may need a timer for each connection and
+timer out for ne activity
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; this is separate for
+the session timer.
+<br>&nbsp;&nbsp;&nbsp; - is myMapIndex still used?
+<br>&nbsp;&nbsp;&nbsp; -in readTcpData, exception if charRealRead&lt;0,
+cpLog if charReadRead == 0
+<p>7.&nbsp; RtspUtil
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - replace all references
+to this class to use Connection::read and Connection::write.
+<p>8.&nbsp; CharData
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -need more comments for
+better understanding
+<p>9.&nbsp; CharDataParser
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - make myBuf as const
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -legal issues of this file
+with QuickTime?
+<p>10.&nbsp; Rtsp
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -comment status codes
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -move enum ot private section
+of the class
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - does everything need to
+be static - make it into the new RtspUtil?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - pritorize myMethods to
+put more common headers first - remove switch() in Rtsp.cxx:263
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(or just use nested if statements)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - combine tables together
+binded by a structure.&nbsp; Like RtpFileType.hxx
+<p>11.&nbsp; RtspMsgParser
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -remove Data dump and other
+memory allocation that was used only for cpLog.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -what happens if content
+length is reported wrong or stepping over boundaries - needs testing
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -move lines cxx:235 into
+else part
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -cxx:234 use char
+instead of chardata since isEqualNoCase() get's ptr and len
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -use accessor
+functions into RtspMsg instead of friend relationship
+<p>12. RtspMsg
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -comment this class is pure
+virtual
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - const all reference variable
+( hxx:46, hxx:58, etc)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - make RtspTcpBuffer smart
+ptr (hxx:53, hxx:55)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - update comnment in line
+hxx:109 indicating reference of data is returned
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - create public accessor
+function to access completion flag.&nbsp; remove "friend class RtspTcpBuffer"
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+change RtspTcpBuffer to use that accessor function.&nbsp; Same as RtspMsgParser
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove friend relationships
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -cxx:55, 60, use copy constructor
+instead of assignment operator.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+myTransportSpec = new RtspTransportSpec( *src.myTransportSpec)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove operator== and
+compareTransportSpec, compareRangeHdr, and compateHeaderMap
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+until it is really needed
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -expand isValid() function
+for more complete check?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -shorten isResponse to one
+line
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - in getSequenceId, getCSeq
+,etc, keep track if parsing was already attempted, but failed.
+<p>13.&nbsp; RtspRequest
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove isRequest
+and isResponse.&nbsp; Will use base class defination
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove operator==
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -add comment
+for myFilePast is part without "rtsp://"
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - add
+comment that more common msg headers will be added to this class
+<p>14.&nbsp; RtspResponse
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove
+operator== and private compareX functions
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove
+isRequest and isResponse
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+-during append, we should add the header into headerMap
+<p>15.&nbsp; RtspSdp
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - in future, try to use
+SdpSession directly instead of going through this class
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -supress assignemnt operators
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - const get functions
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -reword setPort() to setMediaPort()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - use Data insead of char*
+<p>16.&nbsp; RtspMETHODMsg
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove operator==
+<p>17.&nbsp; RtspTransportHdr
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - remove friends
+sinces few private functions
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - move all data
+to public and remove set/get functions if not doing constraint checking
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - convert
+RtspTransportSpec to struct instead?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - use
+strtoul instead of digitToStr()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; - getTranportHdr()
+shouldn't change myTransport.&nbsp; change to return by value
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+-RtspTransportSpec::encode()&nbsp; - should we check RtspTransport header
+is complete?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- RtspTransportSpec::encode():313 - check case missing case - TCP and muticast
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+assert this case.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- cxx:453, assert on transSpec == 0, remove if statement
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- cxx:87, remove line.&nbsp; BUG here
+<br>&nbsp;
+<p>18.&nbsp; RtspRangeHdr
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- add comment to header file - the grammer, and the supported port of the
+grammer
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- comment this class only supports npt in seconds
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- convert doubles to a long or TimeVal.&nbsp; Store everything in ms.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove friends
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove doubleToStr maybe add TimeVal to string
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove getDeltaTime
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- update parseRangeHeader to parse "." dilimater for TimeVal
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- return by value doen't need to be const
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove myDoubleBuf
+<p>19.&nbsp; RtspLocationHdr
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- keep constructor( host, filepath) if client needs it
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove const from hxx:29
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove friend from hxx:34
+<p>20.&nbsp; RtspRtpInfoHdr
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- provide public accessor function for myUrl
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove const from hxx:34
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- remove friend from hxx:38
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p>101.&nbsp; RtspFileType
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -hxx:17 remove constant
+with rtpFileTypeInfo/RtpFileTypes
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -hxx:46 remove last comma
+<p>102.&nbsp; mediaServer
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -cxx:53
+comment port isn't really a sip port
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+-cxx:84 return 1 for error cases, reflect with comment on line 36
+<p>103.&nbsp; RtspServer
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hxx: update class description comment
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:41 can't exit(-1) there
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:130: remove comment
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:148 number of sessions we can't find
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:158 pass around the session instead of the state - remove state information
+from RtspServer
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hxx:101 - remove the set function
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hxx:104 - return const ptr reference
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:121 - no need to check deleting null.&nbsp; "delete 0" is safe.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hxx:88 - const return Sptr?
+<br>&nbsp;
+<br>&nbsp;
+<p>104.&nbsp; RtspRtpProcessor
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx: use vusleep istead of usleep
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx176: check for low and high parameters, and are valid numbers
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx176: comment that port is not really reserved in rtp stack.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:184 don't need to check resultls
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx.213 check that port has been added to set
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:193 change "find" with "allocate"
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:86 insert 0 into fifo to unblock fifo ( see paper comments )
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx: make sure RtspServer is calling stopTread() to shutdown everything
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx 240: continue there, and remove else
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx328: comment this is for correct printing
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx384: select&lt;0 and EINT then continue
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx 103 move print statement after adding to fifo so dont' need to add
+1.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx432 detete[] missing
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx make loaded (10) configurable
+<p>105. RtspSessionManager
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:48 remove const
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+change map to a set, maybe?
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+comment mySessionIdList is for testing only
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:53, log err there
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:54, make Data sessionId("") then not chage if fail
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+cxx:95&nbsp;
+return bool instead of Data
+<p>106.&nbsp; State.hxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:12&nbsp; remove line, "myOperators.clear()"
+<p>107.&nbsp;&nbsp; Operator.hxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+no comments
+<p>108.&nbsp; StateMachine.hxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+move include cpLog.hxx to *.cxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx: remove clear() in deconstructor
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+cxx:&nbsp; in constructor, atexit( destory() )
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+hxx:&nbsp; addState() make private
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+maybe: make all the state's extern static variables, then there's no list
+<p>109.&nbsp; StateInit.hxx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+remove "incomplete handling here"
+<p>110.&nbsp; Make a state to catch unprocessed operators instead of in
+the RtspServer.&nbsp; OpUnkown and OpValidReqestButNotThisState
+<p>111.&nbsp; OpAnnounce, OpDescribe
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+no comments
+<p>112.&nbsp; OpSetup
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+remove line 52, "newSession->myPacketInterval" and related comments above
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+move line 38.39 "new RtspSession" close to point be used, line 80
+<p>113.&nbsp; OpRecord
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+remove static from processPendingEvent
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+remove checking range and myPausePoint != -1 in line 78
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+combine myPausePoint = -1, line 81 and line 86
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+should I&nbsp;change state first, then addInitalEvent (compare with OpPlay)
+<p>114.&nbsp; OpPlay
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+use internal Pause events.
+<br>&nbsp;
+<p>115.&nbsp; RtspSession
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+combine mode and state together
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+</body>
+</html>
+

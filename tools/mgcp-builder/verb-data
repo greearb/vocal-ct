@@ -1,0 +1,10 @@
+EndpointConfiguration|  EPCF|
+CreateConnection     |  CRCX|
+ModifyConnection     |  MDCX|
+DeleteConnectionAgent     |  DLCX|
+NotificationRequest  |  RQNT|
+Notify               |  NTFY|      gateway
+AuditEndpoint        |  AUEP|
+AuditConnection      |  AUCX|
+RestartInProgress    |  RSIP|
+DeleteConnectionGw     |  DLCX|    gateway

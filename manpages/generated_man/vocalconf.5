@@ -1,0 +1,41 @@
+.TH vocalconf 5  vovida.org 
+.\" auto-generated from vocalconf\&.xml by docbook2manxml
+.SH NAME
+vocalconf \- VOCAL configuration file
+.SH SYNOPSIS
+\fB/usr/local/vocal/etc/vocal\&.conf\fR
+.SH DESCRIPTION
+\fIvocal\&.conf\fR is a file for controlling the behavior of VOCALcomponents\&. Lines which begin with "#"are comments\&. Each line of the \fIvocal\&.conf\fR file consists of two parts\&. First, is the parameter name, which is typically in all caps\&. after that, a single space, which is followed by the value of that entry\&.
+.PP
+.SH OPTIONS
+The following options are available in the \fIvocal\&.conf\fRfile\&.
+.TP 
+VOCALUSER
+The user for vocald to run programs as\&. this should be set to something like "nobody"\&.
+.TP 
+PSERVER
+The default pserver, in the form "IPADDR:PORT"
+.TP 
+PSERVERBACKUP
+The backup pserver, in the form "IPADDR:PORT"
+.TP 
+PSERVERMCAST
+The multicast address for redundant pservers, in the form "IPADDR:PORT"
+.TP 
+REQUIRE_TLS
+Require clients to connect via TLS\&.
+.SH SEE ALSO
+\fBvocal\fR(8)\fBvocald\fR(8)\fBvocalctl\fR(8)
+.SH DIAGNOSTICS
+.SH BUGS
+.SH AUTHORS
+.nf
+.fi
+
+.SH COPYRIGHT
+Copyright 2002-2003, Cisco Systems, Inc\&.
+.PP
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE\&.

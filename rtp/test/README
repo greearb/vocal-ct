@@ -1,0 +1,116 @@
+$Id: README,v 1.1 2004/05/01 04:15:23 greear Exp $
+
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+This directory include sample application which uses the Vovida RTP/RTCP 
+stack.
+
+BUILDING
+
+Type make in this directory.
+Binaries are placed in the bin directory.
+
+
+SAMPLE APPLICATION ONE - rtpPlay, rtpRecord
+ 
+The programs rtpPlay and rtpRecord are sample test programs using the 
+rtp/rtcp stacks.  rtpPlay sends a given text file in rtp packets over 
+a UDP port.  rtpRecord picks up the text file which is contained in rtp 
+packets.  During the this transmission, both programs will also transmit 
+and receive rtcp packets.  Currently nothing is done with those RTCP 
+packets except the program acknowledege receiving them.  The program 
+pair are configure for loopback usage over UDP ports 9000, 9001, 9002, 9003.  
+
+The programs are sending/receiving packects size of 160 bytes every time.
+When the last bytes are not enough of 160, the rtpRecord program won't receive.
+So it is possible that the record file is short of last bytes which are not
+enough of 160. 
+
+For a better example of using RTP/RTCP please look at Vovida's MGCP stack.
+Specifically, look at the tpjackHW program inside the MGCP sample gateway.
+
+
+RUNNING THE RTPPLAY AND RTPRECORD PROGRAM PAIR
+
+1.  Create a text file containing the data you wish to send out.  Call it
+    FILE_send, be sure the file is big enough.
+
+2.  Create another empty file to receive the data.  Call it FILE_recv.
+
+3.  Run in one window, "./rtpRecord FILE_recv [host]"  This program will
+    loop 999 times checking UDP port 9000 for data.  Any data it receives
+    will be written to FILE_recv.
+
+4.  Run in another window, "./rtpPlay FILE_send [host]"  This program will
+    send the entire contents of FILE_send then send an RTCP BYE packet.
+
+PROGRAM OUTPUT
+
+rtpPlay:
+In the beginning, port information is printed.  During transmission, ',' 
+means packet was sent sucessfully, 'x' otherwise.  When the pgoram is 
+done, it prints out packet count statistics and also prints a message 
+telling RTCP BYE packet was sent.
+
+rtpRecord:
+In the beginning, port information is printed.  During transmission, '*' 
+means packet wsa received, 'x' otherwise.  The proram sends RTCP RR 
+packets, while looping 999 times.  At the end it prints the number of 
+sources it heard from.
+
+
+
+SAMPLE APPLICATION TWO - sampleUsage
+
+This program is a driver for the rtpSession stack.  It sends and receives a
+160 byte data packet every 20 ms.  For ever packet it recives or transmits, 
+the program prints out a "r" or a "t", respectivly.  Each control packet 
+sent is indicated by a "T" and a "R."  Scripts client and server show you 
+how the parameters are passed to this program.
+
+Note: To avoid Memory leak, the sampleUsage needs to *delete* each RTP 
+package after it receives them and uses them, since the stack is changed 
+not to do it for application.
+
+
+SAMPLE APPLICATION THREE - tpXXX series - Currently obsolete, they are moved
+to obsolete directory
+
+These program require the Quicknet telephony cards (Internet LineJACK or
+Internet PhoneJACK).  tpTran reads an audio packet from the QuickNet card and
+send it to a RTP port.  tpRecv listens on a RTP port and plays the packet to
+the Quicknet card.  tpTrunk is similar to tpTran except it converts the 30ms
+packet from the Quicknet card into a 20ms packet.
+
+
+
+SAMPLE APPLICATION FOUR - phoneJack 
+
+This new test program is intented to replace tpXXX series test programs.
+It is to test the RTP stack with quicknet phoneJack card, so user can actually
+talk on the phone with the RTP stack on both side sending/receiving RTP packets.
+It is currently using 0.3.18 version of quicknet driver.
+
+To use the test program, you need two phoneJack or lineJack cards running 
+on two machines.  (If two cards are in the same machine, some simple code 
+changes are needed to open different device drivers. This is to default to 
+open /dev/phone0 on both sides.)
+
+Given machine host1 and host2, port1 and port2,
+On host machine1, enter ./phoneJack host2 port2 port1
+On host machine2, enter ./phoneJack host1 port1 port2
+Now both ends are waiting for offhook signals.
+
+Then offhook on both sides, the voice path will be established. People can 
+start to talk now.
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:23 greear Exp $

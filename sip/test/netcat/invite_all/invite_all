@@ -1,0 +1,39 @@
+INVITE sip:5105@192.168.36.180:5060;user=phone SIP/2.0
+Via: SIP/2.0/UDP 192.168.36.80:5060
+From: 5225<sip:5225@192.168.36.80:5060>
+To: <sip:5105@192.168.6.5:5060;user=phone>
+Call-ID: 247515495@192.168.36.80
+Accept: application/sdp
+Accept-Encoding: crap
+Accept-Language: da, en-gb
+Allow: ACK
+Authorization: PGP version=5.0
+Content-Encoding: blah
+Date: Thu, 01 Dec 2000 16:00:00 GMT
+Encryption: Basic tony
+Expires: Thu, 01 Dec 2000 16:00:00 GMT
+Hide: route
+In-Reply-To: 70710@saturn.bell-tel.com
+Max-Forwards: 6
+MIME-Version: vovida
+Organization: vovida
+Priority: normal
+Proxy-Authenticate: Basic tony
+Proxy-Authorization: Basic tony
+Proxy-Require: 192.23.2.2
+Record-Route: <123.3.3.3>
+Require: crap
+Retry-After: 78
+Response-Key: soemthi
+Server: vovida.com
+Subject: emald
+Supported: SIP 2.0
+Timestamp: 0001
+Unsupported: sdp
+User-Agent: vovidaua
+Warning: some
+WWW-Authenticate: Basic tony
+CSeq: 1 INVITE
+Subject: VovidaINVITE
+Contact: <sip:6400@192.168.36.80:5060>
+Content-Length: 0

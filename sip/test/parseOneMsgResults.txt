@@ -1,0 +1,7 @@
+
+Results  for invite.msg
+
+Date		Machine		Type	Iter	Time
+9/25/2000	waterpolo	debug	10000	49401
+
+

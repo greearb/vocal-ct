@@ -1,0 +1,213 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: pserver.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+The Vovida Software License, Version 1.0 
+Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+3. The names "VOCAL", "Vovida Open Communication Application Library",
+   and "Vovida Open Communication Application Library (VOCAL)" must
+   not be used to endorse or promote products derived from this
+   software without prior written permission. For written
+   permission, please contact vocal@vovida.org.
+
+4. Products derived from this software may not be called "VOCAL", nor
+   may "VOCAL" appear in their name, without prior written
+   permission of Vovida Networks, Inc.
+
+THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+
+====================================================================
+
+This software consists of voluntary contributions made by Vovida
+Networks, Inc. and many individuals on behalf of Vovida Networks,
+Inc.  For more information on Vovida Networks, Inc., please see
+<http://www.vovida.org/>.
+--><refentry id="pserver">
+  <refmeta>
+    <refentrytitle>pserver</refentrytitle>
+
+    <manvolnum>1</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>pserver</refname>
+
+    <refpurpose>provide provisioning information to VOCAL processes</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>pserver</command>
+
+      <arg>options</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>The pserver provides provisioning data to VOCAL processes.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-c <filename>conf_file </filename></term>
+
+        <listitem>
+          <para>conf_file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-n</term>
+
+        <listitem>
+          <para>do not read from config file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-v <filename>log_level </filename></term>
+
+        <listitem>
+          <para>set verbosity</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-r <filename>psRootFileSystem </filename></term>
+
+        <listitem>
+          <para>set file system root</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f <filename>logfile </filename></term>
+
+        <listitem>
+          <para>set log file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-b <filename>redundant_server_host:port</filename></term>
+
+        <listitem>
+          <para>set redundant (&#34;backup&#34;) server hostname and port</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-p <filename>local port</filename></term>
+
+        <listitem>
+          <para>set port to listen for incoming requests</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>disable daemon mode (run in foreground)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-u <filename>number of users (1000)</filename></term>
+
+        <listitem>
+          <para>number of users.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-t <filename>number of threads (25)</filename></term>
+
+        <listitem>
+          <para>number of request proccess threads.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-N <filename>number of bins </filename></term>
+
+        <listitem>
+          <para>number of hash bins (overrides number users).</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-M <filename>multicast_host:multicast_port</filename></term>
+
+        <listitem>
+          <para>set the multicast IP address and port</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-s</term>
+
+        <listitem>
+          <para>log via syslog.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para><citerefentry><refentrytitle>vocal</refentrytitle><manvolnum>8</manvolnum></citerefentry></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Diagnostics</title>
+
+    <para></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Bugs</title>
+
+    <para></para>
+  </refsect1>
+
+  <refsect1>
+    <title>Authors</title>
+
+    <para></para>
+  </refsect1>
+</refentry>

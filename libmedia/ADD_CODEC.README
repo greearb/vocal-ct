@@ -1,0 +1,21 @@
+
+
+How to add a new codec:
+
+Create Codec*.[ch]xx files, add them to the Makefile.  Add to $INCDIRS
+and LIBDIRS as needed.
+
+Add to Defs.hxx (VCodecType) as needed, the values in Defs.h coorespond to rtp/rtpTypes.h
+
+Add the codec file(s) to rtp/codec.  Don't forget the 'extern C' magic or you will waste
+an hour of your life.
+
+Add to MediaController constructor.
+
+Add to MediaSession::addToSession method (might need to make a copy if you have state)
+
+Add rtp-type mapping to MRtpSession constructor
+
+Add to UaFacade constructor (priority mapping)
+
+Add to UaConfiguration files so we can influence the priority for the codecs.

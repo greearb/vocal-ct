@@ -1,0 +1,45 @@
+PURPOSE
+
+This document is to provide a simple, high level description of RTSP server
+design and implementation.
+
+
+KEY FEATURES
+
+The RTSP Server uses the RTSP Stack to receive RTSP messages.  The server 
+process these message through a state machine and handles them apporiatly.  
+Sessions are managed by a RtspSessionManager.  The RtspRtpProcess handles the 
+RTP traffic, both playing and recording.  RtspFileHandler and RtspFile handles 
+reading and writing to the audio file and sdp file.
+
+The RTSP Server supports *.au, *.wav, *.rap, and *.rtp file formats.  *.rtp is
+a RTSP server only format which is used to record unknown media formats.  The 
+optional sdp file holds the sdp block describing the audio files.
+
+
+LIMITATION
+
+* No UDP support
+
+* No mulitcast or boardcast support.
+
+
+DATA STRUCTURES
+
+RtspSession holds all the information about a RTSP Client's interaction with 
+the server.
+
+RtspFile is a base class for various file formats.
+
+
+THREAD USAGE
+
+Thread One:  Receives new TCP connections and process current TCP connections 
+into RTSP messages
+
+Thread Two:  Process new RTSP messages into a state machine.  Responds to the 
+messages.  (RtspServer)
+
+Thread Three:  Process playing RTP traffic.  (RtspRtpProcessor.hxx)
+
+Thread Four:  Process recording RTP traffic.  (RtspRtpProcessor.hxx)

@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+    
+    
+$_ = $ARGV[0];
+while($_) {
+    s/(..)//;
+    $word = $1;
+    print chr(hex($word));
+}
+    
+print "\n";

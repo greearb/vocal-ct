@@ -1,0 +1,120 @@
+Hi, all,
+
+Bryan, Cullen, and I met Tuesday evening to discuss the graphical
+call-flow tool, which I will begin developing tomorrow.  This message
+describes the tools, requirements, and timeline for that project.  Appended
+is an itemized timeline showing the different levels of functionality and
+the dates they are expected to be finished.  As per Bryan's suggestion,
+the tool will be called Tricorder.  It will be implemented in Perl,
+using Tk as a graphical toolkit.
+
+The basic purpose of Tricorder is to aid in the analysis of message flows.
+As such, it piggybacks on top of ipgrab; it will work by reading ipgrab's
+output logs, analysing them, and displaying them graphically.  Initially
+this will be done after the call is completed; later, functionality will
+be added to read from running ipgrab sessions.  During the analysis
+phase, it will do a certain amount of filtering to separate output from
+different calls; eventually this filtering may be customized to pick out
+the bits of data most relevant to the user.
+
+The GUI will be built around a central "canvas" with scrollbars, where the
+call flows will be displayed.  At the top of this canvas will appear the
+different servers, represented as boxes with vertical lines depending from
+them.  SIP messages will be represented as arrows between those lines,
+marked with an abbreviated SIP request or response (e.g. INV or 200).
+This model was chosen because it corresponds with the traditional appearance
+of call-flow diagrams.
+
+This is the basic functionality of the tool, and it should be implemented
+by the end of the week (i.e. Friday evening).  Once it is in place, the
+tool will be fairly usable, so we should probably announce its availability
+for use by developers, or at least for testing by those developers who will
+benefit from it most.
+
+The next task will be to show whole SIP messages (as opposed to just
+request and response types).  When the user moves the pointer over an arrow,
+the Tricorder will pop up a balloon giving the entire SIP message, including
+headers.  Once this functionality is in place, the tool will be usable to
+a variety of people, and we should release it to all developers.
+
+The next revision will let users customize the canvas by dragging
+the server objects, so that they can arrange the servers in the order
+that makes most sense for a given call scenario.  The Tricorder will
+save the order of the servers at exit time, then restore it automatically
+the next time it is run.  At the same time, I will add functionality to
+filter messages by call ID so that our developers can analyse a single call
+in a system handling multiple calls, without having to sort out its messages
+by hand.
+
+The next several releases will each add one piece of extra functionality.
+First Tricorder will be changed to attach to a running ipgrab session and
+display its output in real time.
+
+For the following release, Tricorder will implement printing (if it is
+straightforward to do so; Bryan reports that Postscript printing is built
+into Tk).
+
+The next release after that will have the ability to display data from
+multiple ipgrab instances, for use in cases where the servers are run
+on a switch, so that ipgrab can see only packets originating from or
+destined for its host machine.  
+
+Some other features were mentioned; these may be included in future
+releases, as time allows and developer demand dictates.  One feature I
+would particularly like to see would be the ability to check calls flows
+for a given scenario and see if they look correct, then automatically
+notify the developer if there are errors.  This could speed up large
+test runs considerably.  However, it would require a certain measure
+of AI to work.  At some point, the call-flow analysis should be changed
+to discard duplicate messages (from SIP retransmissions).  This, too,
+requires some AI, hence its place among the longer-term features.  It
+might be useful to color arrows according to type of request they
+represent; then again, with the text already in place, it might not.
+Once the initial revisions are done, we can elicit developer feedback
+and look at the Tricorder project's schedule to decide which special
+features to add.
+
+Here is the project timeline, in an abbreviated view.  Schedules for
+the later phases will be determined as each preceding phase is
+finished.  More phases may be added to accomodate the special features
+laid out in the preceding paragraph.  If this schedule changes, I will
+send out a new copy.
+
+Phase 1		Friday evening, June 30
+
+	- Read messages from an ipgrab log
+	- Display servers
+	- Display messages between servers (labeled arrows)
+	- Scroll properly when there are too many messages to fit in
+		the display area
+
+Phase 2		???
+
+	- Display entire SIP messages (full requests plus headers)
+		in pop-up balloons when the user moves the pointer
+		over the call-flow arrows
+
+Phase 3		???
+
+	- Allow users to change servers' order on the screen by dragging
+	- Save order of servers at exit
+	- Restore order of servers at next startup
+
+Phase 4		???
+
+	- Add functionality to attach to a running ipgrab
+
+Phase 5		???
+
+	- Add printing functionality
+
+Phase 6		???
+
+	- Add the ability to read output from multiple instances of
+		ipgrab running on different machines
+
+
+---
+Quinn Weaver    Software Engineer
+Vovida Networks  http://www.vovida.com
+ "The Source will be with you... always."

@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<!--
+$Id: ms.xml,v 1.1 2004/05/01 04:15:16 greear Exp $
+--><refentry id="ms">
+  <refmeta>
+    <refentrytitle>ms</refentrytitle>
+
+    <manvolnum>1</manvolnum>
+
+    <refmiscinfo class="title">vovida.org</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>ms</refname>
+
+    <refpurpose>Marshal Server for VOCAL system.</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>ms</command>
+
+      <arg choice="opt">options</arg>
+
+      <arg>sip-port</arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1>
+    <title>Description</title>
+
+    <para>The marshal server controls access to the VOCAL system by user
+    agents and gateways. responsibilities include routing based on redirect
+    server responses and authentication.</para>
+  </refsect1>
+
+  <refsect1>
+    <title>Options</title>
+
+    <variablelist>
+      <varlistentry>
+        <term>-c arg</term>
+
+        <listitem>
+          <para>specify configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-C arg</term>
+
+        <listitem>
+          <para>specify configuration directory</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-d</term>
+
+        <listitem>
+          <para>do not fork into background (no daemon mode)</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-r</term>
+
+        <listitem>
+          <para>disable SIP retransmission</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-f arg</term>
+
+        <listitem>
+          <para>specify log file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-v arg</term>
+
+        <listitem>
+          <para>specify log level</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-R arg</term>
+
+        <listitem>
+          <para>initial retransmission time in ms</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-M arg</term>
+
+        <listitem>
+          <para>maximum retransmission time in ms</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-h</term>
+
+        <listitem>
+          <para>disable multicast heartbeat</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-s</term>
+
+        <listitem>
+          <para>use syslog for logging</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-n</term>
+
+        <listitem>
+          <para>do not read options from any configuration file</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-P arg</term>
+
+        <listitem>
+          <para>default provisioning server</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-S arg</term>
+
+        <listitem>
+          <para>backup provisioning server</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>See Also</title>
+
+    <para>More information is available from <ulink
+    url="http://www.vovida.org/">http://www.vovida.org/</ulink></para>
+  </refsect1>
+<refsect1>
+<title>Copyright</title>
+<para>Copyright 2002-2003, Cisco Systems, Inc.</para>
+<para>
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+</para>
+</refsect1>
+
+</refentry>

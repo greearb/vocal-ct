@@ -1,0 +1,88 @@
+
+#NOTE:  LANforge build is fully automatic now.  Just run 'make_all' as
+#usual, VOCAL will be built as needed.
+
+#This is the old manual way of doing it
+
+  ./config --with-shared-libs --with-lanforge
+
+  make
+
+# If you are not just using peer-to-peer call, and thus need a proxy,
+# continue on.  Otherwise, you do not need to deal with any of the
+# database stuff.
+
+# become root
+
+install postgresql, if needed
+
+# Set up postgres DB:
+
+  Postgres minihowto:
+  http://dev.panopticsearch.com/postgres_microhowto.html
+
+#become user postgres
+
+  createuser -P
+  createdb -O vocal vocal
+  vi /var/lib/pgsql/data/pg_hba.conf
+   #  Change 'ident' to 'md5' on the last line of the file.
+  # restart postgres:
+  /etc/init.d/postgres restart
+
+# become root again, go back to the vocal/ dir that you built
+# in.
+
+make install
+cd /usr/local/vocal/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/vocal/bin/lib
+./allinoneconfigure/allinoneconfigure
+ # Most defaults should work fine, but will probably need to specify
+ # the IP address most likely.
+
+# Restart httpd
+/etc/init.d/httpd restart
+
+# Make sure CGI will work:
+perl -MCPAN -e 'install CGI'
+
+# Configure a few users
+go to http://localhost/vocal and add some users...
+
+
+For each LANforge endpoint machine, we will have one marshal server to
+handle the SIP messaging.  The bulk of the VOCAL daemons will run on the
+manager machine, or possibly a separate machine altogether.  The SIP
+messaging will run over the management network by default, but the RTP will
+go over the LANforge interfaces (and the DUT).  There is nothing magic about
+this:  With the proper network config, the VOCAL daemons can also be in
+the middle of the DUT.
+
+To set up each LANforge endpoint machine:
+
+Create the server(s) with the VOCAL provisioning GUI in the first/main vocal install.
+Tar up the entire vocal tree
+un-tar on the client machine
+Copy/create the vocal.secrets file, the perms won't allow it to be tarred (currently)
+Edit the vocal/etc/vocal.conf file to set the LOCALIP correctly.
+ (Change nothing else)
+Copy over the libpq.so.* libraries if they are not on the client machine already.
+Start VOCAL with:  "vocalctl start"
+
+When setting up LANforge VOIP endpoints, the SIP proxy will be the management interface,
+in this case.
+
+
+# How to generate files that can be replayed as voice equivalents:
+
+sox graceland.ogg -U -c 1 -b -v 1.1 -r 8000 /tmp/graceland.wav resample -q1
+
+# graceland.ogg == input file, can be almost any type of sound file.
+# -U      == ulaw encoding
+# -c 1    == one channel
+# -b      == 1-byte encoding (8-bit)
+# -v 1.1  == increase volume by 1.1/1.0 percent, optional
+# -r 8000 == 8000 samples per second.
+# /tmp/graceland.wav  == output file, has to be a .wav extension.
+# resample -q1        == makes it sound better, evidently, I can't tell.
+

@@ -1,0 +1,136 @@
+For information about licensing, please see the LICENSE file in this
+directory, or http://www.vovida.org/license.html .
+
+
+This is the README for installing the VOCAL system.
+
+ This README is obsolete.  It is included for historical purposes only.
+
+Before you begin:
+-----------------
+You need to have the following packages installed for
+the VOCAL system to run:
+ 1. Java Runtime Environment ver. 1.2.2
+ 2. Secure Shell ver. 1.2.27-6 or higher (or rsh)
+ 3. Java Plugin for linux
+ 4. Open LDAP ver. 1.2.9-6
+ 5. Apache Webserver ver. 1.3.12-2
+
+You can download the dependency tar ball, which contains 
+all the above packages. Otherwise, you could download and 
+install each of the required packages individually.
+
+ 1. Create a trusted root:
+ --------------------------
+ The next step is to set up a trusted root.
+ This should be done for ssh, rsh or ssh2. This is required
+ to run deploy and bring up the VOCAL system.
+  a) RSH:
+  --------
+    1. Edit the /root/.rhosts file and add to it, the name of 
+       the host from which you are going to install the VOCAL
+       system. (You should add an entry for the complete name
+       and for each of the aliases).
+       For eg:
+       If the machine from which you are going to install the 
+       VOCAL software is switch1.vocal.com and it's alias is 
+       switch1, the .rhosts file would look like this:
+       switch1.vocal.com
+       switch1
+    2. Repeat step 1 for the /etc/hosts.equiv file.
+    3. rsh into the hosts.
+
+  b) SSH :
+  --------
+    1. Run ssh-keygen.
+    2. Accept all the defaults by pressing enter till it's done.
+    3. Copy /root/.ssh/identity.pub to /root/.ssh/authorized_keys.
+    4. Restart the ssh daemon by typing:
+	/etc/rc.d/init.d/sshd restart
+    5. ssh into the hosts to test this out. Please ssh into the 
+       machines with both the complete name and the alias. For eg:
+       If you are deploying onto switch1.vocal.com and it's alias
+       is switch1, please ssh into the machine twice - once into
+       switch1.vocal.com and next into switch1.
+
+  c) SSH2 :
+  --------	
+    1. Run ssh-keygen2.
+    2. Accept all the defaults by pressing enter till it's done.
+    3. Copy /root/.ssh2/identity.pub to /root/.ssh2/authorized_keys.
+    4. Restart the ssh daemon by typing:
+	/etc/rc.d/init.d/sshd2 restart
+    5. ssh into the hosts to test this out. Please ssh into the 
+       machines with both the complete name and the alias. For eg:
+       If you are deploying onto switch1.vocal.com and it's alias
+       is switch1, please ssh into the machine twice - once into
+       switch1.vocal.com and next into switch1.
+
+ 2. Configure Apache :
+ ---------------------
+ If you chose to install apache from the INSTALL script, you have 
+ to configure it.
+ If you already had apache, please check to make sure that it is 
+ configured correct.
+
+  a) To configure apache : 
+  ------------------------
+   (i) edit /etc/httpd/conf/httpd.conf
+  (ii) Search for ServerName
+ (iii) Specify the ServerName by changing the line that
+       looks like:
+       #ServerName localhost
+       by replacing localhost with your hostname, and remove the
+       '#'.
+       (To find out your hostname, type hostname at the prompt)
+
+ 3. jdk :
+ --------
+ Create a softlink "/usr/jdk" to point to the directory
+ where you have installed jdk or jre. To do this use the ln 
+ command :
+   ln -s <jdk-or-jre-directory> /usr/jdk
+
+ 4. Run deploy : 
+ ---------------
+ "deploy" is used to install the VOCAL system on either
+ multi-host systems or an all-in-one system (a single host
+ system).
+
+  a) Requirements:
+  ----------------
+   1. deploy should be run as root.
+
+  b) Running deploy for a single-host system (all-in-one):
+  --------------------------------------------------------
+  If you want to install an all-in-one system (running the entire 
+  VOCAL system on a single host) :
+    1. cd into the bin directory.
+    2. Edit the install.cfg file in the bin directory.
+    3. Run deploy with the -a switch as follows:
+        ./deploy -a
+  
+  c) Running deploy for a multi-host system:
+  -------------------------------------------
+  To run deploy for a multi-host system:
+ 
+    1. Edit the hosts file.
+       The hosts file contains :
+       i) RemoteLoginProtocol which specifies the protocol to use.
+          (accepted protocols are ssh, rsh or ssh2). 
+      ii) A list of the hostnames, (one host per line) onto which 
+          the VOCAL system should be deployed.
+    2. If you have more than one PSTN Gateway, create a Gateways file.
+       (similar to the hosts file).
+    3. cd into the bin directory and run deploy by typing:
+        ./deploy
+  
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:16 greear Exp $

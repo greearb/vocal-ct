@@ -1,0 +1,9 @@
+.dependlibs
+bin.debug.Linux.i686
+bin.i686
+bin.opt.Linux.i686
+bin.prof.Linux.i686
+obj.debug.Linux.i686
+obj.i686
+obj.opt.Linux.i686
+obj.prof.Linux.i686

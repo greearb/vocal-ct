@@ -1,0 +1,44 @@
+#
+#         
+#
+#
+	
+# ordering
+
+# 0   --  parameter name
+# 1   -- endpoint config
+# 2   -- create connection
+# 3   -- modify connection
+# 4   -- delete connection
+# 5   -- request notification
+# 6   -- notify
+# 7   -- audit endpoint
+# 8   -- audit connection
+#       | Parameter name      |  EP|  CR|  MD|  DL|  RQ|  NT|  AU|  AU|
+#       |                     |  CF|  CX|  CX|  CX|  NT|  FY|  EP|  CX|
+#       |_____________________|____|____|____|____|____|____|____|____|
+
+| EndpointID                  |  M |  M |  M |  M |  M |  M |  M |  M | F | F |
+| ResponseAck                 |  O |  O |  O |  O |  O |  O |  O |  O | F | F |
+| BearerInformation           |  M |  O |  O |  O |  O |  F |  F |  F | F | F |
+| CallId                      |  F |  M |  M |  O |  F |  F |  F |  F | F | F |
+| ConnectionId                |  F |  F |  M |  O |  F |  F |  F |  M | F | F |
+| RequestIdentifier           |  F |  O |  O |  O |  M |  M |  F |  F | F | F |
+| LocalConnectionOptions      |  F |  O |  O |  F |  F |  F |  F |  F | F | F |
+| ConnectionMode              |  F |  M |  M |  F |  F |  F |  F |  F | F | F |
+| RequestedEvents             |  F |  O |  O |  O |  O*|  F |  F |  F | F | F |
+| SignalRequests              |  F |  O |  O |  O |  O*|  F |  F |  F | F | F |
+| NotifiedEntity              |  F |  O |  O |  O |  O |  O |  F |  F | F | F |
+| ReasonCode                  |  F |  F |  F |  O |  F |  F |  F |  F | F | F |
+| ObservedEvents              |  F |  F |  F |  F |  F |  M |  F |  F | F | F |
+| DigitMap                    |  F |  O |  O |  O |  O |  F |  F |  F | F | F |
+| ConnectionParameters        |  F |  F |  F |  O |  F |  F |  F |  F | F | F |
+| SpecificEndpointID          |  F |  F |  F |  F |  F |  F |  F |  F | F | F |
+| SecondEndpointID            |  F |  O |  F |  F |  F |  F |  F |  F | F | F |
+| RequestedInfo               |  F |  F |  F |  F |  F |  F |  M |  M | F | F |
+| QuarantineHandling          |  F |  O |  O |  O |  O |  F |  F |  F | F | F |
+| DetectEvents                |  F |  O |  O |  O |  O |  F |  F |  F | F | F |
+| RestartMethod               |  F |  F |  F |  F |  F |  F |  F |  F | F | F |
+| RestartDelay                |  F |  F |  F |  F |  F |  F |  F |  F | F | F |
+| RemoteConnectionDescriptor  |  F |  O |  O |  F |  F |  F |  F |  F | F | F |
+| LocalConnectionDescriptor   |  F |  F |  F |  F |  F |  F |  F |  F | F | F |

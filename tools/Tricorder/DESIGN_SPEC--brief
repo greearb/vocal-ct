@@ -1,0 +1,32 @@
+Phase 1		Friday evening, June 30
+
+	- Read messages from an ipgrab log
+	- Display servers
+	- Display messages between servers (labeled arrows)
+	- Scroll properly when there are too many messages to fit in
+		the display area
+
+Phase 2		???
+
+	- Display entire SIP messages (full requests plus headers)
+		in pop-up balloons when the user moves the pointer
+		over the call-flow arrows
+
+Phase 3		???
+
+	- Allow users to change servers' order on the screen by dragging
+	- Save order of servers at exit
+	- Restore order of servers at next startup
+
+Phase 4		???
+
+	- Add functionality to attach to a running ipgrab
+
+Phase 5		???
+
+	- Add printing functionality
+
+Phase 6		???
+
+	- Add the ability to read output from multiple instances of
+		ipgrab running on different machines

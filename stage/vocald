@@ -1,0 +1,1349 @@
+#! /bin/sh
+
+# the following is magic to allow perl to run with multiple locations of
+# perl.  It only works with perls that have the -x switch, however!
+exec `which perl` -x $0 ${1+"$@"}
+exit
+#!perl
+
+# ====================================================================
+# The Vovida Software License, Version 1.0 
+# 
+# Copyright (c) 2000 Vovida Networks, Inc.  All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in
+#    the documentation and/or other materials provided with the
+#    distribution.
+# 
+# 3. The names "VOCAL", "Vovida Open Communication Application Library",
+#    and "Vovida Open Communication Application Library (VOCAL)" must
+#    not be used to endorse or promote products derived from this
+#    software without prior written permission. For written
+#    permission, please contact vocal@vovida.org.
+# 
+# 4. Products derived from this software may not be called "VOCAL", nor
+#    may "VOCAL" appear in their name, without prior written
+#    permission of Vovida Networks, Inc.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL VOVIDA
+# NETWORKS, INC. OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT DAMAGES
+# IN EXCESS OF $1,000, NOR FOR ANY INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+# DAMAGE.
+# 
+# ====================================================================
+# 
+# This software consists of voluntary contributions made by Vovida
+# Networks, Inc. and many individuals on behalf of Vovida Networks,
+# Inc.  For more information on Vovida Networks, Inc., please see
+# <http://www.vovida.org/>.
+
+# $Id: vocald,v 1.1 2004/05/01 04:15:29 greear Exp $
+
+# Daemon to start VOCAL processes
+
+require "getopts.pl";
+
+$VOCAL_BASE = "/usr/local/vocal"; # VOCAL_BASE
+$VOCAL_BASE_CONFIGURED = '/usr/local/vocal';
+if($VOCAL_BASE_CONFIGURED ne '@'.'prefix@') {
+    $VOCAL_BASE = $VOCAL_BASE_CONFIGURED;
+}
+push(@INC, "$VOCAL_BASE/bin/webpages");
+
+use POSIX;
+use POSIX ":sys_wait_h";
+use POSIX qw(strftime);
+use Socket;
+require vprov::vpp;
+import vprov::vpp;
+
+$controldir = "$VOCAL_BASE/var";
+$admin_socket = "$controldir/vocalctl_socket/socket";
+$admin_dir = "$controldir/vocalctl_socket";
+$guest_socket = "$controldir/vocalctl_guest_socket/socket";
+$guest_dir = "$controldir/vocalctl_guest_socket";
+
+#$in_fifo = "$controldir/vocalctl.in";
+#$out_fifo = "$controldir/vocalctl.out";
+$pid_file = "$controldir/vocald.pid";
+
+%run_hash;
+
+# options for vocald
+
+# -f        set the config file (defaults to /usr/local/vocal/etc/vocal.conf)
+# -D level  set debugging level
+# -d        run vocald in nodaemon mode -- allows debugging by being able to
+#           see the console
+
+
+&Getopts("f:dD:");
+
+$debug = $opt_D;
+
+if(defined($opt_D) && $opt_D eq "") {
+    $debug = 1;
+}
+#$debug = 1;
+
+if($debug) {
+    &psdebug_enable(2 | 4);
+}
+
+if($debug) {
+    &debug("debug level: $debug");
+}
+
+
+$nodaemon = $opt_d;
+$default_conf = "$VOCAL_BASE/etc/vocal.conf";
+
+$default_secret = "$VOCAL_BASE/etc/vocal.secret";
+
+
+if(!$opt_f) {
+    $opt_f = $default_conf;
+}
+
+local $SIG{PIPE} = 'IGNORE';
+
+
+# Use the defaults (based on hostname)
+chomp($hostname = `hostname`);
+($junk1,$junk2,$junk3,$junk4,@addr) = gethostbyname($hostname);
+($a,$b,$c,$d) = unpack('C4', $addr[0]);
+$myhost= "$a.$b.$c.$d";
+
+
+%CONFIG_VALS = (
+		"LOCALIP" => $myhost,
+		"VOCALUSER" => 'nobody',
+		"PSERVER" => 'localhost:6005', 
+		"PSERVERBACKUP" => 'localhost:6005', 
+		"PSERVERMCAST" => '', 
+		"LOGLEVEL" => 'LOG_DEBUG',
+		"LOGFILE_BASE" => "$VOCAL_BASE/log",
+		"USE_SYSLOG" => "0",
+		"BIN_BASE" => "$VOCAL_BASE/bin",
+		"CONFIG_BASE" => "$VOCAL_BASE/bin",
+		"CONFFILE_BASE" => "$VOCAL_BASE/etc",
+		"LOG_STDOUT" => "0",
+	       );
+
+
+%RUN_CMDS = (
+	     "ps" => "pserver %pserver",
+	     "rs" => "rs %sip",
+	     "ms" => "ms %sip",
+# NOTE:  I think you can start multiple of these on different IPs
+#        with something like this.  Don't really understand this too
+#        well yet though. --Ben
+#	     "ms" => "ms %sip -I $another_ip",
+	     "inet_ms" => "inet_ms %sip",
+	     "fs" => "fs %sip",
+	     "fsvm" => "%uavm_new",
+	     "fsvm_admin" => "%uavm_admin",
+	     "snmpd" => "snmpd %snmp >>%log%/snmpd 2>&1 &",
+	     "snmptrapd" => "snmptrapd -P >>%log%/snmptrapd 2>&1 &",
+	     "policy" => "policy/policyServer %fakesip",
+	     "cdr" => "cdrserv %fakesip",
+	     "hbs" => "hbs %fakesip",
+	     "vmserver" => "voicemail/vmserver %debug -f $VOCAL_BASE/bin/voicemail/voicemail.config",
+	     "vmadmin" => "voicemail/vmserver %debug -m -f $VOCAL_BASE/bin/voicemail/vmadmin.config",
+	     #"uavm" => "%uavm",
+	     "uavm_admin" => "%uavm_admin",
+	     "siph323csgw" => "siph323csgw %h323",
+	     "js" => "js %jtapiSip",
+	     );
+
+%config = %CONFIG_VALS;
+
+if(!-f $opt_f) {
+    print "Please create the configuration file $opt_f\n";
+    print "to configure which servers to start using $0.\n";
+    print "Please see $default_conf.sample for an example.\n";
+    exit -1;
+}
+
+&read_config_file();
+
+if ($< == 0 || $> == 0) {
+    # i need to drop my privileges...
+    $id = getpwnam($config{VOCALUSER});
+
+    if(!defined($id)) {
+	die "cannot drop privileges: The user $config{VOCALUSER} does not exist.\n";
+    } elsif ($id > 0) {
+	# drop privs
+	my @temp = ($<, $>);
+	$< = $id;
+	$> = $id;
+
+	# this needs to be done 2x for FreeBSD/Solaris.  won't work at
+	# all on HPUX :(
+
+	$< = $id;
+	$> = $id;
+	($<, $>) = @temp;
+	die "Can't drop privileges to $id: $< $>"
+	  unless $< == $id  && $> == $id;
+    } else {
+	die "cannot drop privileges: VOCALUSER cannot be set to the root user.\n";
+    }
+}
+
+
+# I need to fork and then keep these guys around
+
+&debug("nodaemon: $nodaemon");
+
+if(!$nodaemon) {
+    print "daemon mode\n" if $debug;
+    $mypid = fork();
+    
+    if(!defined($mypid)) {
+	# do nothing
+	print "fork failed!\n" if $debug;
+	exit(-1);
+    } elsif($mypid != 0) {
+	print "parent is exiting...\n" if $debug;
+	exit(0);
+    } else {
+	# do something
+	POSIX::setsid();
+	
+	$mypid = fork();
+	
+	if(!defined($mypid)) {
+	    # do nothing
+	    print "fork failed!\n" if $debug;
+	    exit(-1);
+	} elsif($mypid != 0) {
+	    print "second parent is exiting...\n" if $debug;
+	    exit(0);
+	} else {
+	}
+    }
+}
+
+open(PID_FILE, ">$pid_file");
+print PID_FILE POSIX::getpid();
+close(PID_FILE);
+
+$logfile = "$config{LOGFILE_BASE}/vocald.log";
+open(LOG, ">>$logfile") || die "can't open $logfile for writing";
+
+if(!$nodaemon) {
+    POSIX::setsid();
+    umask(0);
+    close(STDIN);
+    open(STDIN, "</dev/null");
+    close(STDOUT);
+    open(STDOUT, ">/dev/null");
+    close(STDERR);
+    open(STDERR, ">/dev/null");
+}
+
+$oldfh = select(LOG); $| = 1; select($oldfh);
+
+$oldfh = select(STDOUT); $| = 1; select($oldfh);
+
+&log("Begin vocald.");
+
+
+#&log(" Start process ps");
+
+if($config{PSERVER} =~ /^([^:]*):/) {
+    $pserver_host = $1;
+} else {
+    # can't find pserver, so abort
+    &log("could not determine pserver, so aborting vocald");
+    exit(-1);
+}
+
+open(SECRET, $default_secret) || die "cannot open $default_secret: $!";
+while(<SECRET>) {
+    chomp;
+    if(/^reader:/) {
+	$secret_data = $_;
+    }
+}
+close(SECRET);
+
+$pserver_hostonly = $pserver_host;
+
+if($secret_data =~ /^([^:]+):([^:]+)$/) {
+    $pserver_host = $1 . ':' . $2  . '@' . $pserver_hostonly;
+}
+
+#&log(" Start process ps done");
+
+
+print "run_hash: " . scalar(keys %run_hash) . "\n" if $debug;
+
+
+# we need way to log our results
+
+
+# here is a map of commands
+
+%command_map = ( 
+		status => \&status_cmd,
+		start => \&start_cmd,
+		stop => \&shutdown_cmd,
+		reload => \&reload_cmd,
+		restart => \&restart_cmd,
+		shutdown => \&shutdown_cmd,
+		config => \&config_cmd,
+		disable => \&disable_cmd,
+		enable => \&enable_cmd,
+		norespawn => \&norespawn_cmd,
+		respawn => \&respawn_cmd,
+		);
+
+
+%guest_command_map = ( 
+		status => \&status_cmd,
+		);
+
+mkdir $admin_dir, 0700;
+mkdir $guest_dir, 0755;
+chmod 0700, $admin_dir;
+chmod 0755, $guest_dir;
+
+socket(SERVER,PF_UNIX,SOCK_STREAM,0) || die "socket: $!"; 
+unlink($admin_socket);
+bind (SERVER, sockaddr_un($admin_socket)) || die "bind: $!";
+listen(SERVER, 5) || die "listen: $!";
+$oldfh = select(SERVER); $| = 1; select($oldfh);
+
+
+socket(GSERVER,PF_UNIX,SOCK_STREAM,0) || die "socket: $!"; 
+unlink($guest_socket);
+bind (GSERVER, sockaddr_un($guest_socket)) || die "bind: $!";
+listen(GSERVER, 5) || die "listen: $!";
+$oldfh = select(GSERVER); $| = 1; select($oldfh);
+
+print "waiting\n" if $debug;
+
+my @client_list;
+
+while(1) {
+
+    print &psdebug_get() if $debug;
+
+    my($rin, $win, $ein);
+    $rin = '';
+    $win = '';
+    $ein = '';
+    vec($rin, fileno(SERVER), 1) = 1;
+    vec($ein, fileno(SERVER), 1) = 1;
+    vec($rin, fileno(GSERVER), 1) = 1;
+    vec($ein, fileno(GSERVER), 1) = 1;
+
+    foreach $client (@client_list) {
+	vec($rin, fileno($client->{fh}), 1) = 1;
+	vec($ein, fileno($client->{fh}), 1) = 1;
+    }
+
+    my $did_something = 0;
+
+    if(($nfound = select($rin, undef, $ein, 5.0)) > 0) {
+	&debug("got something");
+	@bits = split(//, unpack("b*", $rin));
+
+	&debug(@bits);
+
+	if($bits[fileno(SERVER)]) {
+	    &log("accepting from controller");
+	    $guest = 0;
+	    local *CLIENT;
+            my $client = *CLIENT;
+	    accept($client,SERVER);
+	    $oldfh = select($client); $| = 1; select($oldfh);
+	    my $x = { fh => $client, 
+		      guest => 0 };
+	    print "pushing: ", fileno($client), " ", fileno($x->{fh}), "\n";
+	    push(@client_list, $x);
+	    $did_something = 1;
+	}
+
+	if($bits[fileno(GSERVER)]) {
+	    &log("accepting from guest");
+	    $guest = 1;
+	    local *CLIENT;
+	    my $client = *CLIENT;
+	    accept($client,GSERVER);
+	    $oldfh = select($client); $| = 1; select($oldfh);
+	    my $x = { fh => $client, 
+		      guest => 1 };
+	    print "pushing: ", fileno($client), " ",fileno($x->{fh}), "\n";
+	    push(@client_list, $x);
+	    $did_something = 1;
+	}
+
+	my $done = 0;
+
+	my @new_client_list;
+
+	while(my $client = shift(@client_list)) {
+	    &log("reading from a client");
+	    &debug ( "in client: ", fileno($client->{fh}) );
+	    my $guest = $client->{guest};
+	    my $fh = $client->{fh};
+	    if($fh && $bits[fileno($fh)]) {
+		$did_something = 1;
+		&debug ("  reading from client");
+		$in_cmd = 1;
+		chomp($a = <$fh>);
+		@cmdlist = split(/ /, $a);
+		$cmd = shift(@cmdlist);
+
+		&debug ( "  guest: $guest");
+		
+		if(!$guest) {
+		    # not a guest
+		    if($command_map{$cmd}) {
+			&debug( "  got command: $cmd");
+			$result = &{$command_map{$cmd}}($fh, @cmdlist);
+		    } else {
+			$result = "Invalid command: $cmd\n";
+		    }
+		} else {
+		    # guest
+		    if($guest_command_map{$cmd}) {
+			&debug ( "  got command: $cmd");
+			$result = &{$guest_command_map{$cmd}}($fh, @cmdlist);
+		    } else {
+			&debug ( "  invalid command: $cmd");
+			$result = "Invalid command: $cmd\n";
+		    }
+		}
+		if(defined($fh)) {
+		    &debug( "  filehandle: $fh: ", fileno($fh));
+		    print $fh $result;
+		    print $fh "end\n";
+		    close($fh);
+		}
+		print "4\n" if $debug;
+		&debug( "  done reading");
+		$in_cmd = 0;
+	    } else {
+		push(@new_client_list, $client);
+	    }
+	}
+
+	@bits = split(//, unpack("b*", $ein));
+	if($bits[fileno(SERVER)] || $bits[fileno(GSERVER)]) {
+	    print "error\n" if $debug;
+	    $did_something = 1;
+	}
+
+	while(my $client = shift(@new_client_list)) {
+	    if($bits[fileno($client->{fh})]) {
+		&debug("error: ", fileno($client->{fh}));
+		$did_something = 1;
+	    } else {
+		&debug ("pushing: ", fileno($client->{fh}));
+		push(@client_list, $client);
+	    }
+	}
+
+	if(!$did_something) {
+	    die "bad file descriptors!\n";
+	}
+
+    } 
+
+    &poll_data();
+}
+
+
+
+######################################################################
+#
+#			     subroutines
+#
+######################################################################
+
+
+sub abort {
+    local(@text) = @_;
+    &log(@text);
+    if($in_cmd) {
+	print $client "Error:\n";
+	foreach(@text) {
+	    print $client $_, "\n";
+	}
+	print $client "vocald aborted.\n";
+	print $client "end\n";
+	close($client);
+	undef($client);
+
+    }
+    die join('\n', @text);
+}
+
+sub norespawn_cmd {
+    local($junk, @cmdlist) = @_;
+    local($cmdline) = join(' ', @cmdlist);
+    if($cmdline) {
+	&run_mgr_norespawn_one($cmdline);
+    } else {
+	&run_mgr_all(run_mgr_norespawn_one);
+    }
+    return "";
+}
+
+sub respawn_cmd {
+    local($junk, @cmdlist) = @_;
+    local($cmdline) = join(' ', @cmdlist);
+    if($cmdline) {
+	&run_mgr_respawn_one($cmdline);
+    } else {
+	&run_mgr_all(run_mgr_respawn_one);
+    }
+    return "";
+}
+
+sub disable_cmd {
+    local($junk, @cmdlist) = @_;
+    local($cmdline) = join(' ', @cmdlist);
+    if($cmdline) {
+	&run_mgr_disable_one($cmdline);
+    } else {
+	&run_mgr_all(run_mgr_disable_one);
+    }
+    return "";
+}
+
+sub enable_cmd {
+    local($junk, @cmdlist) = @_;
+    local($cmdline) = join(' ', @cmdlist);
+    if($cmdline) {
+	&run_mgr_enable_one($cmdline);
+    } else {
+	&run_mgr_all(run_mgr_enable_one);
+    }
+    return "";
+}
+
+sub status_cmd {
+    my $result;
+
+    &run_mgr_get_status();
+    $result = &run_mgr_print_status();
+    print "status: $result\n" if $debug;
+    print "run_hash: " . scalar(keys %run_hash) . "\n" if $debug;
+    
+    return $result;
+}
+
+
+sub start_cmd {
+    &debug( "start_cmd: running command start\n");
+    if($pserver_hostonly eq $config{LOCALIP} || $pserver_hostonly eq "localhost") {
+	&debug("preparing to start ps\n");
+
+	$ret = &check_pserver_data();
+	if($ret) {
+	    &abort($ret);
+	}
+	&run_mgr_start_one("ps");
+	&debug("started ps\n");
+    }
+    else {
+	&debug("pserver is not on this host, pserver_host: $pserver_hostonly, local_ip: "
+              . $config{LOCALIP});
+    }
+    &debug("start_cmd: getting servers");
+    &poll_data();
+    &debug("running unstarted servers");
+    &run_mgr_start_unstarted();
+    &debug("finished command start");
+    return "";
+}
+
+sub reload_cmd {
+    &read_config_file();
+    return "";
+}
+
+sub restart_cmd {
+    &run_mgr_stop_all();
+    &run_mgr_start_unstarted();
+    return "";
+}
+
+sub shutdown_cmd {
+    local($fh) = @_;
+    print $fh "shutting down...\n";
+    print $fh "end\n";
+    &run_mgr_stop_all();
+    &log("Shutting down vocald.");
+    
+    unlink $pid_file;
+    close(SERVER);
+    close($client);
+    unlink $admin_socket;
+    unlink $guest_socket;
+    exit(0);
+    return "";
+}
+
+sub config_cmd {
+    local($result) = "Configuration:\n";
+    foreach(%config) {
+	$result .= "$_ $config{$_}\n";
+    }
+    return $result;
+}
+
+# do some work
+
+sub poll_data {
+    &debug("entering poll_data");
+
+    &read_config_file(); # reads conditionally
+    &debug("done read_config_file");
+
+    # do something due to the poll
+    &run_mgr_get_status();
+    &debug("done run_mgr_get_status");
+    $started_list = &run_mgr_start_unstarted();
+    &debug("done run_mgr_start_unstarted");
+
+    &debug("pserver_host: $pserver_host");
+    $new_server_list = &get_servers_from_pserver($pserver_host);
+    &debug("done get_servers_from_pserver");
+  
+    if(defined($new_server_list)) {
+	&debug("doing new_servers_list");
+	if($debug > 1) {
+	    foreach my $x (@$new_server_list) {
+		print "server: $x\n";
+	    }
+	}
+	
+	# add -h to disable heartbeat
+	if(&get_heartbeat($pserver_host)) {
+	    $heartbeat = "";
+	} else {
+	    $heartbeat = "-h";
+	}
+	&debug("done get_heartbeat");
+
+	$stop_list = &find_stopped($server_list, $new_server_list);
+	&debug("done find_stopped");
+	
+	$started_list = &run_mgr_start_list(@$new_server_list);
+	&debug("done run_mgr_start_list");
+	$server_list = $new_server_list;
+	&run_mgr_stop_list(@$stop_list);
+	&debug("done run_mgr_stop_list");
+	&run_mgr_purge_stop_list(@$stop_list);
+	&debug("done run_mgr_purge_stop_list");
+	
+    } else {
+	&debug("could not read from pserver");
+    }
+    &debug("exiting poll_data");
+}
+
+
+sub find_stopped {
+    local($old, $new) = @_;
+    local(@old_list) = (@$old);
+    local(@new_list) = (@$new);
+    local(%temp_list);
+    local($result) = [];
+
+    print "find_stopped: $old $new\n" if $debug > 1;
+    print "find_stopped: @$old @$new\n" if $debug > 1;
+
+    foreach(@$old) {
+	print "old: $_\n" if $debug > 1;
+    }
+
+    foreach(@$new) {
+	print "new: $_\n" if $debug > 1;
+    }
+
+    foreach(@new_list) {
+	$temp_list{$_} = 1;
+    }
+    foreach(@old_list) {
+	if(!$temp_list{$_}) {
+	    print "found  $_  to be stopped\n" if $debug;
+	    push(@$result, $_);
+	}
+    }
+    return $result;
+}
+
+
+sub get_heartbeat {
+    local($host) = @_;
+    local($a);
+    my $gderr;
+
+    ($a, $gderr) = &get_data2($host, "SystemConfiguration", "GlobalConfigData");
+
+    if (length($gderr)) {
+      &debug("  error from get_data2: $gderr");
+    }
+
+    if(!length($a)) {
+	return 0; # default to off
+    }
+
+    if($a =~/\<multicastHost +host\=\"([0-9.]*)\" +port\=\"([0-9.]*)\"\>/) {
+	# found host / port -- if I find them, use them to verify
+	# heartbeating activity
+	print "heartbeat host: $1 port: $2\n" if $debug;
+	if($1 eq "0.0.0.0" || $2 == 0) {
+	    return 0;
+	} else {
+	    return 1;
+	}
+    }
+    # if there's some problem, return 0
+    return 0;
+}
+
+
+sub get_servers {
+    local($host, $type) = @_;
+    local($a);
+    local($err);
+    local($list) = [];
+    local($intag) = 0;
+
+    &debug("entering get_servers");
+    &debug("getting data from host: $host");
+
+    ($a, $err) = &get_data2($host, "SystemConfiguration", $type);
+
+    &debug("a: $a  err: $err");
+
+    if (length($err)) {
+      &debug("  error from get_data2: $err");
+    }
+
+    &debug("out of getting data");
+
+    if(!length($a)) {
+	return undef;
+    }
+
+    &debug("  parsing");
+    
+    while($a =~ s/\<([^\>]*)\>//) {
+	# this is the inside
+	$value = $1;
+	$value =~ s/^(\w+)//;
+	$tag = $1;
+#	print $tag, ": ", $value, "\n";
+	if($tag eq "serverType") {
+	    $serverType = "";
+	    if($value =~ /value=\"([^\"]*)\"/) {
+		$serverType = $1;
+	    }
+	}
+
+	if($tag eq "serverGroup") {
+	    $intag = 1;
+	}
+
+	if($intag) {
+	    if($tag eq "server") {
+		$host = ""; 
+		$port = "";
+		if($value =~ /host=\"([^\"]*)\"/) {
+		    $host = $1;
+		}
+		if($value =~ /port=\"([^\"]*)\"/) {
+		    $port = $1;
+		}
+		push(@$list, "$serverType $host $port");
+	    }
+	}
+	if($tag eq "/serverGroup") {
+	    $intag = 0;
+	}
+    }
+
+    &debug("  done parsing");
+    &debug("exiting get_servers");
+    return $list;
+}
+
+
+sub match_passed {
+    local($passed_cmd, $passed_port, $original_cmd, $original_port) = @_;
+    if(!$passed_cmd) {
+	return 1;
+    }
+    if(!$passed_port && ($passed_cmd eq $original_cmd)) {
+	return 1;
+    }
+    if(($passed_cmd eq $original_cmd) && ($passed_port eq $original_port)) {
+	return 1;
+    }
+    return 0;
+}
+
+
+sub start {
+    local($cmd) = @_;
+    local($passed_cmd, $passed_port) = split(/ /, $cmd);
+    local($error) = 0;
+    local($pid);
+
+    chdir $config{"CONFIG_BASE"};
+
+    print "Starting $passed_cmd $passed_port\n" if $debug;
+
+    $sip = "-v $config{LOGLEVEL}";
+    $logfilename = $passed_port;
+    $logfilename =~ y/ /_/;
+
+    my $tmpip = $config{LOCALIP};
+    my $iface = "";
+    if (defined($tmpip) && ($tmpip ne "localhost") && ($tmpip ne "")) {
+        $iface = "-I $tmpip";
+    }
+
+    if ($passed_cmd eq "fsvm") {
+#	$cmd = "$config{BIN_BASE}/voicemail/$RUN_CMDS{$passed_cmd}";
+	$cmd = "$config{BIN_BASE}/$RUN_CMDS{$passed_cmd}";
+    } else {
+	$cmd = "$config{BIN_BASE}/$RUN_CMDS{$passed_cmd}";
+    }
+    
+    $cmd =~ s/\%log\%/$config{LOGFILE_BASE}/;
+    
+    $logfile = "-f $config{LOGFILE_BASE}/$passed_cmd-$logfilename.log";
+    
+    if($config{USE_SYSLOG}) {
+	$logfile_sys = "-s";
+    } else {
+	$logfile_sys = $logfile;
+    }
+    
+    $cmd =~ s/\%sip/$heartbeat -d $logfile_sys $iface $sip -P $config{PSERVER} -S $config{PSERVERBACKUP} $passed_port/;
+    $cmd =~ s/\%fakesip/$heartbeat -d $logfile_sys $iface $sip -P $config{PSERVER} -S $config{PSERVERBACKUP} xxxx/;
+    $cmd =~ s/\%snmp/-f -c $config{BIN_BASE}\/snmpd.conf/;
+    $cmd =~ s/\%debug/-v $config{LOGLEVEL}/;
+    $cmd =~ s/\%pserver/-d $iface $sip $logfile/;
+#    if ($config{PSERVER} eq $config{PSERVERBACKUP}) {
+#    } else {
+#	if(!$config{PSERVERMCAST}) {
+#	    # no multicast, don't pass -M and -P
+#	    $cmd =~ s/\%pserver/-d $sip $logfile -b $config{PSERVERBACKUP}/;
+#	} else {
+#	    # usage for pserver -M multicast-host:multicast-port
+#	    $cmd =~ s/\%pserver/-d $sip $logfile -b $config{PSERVERBACKUP} -M $config{PSERVERMCAST}/;
+#	}
+#    }
+    
+    # xxx -- this needs to be fixed -- right now, without heartbeat
+    # the uavms don't pick up (probably because the fsvm has trouble)
+    
+    #    $cmd =~ s/\%uavm/ua $heartbeat -m -f $config{CONFFILE_BASE}\/uavm_${passed_port}.cfg -v $config{LOGLEVEL}/;
+
+    $cmd =~ s/\%uavm_admin/gua -M $iface -f $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -l $config{LOGLEVEL}/;
+    $cmd =~ s/\%uavm_new/gua -m $iface -f  $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -l $config{LOGLEVEL}/;
+    $cmd =~ s/\%uavm/ua -m $iface -f  $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -v$config{LOGLEVEL}/;
+    
+    $cmd =~ s/\%jtapiSip/$sip $logfile $config{PSERVER} $config{PSERVERBACKUP} $passed_port $passed_port2/;
+    $cmd =~ s/\%h323/-o $config{LOGFILE_BASE}\/siph323csgw -l $config{LOGLEVEL} $iface  -p $passed_port -a $passed_port2/;
+    
+    if (($passed_cmd eq "snmpd") || ($passed_cmd eq "snmptrapd")) {
+	;
+    } else {
+	if ($config{VOCALUSER} eq "root") {
+	    ;
+	} else {
+	    # xxx someone needs to be able to change users and to
+	    # unlimit children
+	}
+    }
+
+    # only run ps as owner of files in provisioning, otherwise error
+    
+    if ($passed_cmd eq "ps") {
+	my $ret;
+	$ret = &check_pserver_data();
+	if($ret) {
+	    &log($ret);
+	}
+    }
+
+    print $cmd, "\n" if $debug;
+    
+    chdir $config{LOGFILE_BASE};
+    $pid = &run($cmd, "$passed_cmd-$passed_port" );
+    if($pid < 0) {
+	# this is an error
+	$error = 1;
+	print "FAILED: $cmd with error $error : $!\n" if $debug;
+    }
+
+    if($error == 0) {
+	print "OK\n" if $debug;
+    } else {
+	print "FAILED\n" if $debug;
+    }
+
+    return $pid;
+}
+
+
+sub check_pserver_data {
+    ($dev,$ino,$mode,$nlink,$uid) 
+      = stat("$VOCAL_BASE/provisioning_data/AAA");
+    
+    stat("$VOCAL_BASE/provisioning_data");
+    
+    if(!-e "$VOCAL_BASE/provisioning_data") {
+	return "Error: pserver not started - the provisioning directory $VOCAL_BASE/provisioning_data does not exist";
+    }
+    
+    if(!-e "$VOCAL_BASE/provisioning_data/AAA") {
+	return "Error: pserver not started - the provisioning directory $VOCAL_BASE/provisioning_data exists, but has no data";
+    }
+    
+    $pwuid = getpwuid($uid);
+    if ($pwuid ne $config{VOCALUSER}) {
+	
+	# this is an error and needs to be reported to the end user
+
+	$cmd = "";
+	print "uid: $uid, pwuid: $pwuid, VOCALUSER: $config{VOCALUSER}\n" if $debug;
+	return "Error: pserver not started - must run pserver as owner of provisioning data files";
+    }
+}
+
+sub run_mgr_add {
+    local(@cmd) = @_;
+    local($cmd);
+
+    foreach(@cmd) {
+	$cmd .= $_ . " ";
+    }
+    $cmd =~ s/ $//;
+    if(!defined($run_hash{$cmd})) {
+	$run_hash{$cmd} = -1;
+	$respawn_hash{$cmd} = 1;
+    }
+    return $cmd;
+}
+
+
+sub run_mgr_all {
+    local($cmd) = @_;
+    foreach(sort keys %run_hash) {
+	&{$cmd}($_);
+    }
+}
+
+sub run_mgr_respawn_one {
+    local($cmd) = @_;
+    &log(" Enable respawn of $cmd");
+    $respawn_hash{$cmd} = 1;
+}
+
+sub run_mgr_norespawn_one {
+    local($cmd) = @_;
+    &log(" Disable respawn of $cmd");
+    $respawn_hash{$cmd} = 0;
+}
+
+sub run_mgr_disable_one {
+    local($cmd) = @_;
+    $pid = $run_hash{$cmd};
+    if($pid > 1) {
+	&log(" Disable process $cmd");
+	kill 9, $pid;
+	waitpid($pid, 0);
+	$run_hash{$cmd} = -2;
+    } elsif ($pid == -1) {
+	&log(" Disable process $cmd");
+	$run_hash{$cmd} = -2;
+    }
+}
+
+sub run_mgr_enable_one {
+    local($cmd) = @_;
+    $pid = $run_hash{$cmd};
+    if($pid == -2) {
+	$run_hash{$cmd} = -1;
+	&log(" Enable process $cmd");
+	&run_mgr_start_one($cmd);
+    }
+}
+
+sub run_mgr_stop_one {
+    local($cmd) = @_;
+    $pid = $run_hash{$cmd};
+    if($pid > 1) {
+	&log(" Stop process $_");
+	kill 9, $pid;
+	waitpid($pid, 0);
+	$run_hash{$cmd} = -1;
+    }
+}
+
+sub run_mgr_stop_all {
+    foreach(sort keys %run_hash) {
+	&run_mgr_stop_one($_);
+    }
+}
+
+
+sub run_mgr_stop_list {
+    local(@cmd_list) = @_;
+    foreach(@cmd_list) {
+	&run_mgr_stop_one($_);
+    }
+}
+
+
+sub run_mgr_purge_stop_list {
+    local(@cmd_list) = @_;
+    foreach(@cmd_list) {
+	if($run_hash{$_} == -1) {
+	    delete($run_hash{$_});
+	}
+    }
+}
+
+
+sub run_mgr_print_status {
+    local($result);
+    foreach (sort keys %run_hash) {
+	my $x = $run_hash{$_};
+	if($x == -1) {
+	    $x = "not running";
+	} elsif($x == -2) {
+	    $x = "disabled";
+	}
+	$result .= sprintf("%-20.20s  %-12.12s %-12.12s\n", 
+			   $_, 
+			   $x, 
+			   ($respawn_hash{$_} ? "" : "norespawn") );
+    }
+    return $result;
+}
+
+
+sub run_mgr_get_status {
+    local($count);
+    local($pid);
+    foreach (sort keys %run_hash) {
+	$pid = $run_hash{$_};
+	if($pid > 0) {
+	    waitpid($pid, &WNOHANG);
+	    $count = kill 0, $pid;
+	    if($count != 1) {
+		# print a problem
+		print "no good -- pid $pid does not exist! : $count\n" if $debug;
+		$run_hash{$_} = -1;
+	    }
+	}
+    }
+}
+
+
+sub run_mgr_start_list {
+    local(@cmd_list) = @_;
+    local($started_list) = [];
+    local($pid);
+
+    foreach(@cmd_list) {
+	$pid = &run_mgr_start_one($_);
+
+	if($pid > 0) {
+	    push(@$started_list, $_);
+	}
+    }
+    return $started_list;
+}
+
+
+sub run_mgr_start_one {
+    local($cmd) = &run_mgr_add(@_);
+    if($run_hash{$cmd} == -1  && $respawn_hash{$_}) {
+	$run_hash{$cmd} = &start($cmd);
+	print "started $cmd: $run_hash{$cmd}\n" if $debug;
+	&log(" Started process $cmd (pid $run_hash{$cmd})");
+	return $run_hash{$cmd};
+    }
+    return -1;
+}
+
+#restart the items
+sub run_mgr_start_unstarted {
+    local($started_list) = [];
+    foreach (sort keys %run_hash) {
+	if($run_hash{$_} == -1 && $respawn_hash{$_}) {
+	    # respawn
+	    push(@$started_list, $_);
+	    &run_mgr_start_one($_);
+	}
+    }
+    return $started_list;
+}
+
+
+sub run {
+    local($cmd, $log, $user) = @_;
+    local($pid);
+
+    &log("Running command '$cmd'");
+
+    $pid = fork();
+    print $pid, "\n" if $debug;
+
+    if(!defined($pid)) {
+	# do something here
+	print STDERR "fork failed...\n" if $debug;
+	return -1;
+    } elsif($pid == 0) {
+	# need to give up root privs
+
+	# now,  exec after reopening...
+
+	print STDERR "in child!\n" if $debug;
+	print STDERR "command: $cmd\n" if $debug;
+
+	if($config{LOG_STDOUT}) {
+	    close(STDOUT);
+	    open(STDOUT, ">>${log}_stdout.log");
+
+	    close(STDERR);
+	    open(STDERR, ">>${log}_stderr.log");
+	} else {
+	    close(STDOUT);
+	    open(STDOUT, ">>/dev/null");
+
+	    close(STDERR);
+	    open(STDERR, ">>/dev/null");
+	}
+
+	close(STDIN);
+	open(STDIN, "</dev/null");
+
+	$date = localtime;
+
+	print STDOUT "***** Starting: $cmd at $date *****\n";
+	print STDERR "***** Starting: $cmd at $date *****\n";
+
+
+	# we use the safe version to avoid shell fun
+	my @cmd = split(/ /, $cmd);
+	exec(@cmd);
+	&abort("failed to execute $cmd");
+	
+    } else {
+	print STDERR "OK: $pid\n" if $debug;
+	return $pid;
+    }
+}
+
+
+sub get_servers_from_pserver {
+    my($pserver_host) = @_;
+    my($server_list) = [];
+    my($result);
+
+    &debug("    getting fs...");
+
+    return undef if(!&get_server_type($pserver_host, "fs", $server_list));
+    &debug("    getting ms...");
+    return undef if(!&get_server_type($pserver_host, "ms", $server_list));
+    &debug("    getting rs...");
+    return undef if(!&get_server_type($pserver_host, "rs", $server_list));
+    &debug("    getting cdr...");
+    return undef if(!&get_server_type($pserver_host, "cdr", $server_list));
+    &debug("    getting hbs...");
+    return undef if(!&get_server_type($pserver_host, "hbs", $server_list));
+    &debug("    done get_servers_from_pserver.");
+
+    return $server_list;
+}
+
+
+sub get_server_type {
+    my($pserver_host, $server_type, $server_list) = @_;
+    my %server_info = (
+		       "cdr" => { xml => "ListOfCdrServers",
+				  useport => 0, },
+		       "hbs" => { xml => "ListOfHeartbeatServers",
+				  useport => 0, },
+		       "fs" => { xml => "ListOfFeatureServers",
+				 useport => 1, },
+		       "ms" => { xml => "ListOfMarshalServers",
+				 useport => 1, },
+		       "rs" => { xml => "ListOfRedirectServers",
+				 useport => 1, }
+		      );
+
+    &debug("getting $server_type");
+    $list = &get_servers($pserver_host, $server_info{$server_type}{xml});
+    &debug("got $server_type");
+
+    if(!defined($list)) {
+	&debug("could not get list, pserver_host: $pserver_host  type: $server_type  server_list: $server_list");
+	return 0;
+    }
+    foreach(@$list) {
+	&debug("  $_");
+	($type, $host, $port) = split(/ /);
+	if($host eq $config{LOCALIP})  {
+	    &debug2("  $host == $config{LOCALIP}");
+
+	    if ($server_type eq "fs" && $type eq "Voicemail") {
+		&get_fsvm_servers($server_list, $host, $port);
+	    } elsif($server_type eq "hbs") {
+		if(&get_heartbeat($pserver_host)) {
+		    push(@$server_list, "hbs");
+		}
+	    } elsif($server_info{$server_type}{useport}) {
+		push(@$server_list, "$server_type $port");
+	    } else {
+		push(@$server_list, $server_type);
+	    }
+	} else {
+	    &debug2("  $host != $config{LOCALIP}");
+	}
+    }
+
+    return 1;
+}
+
+
+sub get_fsvm_servers {
+    local($server_list, $host, $port) = @_;
+    # start vmserver
+    
+    # need to get the uavm ports from the fsvm config file
+    my($a, $err) = &get_data2($pserver_host, "Features", "$host:$port");
+    if (length($err)) {
+      &debug("  error from get_data2: $err");
+    }
+
+    if ($a =~ /\<uaVMServers ([^>]*)\>/) {
+	my $tmp = $1;
+	my $vm_start, $vm_end, $vm_host, $vm_type;
+
+	if($tmp =~ /firstPort=\"([0-9]*)\"/ ) {
+	    $vm_start = $1;
+}
+	if($tmp =~ /host=\"([0-9.]*)\"/) {
+	    $vm_host = $1;
+	}
+
+	if($tmp =~ /lastPort=\"([0-9]*)\"/) {
+	    $vm_end = $1;
+	} 
+
+	if($tmp =~ /vmType\=\"(\w*)\"/) {
+	    $vm_type = $1;
+	}
+
+	if($vm_type eq "vmail") {
+	    push(@$server_list, "vmserver");
+		push(@$server_list, "fsvm $port");
+	} elsif ($vm_type eq "admin") {
+	    push(@$server_list, "vmadmin");
+		push(@$server_list, "fsvm_admin $port");
+	}
+	# got data
+
+#	if($vm_host eq $config{LOCALIP}) {
+#	if($vm_start >= 5270) {
+#	    print "uavm_admin: $vm_host $vm_start - $vm_end\n" if $debug > 1;
+#	    for($lport = $vm_start; $lport <= $vm_end  ; $lport++) {
+#		push(@$server_list, "uavm_admin $lport");
+#		}
+#	    } else {
+#		print "uavm: $vm_host $vm_start - $vm_end\n" if $debug > 1;
+#		for($lport = $vm_start; $lport <= $vm_end  ; $lport++) {
+#		    push(@$server_list, "uavm $lport");
+#		}
+#	    }
+#	}*/
+    }
+}
+
+
+sub log {
+    local(@text) = @_;
+    local($timestr) = strftime "%b %e %H:%M:%S", localtime;
+
+    print LOG "$timestr @text\n";
+}
+
+
+sub read_config_file {
+    stat($opt_f);
+    my($changeval) = (-M $opt_f);
+    
+    if($changeval != $conf_file_last_changed) {
+	&log("rereading config file $opt_f");
+	open(CONFIG, $opt_f) || &abort("can't open $opt_f: $!");
+	
+	while(<CONFIG>) {
+	    chomp;
+	    s/\#.*$//;
+	    my ($param, $val, $val2) = split(/\s+/, $_, 3);
+	    if(!/^\s*$/) {
+		if(defined($CONFIG_VALS{$param})) {
+		    $config{$param} = $val;
+		} else {
+		    if($RUN_CMDS{$param}) {
+			print "startup: $param ($val)\n" if $debug;
+#			push(@cmds, { "original" => $param, 
+#				      "cmd" => $RUN_CMDS{$param}, 
+#				      "port" => $val,
+#				      "port2" => $val2});
+		    }
+		}
+	    }
+	}
+    
+	close(CONFIG);
+	$conf_file_last_changed = $changeval;
+    }
+}
+
+sub debug {
+    &log(@_) if($debug) ;
+}
+
+sub debug2 {
+    &log(@_) if($debug > 1) ;
+}
+
+### Local Variables: ###
+### mode: cperl ###
+### End: ###

@@ -1,0 +1,20 @@
+
+TODO for test framework
+
+1.  should be able to specify email addresses for when your tests break
+2.  way to read output of a program and determine whether it passes/fails.
+3.  test methods for classes
+4.  document how t do static object pre/post condition stuff.
+5.  should run tests in both debug and nodebug versions (to check for nodebug
+    failues).
+
+
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: TODO.test,v 1.1 2004/05/01 04:15:33 greear Exp $

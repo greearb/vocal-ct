@@ -1,0 +1,80 @@
+I've begun writing our man pages in Docbook SGML, version 4.1.  For
+more information, please see
+
+	http://www.docbook.org/tdg/en/html/docbook-x.html
+
+the pages we're writing for this purpose are of type refentry.  an
+example is pserver.sgml. 
+
+This is not XML, but it should be possible to convert it in the
+future, as long as we do the following:
+
+	Always close tags with corresponding end-tags.
+
+	Wrong:	
+		<para> The paragraph....
+		<para> Second paragraph....
+
+	Right:
+		<para>The paragraph.......</para>
+		<para>Second paragraph....</para>
+    
+      	Write all elements and attributes in lowercase. example:
+
+	Wrong:
+		<RefEntity>
+
+	Right:
+		<refentity>
+
+
+	Quote all attributes. 
+
+	Wrong:
+		<refentity id=pserver>
+		....
+
+	Right:
+		<refentity id="pserver">
+		....
+
+I have installed a number of packages to get docbook to man page
+conversion working.  the package is part of redhat -- it's
+docbook-utils-0.6-13 .
+
+I had some trouble in setting up my xemacs to properly parse my
+docbook sgml stuff, so i used 
+
+	http://openacs.org/doc/openacs-4/psgml-mode.html
+
+to sort these things out.
+
+=============================================================
+sipset
+-------
+sipset.sgml is used to generate both a manpage and an html page
+for inclusion on vovida.org. The web page uses images from the
+images directory.
+
+To regenerate the manpage, use generate.pl sipset.sgml
+
+Or, to do it by hand:
+docbook2man -o generated_man sipset.sgml
+
+To regenerate the html page, type
+docbook2html -o generated_html sipset.sgml
+mv generated_html/index.html generated_html/sipset.html
+
+The man page should be copied to /usr/local/vocal/bin/man/man1.
+The html page and images must be manually copied to the vovida.org website.
+
+$Id: README,v 1.1 2004/05/01 04:15:16 greear Exp $
+======================================================================
+
+Copyright 2000-2003, Cisco Systems, Inc.
+THE INFORMATION HEREIN IS PROVIDED ON AN "AS IS" BASIS, WITHOUT ANY
+WARRANTIES OR REPRESENTATIONS, EXPRESS, IMPLIED OR STATUTORY, INCLUDING
+WITHOUT LIMITATION, WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE.
+
+$Id: README,v 1.1 2004/05/01 04:15:16 greear Exp $
