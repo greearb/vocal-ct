@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.5 2004/06/20 07:09:38 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.6 2004/06/20 22:28:00 greear Exp $";
 
 
 #include <sys/types.h>
@@ -94,8 +94,8 @@ static const char* const UaFacade_cxx_Version =
 #endif
 
 #ifdef USE_LANFORGE
-#include "LANforgeCustomDevice.hxx"
-#include "LFVoipHelper.hxx"
+#include "LF/LANforgeCustomDevice.hxx"
+#include "LF/LFVoipHelper.hxx"
 #endif
 
 #include "NetworkConfig.hxx"

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/06/15 06:20:35 greear Exp $
+# $Id: Makefile,v 1.3 2004/06/20 22:28:00 greear Exp $
 
 BUILD = ../build
 
@@ -32,9 +32,12 @@ LDLIBS_LAST += -lgcont -lstring2
 endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
-MKSHLIB_INCDIRS += -L../../VoiceAge
+#  Add new entries here if your VoiceAge files are found elsewhere.
+MKSHLIB_INCDIRS += -L$(HOME)/btbits/btbits/l4libs/VoiceAge
+LIBDIRS += $(HOME)/btbits/btbits/l4libs/VoiceAge
+INCDIRS += $(HOME)/btbits/btbits/l4libs/VoiceAge
+
 MKSHLIB_LIBS += -lCodecLib -lg729 -lg729utils
-LIBDIRS += ../../VoiceAge
 LDLIBS_LAST += -lCodecLib -lg729 -lg729utils
 endif
 

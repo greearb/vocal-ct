@@ -1,18 +1,16 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:23 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/20 22:28:00 greear Exp $
 
 BUILD = ../build
 
 include $(BUILD)/Makefile.pre
 
-PACKAGES += UTIL PTHREAD LIBXML LIBCEXT OPENSSL
+PACKAGES += UTIL LIBXML LIBCEXT OPENSSL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil -lxml
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lxml
 
 
 INCDIRS += codec
-
-DEFINES += USE_PTHREADS
 
 TARGET_LIBRARY = librtp
 
@@ -56,7 +54,7 @@ rtpApi.cxx: rtpTools.hxx Rtp.hxx Rtcp.hxx RtpSession.hxx $(CAPIBUILDER)
 	cat rtpTools.hxx Rtp.hxx Rtcp.hxx RtpSession.hxx | $(CAPIBUILDER) -irtpTools.hxx -iRtp.hxx -iRtcp.hxx -iRtpSession.hxx   > rtpApi.cxx
 
 ifeq ($(VOCAL_USE_LANFORGE),yes)
-LFDIR=../../..
+LFDIR=$(HOME)/btbits/btbits/
 INCDIRS += $(LFDIR)/include
 LIBDIRS += $(LFDIR)/lib
 MKSHLIB_INCDIRS += -L$(LFDIR)/lib

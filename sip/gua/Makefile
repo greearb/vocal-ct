@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/06/20 07:09:38 greear Exp $
+# $Id: Makefile,v 1.5 2004/06/20 22:28:00 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -172,11 +172,14 @@ endif
 
 
 ifeq ($(VOCAL_USE_LANFORGE),yes)
-SRC += LFVoipCtrlHandler.cxx  LFVoipEndp.cxx  LFVoipHelper.cxx  LFVoipManager.cxx \
-       LANforgeCustomDevice.cxx
+
+CODE_SUBDIRS += LF
+
+SRC += LF/LFVoipCtrlHandler.cxx LF/LFVoipEndp.cxx LF/LFVoipHelper.cxx LF/LFVoipManager.cxx \
+       LF/LANforgeCustomDevice.cxx
 
 
-LFDIR=../../../..
+LFDIR=$(HOME)/btbits/btbits
 INCDIRS += $(LFDIR)/server $(LFDIR)/include $(LFDIR)/l4libs/curl-7.10.4/include
 LIBDIRS += $(LFDIR)/lib
 

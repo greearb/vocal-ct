@@ -60,7 +60,7 @@
 #include <SipUdpConnection.hxx>
 
 #ifdef USE_LANFORGE
-#include "LFVoipHelper.hxx"
+#include "LF/LFVoipHelper.hxx"
 #endif
 
 using namespace Vocal;

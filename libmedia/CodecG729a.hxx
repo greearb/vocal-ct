@@ -52,12 +52,12 @@
  */
 
 static const char* const CodecG729a_hxx_Version = 
-    "$Id: CodecG729a.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG729a.hxx,v 1.2 2004/06/20 22:28:00 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
 #include "CodecAdaptor.hxx"
-#include "../../VoiceAge/codecLib_if.h"
+#include <codecLib_if.h> // Voice-age specific file.
 
 
 namespace Vocal
