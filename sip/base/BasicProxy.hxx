@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "HeartbeatTxThread.hxx"
@@ -114,32 +114,6 @@ class BasicProxy: public HeartLessProxy
         /** Virtual destructor
          */
         virtual ~BasicProxy();
-
-
-        /** Run method calls HeartLessProxy::run()
-	 *  Also runs heartbeating rx and housekeeping threads.
-	 */
-        virtual void run();
-
-
-        /** Calls the heartbeat tx run method.
-         */
-        virtual void runHeartbeatThread();
-
-
-        /** Shuts down the Worker and Sip threads.
-         */
-        virtual void shutdown();
-
-
-        /** Shuts down the three heartbeat threads.
-         */
-        virtual void shutdownHeartbeatThread();
-
-
-        /** Calls the three heartbeat thread join methods
-         */
-        virtual void joinHeartbeatThread();
 
 
     protected:

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipSnmpDetailsVersion
-= "$Id: SipSnmpDetails.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipSnmpDetails.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 
@@ -63,8 +63,6 @@ static const char* const SipSnmpDetailsVersion
 #include "SipUriSupportedTable.hxx"
 #include "SipFtrSupportedEntry.hxx"
 #include "SipUriSupportedEntry.hxx"
-#include "VThread.hxx"
-#include "RWMutex.hxx"
 #include "symbols.hxx"
 #include "SnmpData.hxx"
 #include "SipAgent.hxx"
@@ -98,7 +96,7 @@ typedef enum {
 
 
 ///
-class SipSnmpDetails
+class SipSnmpDetails: public BugCatcher
 {
 
     public:
@@ -150,11 +148,6 @@ class SipSnmpDetails
         void setstackdata(int index, const snmpData&);
         ///
         snmpData getstackdata(int index);
-    protected:
-
-        void getReadLock(void);
-        void getWriteLock(void);
-        void getUnLock(void);
 
 
     private:
@@ -171,8 +164,6 @@ class SipSnmpDetails
         ///
 
         stackDataMap stackMap;
-
-        Vocal::Threads::RWMutex rwlock;
 
         Data appName;
 };

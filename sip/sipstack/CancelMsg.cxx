@@ -49,7 +49,7 @@
  */
 
 static const char* const CancelMsg_cxx_Version =
-    "$Id: CancelMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: CancelMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "CancelMsg.hxx"
 #include "Data.hxx"
@@ -91,7 +91,7 @@ CancelMsg::operator =(const CancelMsg& src)
 }
 
 
-CancelMsg::CancelMsg(const string& local_ip) : SipCommand(local_ip)
+CancelMsg::CancelMsg(const string& local_ip) : SipCommand(local_ip, "CancelMsg")
 {
     myRequestLine.setMethod(CANCEL_METHOD);
     SipCSeq cseq( SIP_CANCEL, 0, local_ip);
@@ -105,7 +105,7 @@ CancelMsg::CancelMsg(const CancelMsg& src)
 }
 
 CancelMsg::CancelMsg(const Data& data, const string& local_ip)
-    : SipCommand(local_ip)
+    : SipCommand(local_ip, "CancelMsg")
 {
     SipCommand::decode(data);
 

@@ -53,7 +53,7 @@
 
 
 static const char* const TPKTClientProtocol_hxx_Version = 
-    "$Id: TPKTClientProtocol.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TPKTClientProtocol.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "TransportCommon.hxx"
@@ -113,10 +113,10 @@ class TPKTClientProtocol : public Vocal::Transport::Protocol
 		
 
 	/** Abstract callback that notifies the user of the 
-	 *  availability of a complete TPKT.
+	 *  availability of a complete TPKT.  Memory now belongs
+         *  to whoever implements this method, delete when finished.
 	 */
-    	virtual void	    	    	    
-	    	onTPKTArrived(vector<u_int8_t> & message) = 0;
+    	virtual void onTPKTArrived(vector<u_int8_t>* message) = 0;
 
 
     	/** Override's Protocol's onIncomingAvailable. This will read
@@ -130,7 +130,7 @@ class TPKTClientProtocol : public Vocal::Transport::Protocol
 			Vocal::Transport::ConnectionBrokenException );
 
     private:
-    	    	Sptr< vector<u_int8_t> >    pkt_;
+    	    	vector<u_int8_t>*           pkt_;
 		u_int16_t   	    	    pktPosition_;
 		u_int16_t   	    	    pktLength_;
 };

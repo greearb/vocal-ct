@@ -53,14 +53,13 @@
 
 
 static const char* const SignalHandler_hxx_Version = 
-    "$Id: SignalHandler.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: SignalHandler.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "NonCopyable.hxx"
 #include "global.h"
 #include "SignalSet.hxx"
 #include "SignalAction.hxx"
-#include "VThread.hxx"
 #include <csignal>
 #include <map>
 
@@ -171,16 +170,14 @@ class SignalHandler : public Vocal::NonCopyable
     	static void signalHandler(int, siginfo_t *, void *);
 
 
-    private:
+private:
 
 
-    	typedef map<int, size_t>                    SignalActionRefCountMap;
-    	typedef map<int, SignalAction *>    	    SignalActionMap;
-    	typedef map<vthread_t, SignalActionMap *>   ThreadSignalMap;
+   typedef map<int, size_t>                    SignalActionRefCountMap;
+   static map<int, SignalAction*>* sig_map;
 
 
-    	static SignalActionRefCountMap	    	    myActionRefCountMap;
-    	static ThreadSignalMap     	    	    myThreadSignalMap;
+   static SignalActionRefCountMap	    	    myActionRefCountMap;
 };
 
 

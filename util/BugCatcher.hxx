@@ -4,8 +4,9 @@
 #define __BUG_CATCHER_INC__
 
 #include <assert.h>
+#include "RCObject.hxx"
 
-class BugCatcher {
+class BugCatcher: public RCObject {
 private:
    unsigned int magic;
 

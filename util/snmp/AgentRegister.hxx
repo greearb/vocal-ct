@@ -56,7 +56,7 @@
 #define AgentRegister_H
 
 static const char* const AgentRegisterHeaderVersion =
-    "$Id: AgentRegister.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: AgentRegister.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #ifdef __cplusplus
 
@@ -66,7 +66,6 @@ static const char* const AgentRegisterHeaderVersion =
 #include "Sptr.hxx"
 #include "SnmpCommon.h"
 #include "UdpStack.hxx"
-#include "ThreadIf.hxx"
 #include "cpLog.h"
 #endif /* __cplusplus */
 
@@ -78,27 +77,24 @@ static const char* const AgentRegisterHeaderVersion =
 #define registerMulticastIP "230.1.2.3"
 #ifdef __cplusplus
 
-class AgentRegister: public ThreadIf
-{
-    public:
-        AgentRegister(void *msg, int msgLEN);
-        virtual ~AgentRegister();
+class AgentRegister: public RCObject {
+public:
+   AgentRegister(void *msg, int msgLEN);
+   virtual ~AgentRegister();
+   
+private:
+   //This stack is used to receive multicast messages 
+   Sptr < UdpStack > regUdpStack;
 
-    protected:
-        virtual void thread();
-    private:
-		//This stack is used to receive multicast messages 
-        Sptr < UdpStack > regUdpStack;
-		// This stack is used to send unicast messages to the SNMPD
-		// Modified by nismail@cisco.com
-		Sptr <UdpStack > regTrUdpStack;
-        int SockNum, MaxSockNum;
-        NetworkAddress dest;
-        char *txMessage;
-        int txMsgLen;
-        char rxMessage[2048];  /* for lack of a better size */
-}
-;
+   // This stack is used to send unicast messages to the SNMPD
+   // Modified by nismail@cisco.com
+   Sptr <UdpStack > regTrUdpStack;
+   int SockNum, MaxSockNum;
+   NetworkAddress dest;
+   char *txMessage;
+   int txMsgLen;
+   char rxMessage[2048];  /* for lack of a better size */
+};
 
 #endif /* __cplusplus */
 

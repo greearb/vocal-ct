@@ -52,29 +52,13 @@
  */
 
 static const char* const sipHeaderVersion =
-"$Id: SipHeader.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+"$Id: SipHeader.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "Data.hxx"
 #include "Sptr.hxx"
 #include "VException.hxx"
 #include <deque>
 #include "NetworkAddress.h"
-
-/*
-  #ifdef __linux__
-  // hash_map is much faster than regular map
-  #include <hash_map>
-  #include "StringHash.hxx"
-  typedef int SipHeaderType;
-  typedef hash_map<SipHeaderType, pair<Data,Data>, StringHash > SipHeaderNameMap;
-  #else
-  // Some STL implementations do not support the hash map eg. Solaris
-  // so use map instead.  Note: map is much slower
-  #include <map>
-  typedef int SipHeaderType;
-  typedef map<SipHeaderType, pair<Data,Data>> SipHeaderNameMap;
-  #endif
-*/
 
 
 namespace Vocal
@@ -203,8 +187,8 @@ SipHeaderType headerTypeDecode(const Data& headerName);
 Data headerTypeEncode(const SipHeaderType header);
 
 
-/// pure virtual base class for all SIP headers
-class SipHeader
+/// Base class for all SIP headers
+class SipHeader: public BugCatcher
 {
     public:
         static  void    init();
@@ -231,14 +215,12 @@ class SipHeader
         SipHeader(const string& _local_ip) {
             emptyFlg= true;
             local_ip = _local_ip;
-//            assert(NetworkAddress::is_valid_ip4_addr(local_ip) || NetworkAddress::is_valid_ip6_addr(local_ip)); //TODO:  Remove
         }
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
         SipHeader(const Data& val, const string& _local_ip) {
             emptyFlg= false;
             local_ip = _local_ip;
-//            assert(NetworkAddress::is_valid_ip4_addr(local_ip) || NetworkAddress::is_valid_ip6_addr(local_ip)); // TODO: Remove
         }
         bool emptyFlg;
 

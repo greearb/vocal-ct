@@ -50,7 +50,7 @@
  */
 
 static const char* const SipRecordRoute_cxx_Version =
-    "$Id: SipRecordRoute.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRecordRoute.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipRecordRoute.hxx"
@@ -229,8 +229,7 @@ SipRecordRoute::encode() const
     {
 	if (url->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(url);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(url.getPtr()));
     
 	    data += "<";
 	    sipUrl->encode();

@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipThread.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -66,10 +66,9 @@ using namespace Vocal;
 
 
 SipThread::SipThread( const Sptr < SipTransceiver > sipStack, 
-                      const Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo ,
+                      list < Sptr < SipProxyEvent > >* outputFifo ,
                       bool callLegHistory)
-      : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, 64 * 1024 /* VTHREAD_STACK_SIZE_DEFAULT*/),
-        mySipStack(sipStack), myOutputFifo(outputFifo), myCallLegHistory(callLegHistory)
+      : mySipStack(sipStack), myOutputFifo(outputFifo), myCallLegHistory(callLegHistory)
 {
     assert ( mySipStack != 0 );
     assert ( myOutputFifo != 0 );
@@ -125,7 +124,8 @@ SipThread::discardMessage( Sptr < SipMsg > &sipMsg) const
 }
 
 
-
+#warning "Port to non-threaded model"
+#if 0
 void
 SipThread::thread()
 {
@@ -175,3 +175,4 @@ SipThread::thread()
         }
     }
 }
+#endif

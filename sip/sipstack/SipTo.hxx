@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTo_hxx_Version =
-    "$Id: SipTo.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTo.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
@@ -194,7 +194,7 @@ class SipTo : public SipHeader
 
         void setTokenDetails(const Data& token, const Data& tokenValue);
 
-        Sptr < TokenMapTo > getTokenDetails() const;
+        const TokenMapTo& getTokenDetails() const;
 
         Data getTokenValue(const Data& token) const;
 

@@ -1,17 +1,15 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:33 greear Exp $
+# $Id: Makefile,v 1.2 2004/05/04 07:31:15 greear Exp $
 
 BUILD = ../build
 
 include $(BUILD)/Makefile.pre
 
-DEFINES += USE_PTHREADS
-
 # Fixes screwup with RH 9.0 (NPTL libraries & kernel, specifically)
-MKSHLIB_LIBS += -lpthread -lstdc++ -lm -lgcc_s
+MKSHLIB_LIBS += -lstdc++ -lm -lgcc_s
 
 TARGET_LIBRARY = libvutil
 
-PACKAGES += PTHREAD OPENSSL
+PACKAGES += OPENSSL
 
 ifeq ($(USE_YARROW),1)
 PACKAGES += YARROW
@@ -38,15 +36,14 @@ ifeq ($(OSTYPE),Linux)
 DEFINES += USE_CRYPTO_RANDOM
 endif
 
-CODE_SUBDIRS =  threads logging crypto statistics snmp signals behavior io \
-                services transport config dnssrv adts
+CODE_SUBDIRS =  logging crypto statistics snmp signals io \
+                transport config dnssrv adts
 
 SRC += \
 	misc.cxx \
 	Data2.cxx \
 	RandomHex.cxx \
 	Sptr.cxx \
-	threads/Condition.cxx \
 	transport/InitTransport.cxx \
 	vstring.cxx\
         Application.cxx \
@@ -74,12 +71,6 @@ SRC += \
         VTime.cxx \
         Verify.cxx \
         VocalCommon.cxx \
-        behavior/Action.cxx \
-        behavior/Context.cxx \
-        behavior/Observer.cxx \
-        behavior/StateInterface.cxx \
-        behavior/Stimulus.cxx \
-        behavior/Subject.cxx \
 	config/ConfFile.cxx \
         config/CommandLine.cxx \
         config/Config.cxx \
@@ -102,16 +93,6 @@ SRC += \
         logging/VLog.cxx \
         logging/cpLog.cxx \
         mstring.cxx \
-        services/ControlEvent.cxx \
-        services/Event.cxx \
-        services/FifoService.cxx \
-        services/MTServiceManager.cxx \
-        services/PollFifoService.cxx \
-        services/ProtocolService.cxx \
-        services/STServiceManager.cxx \
-        services/Service.cxx \
-        services/ServiceApplication.cxx \
-        services/ServiceManager.cxx \
         signals/SignalAction.cxx \
         signals/SignalSet.cxx \
         snmp/AgentApi.cxx \
@@ -125,21 +106,6 @@ SRC += \
         statistics/TickCount.cxx \
         statistics/TotalStatistic.cxx \
         support.cxx \
-        threads/AssertSingleThreaded.cxx \
-        threads/Condition.cxx \
-        threads/Lock.cxx \
-        threads/Lockable.cxx \
-        threads/Mutex.cxx \
-        threads/RWMutex.cxx \
-        threads/Thread.cxx \
-        threads/ThreadIf.cxx \
-        threads/VSemaphore.cxx \
-        threads/VThreadEvent.cxx \
-        threads/VThreadException.cxx \
-        threads/VThreadGate.cxx \
-        threads/VThreadPool.cxx \
-        threads/vthread-linux.cxx \
-        threads/vthread-vxworks.cxx \
         transport/AddressFamily.cxx \
         transport/Connection.cxx \
         transport/ConnectionBrokenException.cxx \
@@ -196,14 +162,6 @@ endif
 
 #for doc++
 EXTRA_HEADERS=\
-behavior/Action.hxx \
-behavior/Context.hxx \
-behavior/EventObserver.hxx \
-behavior/EventSubject.hxx \
-behavior/Observer.hxx \
-behavior/StateInterface.hxx \
-behavior/Stimulus.hxx \
-behavior/Subject.hxx \
 config/CommandLine.hxx \
 config/ConfFile.hxx \
 config/Config.hxx \
@@ -227,16 +185,6 @@ logging/CpPriorityLog.hxx \
 logging/Log.hxx \
 logging/PriorityLog.hxx \
 logging/VLog.hxx \
-services/ControlEvent.hxx \
-services/Event.hxx \
-services/FifoService.hxx \
-services/MTServiceManager.hxx \
-services/PollFifoService.hxx \
-services/ProtocolService.hxx \
-services/ServiceApplication.hxx \
-services/Service.hxx \
-services/ServiceManager.hxx \
-services/STServiceManager.hxx \
 signals/SignalAction.hxx \
 signals/SignalHandler.hxx \
 signals/SignalSet.hxx \
@@ -253,25 +201,6 @@ statistics/Statistic.hxx \
 statistics/StatisticsDb.hxx \
 statistics/TickCount.hxx \
 statistics/TotalStatistic.hxx \
-threads/AssertSingleThreaded.hxx \
-threads/Condition.hxx \
-threads/Lockable.hxx \
-threads/Lock.hxx \
-threads/Mutex.hxx \
-threads/RWMutex.hxx \
-threads/Thread.hxx \
-threads/ThreadIf.hxx \
-threads/vthread.h \
-threads/VRWLock.hxx \
-threads/VSemaphore.hxx \
-threads/VThreadEvent.hxx \
-threads/VThreadException.hxx \
-threads/VThreadGate.hxx \
-threads/VThread.hxx \
-threads/VThreadInitException.hxx \
-threads/VThreadPool.hxx \
-threads/VThread_posix.hxx \
-threads/VThread_vxworks.hxx \
 transport/AddressFamily.hxx \
 transport/ConnectionBrokenException.hxx \
 transport/Connection.hxx \

@@ -50,7 +50,7 @@
 
 
 static const char* const UDPSocket_cxx_Version = 
-    "$Id: UDPSocket.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: UDPSocket.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -97,7 +97,6 @@ UDPSocket::~UDPSocket()
 Sptr<IPAddress>     
 UDPSocket::getRemoteIPAddress() const
 {
-    Sptr<IPAddress> remoteIPAddr;
-
-    return ( remoteIPAddr.dynamicCast(getRemoteAddress()) );
+    Sptr<IPAddress> remoteIPAddr((IPAddress*)(getRemoteAddress().getPtr()));
+    return remoteIPAddr;
 }    

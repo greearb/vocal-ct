@@ -49,7 +49,7 @@
  */
 
 static const char* const OptionsMsg_cxx_Version =
-    "$Id: OptionsMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: OptionsMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "Data.hxx"
 #include "OptionsMsg.hxx"
@@ -71,7 +71,7 @@ using Vocal::SDP::SdpMedia;
 
 
 OptionsMsg::OptionsMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "OptionsMsg")
 {
     myRequestLine.setMethod(OPTIONS_METHOD);
     SipCSeq cseq( SIP_OPTIONS, 0, local_ip );
@@ -110,7 +110,7 @@ OptionsMsg::operator ==(const OptionsMsg& src)
 
 OptionsMsg::OptionsMsg(Sptr <BaseUrl> toUrl, const string& local_ip,
                        int listenPort, int rtpPort)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "OptionsMsg")
 {
     cpLog(LOG_DEBUG_STACK, "C'tor of OptionsMsg");
 
@@ -257,7 +257,7 @@ OptionsMsg::setOptionsDetails(Sptr <BaseUrl> toUrl,
 
 
 OptionsMsg::OptionsMsg( const Data& data, const string& local_ip )
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "OptionsMsg")
 {
 
     SipCommand::decode(data);

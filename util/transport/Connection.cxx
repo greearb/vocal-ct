@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Connection.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #ifndef __vxworks
 
@@ -75,7 +75,6 @@ static const char* const Connection_cxx_version =
 #include "VNetworkException.hxx"
 #include "cpLog.h"
 #include "Connection.hxx"
-#include "Condition.hxx"
 
 
 bool Connection::_init = false;
@@ -287,7 +286,7 @@ Connection::effRead(char* ptr)
                 if ((errno == EINTR) || (errno == EAGAIN))
                 {
                     //cpLog(LOG_DEBUG, "Received EINTR or EAGAIN, keep trying");
-                    vusleep(20);
+                    usleep(20);
                     continue;
                 }
                 char buf[256];

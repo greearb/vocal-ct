@@ -54,7 +54,7 @@
 
 
 static const char* const Operator_hxx_Version = 
-    "$Id: Operator.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Operator.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -82,7 +82,7 @@ class SipVia;
 
 </pre>
 */
-class Operator
+class Operator: public BugCatcher
 {
     public:
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipParameterList_hxx_Version =
-    "$Id: SipParameterList.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipParameterList.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <map>
 
@@ -60,8 +60,6 @@ static const char* const SipParameterList_hxx_Version =
 #include "SipParserMode.hxx"
 #include "Data.hxx"
 #include "Sptr.hxx"
-#include "Mutex.hxx"
-#include "Lock.hxx"
 #include "VException.hxx"
 
 /// Exception handling class
@@ -145,15 +143,11 @@ class SipParameterList : public std::map <Data, Data>
         void clearValue(const Data& key);
 
         ///
-        const SipParameterList&  operator=(const SipParameterList& src)
-        {
-            if(this != &src)
-            {
-                Threads::Lock lock1(src.myMutex);
-                Threads::Lock lock2(myMutex);
-					 // 24/11/03 fpi
-					 // WorkAround Win32
-					 // ! std::map<Data, Data>::operator=(src);
+        const SipParameterList&  operator=(const SipParameterList& src) {
+            if(this != &src) {
+                // 24/11/03 fpi
+                // WorkAround Win32
+                // ! std::map<Data, Data>::operator=(src);
                 map<Data, Data>::operator=(src);
                 myDelimiter = src.myDelimiter; 
             }
@@ -162,8 +156,6 @@ class SipParameterList : public std::map <Data, Data>
 
     private:
         char     myDelimiter;
-        mutable Threads::Mutex   myMutex;
-
 };
 
  

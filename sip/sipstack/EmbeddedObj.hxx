@@ -51,7 +51,7 @@
  *
  */
 
-static const char* const EmbeddedObj_hxx_Version = "$Id: EmbeddedObj.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+static const char* const EmbeddedObj_hxx_Version = "$Id: EmbeddedObj.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include <string>
 #include <vector>
@@ -70,7 +70,7 @@ static const char* const EmbeddedObj_hxx_Version = "$Id: EmbeddedObj.hxx,v 1.1 2
 
 namespace Vocal
 {
-    class EmbeddedObj 
+    class EmbeddedObj : public BugCatcher
     {
 	    typedef map<string, char*> EscMap;
 	public:

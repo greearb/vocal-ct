@@ -53,7 +53,7 @@
 
 
 static const char* const TimerEvent_hxx_Version = 
-    "$Id: TimerEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: TimerEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "SipProxyEvent.hxx"
@@ -78,7 +78,7 @@ class TimerEvent : public SipProxyEvent
 
         /** Create a timer event given the associate fifo.
          */
-        TimerEvent(Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo);
+        TimerEvent(list < Sptr < SipProxyEvent > >* outputFifo);
 
 
         /** Virtual destructor
@@ -101,11 +101,6 @@ class TimerEvent : public SipProxyEvent
          *  call container.
          */
         void removeCall();
-
-
-        /** Return the timer id of this previously started timer.
-         */
-        FifoEventId getTimerId();
 
 
         /** Name of this class.

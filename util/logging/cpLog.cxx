@@ -50,12 +50,13 @@
  */
 
 static const char* const cpLog_cxx_Version =
-    "$Id: cpLog.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: cpLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
 #include <syslog.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/unistd.h>
 #include <stdarg.h>
@@ -71,14 +72,8 @@ static const char* const cpLog_cxx_Version =
 
 #include "cpLog.h"
 #include "global.h"
-#include "Mutex.hxx"
-#include "VThread.hxx"
-#include "Lock.hxx"
 #include "support.hxx"
 
-
-using Vocal::Threads::Mutex;
-using Vocal::Threads::Lock;
 
 /* String sizes */
 #define DATEBUF_SIZE 256
@@ -140,32 +135,29 @@ void handleCriticalError (char* fmt, ...);
 inline void rotateFilesIfNecessary();
 void rotateFiles();
 
-static Mutex cpLogMutex("logMutex", false);
-
 class CpLogPriority
 {
     public:
-        static int getPriority();
+        static int getPriority(int id = 0);
         static void setPriority(int pri);
-        static void setPriorityThread(vthread_t threadId, int pri);
-        static void clearPriorityThread(vthread_t threadId);
+        static void setPriorityThread(int id, int pri);
+        static void clearPriorityThread(int id);
 
-        static const char* getLabel();
+        static const char* getLabel(int id = 0);
         static void setLabel(const char* label);
-        static void setLabelThread(vthread_t threadId, const char* label);
-        static void clearLabelThread(vthread_t threadId);
+        static void setLabelThread(int id, const char* label);
+        static void clearLabelThread(int id);
 
     protected:
         CpLogPriority();
 
     private:
-        static Mutex logMutex;
         static CpLogPriority* getInstance();
         static CpLogPriority* instance_;
 
         int logPriority;
-        map < vthread_t, int > logPriorityMap;
-        map < vthread_t, string > logLabelMap;
+        map < int, int > logPriorityMap;
+        map < int, string > logLabelMap;
         string logLabel;
 
         /* This is a singleton class, so it makes no sense for it
@@ -178,7 +170,6 @@ class CpLogPriority
 
 
 CpLogPriority* CpLogPriority::instance_ = 0;
-Mutex CpLogPriority::logMutex("cpLog", false);
 
 CpLogPriority::CpLogPriority()
         : logPriority(LOG_ERR),
@@ -197,23 +188,20 @@ CpLogPriority* CpLogPriority::getInstance()
 }
 
 
-int CpLogPriority::getPriority()
+int CpLogPriority::getPriority(int id)
 {
-    map < vthread_t, int > ::iterator i;
+    map < int, int > ::iterator i;
 
-    logMutex.lock();
-    i = getInstance()->logPriorityMap.find(VThread::selfId());
+    i = getInstance()->logPriorityMap.find(id);
 
     if (i != getInstance()->logPriorityMap.end())
     {
         // found it!
-        logMutex.unlock();
         return i->second;
     }
     else
     {
         // not found, use default
-        logMutex.unlock();
         return getInstance()->logPriority;
     }
 }
@@ -223,27 +211,24 @@ void
 CpLogPriority::setPriority(int pri)
 {
     assert (pri >= 0 && pri <= LAST_PRIORITY);
-    Lock lock(logMutex);
     getInstance()->logPriority = pri;
 }
 
 
 void
-CpLogPriority::setPriorityThread(vthread_t threadId, int pri)
+CpLogPriority::setPriorityThread(int id, int pri)
 {
     assert (pri >= 0 && pri <= LAST_PRIORITY);
-    Lock lock(logMutex);
-    getInstance()->logPriorityMap[threadId] = pri;
+    getInstance()->logPriorityMap[id] = pri;
 }
 
 
 void
-CpLogPriority::clearPriorityThread(vthread_t threadId)
+CpLogPriority::clearPriorityThread(int id)
 {
-    map < vthread_t, int > ::iterator i;
+    map < int, int > ::iterator i;
 
-    Lock lock(logMutex);
-    i = getInstance()->logPriorityMap.find(threadId);
+    i = getInstance()->logPriorityMap.find(id);
 
     if (i != getInstance()->logPriorityMap.end())
     {
@@ -252,12 +237,11 @@ CpLogPriority::clearPriorityThread(vthread_t threadId)
 }
 
 
-const char* CpLogPriority::getLabel()
+const char* CpLogPriority::getLabel(int id)
 {
-    map < vthread_t, string > ::iterator i;
+    map < int, string > ::iterator i;
 
-    Lock lock(logMutex);
-    i = getInstance()->logLabelMap.find(VThread::selfId());
+    i = getInstance()->logLabelMap.find(id);
 
     if (i != getInstance()->logLabelMap.end())
     {
@@ -275,26 +259,23 @@ const char* CpLogPriority::getLabel()
 void
 CpLogPriority::setLabel(const char* label)
 {
-    Lock lock(logMutex);
     getInstance()->logLabel = label;
 }
 
 
 void
-CpLogPriority::setLabelThread(vthread_t threadId, const char* label)
+CpLogPriority::setLabelThread(int id, const char* label)
 {
-    Lock lock(logMutex);
-    getInstance()->logLabelMap[threadId] = label;
+    getInstance()->logLabelMap[id] = label;
 }
 
 
 void
-CpLogPriority::clearLabelThread(vthread_t threadId)
+CpLogPriority::clearLabelThread(int id)
 {
-    map < vthread_t, string > ::iterator i;
+    map < int, string > ::iterator i;
 
-    Lock lock(logMutex);
-    i = getInstance()->logLabelMap.find(threadId);
+    i = getInstance()->logLabelMap.find(id);
 
     if (i != getInstance()->logLabelMap.end())
     {
@@ -353,7 +334,6 @@ cpLog(int pri, const char* fmt, ...)
 
     if (pri <= CpLogPriority::getPriority())
     {
-        Lock lock(cpLogMutex);
         va_start(ap, fmt);
         vCpLog(pri, "", 0, fmt, ap);
         va_end(ap);
@@ -373,7 +353,6 @@ void cpLog_old_version(int pri, const char* fmt, ...)
 
     if (pri <= CpLogPriority::getPriority())
     {
-        Lock lock(cpLogMutex);
         va_start(ap, fmt);
         vCpLog(pri, "", 0, fmt, ap);
         va_end(ap);
@@ -395,7 +374,6 @@ void WrapLog::operator() (int pri, const char *fmt, ...)
 
     if (pri <= CpLogPriority::getPriority())
     {
-	Lock lock(cpLogMutex);
         va_start(ap, fmt);
         vCpLog(pri, m_fname, m_lineno, fmt, ap);
         va_end(ap);
@@ -421,7 +399,6 @@ void cpLog_impl_(int pri, const char* file, int line, const char* fmt, ...)
         // from another thread. This is something that the underlying
         // system libraries cannot protect against.
         //
-	Lock lock(cpLogMutex);
         va_start(ap, fmt);
         vCpLog(pri, file, line, fmt, ap);
         va_end(ap);
@@ -490,9 +467,9 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
 	vsnprintf(buf, 4096, fmt, ap);
 
         syslog (coercedPriority,
-                "%s [%5.5ld] %s %s: %s:%d %s\n",
+                "%s [%5.5d] %s %s: %s:%d %s\n",
                 datebuf,
-                VThread::selfId(),
+                0,
                 priNameShort[pri],
                 CpLogPriority::getLabel(),
                 file,
@@ -506,9 +483,9 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
     else
     {
         fprintf (cpLogFd,
-                 "%s [%5.5ld] %s %s: %s:%d ",
+                 "%s [%5.5d] %s %s: %s:%d ",
                  datebuf,
-                 VThread::selfId(),
+                 0,
                  priNameShort[pri],
                  CpLogPriority::getLabel(),
                  file,
@@ -658,25 +635,25 @@ cpLogSetPriority (int pri)
 
 
 int
-cpLogGetPriority ()
+cpLogGetPriority (int id)
 {
-    return CpLogPriority::getPriority();
+    return CpLogPriority::getPriority(id);
 }
 
 
 void
-cpLogSetPriorityThread (vthread_t thread_id, int pri)
+cpLogSetPriorityThread (int id, int pri)
 {
     if (pri < 0)
         return ;
-    CpLogPriority::setPriorityThread(thread_id, pri);
+    CpLogPriority::setPriorityThread(id, pri);
 }
 
 
 void
-cpLogClearPriorityThread (vthread_t thread_id)
+cpLogClearPriorityThread (int id)
 {
-    CpLogPriority::clearPriorityThread(thread_id);
+    CpLogPriority::clearPriorityThread(id);
 }
 
 
@@ -687,16 +664,16 @@ cpLogSetLabel (const char* label)
 }
 
 void
-cpLogSetLabelThread (vthread_t thread_id, const char* label)
+cpLogSetLabelThread (int id, const char* label)
 {
-    CpLogPriority::setLabelThread(thread_id, label);
+    CpLogPriority::setLabelThread(id, label);
 }
 
 
 void
-cpLogClearLabelThread (vthread_t thread_id)
+cpLogClearLabelThread (int id)
 {
-    CpLogPriority::clearLabelThread(thread_id);
+    CpLogPriority::clearLabelThread(id);
 }
 
 

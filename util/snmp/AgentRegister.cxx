@@ -51,7 +51,7 @@
 
 
 static const char* const AgentRegister_cxx_Version =
-    "$Id: AgentRegister.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: AgentRegister.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -71,8 +71,7 @@ static const char* const AgentRegister_cxx_Version =
  * @param msgLEN size of msg in bytes
  */
 AgentRegister::AgentRegister(void *msg, int msgLEN)
-      : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, VTHREAD_STACK_SIZE_DEFAULT),
-        dest("0.0.0.0")
+      : dest("0.0.0.0")
 {
     const int maxHostNameLen = 128;
     char hostname[maxHostNameLen];
@@ -107,11 +106,11 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
         throw"another bad thing happened";
     }
 
-	NetworkAddress iface(hostname);
+    NetworkAddress iface(hostname);
     regUdpStack->joinMulticastGroup(mcAddr, &iface, 0);
 
-	// A new stack has been created to do the transmission. Contact nismail@cisco.com
-	regTrUdpStack = new UdpStack("", "", (const NetworkAddress *)&dest, -1, -1, sendonly, false, false);
+    // A new stack has been created to do the transmission. Contact nismail@cisco.com
+    regTrUdpStack = new UdpStack("", "", (const NetworkAddress *)&dest, -1, -1, sendonly, false, false);
     if (regTrUdpStack == 0)
     {
         cpLog(LOG_ERR, "can't create a register transmit UDP stack");
@@ -122,17 +121,20 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
     //regTrUdpStack->connectPorts();
 
 
-	// This is modified to send on the regTrUdpStack instead of the regUdpStack. Contact
-	// nismail@cisco.com
+    // This is modified to send on the regTrUdpStack instead of the regUdpStack. Contact
+    // nismail@cisco.com
     regTrUdpStack->transmitTo(txMessage, txMsgLen, &dest);
 }
 
 AgentRegister::~AgentRegister()
 {
-    if (txMessage) free (txMessage);
-    shutdown();
-    join();
+    if (txMessage)
+       free (txMessage);
 }
+
+
+#warning "Not converted to non-threaded model."
+#if 0
 
 /**
  * periodically send the register message to the snmpd
@@ -141,7 +143,7 @@ void
 AgentRegister::thread()
 {
     int bytesRead = 0;
-    NetworkAddress sender(""); //TODO:  ALlow to specify local IP.
+    NetworkAddress sender(""); //TODO:  Allow to specify local IP.
 
     while (true)
     {
@@ -184,3 +186,4 @@ AgentRegister::thread()
         }
     }
 }
+#endif

@@ -50,17 +50,13 @@
 
 
 static const char* const StatisticsDb_cxx_Version = 
-    "$Id: StatisticsDb.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: StatisticsDb.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
 #include "StatisticsDb.hxx"
 #include "Statistic.hxx"
-#include "Lock.hxx"
-#include "StackLock.hxx"
 #include <cassert>
-
-using namespace Vocal::Threads;
 
 using Vocal::Statistics::StatisticsDb;
 using Vocal::Statistics::StatisticsDbKey;
@@ -89,7 +85,6 @@ StatisticsDb::~StatisticsDb()
 StatisticsDbKey
 StatisticsDb::key(const Data & key)
 {
-    StackLock    lock(myLock);
     
     StatisticsDbKey   result = INVALID_STAT_DB_KEY;
 
@@ -116,8 +111,6 @@ StatisticsDb::key(const Data & key)
 const Data &	    	
 StatisticsDb::keyName(StatisticsDbKey index) const
 {
-    StackLock  lock(myLock);
-    
     if ( index > myStatNames.size() )
     {
     	assert( index <= myStatNames.size() );
@@ -144,8 +137,6 @@ StatisticsDb::record(const Statistic & statistic)
 	return;
     }
 
-    StackLock    lock(myLock);
-    
     StatisticsDbKey key = statistic.key();
     
     Database::iterator	dbIter = m_db.find(key);
@@ -174,8 +165,6 @@ StatisticsDb::find(const Statistic & statistic) const
 	return ( result );
     }
 
-    StackLock    lock(myLock);
-
     Database::const_iterator	dbIter = m_db.find(statistic.key());
     
     if ( dbIter != m_db.end() )
@@ -196,8 +185,6 @@ StatisticsDb::erase(const Statistic & statistic)
 	return;
     }
 
-    StackLock    lock(myLock);
-
     Database::iterator	dbIter = m_db.find(statistic.key());
     
     if ( dbIter != m_db.end() )
@@ -215,8 +202,6 @@ StatisticsDb::erase(const Statistic & statistic)
 void	
 StatisticsDb::clear()
 {
-    StackLock    lock(myLock);
-
     for (   Database::iterator dbIter = m_db.begin();
     	    dbIter != m_db.end();
 	    dbIter++
@@ -234,8 +219,6 @@ StatisticsDb::clear()
 ostream &   
 StatisticsDb::writeTo(ostream & out) const
 {
-    StackLock    lock(myLock);
-
     out << '\n' << myName.logData() << '\n';
     
     for (   Database::const_iterator dbIter = m_db.begin();

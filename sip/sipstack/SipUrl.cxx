@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUrl_cxx_Version =
-    "$Id: SipUrl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipUrl.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipUrl.hxx"
@@ -197,9 +197,7 @@ bool SipUrl::isLessThan(Sptr<BaseUrl> baseUrl) const
 {    
     if (baseUrl != 0 && baseUrl->getType() == SIP_URL)
     {
-        Sptr<SipUrl> newUrl;
-        newUrl.dynamicCast(baseUrl);
-        assert(newUrl != 0);
+        Sptr<SipUrl> newUrl((SipUrl*)(baseUrl.getPtr()));
         return ( *(this) < *(newUrl) );
     }
     else
@@ -805,9 +803,8 @@ SipUrl::encode() const
     {
         if (user->getType() == TEL_USER)
         {
-            Sptr <SipTelSubscriberUser> telUser;
- 
-            sipurl += (telUser.dynamicCast(user))->getTelParams();
+            Sptr <SipTelSubscriberUser> telUser((SipTelSubscriberUser*)(user.getPtr()));
+            sipurl += telUser->getTelParams();
         }
     }
     return sipurl;

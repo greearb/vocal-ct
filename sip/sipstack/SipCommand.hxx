@@ -52,7 +52,7 @@
  */
 
 static const char* const SipCommand_hxx_Version
-= "$Id: SipCommand.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipCommand.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <vector>
 #include "SipMsg.hxx"
@@ -89,10 +89,9 @@ enum SipCommandErrorType
 class SipCommandException
 {
     public:
-        SipCommandException(SipCommandErrorType i)
-            {
-                value = i;
-            }
+        SipCommandException(SipCommandErrorType i) {
+            value = i;
+        }
         SipCommandErrorType value;
 };
 
@@ -103,10 +102,15 @@ class SipCommand : public SipMsg
         ///
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
-        SipCommand(const string& _local_ip);
+        SipCommand(const string& _local_ip, const char* class_name);
 
         ///
         SipCommand& operator =(const SipCommand&);
+
+        // Help with up-casting.
+        virtual bool isSipCommand() const { return true; }
+        virtual bool isStatusMsg() const { return false; }
+
         ///
         bool operator ==(const SipCommand& src) const;
         ///
@@ -118,7 +122,8 @@ class SipCommand : public SipMsg
         ///
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
-        SipCommand(const StatusMsg&, const string& _local_ip); 
+        SipCommand(const StatusMsg&, const string& _local_ip,
+                   const char* class_name);
 
         /** decode a SipCommand.
             @return            true if there is an error while parsing, false
@@ -134,10 +139,6 @@ class SipCommand : public SipMsg
         /// Get's the branch number on top (most recent) via
         int getViaBranch();
 
-        /**@name RequestLine Header Methods 
-          */
-        //@{
-
         /// Returns a COPY of the request line
         const SipRequestLine& getRequestLine() const;
 
@@ -147,12 +148,6 @@ class SipCommand : public SipMsg
         /// Set the RequestLine header
         void setRequestLine( const SipRequestLine& );
         
-        //@}
-        
-        /**@name Authorization Header Methods
-          */
-        //@{
-
         ///
         const SipAuthorization& getAuthorization() const;
 
@@ -162,10 +157,9 @@ class SipCommand : public SipMsg
         /// Set the Authorization header
         void setAuthorization( const Data& textData);
        
-        //@}
-
         ///
         const SipHide& getHide() const;
+
         /// Set the Hide header
         void setHide( const SipHide& );
         ///
@@ -182,10 +176,6 @@ class SipCommand : public SipMsg
         void setContentDisposition(const SipContentDisposition&);
         ///
         void setContentDisposition(const Data&);
-
-        /**@name MaxForwards Header Methods
-          */
-        //@{
 
         ///
         const SipMaxForwards& getMaxForwards() const;
@@ -204,11 +194,6 @@ class SipCommand : public SipMsg
           */
         bool decrementMaxForwards();
         
-        //@}
-
-        /**@name Organization Header Methods
-          */
-        //@{
         ///
         const SipOrganization& getOrganization() const;
 
@@ -217,11 +202,6 @@ class SipCommand : public SipMsg
 
         /// Set the Organization header
         void setOrganization( const Data& textData);
-        //@}
-
-        /**@name Priority Header Methods
-          */
-        //@{
 
         ///
         const SipPriority& getPriority() const;
@@ -231,8 +211,6 @@ class SipCommand : public SipMsg
 
         /// Set the Priority header
         void setPriority( const Data& textData);
-
-        //@}
 
         // ----------------- ProxyAuthorization Header Methods --------
 

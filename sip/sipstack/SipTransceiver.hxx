@@ -54,13 +54,12 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include <string>
 #include "global.h"
 #include "TransceiverSymbols.hxx"
-#include "Fifo.h"
 
 #include "SipTcpConnection.hxx"
 #include "SipUdpConnection.hxx"
@@ -77,7 +76,6 @@ static const char* const SipTransceiver_hxx_Version
 #include "SipCommand.hxx"
 #include "StatusMsg.hxx"
 #include "Sptr.hxx"
-#include "SipDebuggingInterface.hxx"
 
 namespace Vocal
 {
@@ -93,7 +91,7 @@ typedef enum
    SipTransceiver is the main class for users the SIP stack.  It is the object
    which the caller uses to send and receive SIP messages.
 */
-class SipTransceiver
+class SipTransceiver: public BugCatcher
 {
     public:
 	/**
@@ -133,7 +131,7 @@ class SipTransceiver
 	 ** Return a deque of SipMsgs, basically containing the msg chain.
 	 ** A timeOut out of -1 means infinite timeout.
 	 */
-	virtual Sptr < SipMsgQueue > receive(int timeOutMs = -1);
+	//TODO: virtual Sptr < SipMsgQueue > receive(int timeOutMs = -1);
 
 	///
 	static void reTransOff();
@@ -184,7 +182,7 @@ class SipTransceiver
 	// we'll do the decoding of sip msgs in the sip thread's context
 	// (encoding is in worker's context when it calls send)
 	// for the time being this will be in udp, but later move it here
-	Fifo <SipMsgContainer *> recvdMsgsFifo;
+	list < Sptr < SipMsgContainer> > recvdMsgsFifo;
 
 	Sptr < SipUdpConnection > udpConnection;
 
@@ -193,8 +191,6 @@ class SipTransceiver
 	SipSentRequestDB sentRequestDB;
 
 	SipSentResponseDB sentResponseDB;
-
-        Sptr < SipDebuggingInterface > debugger;
 
 	///
 	void send(SipMsgContainer *msgPtr, const Data& host="",

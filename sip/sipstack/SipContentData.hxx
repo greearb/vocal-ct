@@ -54,7 +54,7 @@
 
 
 static const char* const SipContentDataVersion
-= "$Id: SipContentData.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipContentData.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "Data.hxx"
 #include "SipContentType.hxx"
@@ -65,7 +65,7 @@ namespace Vocal
 {
 
 /// data container for ContentLength header
-class SipContentData
+class SipContentData: public BugCatcher
 {
     public:
         /// Create one with default values

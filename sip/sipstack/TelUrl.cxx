@@ -51,7 +51,7 @@
 
 
 static const char* const TelUrl_cxx_Version =
-    "$Id: TelUrl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: TelUrl.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
@@ -129,8 +129,7 @@ bool TelUrl::isLessThan(Sptr<BaseUrl> baseUrl) const
 {
     if (baseUrl->getType() == TEL_URL)
     {
-        Sptr<TelUrl> newUrl;
-        newUrl.dynamicCast(baseUrl);
+        Sptr<TelUrl> newUrl((TelUrl*)(baseUrl.getPtr()));
         return ( *(this) < *(newUrl) );
     }
     else
@@ -333,9 +332,7 @@ TelUrl::getUserValue() const
 void
 TelUrl::setUser(Sptr <BaseUser> newUser)
 {
-    Sptr <SipTelSubscriberUser> telUser;
-    
-    telUser.dynamicCast(newUser);
+    Sptr <SipTelSubscriberUser> telUser((SipTelSubscriberUser*)(newUser.getPtr()));
     user = telUser;
 }
     
@@ -343,7 +340,7 @@ TelUrl::setUser(Sptr <BaseUser> newUser)
 Sptr <BaseUser> 
 TelUrl::getUser() const
 {
-    const Sptr<BaseUser> baseUser = user;
+    const Sptr<BaseUser> baseUser(user.getPtr());
     return baseUser;
 }
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipProxyEvent_cxx_Version =
-    "$Id: SipProxyEvent.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipProxyEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -62,7 +62,6 @@ using namespace Vocal;
 
 SipProxyEvent::SipProxyEvent()
     :	myFifo(0),
-	myId(0),
 	myCallInfo(0),
 	myCallContainer(0),
         mySipStack(0)
@@ -70,9 +69,8 @@ SipProxyEvent::SipProxyEvent()
 }
 
 
-SipProxyEvent::SipProxyEvent(Sptr < Fifo < Sptr < SipProxyEvent > > > fifo)
+SipProxyEvent::SipProxyEvent(list < Sptr < SipProxyEvent > >* fifo)
    :   myFifo(fifo),
-       myId(0),
        myCallInfo(0),
        myCallContainer(0),
        mySipStack(0)
@@ -98,7 +96,7 @@ SipProxyEvent::postEvent(const Sptr < SipProxyEvent > newEvent)
     assert( newEvent != 0 );
     assert( myFifo != 0 );
 
-    myFifo->add(newEvent);
+    // TODO:  myFifo->add(newEvent);
 }
 
 
@@ -106,12 +104,12 @@ SipProxyEvent::postEvent(const Sptr < SipProxyEvent > newEvent)
 void
 SipProxyEvent::postEvent( 
     const Sptr < SipProxyEvent > newEvent,
-    const Sptr < Fifo < Sptr < SipProxyEvent > > > newFifo ) const
+    list < Sptr < SipProxyEvent > >* newFifo ) const
 {
     assert( newEvent != 0 );
     assert( newFifo != 0 );
 
-    newFifo->add(newEvent);
+    // TODO:  newFifo->add(newEvent);
 }
 
 
@@ -163,13 +161,6 @@ SipProxyEvent::removeCallInfo()
     myCallContainer = 0;
 }
 
-
-
-Sptr < Fifo < Sptr < SipProxyEvent > > >
-SipProxyEvent::getFifo( ) const
-{
-    return ( myFifo );
-}
 
 
 Sptr < CallContainer >

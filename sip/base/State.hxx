@@ -53,13 +53,14 @@
 
 
 static const char* const State_hxx_Version = 
-    "$Id: State.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: State.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include <list>
 #include "cpLog.h"
 #include "Sptr.hxx"
 #include "Operator.hxx"
 #include "SipProxyEvent.hxx"
+#include <string>
 
 namespace Vocal 
 {
@@ -134,7 +135,8 @@ FooState.cxx:
    }
 </pre>
 */
-class State
+
+class State: public BugCatcher
 {
     public:
 

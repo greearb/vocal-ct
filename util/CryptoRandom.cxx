@@ -51,7 +51,7 @@
 
 
 static const char* const CryptoRandom_cxx_Version =
-    "$Id: CryptoRandom.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CryptoRandom.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include <cerrno>
@@ -60,6 +60,7 @@ static const char* const CryptoRandom_cxx_Version =
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "CryptoRandom.hxx"
 #include "cpLog.h"

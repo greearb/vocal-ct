@@ -53,7 +53,7 @@
 
 
 static const char* const TimerContainerHeaderVersion =
-    "$Id: TimerContainer.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: TimerContainer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #ifdef _MSC_VER
 #pragma warning(disable:4290)
@@ -66,8 +66,6 @@ static const char* const TimerContainerHeaderVersion =
 #include "TimerEntry.hxx"
 #include "Writer.hxx"
 #include "Sptr.hxx"
-#include "Lock.hxx"
-#include "Mutex.hxx"
 #include "VMissingDataException.hxx"
 #include "TimeVal.hxx"
 
@@ -83,8 +81,6 @@ namespace Vocal
  */
 namespace TimeAndDate
 {
-
-using Vocal::Threads::Lock;
 
 class TimeVal;
 
@@ -162,10 +158,6 @@ class TimerContainer : public Vocal::IO::Writer
         /** Return the number of all the pending events in the TimerContainer
 	 */
         unsigned int size() const;
-
-        ///
-        mutable Threads::Mutex      myMutex;
-
 
     private:
 

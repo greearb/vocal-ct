@@ -51,7 +51,6 @@
  *
  */
 
-#include "Mutex.hxx"
 #include "Data.hxx"
 
 class RandomHex
@@ -60,8 +59,6 @@ class RandomHex
       static void initialize();
       static Data get(unsigned int len);
 
-   private:
-      static Vocal::Threads::Mutex _mutex;
 };
 
 #endif

@@ -56,7 +56,7 @@
 
 
 static const char* const AgentApiHeaderVersion =
-    "$Id: AgentApi.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: AgentApi.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 /*
   This file is used by both the server (RS/FS...) C++ code and the snmp agent process
   (snmpd ) C code.  The snmpd uses only the type definitions.
@@ -76,9 +76,7 @@ static const char* const AgentApiHeaderVersion =
 #include "Sptr.hxx"
 #include "SnmpCommon.h"
 #include "UdpStack.hxx"
-#include "ThreadIf.hxx"
 #include "cpLog.h"
-#include "Mutex.hxx"
 
 #endif /* __cplusplus */
 #include "AgentRegister.hxx"
@@ -119,44 +117,41 @@ ipcMessage;
 
 #ifdef __cplusplus
 
-static Mutex myLock;
 
-class AgentApi: public ThreadIf
-    {
-        public:
-            AgentApi(ServerType inSrvType = SERVER_Unknown, string appName = "unknown");
-            virtual ~AgentApi();
+class AgentApi: public BugCatcher {
+public:
+   AgentApi(ServerType inSrvType = SERVER_Unknown, string appName = "unknown");
+   virtual ~AgentApi();
 
-            virtual voReturnStatus processMessage(ipcMessage *message, NetworkAddress *sender) = 0;
+   virtual voReturnStatus processMessage(ipcMessage *message, NetworkAddress *sender) = 0;
 
-            // The following are generally used by the server processes
-            voReturnStatus sendTrap(int trapType, string parameter);
-            ///
-            voReturnStatus sendResponse(int val, NetworkAddress *sender);
-            voReturnStatus sendResponse(unsigned long val, NetworkAddress *sender);
-            voReturnStatus sendResponse(string parameter, NetworkAddress *sender);
-            voReturnStatus sendResponse(void *inData, NetworkAddress *sender);
+   // The following are generally used by the server processes
+   voReturnStatus sendTrap(int trapType, string parameter);
+   ///
+   voReturnStatus sendResponse(int val, NetworkAddress *sender);
+   voReturnStatus sendResponse(unsigned long val, NetworkAddress *sender);
+   voReturnStatus sendResponse(string parameter, NetworkAddress *sender);
+   voReturnStatus sendResponse(void *inData, NetworkAddress *sender);
 
-            //  The following are generally used by the agent processes
-            voReturnStatus sendRequest(string indexName, string setValue);
-            voReturnStatus sendRequest(string indexName, int setValue);
+   //  The following are generally used by the agent processes
+   voReturnStatus sendRequest(string indexName, string setValue);
+   voReturnStatus sendRequest(string indexName, int setValue);
 
-        protected:
-            ///
-            virtual void thread();
+protected:
+   ///
 
-        private:
-            ///
-            Sptr < AgentRegister > agentRegister;
-            Sptr < UdpStack > udpStack;
-            int SockNum, MaxSockNum;
-            ipcMessage trapMessage;
-            ipcMessage message;
-            ipcMessage message1;
-            string agentIpStr;
-            ServerType myServerType;
-            string myApplName;
-    };
+private:
+   ///
+   Sptr < AgentRegister > agentRegister;
+   Sptr < UdpStack > udpStack;
+   int SockNum, MaxSockNum;
+   ipcMessage trapMessage;
+   ipcMessage message;
+   ipcMessage message1;
+   string agentIpStr;
+   ServerType myServerType;
+   string myApplName;
+};
 
 #endif /* __cplusplus */
 #endif /* AgentApi_H */

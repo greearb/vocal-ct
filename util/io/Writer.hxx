@@ -52,10 +52,11 @@
  */
 
 static const char* const WriterHeaderVersion =
-    "$Id: Writer.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Writer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <iostream>
+#include <RCObject.hxx>
 
 using std::ostream;
 
@@ -74,7 +75,7 @@ namespace IO
 
 /** A interface for writing an object to an ostream.<br><br>
  */
-class Writer
+class Writer: public RCObject
 {
     public:
 

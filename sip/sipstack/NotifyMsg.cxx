@@ -49,7 +49,7 @@
  */
 
 static const char* const NotifyMsg_cxx_Version =
-    "$Id: NotifyMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: NotifyMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "NotifyMsg.hxx"
 #include "SipCallLeg.hxx"
@@ -67,7 +67,7 @@ using namespace Vocal;
 
 
 NotifyMsg::NotifyMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "NotifyMsg")
 {
     myRequestLine.setMethod(NOTIFY_METHOD);
     SipCSeq cseq( SIP_NOTIFY, 0, local_ip );
@@ -76,7 +76,7 @@ NotifyMsg::NotifyMsg(const string& local_ip)
 
 
 NotifyMsg::NotifyMsg(const Data& data, const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "NotifyMsg")
 {
     try
     {
@@ -91,7 +91,7 @@ NotifyMsg::NotifyMsg(const Data& data, const string& local_ip)
 NotifyMsg::NotifyMsg(const SubscribeMsg& subscribeRequest, 
 		     const SipSubsNotifyEvent& event,
                      const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "NotifyMsg")
 {
     //set call-id, from, and to
     setCallId(subscribeRequest.getCallId());
@@ -126,7 +126,7 @@ NotifyMsg::NotifyMsg(const SubscribeMsg& subscribeRequest,
 
 NotifyMsg::NotifyMsg(const SipCallLeg& callLeg, const SipSubsNotifyEvent& event,
                      const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "NotifyMsg")
 {
     //set call-id, from, and to
     setCallId(callLeg.getCallId());
@@ -189,8 +189,7 @@ NotifyMsg::getReferredStatusLine() const
         if (result == "refer" || nevent == "refer")
         {
             Sptr<SipContentData> content = getContentData(0);
-            Sptr<SipUnknownContentData> text;
-            text.dynamicCast(content);
+            Sptr<SipUnknownContentData> text((SipUnknownContentData*)(content.getPtr()));
             if (text != 0)
             {
                 int i;

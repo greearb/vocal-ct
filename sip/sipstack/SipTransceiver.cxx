@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -89,7 +89,7 @@ using namespace Vocal;
 
 atomic_t SipTransceiver::_cnt;
 
-class TransactionDBStatus: public SipDebuggingStatus
+class TransactionDBStatus: public BugCatcher
 {
     public:
         TransactionDBStatus(SipTransactionDB& x, Data label )
@@ -109,7 +109,7 @@ class TransactionDBStatus: public SipDebuggingStatus
 };
 
 
-class SipUdpStatus : public SipDebuggingStatus
+class SipUdpStatus : public BugCatcher
 {
     public:
         SipUdpStatus(SipUdpConnection& x, int port)
@@ -189,11 +189,14 @@ SipTransceiver::SipTransceiver( int hashTableHint,
     char* port;
     if((port = getenv("VOCAL_SIP_REPORTER")))
     {
+#if 0
+        // I purged the debugging code...maybe put it back someday? --Ben
         //debugMemUsage("Before debugger", "gua_mem.txt");
         debugger = new SipDebuggingInterface(atoi(port)); 
         debugger->add(new TransactionDBStatus(sentRequestDB, "Request DB"));
         debugger->add(new TransactionDBStatus(sentResponseDB, "Response DB"));
         debugger->add(new SipUdpStatus(*udpConnection, siplistenPort));
+#endif
     }
 
     myLocalNamePort = nameport;
@@ -206,8 +209,6 @@ SipTransceiver::SipTransceiver( int hashTableHint,
 
 SipTransceiver::~SipTransceiver()
 {
-    // xxx - this needs to close up shop
-    SipTransactionGC::shutdown();
 
     atomic_dec(&_cnt);
 }
@@ -262,14 +263,14 @@ SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
         return ;
     }
 
-    SipMsgContainer* msgPtr = sentRequestDB.processSend(sipMessage);
+    SipMsgContainer* msgPtr = sentRequestDB.processSend(sipMessage.getPtr());
     
     if(msgPtr)
     {
 	//// should this only be for actually sent messages? /////////
 	if (sipAgent != 0)
 	{
-	    updateSnmpData(sipMessage, OUTS);
+	    updateSnmpData(sipMessage.getPtr(), OUTS);
 	}
 	//////////////////////////////////////////////////////////////
 
@@ -299,7 +300,7 @@ SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage)
     //// (its missing all the checks and the snmp update)
     
     cpLog(LOG_DEBUG_STACK, "Entering %s\n", __PRETTY_FUNCTION__);
-    SipMsgContainer *sipMsg = sentResponseDB.processSend(sipMessage);
+    SipMsgContainer *sipMsg = sentResponseDB.processSend(sipMessage.getPtr());
     if(sipMsg)
     {
 	send(sipMsg);
@@ -359,10 +360,13 @@ SipTransceiver::send(SipMsgContainer *sipMsg, const Data& host,
     }
 }
 
+#warning "Port to non-threaded model."
+#if 0  
 Sptr < SipMsgQueue > SipTransceiver::receive(int timeOut)
 {
     Sptr < SipMsgQueue > msgQPtr = 0;
-  
+    return msgQPtr;
+
     timeval start, now;
   
     if ( timeOut >= 0 )
@@ -394,8 +398,8 @@ Sptr < SipMsgQueue > SipTransceiver::receive(int timeOut)
 	}
       
       
-	SipMsgContainer *msgPtr = recvdMsgsFifo.getNext();
-	if ( msgPtr == 0)
+	Sptr <SipMsgContainer> msgPtr = recvdMsgsFifo.getNext();
+	if ( msgPtr.getPtr() == 0)
 	{
 	    assert(0);
 //            cpLog(LOG_CRIT, "received NULL");
@@ -485,7 +489,7 @@ Sptr < SipMsgQueue > SipTransceiver::receive(int timeOut)
     }
     return msgQPtr;
 }
-
+#endif
 
 void
 SipTransceiver::reTransOff()
@@ -551,8 +555,8 @@ SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType)
         }
 
         //get the status code of this msg.
-        Sptr < StatusMsg > statusMsg;
-        statusMsg.dynamicCast(sipMsg);
+        assert(sipMsg->isStatusMsg());
+        Sptr < StatusMsg > statusMsg((StatusMsg*)(sipMsg.getPtr()));
 
         int statusCode = statusMsg->getStatusLine().getStatusCode();
 

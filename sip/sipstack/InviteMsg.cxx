@@ -49,7 +49,7 @@
  */
 
 static const char* const InviteMsg_cxx_Version =
-    "$Id: InviteMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: InviteMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "Data.hxx"
@@ -78,7 +78,7 @@ using Vocal::SDP::SdpConnection;
 
 
 InviteMsg::InviteMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "InviteMsg")
 {
     myRequestLine.setMethod(INVITE_METHOD);
     SipCSeq cseq( SIP_INVITE, Data(int(0)), local_ip );
@@ -88,7 +88,7 @@ InviteMsg::InviteMsg(const string& local_ip)
 
 
 InviteMsg::InviteMsg(const InviteMsg& src, Sptr <BaseUrl> url, const string& local_ip)
-    : SipCommand(local_ip)
+    : SipCommand(local_ip, "InviteMsg")
 {
     *this = src;
 
@@ -150,7 +150,7 @@ InviteMsg::operator ==(const InviteMsg& src) const
 
 
 InviteMsg::InviteMsg(const StatusMsg& statusMsg, const string& local_ip)
-    : SipCommand(statusMsg, local_ip)
+    : SipCommand(statusMsg, local_ip, "InviteMsg")
 {
 }
 
@@ -166,7 +166,7 @@ InviteMsg::InviteMsg(const SipCommand& src,
 
 InviteMsg::InviteMsg(Sptr <BaseUrl> toUrl, const string& local_ip,
                      int listenPort, int rtpPort)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "InviteMsg")
 {
     assert(myMimeList.getNumContentData() == 0);
     cpLog(LOG_DEBUG_STACK, "C'tor of Invite");
@@ -318,7 +318,7 @@ InviteMsg::setInviteDetails(Sptr <BaseUrl> toUrl, const string& local_ip,
 
 
 InviteMsg::InviteMsg( const Data& data, const string& local_ip ) throw (SipParserException&)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "InviteMsg")
 {
     try
     {

@@ -49,7 +49,7 @@
  */
 
 static const char* const Operator_cxx_Version =
-    "$Id: Operator.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Operator.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include "Operator.hxx"
@@ -93,6 +93,6 @@ Operator::OpAddRecordRoute(
     routeUrl->setPort(Data(port));
     routeUrl->setMaddrParam(my_local_ip);
 
-    recordRoute.setUrl( routeUrl );
+    recordRoute.setUrl( routeUrl.getPtr() );
 }
 

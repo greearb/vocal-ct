@@ -49,17 +49,15 @@
  */
 
 static const char* const SipTransactionGC_cxx_version =
-    "$Id: SipTransactionGC.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionGC.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
 #include "SipTransactionGC.hxx"
-#include "Fifo.h"
 
 using namespace Vocal;
 
 SipTransactionGC* SipTransactionGC::myInstance = 0;
-Mutex SipTransactionGC::myLock;
 
 int SipTransactionGC::msgCleanupDelay = 35;
 int SipTransactionGC::invCleanupDelay = 35;
@@ -71,42 +69,25 @@ SipTransactionGC::instance()
 {
     if(SipTransactionGC::myInstance == 0)
     {
-	SipTransactionGC::myLock.lock();
 	if(!SipTransactionGC::myInstance)
 	{
 	    SipTransactionGC::myInstance = new SipTransactionGC();
 	}
-	SipTransactionGC::myLock.unlock();
     }
     return SipTransactionGC::myInstance;
 }
 
-
-void
-SipTransactionGC::shutdown()
-{
-    SipTransactionGC::myLock.lock();
-    if(myInstance)
-    {
-	delete myInstance;
-	myInstance = 0;
-    }
-    SipTransactionGC::myLock.unlock();
-}
-
-
+#warning "port to non-threaded model."
 SipTransactionGC::SipTransactionGC()
-    : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, 64 * 1024 /* VTHREAD_STACK_SIZE_DEFAULT*/),
-      doneFlag(false), bins(), binsLock()
+    :
+      doneFlag(false), bins()
 {
-    run();
+    // TODO: run();
 }
-
 
 SipTransactionGC::~SipTransactionGC()
 {
     doneFlag = true;
-    join();
     BinsNodeType * curr = bins.getFirst();
     while(curr)
     {
@@ -136,7 +117,6 @@ SipTransactionGC::collect(SipMsgContainer* item, int delay /*default value*/)
 {
     if((item == 0) || item->collected) return;;
 
-    binsLock.ReadLock();
     BinsNodeType * curr = bins.getFirst();
     while(curr)
     {
@@ -146,18 +126,17 @@ SipTransactionGC::collect(SipMsgContainer* item, int delay /*default value*/)
     }
     if(!curr)
     {
-	binsLock.Unlock();
 	GCType * newBin = new GCType(delay);
-	binsLock.WriteLock();
 	curr = bins.insert(newBin);
     }
     
     curr->val->bin[curr->val->currBin].insert(item);
     item->collected = true;
-    binsLock.Unlock();
 }
 
 
+#warning "Migrate SipTransactionGC to non-threaded model."
+#if 0
 void
 SipTransactionGC::thread()
 {
@@ -170,12 +149,9 @@ SipTransactionGC::thread()
         x.getNext();
         x.addDelay(1, 1000);
         
-	binsLock.ReadLock();
 	BinsNodeType * curr = bins.getFirst();
-	binsLock.Unlock();
 	while(curr)
 	{
-	    binsLock.ReadLock();
 	    int bin2collect = curr->val->currBin+1;
 	    if(bin2collect >= curr->val->myDelay+2)
 		bin2collect = 0;
@@ -183,7 +159,6 @@ SipTransactionGC::thread()
 	    SipTransactionList<SipMsgContainer*>* 
 		swap = &(curr->val->bin[bin2collect]);
 
-	    binsLock.Unlock();
 	    SipTransactionList<SipMsgContainer*>::SipTransListNode *garb;
 	    garb = swap->getLast();
 	    while(garb)
@@ -194,13 +169,12 @@ SipTransactionGC::thread()
 		garb = swap->getLast();
 	    }
 	    
-	    binsLock.WriteLock();
 	    curr->val->currBin = bin2collect;
-	    binsLock.Unlock();
 	    curr = bins.getNext(curr);
 	}
     }
 }
+#endif
 
 
 void
@@ -214,7 +188,6 @@ SipTransactionGC::trash(SipMsgContainer* item)
     if(item->level3Ptr)
     {
      	refTopNode = item->level3Ptr->level2Ptr->topNode;
-	refTopNode->lock.lock();
 	
 	if(item->level3Ptr->msgs.request == item)
 	    item->level3Ptr->msgs.request = 0;
@@ -238,23 +211,11 @@ SipTransactionGC::trash(SipMsgContainer* item)
 		
 		if(level2Node->topNode->level2.getFirst()==0)
 		{
-		    SipTransHashTable::SipTransRWLockHelper helper;
-		    /// the following three statments flush out any slow
-		    /// executing executions that might be working w/
-		    /// the concerned nodes
-		    level2Node->topNode->lock.unlock();
-		    
-		    level2Node->topNode->bucketNode->myTable->lock(
-			level2Node->topNode->bucketNode, &helper);
-		    
-		    level2Node->topNode->lock.lock();
-		    
 		    /// hence, now recheck if REALLY want to delete
 		    if(level2Node->topNode->level2.getFirst()==0)
 		    {
 			level2Node->topNode->bucketNode->myTable->erase(
 			    level2Node->topNode->bucketNode);
-			level2Node->topNode->lock.unlock();
 			delete level2Node->topNode;
 			level2Node->topNode = 0;
 			refTopNode = 0;
@@ -272,10 +233,6 @@ SipTransactionGC::trash(SipMsgContainer* item)
     cpLog(DEBUG_NEW_STACK,"trashing item:[%s]",item->msg.out.c_str());
     delete item;
     
-    if(refTopNode)
-    {
-	refTopNode->lock.unlock();
-    }
 }
 
 

@@ -56,20 +56,17 @@
 
 
 static const char* const TimerHeaderVersion =
-    "$Id: Timer.h,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Timer.h,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 
 
 #include "debug.h"
-#include "Mutex.hxx"
 #include "VTime.hxx"
 #include <unistd.h>
 
 #include "global.h"
 #include <list>
-
-using namespace Vocal::Threads;
 
 bool operator < ( const timeval& lhs, const timeval& rhs);
 void addMs ( timeval* lhs, int timeMs);
@@ -149,7 +146,6 @@ class Timer
         TimerEventId nextEventId;
         list < TimerObj < T > > events;
         //    priority_queue<TimerObj<T> > events;
-        Mutex* timerMutex;
         timeval myMinWait;
         T bogus;
 
@@ -162,8 +158,6 @@ template < class T >
 Timer < T > ::Timer()
         : nextEventId(0)
 {
-    timerMutex = new Mutex;
-
     myMinWait.tv_sec = 0;
     myMinWait.tv_usec = 0;
 
@@ -178,7 +172,6 @@ Timer < T > ::Timer(long usecWait, T bad)
         : nextEventId(0),
         bogus(bad)
 {
-    timerMutex = new Mutex;
 
     myMinWait.tv_sec = 0;
     myMinWait.tv_usec = usecWait;
@@ -201,7 +194,6 @@ Timer < T > ::Timer(const timeval& minWait, T bad)
         myMinWait(minWait),
         bogus(bad)
 {
-    timerMutex = new Mutex;
 
     TimerObj < T > foo;
 
@@ -219,8 +211,6 @@ bool Timer < T > ::sleepFor(timeval* t)
 
     int err = gettimeofday(&now, NULL);
     assert( !err );
-
-    timerMutex->lock();
 
     if (!events.empty())
     {
@@ -250,8 +240,6 @@ bool Timer < T > ::sleepFor(timeval* t)
         retval = true;
     }
 
-    timerMutex->unlock();
-
     return retval;
 }
 
@@ -274,9 +262,6 @@ void Timer < T > ::insert(T obj, int msDelay)
 
     // add the event to the priority queue
 
-    // lock the object
-    timerMutex->lock();
-
     // get a new ID
     TimerEventId id = nextEventId++;
     x.eventId = id;
@@ -290,8 +275,6 @@ void Timer < T > ::insert(T obj, int msDelay)
     // get the list into priority order
     events.sort();
 
-    // unlock the object
-    timerMutex->unlock();
 }
 
 
@@ -300,10 +283,7 @@ void Timer < T > ::remove(const TimerObj < T > & obj )
 {
     if(!events.empty())
     {
-        timerMutex->lock();
         events.remove( obj );
-
-        timerMutex->unlock();
     }
 }
 
@@ -312,11 +292,7 @@ void Timer < T > ::pop()
 {
     if(!events.empty())
     {
-        timerMutex->lock();
-
         events.pop_front();
-
-        timerMutex->unlock();
     }
 }
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const TransferMsg_cxx_Version =
-    "$Id: TransferMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: TransferMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -78,7 +78,7 @@ using namespace Vocal;
 
 
 TransferMsg::TransferMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "TransferMsg")
 {}
 
 
@@ -101,7 +101,7 @@ TransferMsg& TransferMsg::operator =(const TransferMsg& src)
 
 TransferMsg::TransferMsg(const StatusMsg& statusMsg, Sptr <BaseUrl> transferToUrl,
                          const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "TransferMsg")
 {
     cpLog(LOG_DEBUG_STACK, "C'tor of Transfer");
 
@@ -115,7 +115,7 @@ TransferMsg::TransferMsg(const StatusMsg& statusMsg, Sptr <BaseUrl> transferToUr
 }
 
 TransferMsg::TransferMsg(const SipCommand& sipCommand, Sptr <BaseUrl> transferToUrl)
-    : SipCommand(sipCommand.getLocalIp())
+    : SipCommand(sipCommand.getLocalIp(), "TransferMsg")
 {
     cpLog(LOG_DEBUG_STACK, "C'tor of Transfer");
 
@@ -243,8 +243,7 @@ void TransferMsg::setTransferDetails(const SipMsg& sipMsg,
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(toUrl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
 	    sipvia.setHost(sipUrl->getHost());
 	    sipvia.setPort(sipUrl->getPort().convertInt());
 	}
@@ -308,7 +307,7 @@ void TransferMsg::setTransferDetails(const SipMsg& sipMsg,
 
 
 TransferMsg::TransferMsg( Data& data, const string& _local_ip )
-        : SipCommand(_local_ip)
+        : SipCommand(_local_ip, "TransferMsg")
 {
 
     try

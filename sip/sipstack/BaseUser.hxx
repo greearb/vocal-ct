@@ -52,7 +52,7 @@
  */
 
 static const char* const BaseUser_hxx_version =
-    "$Id: BaseUser.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: BaseUser.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
     
 #include "global.h"
 #include "Data.hxx"
@@ -72,7 +72,7 @@ typedef enum
 
 
 /// pure virtual class for Url types
-class BaseUser
+class BaseUser: public BugCatcher
 {
 public:
     /// Create one with default values

@@ -51,7 +51,7 @@
 
 
 static const char version[] =
-    "$Id: VTime.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: VTime.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 
@@ -61,14 +61,6 @@ static const char version[] =
 #include <stdio.h>
 #include <iostream>
 #include "VTime.hxx"
-#include "Lock.hxx"
-
-#include "Mutex.hxx"
-
-
-using namespace Vocal::Threads;
-
-Mutex _mutex;
 
 
 void VTime::print()
@@ -205,7 +197,6 @@ VTime getVTime()
 string
 VTime::strftime(const string& format)
 {
-    Lock helper(_mutex);
     time_t now;
 
     (void)time(&now);

@@ -49,7 +49,7 @@
  */
 
 static const char* const SessionTimer_cxx_version =
-    "$Id: SessionTimer.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SessionTimer.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SessionTimer.hxx"
@@ -77,13 +77,13 @@ SessionTimer::instance(Sptr<SipTransceiver> tranceiver)
     return (*mInstance);
 }
 
+#warning "Implement non-threaded SipTcpConnection implementation."
 SessionTimer::SessionTimer(Sptr<SipTransceiver> tranceiver)
    : mTransceiver(tranceiver),
      mShutdown(false)
 {
-    mProcessThread.spawn(processThreadWrapper, this);
+   // TODO
 }
-
 
 void 
 SessionTimer::destroy()
@@ -94,7 +94,7 @@ SessionTimer::destroy()
 SessionTimer::~SessionTimer()
 {
     mShutdown = true;
-    mSessionDataFifo.addDelayMs(0,0);
+    //mSessionDataFifo.addDelayMs(0,0); //TODO
 }
 
 void 
@@ -115,10 +115,10 @@ SessionTimer::processResponse(StatusMsg& sMsg)
             {
                 cpLog(LOG_DEBUG,"Timer (%d)s value in INVITE does not match the one (%d)s in Status, adjusting.. for callLeg (%s)", sData->myDelta, delta, cLeg.encode().logData() );
                 //Set the new session interval received in the response
-                mSessionDataFifo.cancel(sData->myTimerId);
+                //mSessionDataFifo.cancel(sData->myTimerId); TODO
                 sData->myDelta = delta;
                 int ts = sData->myDelta /2;
-                sData->myTimerId = mSessionDataFifo.addDelayMs(sData,ts * 1000);
+                //sData->myTimerId = mSessionDataFifo.addDelayMs(sData,ts * 1000); TODO
             }
         }
         VTime tm;
@@ -154,7 +154,7 @@ SessionTimer::startTimerFor(const InviteMsg& iMsg, Sptr<VSessionData> sData)
     sData->myInviteMsg = new InviteMsg(iMsg);
     mSessionDataMap[cLeg] = sData;
     int ts = sData->myDelta /2;
-    sData->myTimerId = mSessionDataFifo.addDelayMs(sData,ts * 1000);
+    //sData->myTimerId = mSessionDataFifo.addDelayMs(sData,ts * 1000); //TODO
 }
 
 void 
@@ -185,7 +185,8 @@ SessionTimer::startTimerFor(const StatusMsg& sMsg, const string& local_ip)
 
 }
 
-
+#warning "Port to non-threaded model."
+#if 0
 void* SessionTimer::processThreadWrapper(void *p)
 {
     SessionTimer* self = static_cast<SessionTimer*>(p);
@@ -217,15 +218,17 @@ void* SessionTimer::processThreadWrapper(void *p)
     }
     return( (void*)0);
 }
+#endif
 
 void
 SessionTimer::sendInvite(Sptr<VSessionData> sData)
 {
-   cpLog(LOG_DEBUG, "Sending re-invite for call-leg (%s)", sData->myInviteMsg->computeCallLeg().encode().logData());
+   cpLog(LOG_DEBUG, "Sending re-invite for call-leg (%s)",
+         sData->myInviteMsg->computeCallLeg().encode().logData());
    SipCSeq cSeq = sData->myInviteMsg->getCSeq();
    cSeq.incrCSeq();
    sData->myInviteMsg->setCSeq(cSeq); 
-   mTransceiver->sendAsync(sData->myInviteMsg);
+   mTransceiver->sendAsync(sData->myInviteMsg.getPtr());
 }
 /* c-file-style: "stroustrup" */
 /* indent-tabs-mode: nil */

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransHashTable_cxx_version =
-    "$Id: SipTransHashTable.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransHashTable.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 
@@ -88,11 +88,7 @@ static const SipTransHashTable::SizeType primeList[] =
 SipTransHashTable::SipTransHashTable()
     :buckets(0),
      size(0),
-     count(0),
-#ifdef REHASH_THREAD
-     rehashFlag(false),
-#endif
-     rwLock()
+     count(0)
 {
 #ifdef 0  // __linux__   // Can't find a man page, don't trust it. --Ben
     mallopt(M_MMAP_THRESHOLD, 1000*1000);
@@ -123,11 +119,7 @@ SipTransHashTable::~SipTransHashTable()
 SipTransHashTable::SipTransHashTable(SizeType sizeHint)
     :buckets(0),
      size(sizeHint),
-     count(0),
-#ifdef REHASH_THREAD
-     rehashFlag(false),
-#endif
-     rwLock()
+     count(0)
 {
     // size = nextSize(sizeHint); // Let user decide.
     buckets = new Bucket[size];
@@ -163,58 +155,30 @@ SipTransHashTable::hash(const SipTransactionId::KeyTypeI& key, SizeType size)
 }
 
 SipTransHashTable::Node*
-SipTransHashTable::find(const KeyType& key
-#ifdef USE_NODE_LOCK
-			,SipTransRWLockHelper* rwHelper /*defualt arg*/
-#endif
-    )
+SipTransHashTable::find(const KeyType& key)
 {
     if(!count) return 0;
 
-#ifdef REHASH_THREAD
-    while(rehashFlag);
-#endif
-
     SizeType index;
-    rwLock.ReadLock();
     index = hash(key, size);
-    buckets[index].rwLock.ReadLock();
-    rwLock.Unlock();
 
     Node* currNode = buckets[index].first;
     for(;currNode;currNode=currNode->next)
     {
 	if(key == currNode->keyCopy)
 	{
-#ifdef USE_NODE_LOCK
-	    if(rwHelper)
-		rwHelper->readLock(&(currNode->rwLock));
-	    else
-		currNode->rwLock.ReadLock();
-#endif
 	    break;
 	}
     }
-    buckets[index].rwLock.Unlock();
     return currNode;
 }
 
 SipTransHashTable::Node*
-SipTransHashTable::findOrInsert(const KeyType& key
-#ifdef USE_NODE_LOCK
-			,SipTransRWLockHelper* rwHelper /*defualt arg*/
-#endif
-    )
+SipTransHashTable::findOrInsert(const KeyType& key)
 {
-#ifdef REHASH_THREAD
-    while(rehashFlag);
-#endif
 
     SizeType index;
-    rwLock.ReadLock();
     index = hash(key,size);
-    buckets[index].rwLock.ReadLock();
-    rwLock.Unlock();
 
     Node* currNode = buckets[index].first;
     int coCount = 0;
@@ -223,45 +187,22 @@ SipTransHashTable::findOrInsert(const KeyType& key
         coCount++;
 	if(key == currNode->keyCopy)
 	{
-#ifdef USE_NODE_LOCK
-	    if(rwHelper)
-		rwHelper->readLock(&(currNode->rwLock));
-	    else
-		currNode->rwLock.ReadLock();
-#endif
 	    break;
 	}
     }
 
     if(!currNode)
     {
-	/// release all the read locks and then try again from hashtable level
-	/// to acquire write locks
-	buckets[index].rwLock.Unlock();
-	rwLock.WriteLock();
-#ifdef REHASH_THREAD
-	if(++count >= (size-REHASH_THREASHOLD))
-#else
-	if(++count >= size)
-#endif
-	{
+	if(++count >= size) {
 	    rehash(count);
 	    index = hash(key, size);
 	}
         coCount++;
-	buckets[index].rwLock.WriteLock();
-	rwLock.Unlock();
 	currNode = new Node(key);
 	currNode->next = buckets[index].first;
 	currNode->myBucket = buckets+index;
 	currNode->myTable = this;
 	buckets[index].first = currNode;
-#ifdef USE_NODE_LOCK
-	if(rwHelper)
-	    rwHelper->writeLock(&(currNode->rwLock));
-	else
-	    currNode->rwLock.WriteLock();
-#endif
         if(coCount > 1)
         {
 	   cpLog(LOG_DEBUG,"%s[%s] at bucket #%d, contention list size:%d",
@@ -269,72 +210,13 @@ SipTransHashTable::findOrInsert(const KeyType& key
 	      currNode->keyCopy.logData(),index, coCount);
         }
     }
-    buckets[index].rwLock.Unlock();
     return currNode;
 }
  
 SipTransHashTable::Node&
 SipTransHashTable::operator[](const KeyType& key)
 {
-#ifdef USE_NODE_LOCK
-    SipTransRWLockHelper helper;
-    return *findOrInsert(key, &helper);
-#else
     return *findOrInsert(key);
-#endif
-}
-
-
-#ifdef USE_NODE_LOCK
-void
-SipTransHashTable::release(Node* node)
-{
-    node->rwLock.Unlock();
-}
-#endif
-
-
-void
-SipTransHashTable::unLock(Node* node)
-{
-    node->myBucket->rwLock.Unlock();
-}
-
-void
-SipTransHashTable::lock(Node* node, SipTransRWLockHelper *helper /*default*/)
-{
-    rwLock.WriteLock();
-    Bucket* bucketPtr = node->myBucket;
-    if(helper)
-	helper->writeLock(&bucketPtr->rwLock);
-    else
-	bucketPtr->rwLock.WriteLock();
-
-#ifdef REHASH_THREAD
-    /// we do another read of bucketPtr to refresh the latest value
-    /// after getting the lock.
-    /// (it might have been changed by rehash while we were waiting
-    /// on the old value)
-    if( bucketPtr != node->myBucket)
-    {
-//////////// this whole thing is wrong, works with dangling pointers!!!
-////////////////////////////////////////////////////////////////////////
-	if(helper)
-	{
-	    helper->rwLockPtr=0;
-	}
-	bucketPtr->rwLock.Unlock();
-	
-	bucketPtr = node->myBucket;
-
-	if(helper)
-	    helper->writeLock(&bucketPtr->rwLock);
-	else
-	    bucketPtr->rwLock.WriteLock();
-    }
-
-#endif
-    rwLock.Unlock();
 }
 
 
@@ -343,35 +225,12 @@ SipTransHashTable::erase(Node* node)
 {
     if(!node || !count) return;
 
-    rwLock.WriteLock();
-
-/**************************************************************************\
- * this being done in two steps, so lock does the job...
-    Bucket* bucketPtr = node->myBucket;
-    bucketPtr->rwLock.WriteLock();
-
-#ifdef REHASH_THREAD
-    /// we do another read of bucketPtr to refresh the latest value
-    /// after getting the lock.
-    /// (it might have been changed by rehash while we were waiting
-    /// on the old value)
-    if( bucketPtr != node->myBucket)
-    {
-	bucketPtr->rwLock.Unlock();
-	bucketPtr = node->myBucket;
-	bucketPtr->rwLock.WriteLock();
-    }
-#endif
-\**************************************************************************/
-
     /// we assume that most of the erase would be legal calls, hence we
     /// decrement the count in advance. note that it is safe to do this
     /// 'coz this is the only method that decreases count value (and in
     /// case of bad call it restores). this helps in avoiding an extra
     /// hash table lock
     count--;
-
-    rwLock.Unlock();
 
     Node** prevNodePtr = &(node->myBucket->first);
     Node* currNode = *prevNodePtr;
@@ -392,17 +251,12 @@ SipTransHashTable::erase(Node* node)
 	    currNode = currNode->next;
 	}
     }
-/****************************************************************\
-    bucketPtr->rwLock.Unlock();
-\****************************************************************/
 
     /// if this was a BAD call
     if(!currNode)
     {
 	cpLog(DEBUG_NEW_STACK,"*********** BAD CALL TO ERASE #$%!");
-	rwLock.WriteLock();
 	count++;
-	rwLock.Unlock();
     }
 }
 
@@ -410,25 +264,12 @@ SipTransHashTable::erase(Node* node)
 void
 SipTransHashTable::rehash(SizeType sizeHint)
 {
-#ifdef REHASH_THREAD
-    if(rehashFlag != true)
-    {
-	rehashFlag = true;
-	/// spawn the rehash thread...
-    }
-#else
     rehashFunc(sizeHint);
-#endif
 }
 
 void
 SipTransHashTable::rehashFunc(SizeType sizeHint)
 {
-/*************************************************************************\
- * for now this is fine, 'coz the whole table is locked during the whole
- * operation. but with threaded rehash *might* have to lock the node also
- * to avoid incorrect execution with lock.
- */
     sizeHint = nextSize(sizeHint);
     if(sizeHint <= size) return;
 
@@ -446,17 +287,6 @@ SipTransHashTable::rehashFunc(SizeType sizeHint)
 	Node* currNode;
 	Node** prevNodePtr;
 	SizeType newIndex;
-#ifdef REHASH_THREAD	
-	/// lock table when its a thread, to take care of race conditions
-	rwLock.WriteLock();
-#endif
-	/// this allways needs to be there, even when this is not a thread,
-	/// to take care of slow execution sequences of other methods
-	buckets[i].rwLock.WriteLock();
-
-#ifdef REHASH_THREAD
-	rwLock.Unlock();
-#endif
 	prevNodePtr = &(buckets[i].first);
 	currNode = *prevNodePtr;
 	for(;currNode;)
@@ -464,35 +294,17 @@ SipTransHashTable::rehashFunc(SizeType sizeHint)
 	    *prevNodePtr = currNode->next;
 	    newIndex = hash(currNode->keyCopy,sizeHint);
 
-#ifdef REHASH_THREAD
-	    /// this is to take care of any conflicts with erase
-	    /// but will only be useful if rehash is implemented as
-	    /// a sperate thread. otherwise the whole table is locked anyway
-	    /// by the caller. another option is to lock all initially
-	     newBuckets[newIndex].rwLock.WriteLock();
-#endif
 	    currNode->next = newBuckets[newIndex].first;
 	    currNode->myBucket = newBuckets+newIndex;
 	    newBuckets[newIndex].first = currNode;
 
-#ifdef REHASH_THREAD
-	    newBuckets[newIndex].rwLock.Unlock();
-#endif
 	    currNode = *prevNodePtr;
 	}
-	buckets[i].rwLock.Unlock();
     }
 
-#ifdef REHASH_THREAD
-    rwLock.WriteLock();
-#endif
     delete[] buckets;
     buckets = newBuckets;
     size = sizeHint;
-#ifdef REHASH_THREAD
-    rehashFlag = false;
-    rwLock.Unlock();
-#endif
 }
 
 Data

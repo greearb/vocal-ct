@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCommand_cxx_version =
-    "$Id: SipCommand.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipCommand.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -93,9 +93,9 @@ static const char* const SipCommand_cxx_version =
 using namespace Vocal;
 
 
-SipCommand::SipCommand(const string& _local_ip)
+SipCommand::SipCommand(const string& _local_ip, const char* class_name)
     : 
-    SipMsg(_local_ip),
+    SipMsg(_local_ip, class_name),
     myRequestLine(_local_ip)
 {
 }
@@ -113,7 +113,7 @@ SipCommand::SipCommand(const SipCommand& src,
                        const SipVia& via,
                        const SipCSeq& cseq)
     : 
-    SipMsg(src.getLocalIp()),
+    SipMsg(src.getLocalIp(), src.getClassName().c_str()),
     myRequestLine(src.getLocalIp())
 {
     // src should be a message that this UAS received
@@ -141,16 +141,17 @@ SipCommand::SipCommand(const SipCommand& src,
             // Copy the recordRoute list and form a route list
             while ( iter != rrList.end() )
             {
-                SipRoute* route = new SipRoute(**iter);
-                routePushBack(*route);
+                SipRoute route(**iter);
+                routePushBack(route);
                 iter++;
             }
         }
     }
 }
 
-SipCommand::SipCommand(const StatusMsg& status, const string& _local_ip)
-    : SipMsg(_local_ip),
+SipCommand::SipCommand(const StatusMsg& status, const string& _local_ip,
+                       const char* class_name)
+    : SipMsg(_local_ip, class_name),
       myRequestLine(_local_ip)
 {
     myVersion = DEFAULT_VERSION;
@@ -732,7 +733,7 @@ SipCommand::setRouteList(const vector < Sptr<SipRoute> > sipRouteList)
     vector < Sptr<SipRoute> > ::const_iterator iter = sipRouteList.begin();
     while ( iter != sipRouteList.end() )
     {
-	myHeaderList.appendHeader(SIP_ROUTE_HDR, *iter, local_ip);
+	myHeaderList.appendHeader(SIP_ROUTE_HDR, (*iter).getPtr(), local_ip);
         iter++;
     }
 }
@@ -1279,8 +1280,7 @@ SipCommand::computeBranch(Data hashBranch /* default value */) const
     {
 	if (toBaseUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(toBaseUrl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toBaseUrl.getPtr()));
 	    hashBranch += sipUrl->getNameAddr();
 	}
     }
@@ -1290,8 +1290,7 @@ SipCommand::computeBranch(Data hashBranch /* default value */) const
     {
 	if (fromBaseUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(fromBaseUrl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(fromBaseUrl.getPtr()));
     
 	    hashBranch+= sipUrl->getNameAddr();
 	}
@@ -1303,8 +1302,7 @@ SipCommand::computeBranch(Data hashBranch /* default value */) const
     {
 	if (reqBaseUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(reqBaseUrl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(reqBaseUrl.getPtr()));
 	    hashBranch+= sipUrl->getNameAddr();
 	}
     }
@@ -1420,7 +1418,7 @@ SipCommand::postProcessRouteAndGetNextHop()
         burl = routeFront().getUrl();
     }
 #endif
-    url.dynamicCast(burl);        
+    url = (SipUrl*)(burl.getPtr());
     return url;
 }
 

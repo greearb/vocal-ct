@@ -52,7 +52,7 @@
  */
 
 static const char* const StateMachnData_hxx_Version =
-    "$Id: StateMachnData.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: StateMachnData.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "SipTo.hxx"
@@ -73,7 +73,7 @@ namespace Vocal
 
 </pre>
  */
-class StateMachnData
+class StateMachnData: public BugCatcher
 {
     public:
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipFrom_hxx_version =
-    "$Id: SipFrom.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipFrom.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include <map>
@@ -184,7 +184,8 @@ class SipFrom : public SipHeader
         ///
         void setTokenDetails(const Data& token, const Data& tokenValue);
         ///
-        Sptr < TokenMapFrom > getTokenDetails() const;
+        const TokenMapFrom& getTokenDetails() const;
+
         ///
         Data getTokenValue(const Data& token) const;
 

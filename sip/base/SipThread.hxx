@@ -53,12 +53,11 @@
 
 
 static const char* const SipThread_hxx_Version = 
-    "$Id: SipThread.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipThread.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
-#include "Fifo.h"
 #include "Sptr.hxx"
-#include "ThreadIf.hxx"
+#include <list>
 
 //#include "SipTransceiver.hxx"
 //#include "SipProxyEvent.hxx"
@@ -84,7 +83,7 @@ class SipMsg;
     and processes.
 </pre>
  */
-class SipThread: public ThreadIf
+class SipThread
 {
     public:
 
@@ -94,7 +93,7 @@ class SipThread: public ThreadIf
          *  For Marshal and RS proxies, no CallLegHistory is required
          */
         SipThread( const Sptr < SipTransceiver > sipStack,
-		   const Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo ,
+                   list < Sptr < SipProxyEvent > >* outputFifo ,
                    bool callLegHistory=true);
 
 
@@ -115,7 +114,7 @@ class SipThread: public ThreadIf
          *  processing. The incoming messages from the sip transceiver 
          *  will be queued on the given fifo.
          */
-        virtual void thread();
+   // TODO:  virtual void thread();
 
 
         /** Source of incoming sip events.
@@ -125,7 +124,7 @@ class SipThread: public ThreadIf
 
         /** Sink for incoming sip events.
          */
-        Sptr < Fifo < Sptr < SipProxyEvent > > > myOutputFifo;
+        list < Sptr < SipProxyEvent > >* myOutputFifo;
 
 
     private:

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipRawHeader_hxx_Version =
-    "$Id: SipRawHeader.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRawHeader.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "SipHeader.hxx"
 #include <set>
@@ -67,7 +67,7 @@ namespace Vocal
  * been done, as a SipHeader object.
 */
 
-class SipRawHeader
+class SipRawHeader: public BugCatcher
 {
     public:
         // local_ip cannot be "" here, must be the local IP we are bound to locally

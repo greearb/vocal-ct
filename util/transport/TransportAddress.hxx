@@ -53,13 +53,14 @@
 
 
 static const char* const TransportAddress_hxx_Version = 
-    "$Id: TransportAddress.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TransportAddress.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "TransportCommon.hxx"
 #include "Writer.hxx"
 #include "AddressFamily.hxx"
 #include "SystemException.hxx"
+#include <RCObject.hxx>
 
 /** Infrastructure common to VOCAL.
  */

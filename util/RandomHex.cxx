@@ -5,11 +5,9 @@
 #endif
 
 #include "RandomHex.hxx"
-#include "Lock.hxx"
 #include "support.hxx"
 #include "cpLog.h"
 
-Vocal::Threads::Mutex RandomHex::_mutex;
 
 //#if !defined(__linux__)
 
@@ -45,7 +43,6 @@ RandomHex::initialize()
 Data
 RandomHex::get(unsigned int len)
 {
-   Vocal::Threads::Lock lock(_mutex);
    static CryptoRandom random;
    
    //unsigned char* buffer;

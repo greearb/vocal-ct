@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -91,14 +91,11 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
     retVal->msg.in = msg;
     retVal->msg.type = msg->getType();
 
-    Sptr<SipCommand> command;
-    command.dynamicCast(msg);
+    Sptr<SipCommand> command((SipCommand*)(msg.getPtr()));
 
     if ( command != 0 )
     {
-        Sptr<BaseUrl> baseDest = command->getRequestLine().getUrl();
-        Sptr<SipUrl> dest;
-        dest.dynamicCast(baseDest);
+        Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
         if(dest != 0)
         {
             cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
@@ -146,8 +143,6 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
 	    }
 	}
     }
-    // release the lock acquired on top level node
-    topNode->lock.unlock();
 
     // the transport will actually insert this msgs for cleanup, after the
     // retrans
@@ -342,11 +337,6 @@ SipSentRequestDB::processRecv(SipMsgContainer* msgContainer)
 	    }
         }
     }
-    // release the lock acquired on top level node
-    if(topNode)
-    {
-        topNode->lock.unlock();
-    }
     return retVal;
 }
 
@@ -354,13 +344,12 @@ SipTransLevel1Node*
 SipSentRequestDB::getTopNode(const SipTransactionId& id, 
                              const Sptr<SipMsg>& msg)
 {
-    SipTransHashTable::SipTransRWLockHelper helper;
     SipTransHashTable::Node * bktNode;
 
     if(msg->getType()==SIP_STATUS)
     {
-	// this finds if there's a transaction, and locks for READ
-	bktNode = table.find(id.getLevel1(), &helper);
+	// this finds if there's a transaction
+	bktNode = table.find(id.getLevel1());
 
 	// if there's a transaction, then check the from tag
 	if(bktNode && bktNode->myNode->fromTag != msg->getFrom().getTag())
@@ -374,9 +363,8 @@ SipSentRequestDB::getTopNode(const SipTransactionId& id,
     }
     else
     {
-	// this creats a new transaction, if none exists, and locks for write
-	// otherwise just returns the existing transaction with read lock
-	bktNode = table.findOrInsert(id.getLevel1(), &helper);
+	// this creats a new transaction, if none exists
+	bktNode = table.findOrInsert(id.getLevel1());
 	if(bktNode->myNode == 0)
 	{
 	    bktNode->myNode = new SipTransLevel1Node();
@@ -387,10 +375,6 @@ SipSentRequestDB::getTopNode(const SipTransactionId& id,
 
     if(bktNode)
     {
-	// acquire a lock on the top level node, before releasing the
-	// bucket node: due to race w/ cleanup thread!!!
-	bktNode->myNode->lock.lock();
-
 	return bktNode->myNode;
     }
     else

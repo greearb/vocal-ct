@@ -49,7 +49,7 @@
  */
 
 static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -117,9 +117,10 @@ SipParserException::getName( void ) const
 }
 
 
-SipMsg::SipMsg(const string& _local_ip)
+SipMsg::SipMsg(const string& _local_ip, const char* class_name)
     :
     local_ip(_local_ip),
+    className(class_name),
     myVersion(),
     myReceivedAddress("0.0.0.0"),
     mySendAddress("0.0.0.0"),
@@ -146,6 +147,7 @@ SipMsg& SipMsg::operator=(const SipMsg& rhs)
         myMimeList = rhs.myMimeList;
         myNextHopIsAProxy = rhs.myNextHopIsAProxy;
         local_ip = rhs.local_ip;
+        className = rhs.className;
     }
     return *(this);
 }
@@ -175,6 +177,7 @@ SipMsg::operator==(const SipMsg& src) const
 SipMsg::SipMsg(const SipMsg& src)
     :
     local_ip(src.local_ip),
+    className(src.className),
     myVersion(src.myVersion),
     myReceivedAddress(src.myReceivedAddress),
     mySendAddress(src.mySendAddress),

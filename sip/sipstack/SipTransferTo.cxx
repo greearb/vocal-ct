@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransferTo_cxx_Version =
-    "$Id: SipTransferTo.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransferTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransferTo.hxx"
@@ -80,9 +80,8 @@ SipTransferTo::SipTransferTo(const SipTransferTo& src)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    
-	    (sipUrl.dynamicCast(toUrl))->initializeTo();
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }
@@ -99,8 +98,8 @@ SipTransferTo::SipTransferTo( Sptr <BaseUrl> url, const string& local_ip )
     
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    (sipUrl.dynamicCast(url))->initializeTo();
+	    Sptr <SipUrl> sipUrl((SipUrl*)(url.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }
@@ -126,9 +125,8 @@ SipTransferTo::SipTransferTo( const Data& data, const string& local_ip,  UrlType
     
 	    if (toUrl->getType() == SIP_URL)
 	    {
-		Sptr <SipUrl> sipUrl;
-		
-		(sipUrl.dynamicCast(toUrl))->initializeTo();
+                Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+                sipUrl->initializeTo();
 	    }
 	}
     }
@@ -339,8 +337,8 @@ SipTransferTo::setPortData(const Data& newport)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    (sipUrl.dynamicCast(toUrl))->setPort(newport);
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->setPort(newport);
 	}
     }
 
@@ -356,8 +354,8 @@ SipTransferTo::getPortData()
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    port = (sipUrl.dynamicCast(toUrl))->getPort();
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            port = sipUrl->getPort();
 	}
     }
     return port;
@@ -442,8 +440,8 @@ SipTransferTo::setHost(const Data& newhost)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    (sipUrl.dynamicCast(toUrl))->setHost(newhost);
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->setHost(newhost);
 	}
     }
 }
@@ -457,8 +455,8 @@ SipTransferTo::getHost()
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    host = (sipUrl.dynamicCast(toUrl))->getHost();
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            host = sipUrl->getHost();
 	}
     }
     return host;
@@ -481,9 +479,8 @@ SipTransferTo::encode() const
     if (toUrl.getPtr() != 0)
     {
 	if (toUrl->getType() == SIP_URL)
-	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(toUrl);
+	{	
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
     
 	    sipTransferTo += "<";
 
@@ -529,9 +526,8 @@ SipTransferTo::setUrl(Sptr <BaseUrl>  tourl)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-    
-	    (sipUrl.dynamicCast(toUrl))->initializeTo();
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }

@@ -52,13 +52,12 @@
  */
 
 static const char* const SipTransactionGC_hxx_version =
-    "$Id: SipTransactionGC.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionGC.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "SipTransactionLevels.hxx"
 #include "SipTransactionList.hxx"
 #include "SipTransHashTable.hxx"
-#include "ThreadIf.hxx"
 
 namespace Vocal
 {
@@ -71,11 +70,10 @@ namespace Vocal
 
 class SipTransDebugger;
 
-class SipTransactionGC : public ThreadIf
+class SipTransactionGC
 {
     public:
 	static SipTransactionGC* instance();
-	static void shutdown();
 
 	static int msgCleanupDelay;
 	static int invCleanupDelay;
@@ -84,13 +82,12 @@ class SipTransactionGC : public ThreadIf
     private:
 	friend class SipTransDebugger;
 	SipTransactionGC();
-	~SipTransactionGC();
+	virtual ~SipTransactionGC();
 	SipTransactionGC(const SipTransactionGC&);
 	SipTransactionGC& operator= (const SipTransactionGC&);
 	bool operator==(const SipTransactionGC&);
 
     protected:
-	virtual void thread();
 	void trash(SipMsgContainer* item);
 	bool doneFlag;
 
@@ -100,21 +97,17 @@ class SipTransactionGC : public ThreadIf
     private:
 	struct GCType;
 	static SipTransactionGC *myInstance;
-	static Mutex myLock; // used during instance creation ONLY
 
 	SipTransactionList<GCType*> bins;
 	typedef SipTransactionList<GCType*>::SipTransListNode BinsNodeType;
-	VRWLock binsLock; // used to access the bins list
 
-	struct GCType
-	{
+	struct GCType {
 		const int myDelay;
 		int currDelay;
 		int currBin;
 		SipTransactionList<SipMsgContainer*>  *bin;
 		GCType(int delay): myDelay(delay), currDelay(0), currBin(0),
-				   bin(0)
-		{
+				   bin(0) {
 		    assert(delay>=0);
 		    bin = new SipTransactionList<SipMsgContainer*>[delay+2];
 		}

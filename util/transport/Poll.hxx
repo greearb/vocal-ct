@@ -53,7 +53,7 @@
 
 
 static const char* const Poll_hxx_Version = 
-    "$Id: Poll.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Poll.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include <map>
@@ -65,7 +65,6 @@ static const char* const Poll_hxx_Version =
 #endif
 #include "Sptr.hxx"
 #include "Pipe.hxx"
-#include "Mutex.hxx"
 #include "Writer.hxx"
 #include "ProtocolException.hxx"
 #include "ConnectionBrokenException.hxx"
@@ -78,8 +77,6 @@ namespace Vocal {
     }
 }
 
-
-using namespace Vocal::Threads;
 
 /** Infrastructure common to VOCAL.
  */
@@ -276,7 +273,6 @@ class Poll : public Vocal::IO::Writer
 
     	IO::Pipe	    myInterruptor;
 	u_int8_t   	    myInterruptCount;
-	Mutex	    	    myInterruptorMutex;
 
     	// Suppress copying
 	//

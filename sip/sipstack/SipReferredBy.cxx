@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReferredBy_cxx_version =
-    "$Id: SipReferredBy.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipReferredBy.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipReferredBy.hxx"
@@ -97,9 +97,7 @@ SipReferredBy::SipReferredBy( const Data& data, const string& local_ip,
       displayName(),
       address(),
       pgpMap(),
-      authScheme("pgp"),
-      //basicCookie(),
-      tokenMutex()
+      authScheme("pgp")
 {
     if (data == "") {
         return;
@@ -480,8 +478,7 @@ SipReferredBy::encode() const
     {
 	if (referrerUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-            sipUrl.dynamicCast(referrerUrl);
+	    Sptr<SipUrl> sipUrl((SipUrl*)(referrerUrl.getPtr()));
     
 	    if (sipUrl->getHost().length() == 0)
 	    {
@@ -543,7 +540,6 @@ SipReferredBy::encode() const
 		    sipreferredby += SP;
 			    
 		    
-		    tokenMutex.lock();
 		    ReferredByPgpMap::const_iterator i = pgpMap.begin();
 		    while (i != pgpMap.end())
 		    {
@@ -561,7 +557,6 @@ SipReferredBy::encode() const
 			    sipreferredby += ",";
 			}
 		    }  //end while
-		    tokenMutex.unlock();
 		}
 		
 		sipreferredby += CRLF;
@@ -633,19 +628,14 @@ SipReferredBy::setReferencedUrl(const Data& data)
 void SipReferredBy::setTokenDetails(const Data& token,
                                     const Data& tokenValue)
 {
-    tokenMutex.lock();
     pgpMap[token] = tokenValue;
-    tokenMutex.unlock();
 }
 
 ///
-Sptr < SipReferredBy::ReferredByPgpMap >
+const SipReferredBy::ReferredByPgpMap&
 SipReferredBy::getTokenDetails()
 {
-    tokenMutex.lock();
-    Sptr < SipReferredBy::ReferredByPgpMap > dupMap = new ReferredByPgpMap(pgpMap);
-    tokenMutex.unlock();
-    return dupMap;
+    return pgpMap;
 }
 
 
@@ -667,14 +657,12 @@ Data SipReferredBy::getTokenValue(const Data& token)
 
     Data ret;
 
-    tokenMutex.lock();
     ReferredByPgpMap::iterator check = pgpMap.find(token); ;
 
     if (check != pgpMap.end())
     {
         ret = check -> second;
     }
-    tokenMutex.unlock();
     return ret;
 
 }

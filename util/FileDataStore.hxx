@@ -56,13 +56,9 @@
 
 
 static const char* const FileDataStoreVersion =
-    "$Id: FileDataStore.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: FileDataStore.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "DataStore.hxx"
-#include "Mutex.hxx"
-
-using namespace Vocal;
-using namespace Vocal::Threads;
 
 
 /// Class that store data in file system
@@ -173,8 +169,6 @@ class FileDataStore : public DataStore
         /// number of directory bins currently in use
         int numBins;
 
-        /// lock to block concurent file access
-        Mutex lock;
 };
 
 #endif

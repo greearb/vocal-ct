@@ -134,8 +134,7 @@ bool SipUser::areEqual(Sptr<BaseUser> baseUser) const
 {
     if (baseUser != 0 && baseUser->getType() == SIP_USER)
     {
-        Sptr<SipUser> newUser;
-        newUser.dynamicCast(baseUser);
+        Sptr<SipUser> newUser((SipUser*)(baseUser.getPtr()));
         return ( *(this) == *(newUser) );
     }
     else
@@ -149,8 +148,7 @@ bool SipUser::isLessThan(Sptr<BaseUser> baseUser) const
 {
     if (baseUser != 0 && baseUser->getType() == SIP_USER)
     {
-        Sptr<SipUser> newUser;
-        newUser.dynamicCast(baseUser);
+        Sptr<SipUser> newUser((SipUser*)(baseUser.getPtr()));
         return ( *(this) < *(newUser) );
     }
     else

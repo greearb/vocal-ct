@@ -52,7 +52,7 @@
  */
 
 static const char* const SipHeaderList_hxx_Version =
-    "$Id: SipHeaderList.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipHeaderList.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "SipRawHeader.hxx"
 #include "Sptr.hxx"
@@ -104,8 +104,7 @@ class SipHeaderList
 		Sptr <Header> operator*()
 		{
 		    myIterator->parse();
-		    Sptr<Header> x;
-		    x.dynamicCast(myIterator->header);
+		    Sptr<Header> x((Header*)(myIterator->header.getPtr()));
 		    return x;
 		}
 

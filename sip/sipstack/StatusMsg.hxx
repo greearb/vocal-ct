@@ -52,7 +52,7 @@
  */
 
 static const char* const StatusMsg_hxx_Version
-    = "$Id: StatusMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    = "$Id: StatusMsg.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <vector>
 #include "cpLog.h"
@@ -129,6 +129,10 @@ class StatusMsg : public SipMsg
         StatusMsg(const string& local_ip);
         ///
         StatusMsg(const StatusMsg&);
+
+        virtual bool isSipCommand() const { return false; }
+        virtual bool isStatusMsg() const { return true; }
+
         ///
         const StatusMsg& operator = (const StatusMsg& src);
         ///

@@ -53,7 +53,7 @@
 
 
 static const char* const StatisticsDb_hxx_Version = 
-    "$Id: StatisticsDb.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: StatisticsDb.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include <map>
@@ -61,7 +61,6 @@ static const char* const StatisticsDb_hxx_Version =
 
 #include "Writer.hxx"
 #include "Data.hxx"
-#include "Mutex.hxx"
 
 /** Infrastructure common to VOCAL.<br><br>
  */
@@ -75,8 +74,6 @@ namespace Vocal
 namespace Statistics
 {
 
-
-using Vocal::Threads::Mutex;
 
 
 class Statistic;
@@ -174,11 +171,6 @@ class StatisticsDb : public Vocal::IO::Writer
 
     private:
 
-    	/** Mutlithreaded protection.
-	 */
-	mutable Mutex     myLock;
-	 
-	    
     	/** Name of the database.
 	 */
 	Data	myName;

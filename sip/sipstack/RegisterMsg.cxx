@@ -49,7 +49,7 @@
  */
 
 static const char* const RegisterMsg_cxx_Version =
-    "$Id: RegisterMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: RegisterMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "Data.hxx"
 #include "RegisterMsg.hxx"
@@ -75,7 +75,7 @@ using namespace Vocal;
 
 
 RegisterMsg::RegisterMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "RegisterMsg")
 {
     setRegisterDetails();
 }
@@ -88,7 +88,7 @@ RegisterMsg::RegisterMsg(const RegisterMsg& src)
 
 
 RegisterMsg::RegisterMsg(const Data& data, const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "RegisterMsg")
 {
     SipCommand::decode(data);
 }
@@ -190,9 +190,7 @@ void RegisterMsg::setRegisterDetails()
     {
 	if (requestUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(requestUrl);
-    
+	    Sptr <SipUrl> sipUrl((SipUrl*)(requestUrl.getPtr()));
 	    sipUrl->setHost(registerDomain);
 	}
     }

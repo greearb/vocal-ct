@@ -53,10 +53,9 @@
 
 
 static const char* const GarbageCan_hxx_Version = 
-    "$Id: GarbageCan.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: GarbageCan.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
-#include "Mutex.hxx"
 #include <list>
 
 
@@ -70,7 +69,6 @@ class Application;
 class Garbage;
 
 
-using Vocal::Threads::Mutex;
 //using Vocal::Application;
 using std::list;
 
@@ -110,11 +108,6 @@ class GarbageCan
         void        empty();
 
     
-        /** Protects the garbage list from concurrent access.
-         */
-        static  Mutex               myMutex;
-        
-        
         /** The stuff that need to be deleted.
          */
         static  list<Garbage *>     myGarbage;

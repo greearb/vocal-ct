@@ -52,9 +52,8 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
-#include "Fifo.h"
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
 #include "TransceiverSymbols.hxx"
@@ -62,6 +61,7 @@ static const char* const SipTcpConnection_hxx_Version =
 #include "SipTransactionLevels.hxx"
 #include "SipTransactionGC.hxx"
 #include <Tcp_ServerSocket.hxx>
+#include <list>
 
 namespace Vocal
 {
@@ -69,18 +69,20 @@ namespace Vocal
 class SipTcpConnection_impl_;
 class SipMsgContainer;
 
-class SipTcpConnection
+class SipTcpConnection: public BugCatcher
 {
     public:
         /**
          * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+         * TODO:  Who owns the 'fifo' memory?
          */
-        SipTcpConnection(Fifo <SipMsgContainer*> * fifo,
+        SipTcpConnection(list < Sptr<SipMsgContainer> > * fifo,
                          const string& local_ip,
                          const string& local_dev_to_bind_to,
                          int port = SIP_PORT);
         ///
         virtual ~SipTcpConnection();
+
         ///
         void send(SipMsgContainer* msg, const Data& host="",
                              const Data& port="");
@@ -93,22 +95,16 @@ class SipTcpConnection
 };
 
 
-class NTcpStuff
-{
+class NTcpStuff: public BugCatcher {
     public:
         ///
-        NTcpStuff() : tcpConnection(0)
-        {
-        }
+        NTcpStuff() : tcpConnection(0) { }
 
         ///
-        ~NTcpStuff() 
-        { 
-        }
+        virtual ~NTcpStuff() { }
 
         ///
-        bool operator==(const  NTcpStuff& other)
-        {
+        bool operator==(const  NTcpStuff& other) {
             return (tcpConnection->getConnId() ==
                     other.tcpConnection->getConnId());
         }
@@ -120,9 +116,6 @@ class NTcpStuff
         ///
         Data sender_ip;
         int sender_port;
-
-        ///
-        Mutex myMutex;
 };
 
 typedef int TcpFd;
@@ -160,19 +153,12 @@ class NTcpConnInfo
         ///
         int tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack);
         ///
-        Mutex mutex;
-        ///
-        Mutex mapMutex;
-        ///
         map < TcpFd, Sptr < NTcpStuff > > myMap;
         ///
         map < SipTransactionId, Sptr < NTcpStuff > > idMap;
 
         ///
         list<int>  myCleanupList;
-
-        ///
-        Mutex cleanupMutex;
 
         Data nullData;
         ///
@@ -184,7 +170,7 @@ class SipTcpConnection_impl_
 {
     public:
         ///
-        SipTcpConnection_impl_(Fifo <SipMsgContainer*> * fifo,
+        SipTcpConnection_impl_(list < Sptr <SipMsgContainer> > * fifo,
                                const string& local_ip,
                                const string& local_dev_to_bind_to,
 			       int port = SIP_PORT);
@@ -228,16 +214,10 @@ class SipTcpConnection_impl_
         ///
         NTcpConnInfo tcpConnInfo;
         ///
-        VThread sendThread;
+        list <SipMsgContainer*> sendFifo;
+        list <int > processFifo;
         ///
-        VThread receiveThread;
-        ///
-        VThread processThread;
-        ///
-        Fifo <SipMsgContainer*> sendFifo;
-        Fifo <int > processFifo;
-        ///
-        Fifo <SipMsgContainer*> * recFifo;
+        list < Sptr <SipMsgContainer> >* recFifo;
         ///
         bool shutdownNow;
         ///

@@ -51,16 +51,15 @@
  */
 
 static const char* const SipUdp_impl_hxx_Version = 
-"$Id: SipUdp_impl.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+"$Id: SipUdp_impl.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
 #include "SipTransactionStatus.hxx"
-#include "VThread.hxx"
 #include "UdpStack.hxx"
-#include "Fifo.h"
 #include "TransceiverSymbols.hxx"  
 #include "RetransmitContents.hxx"
+#include <list>
 
 #ifdef USE_VFILTER
 #include "VFilter.hxx"  
@@ -74,7 +73,7 @@ namespace Vocal
 {
     
 ///
-class SipUdp_impl
+class SipUdp_impl: public BugCatcher
 {
     public:
 
@@ -82,12 +81,12 @@ class SipUdp_impl
         // case (bind to all, as well).
         // If local_interface_to_bind_to is not "", then we will attempt to bind
         // to it with SO_BINDTODEVICE.
-        SipUdp_impl(Fifo<SipMsgContainer*>* fifo,
+        SipUdp_impl(list <Sptr<SipMsgContainer> >* fifo,
                     const string& local_ip,
                     const string& local_interface_to_bind_to,
                     int port = SIP_PORT);
         ///
-        ~SipUdp_impl();
+        virtual ~SipUdp_impl();
         ///
         int udpSend(SipMsgContainer* msg);
         ///
@@ -127,19 +126,11 @@ class SipUdp_impl
         ///
         UdpStack udpStack;
         ///
-        Fifo<SipMsgContainer * >* recFifo;
+        list <Sptr <SipMsgContainer> >* recFifo;
         ///
-        Fifo<RetransmitContents *> sendFifo;
+        list <Sptr <RetransmitContents> > sendFifo;
         /// 
-        VThread sendThread;
-        ///
-        VThread receiveThread;
-        ///
         bool shutdown;                                       
-        ///
-        static void* sendThreadWrapper(void *p);
-        /// 
-        static void* rcvThreadWrapper(void *p);
         ///    
         void* receiveMain();
         ///    

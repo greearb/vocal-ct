@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransDebugger_cxx_version =
-    "$Id: SipTransDebugger.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransDebugger.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransDebugger.hxx"
@@ -60,9 +60,6 @@ using namespace Vocal;
 Data
 SipTransDebugger::printDebug(SipTransHashTable* table)
 {
-    //// lock the whole table, just to make life easier...
-    table->rwLock.ReadLock();
-
     int level2count = 0;
     int level3count = 0;
     int resCount = 0;
@@ -70,16 +67,13 @@ SipTransDebugger::printDebug(SipTransHashTable* table)
 
     for (unsigned int i=0;i<table->size;i++)
     {
-	table->buckets[i].rwLock.ReadLock();
 	SipTransHashTable::Node* currNode;
 	currNode = table->buckets[i].first;
 	for(;currNode;)
 	{
-	    currNode->rwLock.ReadLock();
 	    SipTransLevel1Node * topNode = currNode->myNode;
 	    if(topNode)
 	    {
-		topNode->lock.lock();
 		SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
 		level2node = topNode->level2.getFirst();
 		while(level2node)
@@ -99,14 +93,10 @@ SipTransDebugger::printDebug(SipTransHashTable* table)
 		    }
 		    level2node = topNode->level2.getNext(level2node);
 		}
-		topNode->lock.unlock();
 	    }
-	    currNode->rwLock.Unlock();
 	    currNode = currNode->next;
 	}
-	table->buckets[i].rwLock.Unlock();
     }
-    table->rwLock.Unlock();
     char details[200];
     sprintf(details,"%s[%ld] : %s[%d] : %s[%d]\nTotal: %s[%d], %s[%d] %s[%ld]",
 	    "top node count", table->count,

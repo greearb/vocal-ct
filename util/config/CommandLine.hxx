@@ -52,7 +52,7 @@
  */
 
 static const char* const CommandLineVersion 
-    = "$Id: CommandLine.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    = "$Id: CommandLine.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <unistd.h>
 #include <cstdio>
@@ -102,7 +102,7 @@ For example to check if -d option is given, call interface
     }
 </pre>
 */
-class CommandLine
+class CommandLine : public RCObject
 {
     public:
 

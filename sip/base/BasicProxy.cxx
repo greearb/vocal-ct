@@ -50,15 +50,15 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
 #include "BasicProxy.hxx"
 #include "ServerContainer.hxx"
 #include "CommandLine.hxx"
-#include "WorkerThread.hxx"
 #include "SipThread.hxx"
+#include "Builder.hxx"
 
 using namespace Vocal;
 
@@ -88,57 +88,9 @@ BasicProxy::BasicProxy(
         assert( myHeartbeatRxThread != 0 );
         assert( myHouseKeepingThread != 0 );
     }
-
-    assert( myWorkerThread != 0 );
-    assert( mySipThread != 0 );
 }
 
 
 BasicProxy::~BasicProxy()
 {
-}
-
-
-void
-BasicProxy::run()
-{
-    HeartLessProxy::run();
-    if(myHeartbeatRxThread != 0) myHeartbeatRxThread->run();
-    if(myHouseKeepingThread != 0) myHouseKeepingThread->run();
-}
-
-
-void
-BasicProxy::runHeartbeatThread()
-{
-    if(CommandLine::instance()->getInt("HEARTBEAT"))
-    {
-        if(myHeartbeatTxThread != 0) myHeartbeatTxThread->run();
-    }
-}
-
-
-void
-BasicProxy::shutdown()
-{
-    myWorkerThread->shutdown();
-    mySipThread->shutdown();
-}
-
-
-void
-BasicProxy::shutdownHeartbeatThread()
-{
-    if(myHeartbeatTxThread != 0) myHeartbeatTxThread->shutdown();
-    if(myHeartbeatRxThread != 0) myHeartbeatRxThread->shutdown();
-    if(myHouseKeepingThread != 0) myHouseKeepingThread->shutdown();
-}
-
-
-void
-BasicProxy::joinHeartbeatThread()
-{
-    if(myHeartbeatTxThread != 0) myHeartbeatTxThread->join();
-    if(myHeartbeatRxThread != 0) myHeartbeatRxThread->join();
-    if(myHouseKeepingThread != 0) myHouseKeepingThread->join();
 }

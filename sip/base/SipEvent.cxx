@@ -50,7 +50,7 @@
 
 
 static const char* const SipEvent_cxx_Version =
-    "$Id: SipEvent.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -65,7 +65,7 @@ static const char* const SipEvent_cxx_Version =
 
 using namespace Vocal;
 
-SipEvent::SipEvent( const Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo )
+SipEvent::SipEvent( list < Sptr < SipProxyEvent > >* outputFifo )
     :   SipProxyEvent(outputFifo),
         mySipMsg(0),
         mySipMsgQueue(0),
@@ -99,9 +99,10 @@ SipEvent::getSipMsg() const
 
 
 void
-SipEvent::setSipMsgQueue(const Sptr < SipMsgQueue > sipRcv)
+SipEvent::setSipMsgQueue(SipMsgQueue* sipRcv)
 {
     assert( sipRcv != 0 );
+    // TODO:  This may leak memory and be wrong for other reasons.
 
     mySipMsgQueue = sipRcv;
 
@@ -109,60 +110,45 @@ SipEvent::setSipMsgQueue(const Sptr < SipMsgQueue > sipRcv)
 }
 
 
-const Sptr < SipMsgQueue >
-SipEvent::getSipMsgQueue() const
-{
-    assert( mySipMsgQueue != 0 );
-
+const SipMsgQueue* SipEvent::getSipMsgQueue() const {
     return ( mySipMsgQueue );
 }
 
 
 void
-SipEvent::setSipReceive( const Sptr < SipMsgQueue > sipRcv )
+SipEvent::setSipReceive( SipMsgQueue* sipRcv )
 {
     setSipMsgQueue(sipRcv);
 }
 
 
-const Sptr < SipMsgQueue >
-SipEvent::getSipReceive() const
-{
-    assert ( mySipMsgQueue != 0 );
-
+const SipMsgQueue* SipEvent::getSipReceive() const {
     return ( mySipMsgQueue );
 }
 
 
 const Sptr < InviteMsg >
-SipEvent::getInvite() const
-{
+SipEvent::getInvite() const {
     // iterate through all msgs associated with this event looking
     // for an INVITE, and return it if found
     Sptr < SipMsg > sipMsg;
 
     cpLog( LOG_DEBUG, "Search transaction for previous INVITE" );
-    Sptr < SipMsgQueue > transaction = mySipMsgQueue;
-    if ( transaction != 0 )
-    {
+    if ( mySipMsgQueue != 0 ) {
         SipMsgQueue::iterator i;
-        for (i = transaction->begin(); i != transaction->end(); ++i)
-        {
+        for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
             sipMsg = *i;
-            if ( sipMsg == 0 )
-            {
+            if ( sipMsg == 0 ) {
                 // reach empty sip msg without finding INVITE, return 0
                 cpLog( LOG_DEBUG, "no INVITE found, returning 0" );
                 return 0;
             }
 
-            if ( sipMsg->getType() == SIP_INVITE )
-            {
-	        Sptr < InviteMsg > invite;
-                invite.dynamicCast( sipMsg );
-                cpLog( LOG_DEBUG, "Found INVITE:" );
-                cpLog( LOG_DEBUG, "%s", invite->encode().logData() );
-                return invite;
+            if ( sipMsg->getType() == SIP_INVITE ) {
+               Sptr < InviteMsg > invite((InviteMsg*)(sipMsg.getPtr()));
+               cpLog( LOG_DEBUG, "Found INVITE:" );
+               cpLog( LOG_DEBUG, "%s", invite->encode().logData() );
+               return invite;
             }
             cpLog( LOG_DEBUG, "Not an INVITE:" );
             cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
@@ -183,24 +169,18 @@ SipEvent::getCommand() const
     Sptr < SipMsg > sipMsg;
 
     cpLog( LOG_DEBUG, "Search transaction for previous command" );
-    Sptr < SipMsgQueue > transaction = mySipMsgQueue;
-    if ( transaction != 0 )
-    {
+    if ( mySipMsgQueue != 0 ) {
         SipMsgQueue::iterator i;
-        for (i = transaction->begin(); i != transaction->end(); ++i)
-        {
+        for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
             sipMsg = *i;
-            if ( sipMsg == 0 )
-            {
+            if ( sipMsg == 0 ) {
                 // reach empty sip msg without finding INVITE, return 0
                 cpLog( LOG_DEBUG, "no command found, returning 0" );
                 return 0;
             }
 
-	    Sptr < SipCommand > command;
-            command.dynamicCast( sipMsg );
-            if ( command != 0 )
-            {
+	    Sptr < SipCommand > command((SipCommand*)(sipMsg.getPtr()));
+            if ( command != 0 ) {
                 cpLog( LOG_DEBUG, "Found command sent to %s:%d",
 		                  command->getSendAddress().getIpName().c_str(),
 		                  command->getSendAddress().getPort() );
@@ -222,7 +202,7 @@ const Sptr < SipCommand >
 SipEvent::getPendingCommand( Sptr < SipCommand > sipCommand ) const
 {
     // allocate vector to store previous msgs with same call leg
-    CallLegVector callLegMsgs( mySipStack->getCallLegMsgs( sipCommand ) );
+    CallLegVector callLegMsgs( mySipStack->getCallLegMsgs( sipCommand.getPtr() ) );
 
     // create iterator to search for matching commandw
     vector < Sptr < SipMsg > > ::iterator iter( callLegMsgs.begin() );
@@ -236,25 +216,19 @@ SipEvent::getPendingCommand( Sptr < SipCommand > sipCommand ) const
     {
         cpLog( LOG_INFO, "Check this command" );
 
-        if ( *iter == 0 )
-        {
+        if ( *iter == 0 ) {
             cpLog( LOG_ERR, "This command is empty" );
         }
-
-        else if ( pendingCommand.dynamicCast( *iter ) == 0 )
-        {
+        else if ((*iter).getPtr() == 0) {
             cpLog( LOG_ERR, "This command is not a SIP command" );
         }
-
-        else
-        {
+        else {
+            pendingCommand = ((SipCommand*)((*iter).getPtr()));
             // first Via of Command must match second Via of pending command
             if ( ( pendingCommand->getNumVia() >= 2 ) &&
-                    ( sipCommand->getNumVia() >= 1 ) )
-            {
+                    ( sipCommand->getNumVia() >= 1 ) ) {
                 if ( pendingCommand->getVia( 1 ) ==
-                        sipCommand->getVia( 0 ) )
-                {
+                        sipCommand->getVia( 0 ) ) {
                     cpLog( LOG_DEBUG, "matching command found" );
                     return pendingCommand;
                 }

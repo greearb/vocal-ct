@@ -29,18 +29,15 @@ SRC = \
 	SipThread.cxx \
 	State.cxx \
 	TimerEvent.cxx \
-	WorkerThread.cxx \
 	HeartLessProxy.cxx \
 	BaseCommandLine.cxx \
 	StateMachnData.cxx \
-	StatelessWorkerThread.cxx \
 	BaseAuthentication.cxx \
 	CommonFunctions.cxx
 
 ifeq ($(USE_HEARTBEAT),1)
 
-SRC += 	BasicProxy.cxx \
-	StatelessBasicProxy.cxx 
+SRC += 	BasicProxy.cxx
 
 # TESTPROGRAMS +=  BaseProxyTestMain.cxx
 

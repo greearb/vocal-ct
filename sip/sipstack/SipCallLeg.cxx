@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCallLeg_cxx_Version =
-    "$Id: SipCallLeg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipCallLeg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -113,8 +113,7 @@ SipCallLeg::getFrom() const
 void 
 SipCallLeg::setFrom( const SipFrom& newfrom )
 {
-    Sptr <SipUrl> sipUrl;
-    sipUrl.dynamicCast(newfrom.getUrl());
+    Sptr <SipUrl> sipUrl((SipUrl*)(newfrom.getUrl().getPtr()));
     if (sipUrl != 0)
     {
         from = sipUrl->getNameAddr();
@@ -233,8 +232,7 @@ SipCallLeg::getTo() const
 void 
 SipCallLeg::setTo( const SipTo& newto )
 {
-    Sptr <SipUrl> sipUrl;
-    sipUrl.dynamicCast(newto.getUrl());
+    Sptr <SipUrl> sipUrl((SipUrl*)(newto.getUrl().getPtr()));
     if (sipUrl != 0)
     {
         to = sipUrl->getNameAddr();

@@ -49,7 +49,7 @@
  */
 
 static const char* const MessageMsg_cxx_Version =
-    "$Id: MessageMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: MessageMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -78,7 +78,7 @@ using namespace Vocal;
 
 const char MessageMsg::INFO_SUBJECT[] = "Vovida MESSAGE";
 
-MessageMsg::MessageMsg(const string& local_ip): SipCommand(local_ip)
+MessageMsg::MessageMsg(const string& local_ip): SipCommand(local_ip, "MessageMsg")
 {}
 
 
@@ -108,7 +108,7 @@ bool MessageMsg::operator ==(const MessageMsg& src)
 }
 
 MessageMsg::MessageMsg(Sptr <BaseUrl> toUrl, const string& local_ip, int fromPort)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "MessageMsg")
 {
     cpLog(LOG_DEBUG_STACK, "Constructor of MESSAGE");
 
@@ -215,7 +215,7 @@ void MessageMsg::setInfoDetails(Sptr <BaseUrl> toUrl, int fromPort)
 
 
 MessageMsg::MessageMsg( const Data& data, const string& local_ip )
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "MessageMsg")
 {
     SipCommand::decode(data);
 }    // MessageMsg::MessageMsg( Data& data )

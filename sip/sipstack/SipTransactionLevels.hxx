@@ -52,18 +52,15 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipTransactionList.hxx"
 #include "SipTransHashTable.hxx"
 #include "SipMsg.hxx"
-#include "VRWLock.hxx"
-#include "Mutex.hxx"
 #include "NetworkAddress.h"
 #include "cpLog.h"
 
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -92,18 +89,11 @@ struct SipTransLevel1Node
     /// next level list
     SipTransactionList<SipTransLevel2Node*> level2;
 
-    /** lock for processing the call leg
-      * for 1xx responses we'll need the read lock only, for other msgs
-      * write lock
-      * keep it simple, just lock all as write lock
-      */
-    Mutex lock;
-
     /// back reference into hashtable (needed by cleanup thread)
     SipTransHashTable::Node* bucketNode;
 
     SipTransLevel1Node()
-	: toTag(NOVAL), fromTag(NOVAL), msgCount(0),level2(), lock(),
+	: toTag(NOVAL), fromTag(NOVAL), msgCount(0),level2(),
 	  bucketNode(0)
 	{}
     SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
@@ -224,16 +214,12 @@ public:
     /// back reference to level3 node
     SipTransLevel3Node *level3Ptr;
 
-    /// to control race between CANCEL and transport layer
-    Mutex myLock;
-
     /// constructed with default value for stateless mode
     SipMsgContainer()
         : msg(),
           retransCount(1),
           collected(false),
-          level3Ptr(0),
-          myLock()
+          level3Ptr(0)
 	{}
 
     string toString() const;

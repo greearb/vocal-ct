@@ -254,8 +254,7 @@ bool SipTelSubscriberUser::isLessThan(Sptr<BaseUser> baseUser) const
 {
     if (baseUser->getType() == TEL_USER)
     {
-        Sptr<SipTelSubscriberUser> newUser;
-        newUser.dynamicCast(baseUser);
+        Sptr<SipTelSubscriberUser> newUser((SipTelSubscriberUser*)(baseUser.getPtr()));
         return ( *(this) < *(newUser) );
     }
     else
@@ -269,8 +268,7 @@ bool SipTelSubscriberUser::areEqual(Sptr<BaseUser> baseUser) const
 {
     if (baseUser->getType() == TEL_USER)
     {
-        Sptr<SipTelSubscriberUser> newUser;
-        newUser.dynamicCast(baseUser);
+        Sptr<SipTelSubscriberUser> newUser((SipTelSubscriberUser*)(baseUser.getPtr()));
         return ( *(this) == *(newUser) );
     }
     else

@@ -53,7 +53,7 @@
 
 
 static const char* const Protocol_hxx_Version = 
-    "$Id: Protocol.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Protocol.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "NonCopyable.hxx"
@@ -61,6 +61,8 @@ static const char* const Protocol_hxx_Version =
 #include "ProtocolException.hxx"
 #include "SystemException.hxx"
 #include <string>
+#include <RCObject.hxx>
+
 
 
 // Creating a forward reference here due to doc++ bug.
@@ -105,7 +107,7 @@ class Poll;
  *  @see    Vocal::IO::FileDescriptor
  *  @see    Vocal::ConnectionBrokenException
  */
-class Protocol : public Vocal::IO::Writer, public Vocal::NonCopyable
+   class Protocol : public Vocal::IO::Writer, public Vocal::NonCopyable
 {
     public:
 

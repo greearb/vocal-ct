@@ -52,10 +52,9 @@
  */
 
 
-static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
-#include "Fifo.h"
 #include "CallContainer.hxx"
 #include "SipTransceiver.hxx"
 
@@ -63,8 +62,6 @@ namespace Vocal
 {
 
 class Builder;
-class WorkerThread;
-class SipThread;
 
 
 /** Object  HeartLessProxy
@@ -117,21 +114,6 @@ class HeartLessProxy
         virtual ~HeartLessProxy();
 
 
-        /** Runs the underlying sip thread and worker thread.
-         */
-        virtual void run();
-
-
-        /** Shutdown the underlying sip thread and worker thread.
-         */
-        virtual void shutdown();
-
-
-        /** Joins the underlying sip thread and worker thread.
-         */
-        virtual void join();
-
-
     protected:
 
 
@@ -149,7 +131,7 @@ class HeartLessProxy
          *  worker thread. The sip thread writes to the queue and the
          *  sip thread reads from the queue.
          */
-        Sptr < Fifo < Sptr < SipProxyEvent > > > myCallProcessingQueue;
+        list < Sptr < SipProxyEvent > >* myCallProcessingQueue;
 
 
         /** Sip transceiver that receives the incoming sip message, and
@@ -157,18 +139,6 @@ class HeartLessProxy
          *  uses the sip transceiver to read incoming sip messages.
          */
         Sptr < SipTransceiver > mySipStack;
-
-
-        /** The worker thread reads incoming sip events and processes them,
-         *  via the supplied builder.
-         */
-        Sptr < WorkerThread > myWorkerThread;
-
-
-        /** Ther sip thread reads the incoming sip messages from the 
-         *  sip transceiver and posts them to the worker thread.
-         */
-        Sptr < SipThread > mySipThread;
 
 
     private:

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipDiversion_hxx_version =
-    "$Id: SipDiversion.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipDiversion.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <map>
 
@@ -174,7 +174,7 @@ class SipDiversion : public SipHeader
         void parseTag( Data& data);
 
         ///
-        Sptr < TokenMapDiversion > getTokenDetails();
+        TokenMapDiversion* createTokenDetails();
 
         ///
         void setTag(const Data& newtag) ;

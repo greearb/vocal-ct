@@ -50,7 +50,7 @@
 
 
 static const char* const HeartLessProxy_cxx_Version =
-    "$Id: HeartLessProxy.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: HeartLessProxy.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -58,7 +58,6 @@ static const char* const HeartLessProxy_cxx_Version =
 #include "SipTransceiverFilter.hxx"
 #include "Builder.hxx"
 #include "SipThread.hxx"
-#include "WorkerThread.hxx"
 
 using namespace Vocal;
 
@@ -79,9 +78,8 @@ HeartLessProxy::HeartLessProxy(
     myBuilder = builder;
     myBuilder->setCallContainer(myCallContainer);
     
-    myCallProcessingQueue = new Fifo < Sptr < SipProxyEvent > >;
+    myCallProcessingQueue = new list < Sptr < SipProxyEvent > >;
 
-    myWorkerThread = new WorkerThread(myCallProcessingQueue, myBuilder);
 
     //  Filter option controls which transceiver object is created for the
     //  sip stack.
@@ -92,10 +90,7 @@ HeartLessProxy::HeartLessProxy(
 
     myBuilder->setSipStack(mySipStack);
 
-    mySipThread = new SipThread(mySipStack, myCallProcessingQueue);    
-
     assert( myCallContainer != 0 );
-    assert( myWorkerThread != 0 );
     assert( myCallProcessingQueue != 0 );
     assert( myBuilder != 0 );
     assert( mySipStack != 0 );
@@ -104,32 +99,11 @@ HeartLessProxy::HeartLessProxy(
 
 HeartLessProxy::~HeartLessProxy()
 {
+   delete myCallProcessingQueue;
+   myCallProcessingQueue = NULL;
 }
 
 
-void
-HeartLessProxy::run()
-{
-    myWorkerThread->run();
-    mySipThread->run();
-}
-
-
-
-void
-HeartLessProxy::shutdown()
-{
-    myWorkerThread->shutdown();
-    mySipThread->shutdown();
-}
-
-
-void
-HeartLessProxy::join()
-{
-    myWorkerThread->join();
-    mySipThread->join();
-}
 
 
 

@@ -52,13 +52,12 @@
  */
 
 static const char* const DeviceEvent_hxx_Version = 
-    "$Id: DeviceEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: DeviceEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include <string>
 #include "Sptr.hxx"
 #include "SipProxyEvent.hxx"
-#include "Fifo.h"
 #include "Data.hxx"
 
 namespace Vocal
@@ -101,7 +100,7 @@ class DeviceEvent : public SipProxyEvent
 
         /** Create a device event given the associated fifo.
          */
-        DeviceEvent(Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo );
+        DeviceEvent(list < Sptr < SipProxyEvent > >* outputFifo );
 
 
         /** Virtual destructor

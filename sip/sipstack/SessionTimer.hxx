@@ -52,7 +52,7 @@
  */
 
 static const char* const SessionTimer_hxx_version =
-    "$Id: SessionTimer.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SessionTimer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
     
 #include "global.h"
 #include <map>
@@ -61,7 +61,6 @@ static const char* const SessionTimer_hxx_version =
 #include "TimerEntry.hxx"
 #include "InviteMsg.hxx"
 #include "SipCallLeg.hxx"
-#include "Fifo.h"
 #include "SipTransceiver.hxx"
 
 using Vocal::TimeAndDate::TimerEntryId;
@@ -76,16 +75,17 @@ enum VSessionContext
     VS_RECV
 };
 
-typedef struct VSessionData_t
-{
-    long myDelta;
-    long myStartTime;
-    TimerEntryId          myTimerId;
-    VSessionContext       mySessionContext;
-    Sptr<InviteMsg> myInviteMsg;
+class VSessionData: public BugCatcher {
+    public:
+        long myDelta;
+        long myStartTime;
+        TimerEntryId          myTimerId;
+        VSessionContext       mySessionContext;
+        Sptr<InviteMsg> myInviteMsg;
 
-    VSessionData_t(): myDelta(0), myStartTime(0) {};
-} VSessionData;
+        VSessionData(): myDelta(0), myStartTime(0) {};
+        virtual ~VSessionData() { }
+};
 
 typedef void (*VSessionCallBack)(SipCallLeg arg);
 
@@ -134,11 +134,10 @@ private:
     virtual ~SessionTimer() ;
 
     static SessionTimer* mInstance;
-    typedef Fifo<Sptr<VSessionData> > SessionDataFifo;
+    typedef list<Sptr<VSessionData> > SessionDataFifo;
     SessionDataFifo mSessionDataFifo;
     typedef map<SipCallLeg, Sptr<VSessionData> > SessionDataMap;
     SessionDataMap mSessionDataMap;
-    VThread mProcessThread;
     Sptr<SipTransceiver> mTransceiver;
     VSessionCallBack myCallbackFunc;
     bool mShutdown;

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-    "$Id: SipTcpConnection.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTcpConnection.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -58,7 +58,6 @@ static const char* const SipTcpConnection_cxx_Version =
 
 #include "global.h"
 #include "InviteMsg.hxx"
-#include "Lock.hxx"
 #include "NetworkAddress.h"
 #include "SipCommand.hxx"
 #include "SipContact.hxx"
@@ -70,17 +69,13 @@ static const char* const SipTcpConnection_cxx_Version =
 #include "StatusMsg.hxx"
 #include "Tcp_ClientSocket.hxx"
 #include "Tcp_ServerSocket.hxx"
-#include "ThreadIf.hxx"
 #include "VFilter.hxx"
 #include "VFunctor.hxx"
 #include "VNetworkException.hxx"
-#include "VThread.hxx"
-#include "VThreadPool.hxx"
 #include "support.hxx"
 #include "symbols.hxx"
 
 using namespace Vocal;
-using namespace Vocal::Threads;
 
 //Note: If client or server needs to keep a persistent TCP connection for
 //all calls, define USE_PERSISTENT_TCP.If want to have Transaction based
@@ -93,8 +88,6 @@ NTcpConnInfo::getStatusMsgConn(Sptr < SipMsg > msg)
 {
     //form the trans id.
     SipTransactionId newId(*msg);
-
-    Lock lLock(mapMutex);
 
     map < SipTransactionId, Sptr < NTcpStuff > > ::iterator i;
     cpLog(LOG_DEBUG, "NTcpConnInfo - IDMap size:%d", idMap.size());
@@ -116,7 +109,6 @@ NTcpConnInfo::getStatusMsgConn(Sptr < SipMsg > msg)
 void
 NTcpConnInfo::doCleanup()
 {
-    Lock l(cleanupMutex);
     while(myCleanupList.size())
     {
         int id = myCleanupList.front();
@@ -131,7 +123,6 @@ NTcpConnInfo::setStatusMsgConn(Sptr < SipMsg > msg, int fd)
 {
     Sptr < NTcpStuff > t = getCurrent(fd);
 
-    Lock lLock(mapMutex);
     if (t != 0)
     {
         SipTransactionId id(*msg);
@@ -154,17 +145,14 @@ NTcpConnInfo::NTcpConnInfo()
 
 NTcpConnInfo::~NTcpConnInfo()
 {
-    mutex.lock();
     myMap.clear();
     idMap.clear();
-    mutex.unlock();
 }
 
 
 void
 NTcpConnInfo::delConn(int fd)
 {
-    Lock l(mutex);
     map < TcpFd, Sptr < NTcpStuff > > ::iterator i = myMap.find( fd );
     Sptr < NTcpStuff > del;
 
@@ -179,7 +167,6 @@ NTcpConnInfo::delConn(int fd)
     if (del != 0)
     {
         //Cleanup the transactionMap for the closed connection
-        Lock      l2(mapMutex);
         map <SipTransactionId, Sptr < NTcpStuff > > ::iterator j;
         map <SipTransactionId, Sptr < NTcpStuff > > ::iterator delItr;
 
@@ -203,7 +190,6 @@ NTcpConnInfo::delIdMapEntry(const SipTransactionId&  id)
 {
     cpLog(LOG_DEBUG, "Deleting IdMap entry, size:%d", idMap.size());
     // erase from the transactionId if needed
-    Lock l2(mapMutex);
     map < SipTransactionId, Sptr < NTcpStuff > > ::iterator j;
 
     j = idMap.find(id);
@@ -218,7 +204,6 @@ NTcpConnInfo::delIdMapEntry(const SipTransactionId&  id)
 Sptr < NTcpStuff >
 NTcpConnInfo::getCurrent(int fd)
 {
-    Lock lLock(mutex);
     Sptr < NTcpStuff > myObj;
 
     map < TcpFd, Sptr < NTcpStuff > > ::iterator i = myMap.find( fd );
@@ -239,7 +224,6 @@ NTcpConnInfo::getCurrent(int fd)
 void
 NTcpConnInfo::setConnNSenderIp(int fd, Sptr < Connection > conn, const Data& ip)
 {
-    Lock l(mutex);
     Sptr < NTcpStuff > myTcp;
 
     myTcp = new NTcpStuff;
@@ -328,7 +312,6 @@ NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
         buf[0] = '\0';
 
         // read off some data, possibly break
-        Lock l(connInfo->myMutex);
         Data& myBuf = connInfo->tcpBuf;
 
         numBytes = newconn->readn(buf, 1024);
@@ -359,8 +342,6 @@ NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
 int
 NTcpConnInfo::setTCPFds(fd_set* fdSet)
 {
-    Lock lLock(mutex);
-
     map < TcpFd, Sptr < NTcpStuff > > ::iterator i;
     int maxfd = -1;
 
@@ -385,7 +366,7 @@ NTcpConnInfo::setTCPFds(fd_set* fdSet)
 }
 
 
-SipTcpConnection_impl_::SipTcpConnection_impl_(Fifo <SipMsgContainer*> * fifo,
+SipTcpConnection_impl_::SipTcpConnection_impl_(list < Sptr<SipMsgContainer> >* fifo,
                                                const string& local_ip,
                                                const string& _local_dev_to_bind_to,
                                                int port)
@@ -407,11 +388,6 @@ SipTcpConnection_impl_::SipTcpConnection_impl_(Fifo <SipMsgContainer*> * fifo,
     }
     Sptr < Connection > myConn = new Connection(mytcpStack.getServerConn());
     tcpConnInfo.setConnNSenderIp(fd, myConn, mh);
-
-    sendThread.spawn(sendThreadWrapper, this);
-    receiveThread.spawn(receiveThreadWrapper, this);
-    processThread.spawn(processThreadWrapper, this);
-
 }
 
 
@@ -422,12 +398,6 @@ SipTcpConnection_impl_::~SipTcpConnection_impl_()
     // wake the sender with an appropriate message
 
     shutdownNow = true;
-    sendFifo.add(0);
-    processFifo.add(0);
-
-    sendThread.join();
-    receiveThread.join();
-    processThread.join();
 }
 
 
@@ -459,13 +429,10 @@ SipTcpConnection_impl_::send(SipMsgContainer* msg, const Data& host,
     }
     else
     {
-        Sptr<SipCommand> command;
-        if(command.dynamicCast(msg->msg.in)!=0)
-        {
-            Sptr<SipUrl> sipDest;
-            sipDest.dynamicCast(command->getRequestLine().getUrl());
-            if(sipDest != 0)
-            {
+        Sptr<SipCommand> command((SipCommand*)(msg->msg.in.getPtr()));
+        if(command.getPtr() != 0) {
+            Sptr<SipUrl> sipDest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
+            if(sipDest != 0) {
                 nhost = sipDest->getMaddrParam();
                 if(!nhost.length()) nhost = sipDest->getHost();
                 nport = sipDest->getPort().convertInt();
@@ -480,11 +447,8 @@ SipTcpConnection_impl_::send(SipMsgContainer* msg, const Data& host,
             }
         }
     }
-    if(nhost.length())
-    {
-        try
-        {
-            Lock lo(msg->myLock);
+    if(nhost.length()) {
+        try {
             msg->msg.netAddr = new NetworkAddress(nhost.convertString(),
                                               nport); 
         }
@@ -494,31 +458,12 @@ SipTcpConnection_impl_::send(SipMsgContainer* msg, const Data& host,
                   nhost.logData(), e.getDescription().c_str());
         }
     }
-    sendFifo.add(msg);
+    // TODO: sendFifo.add(msg);
 }
 
 
-void*
-SipTcpConnection_impl_::receiveThreadWrapper(void* p)
-{
-    return static_cast < SipTcpConnection_impl_* > (p)->receiveMain();
-}
-
-
-void*
-SipTcpConnection_impl_::processThreadWrapper(void* p)
-{
-    return static_cast < SipTcpConnection_impl_* > (p)->processMain();
-}
-
-
-void*
-SipTcpConnection_impl_::sendThreadWrapper(void* p)
-{
-    return static_cast < SipTcpConnection_impl_* > (p)->sendMain();
-}
-
-
+#warning "Implement non-threaded SipTcpConnection implementation."
+#if 0
 void*
 SipTcpConnection_impl_::sendMain()
 {
@@ -566,7 +511,6 @@ SipTcpConnection_impl_::sendMain()
     return 0;
 }
 
-
 void*
 SipTcpConnection_impl_::processMain()
 {
@@ -585,6 +529,7 @@ SipTcpConnection_impl_::processMain()
     }
     return 0;
 }
+#endif
 
 
 Sptr < Connection >
@@ -701,18 +646,16 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
 
     int type = sipMsg->msg.in->getType();
 
-    Sptr < SipCommand > sipCommand;
-    sipCommand.dynamicCast(sipMsg->msg.in);
-
-    Sptr < StatusMsg > statusMsg;
-    statusMsg.dynamicCast(sipMsg->msg.in);
-
-    if ((type == SIP_STATUS) && (statusMsg != 0))
-    {
+    if ((type == SIP_STATUS) && (sipMsg->msg.in.getPtr())) {
         conn = tcpConnInfo.getStatusMsgConn(sipMsg->msg.in);
     }
-    else if (sipCommand != 0)
-    {
+    else if (sipMsg->msg.in.getPtr()) {
+
+        // Make sure the cast is sane.
+        assert(sipMsg->msg.in->isSipCommand());
+
+        Sptr < SipCommand > sipCommand((SipCommand*)(sipMsg->msg.in.getPtr()));
+
         if (sipMsg->msg.netAddr == 0){
             cpLog(LOG_WARNING, "TCP Send is NULL");
             return;
@@ -720,7 +663,6 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
 
         // this is a request
 #ifdef USE_PERSISTENT_TCP
-////        conn = createOrGetPersistentConnection(sipCommand);
         conn = createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
 #else
         if(sipCommand->nextHopIsAProxy())
@@ -735,15 +677,14 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
         }
 #endif
     }
-    else
-    {
+    else {
         // this is an error
         cpLog(LOG_ERR, "API violation: attempt to send null message");
         return;
     }
+
     // at this point, you need to transmit
-    if (conn != 0)
-    {
+    if (conn != 0) {
         sipMsg->msg.out =  sipMsg->msg.in->encode();
         string dataString = sipMsg->msg.out.getData(lo);
         cpLog(LOG_INFO, "sending TCP SIP msg:\n\n-> %s\n\n%s",
@@ -753,8 +694,8 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
         conn->writeData(dataString);
 
 #ifdef USE_PERSISTENT_TCP
-        Sptr<StatusMsg> statusMsg;
-        statusMsg.dynamicCast(sipMsg->msg.in);
+        assert(type == SIP_STATUS);
+        Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->msg.in.getPtr()));
         if((statusMsg != 0) && (statusMsg->getStatusLine().getStatusCode() >= 200))
         {
             //Transaction is over, remove the entry from the ID map
@@ -764,7 +705,6 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
 #else
         if((type == SIP_ACK) && !(sipMsg->msg.in->nextHopIsAProxy()))
         {
-            Lock l(tcpConnInfo.cleanupMutex);
             tcpConnInfo.myCleanupList.push_back(conn->getConnId());
         }
 #endif
@@ -944,7 +884,6 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
         // Too late , connection is closed already
         return;
     }
-    Lock l(connInfo->myMutex);
     LocalScopeAllocator lo;
     Data& myBufD = connInfo->tcpBuf;
     ipName = connInfo->sender_ip.getData(lo);
@@ -973,11 +912,8 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
             sipMsg->msg.in->setReceivedIPName( ipName );
             cpLog(LOG_INFO, "Received UDP Message :\n\n<- HOST[%s]\n\n%s",ipName.c_str(),  data.logData());
 
-            Sptr<StatusMsg> statusMsg;
-            statusMsg.dynamicCast(sipMsg->msg.in);
             if ((sipMsg->msg.in->getType() != SIP_STATUS) &&
-                (sipMsg->msg.in->getType() != SIP_ACK))
-            {
+                (sipMsg->msg.in->getType() != SIP_ACK)) {
                 // save in the map
                 tcpConnInfo.setStatusMsgConn(sipMsg->msg.in, fd);
                 if(sipMsg->msg.in->getType() == SIP_REGISTER)
@@ -989,13 +925,10 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
                    Data rData = connInfo->tcpConnection->getDescription();
                    cpLog( LOG_DEBUG_STACK, "Received from %s", rData.logData() );
                    int numContacts = sipMsg->msg.in->getNumContact();
-                   if( numContacts )
-                   {
+                   if( numContacts ) {
                        const SipContact& contact = sipMsg->msg.in->getContact( numContacts-1 );
-                       Sptr<SipUrl> sUrl;
-                       sUrl.dynamicCast( contact.getUrl() );
-                       if( sUrl != 0 )
-                       {
+                       Sptr<SipUrl> sUrl((SipUrl*)(contact.getUrl().getPtr()));
+                       if( sUrl != 0 ) {
                            Data tmp = sUrl->getHost();
                            tmp += ":";
                            tmp += sUrl->getPort();
@@ -1006,30 +939,30 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
                    }
                 }
             }
-            else if((statusMsg != 0) && 
-                    statusMsg->getStatusLine().getStatusCode() >= 200)
-            {
+            else if (sipMsg->msg.in.getPtr()
+                     && sipMsg->msg.in->isStatusMsg()) {
+                // Now we know it's safe to cast.
+                Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->msg.in.getPtr()));
+                if (statusMsg->getStatusLine().getStatusCode() >= 200) {
 #ifndef USE_PERSISTENT_TCP
-                string iName = connInfo->tcpConnection->getDescription();
-                if(myDestinationMap.count(iName) == 0)
-                {
-                    cpLog(LOG_DEBUG_STACK, 
-                          "Deleting non-persistent connection %d", fd);
-                    //Non-persistent connection, close
-                    tcpConnInfo.delConn(fd);
-                }
-                //Do the cleanup also
-                tcpConnInfo.doCleanup();
+                    string iName = connInfo->tcpConnection->getDescription();
+                    if (myDestinationMap.count(iName) == 0) {
+                        cpLog(LOG_DEBUG_STACK, 
+                              "Deleting non-persistent connection %d", fd);
+                        //Non-persistent connection, close
+                        tcpConnInfo.delConn(fd);
+                    }
+                    //Do the cleanup also
+                    tcpConnInfo.doCleanup();
 #endif
-             }
-           
+                }
+            }
             
-            recFifo->add(sipMsg);
+            //TODO: recFifo->add(sipMsg);
         }
-	else
-	  {
+	else {
 	    delete sipMsg;
-	  }
+        }
         myBuf = myBufD.getData(lo);
         bufLen = isFullMsg(myBuf);
     } // while
@@ -1037,32 +970,24 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
 
 
 void
-SipTcpConnection_impl_::readOnFdSet(fd_set* fdSet, TcpServerSocket* tcpStack)
-{
-    tcpConnInfo.mutex.lock();
+SipTcpConnection_impl_::readOnFdSet(fd_set* fdSet, TcpServerSocket* tcpStack) {
     int tcpreadfd = -1;
     list<int> fdList;
 
     map < TcpFd, Sptr < NTcpStuff > > ::iterator i = tcpConnInfo.myMap.begin();
-    while (i != tcpConnInfo.myMap.end())
-    {
+    while (i != tcpConnInfo.myMap.end()) {
         int mapfd = i->first;
 
-        if (FD_ISSET(mapfd, fdSet))
-        {
+        if (FD_ISSET(mapfd, fdSet)) {
             FD_CLR(mapfd, fdSet);
-            fdList.push_back(mapfd);
+            cpLog(LOG_DEBUG_STACK, "reading tcp data on %d", mapfd);
+            tcpreadfd =  tcpConnInfo.tcpReadOrAccept(mapfd, tcpStack);
+            if (tcpreadfd > 0) {
+#warning "Port this to non-threaded model."
+                //processFifo.add(tcpreadfd);
+            }
         }
         ++i;
-    }
-    tcpConnInfo.mutex.unlock();
-    for(list<int>::iterator itr = fdList.begin(); itr != fdList.end();
-             itr++)
-    {
-        int mapfd = (*itr);
-        cpLog(LOG_DEBUG_STACK, "reading tcp data on %d", mapfd);
-        tcpreadfd =  tcpConnInfo.tcpReadOrAccept(mapfd, tcpStack);
-        if(tcpreadfd > 0) processFifo.add(tcpreadfd);
     }
 }
 
@@ -1108,7 +1033,7 @@ SipTcpConnection_impl_::receiveMain()
 }
 
 
-SipTcpConnection::SipTcpConnection( Fifo <SipMsgContainer* > * fifo,
+SipTcpConnection::SipTcpConnection( list < Sptr<SipMsgContainer> >* fifo,
                                     const string& local_ip,
                                     const string& local_dev_to_bind_to,
                                     int port)

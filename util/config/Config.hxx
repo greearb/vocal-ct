@@ -53,10 +53,9 @@
 
 
 static const char* const Config_hxx_Version = 
-  "$Id: Config.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+  "$Id: Config.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
-#include "Mutex.hxx"
 #include "IPAddress.hxx"
 #include "GetOpt.hxx"
 #include "NameValue.hxx"
@@ -64,7 +63,6 @@ static const char* const Config_hxx_Version =
 #include <string>
 #include <list>
 
-using namespace Vocal::Threads;
 
 /** Vovida Open Communication Application Library.<br><br>
  */
@@ -270,10 +268,6 @@ class Config : public Vocal::IO::Writer
         GetOpt              myOptions;
                 
         
-    	/** Provide safe mutlithreaded access.
-	 */
-	mutable Mutex	    myMutex;
-
 };
 
 

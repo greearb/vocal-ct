@@ -50,23 +50,19 @@
 
 
 static const char* const Config_cxx_Version = 
-    "$Id: Config.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Config.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
 #include "Config.hxx"
 #include "ParsePair.hxx"
 #include "VLog.hxx"
-#include "Lock.hxx"
 #include <unistd.h>
 #include <iostream>
-#include <StackLock.hxx>
 
 
 using Vocal::Configuration::Config;
 using Vocal::Transport::IPAddress;
-using Vocal::Threads::ReadLock;
-using Vocal::Threads::WriteLock;
 using Vocal::Configuration::GetOpt;
 using Vocal::Configuration::ParsePair;
 using Vocal::Configuration::NameValueMap;
@@ -98,8 +94,7 @@ Config::Config()
 	myLogLevel(LOG_ERR),
 	myUnderDebugger(false),
         myApplicationName(""),
-        myXmlCfg(false),
-	myMutex()
+        myXmlCfg(false)
 {
 }
 
@@ -112,8 +107,6 @@ Config::~Config()
 ReturnCode
 Config::load(int argc, char ** argv)
 {
-    StackLock slock(myMutex);
-    
     string  appName = argv[0];
     
     size_t pos = appName.rfind('/');
@@ -158,7 +151,6 @@ Config::load(int argc, char ** argv)
 string	    	    
 Config::configFile() const
 {
-    StackLock slock(myMutex);
     string rv = myConfigFile;
     return rv;
 }
@@ -167,7 +159,6 @@ Config::configFile() const
 void    
 Config::newPid()
 {
-    StackLock slock(myMutex);
     myPid = getpid();
 }
 
@@ -175,7 +166,6 @@ Config::newPid()
 pid_t	    	    
 Config::pid() const
 {
-    StackLock slock(myMutex);
     return ( myPid );
 }
 	
@@ -183,7 +173,6 @@ Config::pid() const
 bool	    	    
 Config::asDaemon() const
 {
-    StackLock    lock(myMutex);
     return ( myAsDaemon );
 }
 
@@ -191,7 +180,6 @@ Config::asDaemon() const
 bool                
 Config::daemonRedirectOutput() const
 {
-    StackLock    lock(myMutex);
     return ( myDaemonRedirectOutput );
 }
 
@@ -199,7 +187,6 @@ Config::daemonRedirectOutput() const
 int 	    	    
 Config::logLevel() const
 {
-    StackLock    lock(myMutex);
     return ( myLogLevel );
 }
 
@@ -207,7 +194,6 @@ Config::logLevel() const
 bool	    	    
 Config::underDebugger() const
 {
-    StackLock    lock(myMutex);
     return ( myUnderDebugger );
 }
 
@@ -215,7 +201,6 @@ Config::underDebugger() const
 string
 Config::applicationName() const
 {
-    StackLock    lock(myMutex);
     return ( myApplicationName );
 }
 
@@ -223,7 +208,6 @@ Config::applicationName() const
 bool                
 Config::xmlConfig() const
 {
-    StackLock    lock(myMutex);
     return ( myXmlCfg );
 }
 
@@ -231,7 +215,6 @@ Config::xmlConfig() const
 const NameValueMap 
 Config::options() const
 {
-    StackLock    lock(myMutex);
     return ( myOptions.options() );
 }
 
@@ -239,7 +222,6 @@ Config::options() const
 ostream & 
 Config::writeTo(ostream & out) const
 {
-    StackLock    lock(myMutex);
 
     out << myApplicationName << ": " << __DATE__ << ", " << __TIME__ 
         << "\n  pid:                   " << myPid

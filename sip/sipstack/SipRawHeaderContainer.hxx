@@ -52,7 +52,7 @@
  */
 
 static const char* const SipRawHeaderContainer_hxx_Version =
-    "$Id: SipRawHeaderContainer.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRawHeaderContainer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <set>
 #include <vector>
@@ -121,18 +121,13 @@ class SipRawHeaderContainer : public std::vector < Sptr<SipRawHeader> >
 
         /// get the parsed header by modifying p (the smart pointer to the header)
         template <class HeaderType> void
-        getParsedHeader( 
-            Sptr<HeaderType>& p,
-            SipHeaderType type, 
-            const string& local_ip,
-            int index = 0) const
-        {
+        getParsedHeader(Sptr<HeaderType>& p, SipHeaderType type, 
+                        const string& local_ip, int index = 0) const {
             Sptr<SipRawHeader> rawHeader = getHeaderOrCreate(type, local_ip, index);
 
             rawHeader->parse();
     
-            p.dynamicCast(rawHeader->header);
-            assert((0 != p));
+            p = (HeaderType*)(rawHeader->header.getPtr());
         }
 
         /// get a list of headers of a single type (in a SipHeaderList container)

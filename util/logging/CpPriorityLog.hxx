@@ -53,14 +53,11 @@
 
 
 static const char* const CpPriorityLog_hxx_Version = 
-    "$Id: CpPriorityLog.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CpPriorityLog.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "PriorityLog.hxx"
 #include "cpLog.h"
-#include "Mutex.hxx"
-
-using namespace Vocal::Threads;
 
 /** Infrastructure common to VOCAL.
  */
@@ -124,7 +121,6 @@ class CpPriorityLog : public Vocal::Logging::PriorityLog
     private:
 
 
-    	static	Mutex	    	    writeMutex_;
 };
 
 

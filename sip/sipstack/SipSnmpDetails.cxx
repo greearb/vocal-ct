@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSnmpDetails_cxx_Version =
-    "$Id: SipSnmpDetails.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSnmpDetails.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <iostream>
 #include <sys/time.h>
@@ -74,7 +74,6 @@ SipSnmpDetails::SipSnmpDetails(SipAgent* sipagent, const Data& name)
     setServiceLastChange();
    
 
-        getWriteLock();
         for (int i = agentApiMibVarFirstEntry; i < agentApiMibVarLastEntry; i++)
         {
 
@@ -183,7 +182,6 @@ SipSnmpDetails::SipSnmpDetails(SipAgent* sipagent, const Data& name)
 
             }
         }
-        getUnLock();
         sAgent = sipagent;
 
 	//   } //non empty name
@@ -363,24 +361,6 @@ Data SipSnmpDetails::getappName()
 }
 
 
-void SipSnmpDetails::getReadLock(void)
-{
-    rwlock.readlock();
-}
-
-
-void SipSnmpDetails::getWriteLock(void)
-{
-    rwlock.writelock();
-}
-
-
-void SipSnmpDetails::getUnLock(void)
-{
-    rwlock.unlock();
-}
-
-
 void SipSnmpDetails::setstackdata(int index, const snmpData& data)
 {
     stackMap[index] = data;
@@ -389,7 +369,6 @@ void SipSnmpDetails::setstackdata(int index, const snmpData& data)
 snmpData SipSnmpDetails::getstackdata(int index)
 {
     snmpData stdata(false, false);
-    getReadLock();
     stackDataMap::iterator i = stackMap.find(index);
     if (i != stackMap.end())
     {
@@ -397,7 +376,6 @@ snmpData SipSnmpDetails::getstackdata(int index)
 
 
     }
-    getUnLock();
     return stdata ;
 }
 

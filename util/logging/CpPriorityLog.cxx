@@ -51,22 +51,18 @@
 
 
 static const char* const CpPriorityLog_cxx_Version = 
-    "$Id: CpPriorityLog.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CpPriorityLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
 #include "CpPriorityLog.hxx"
-#include "Lock.hxx"
 #include <cstdarg>
 
 
 using namespace Vocal;
-using namespace Vocal::Threads;
 using Logging::PriorityLog;
 using Logging::CpPriorityLog;
 
-
-Mutex	    	    CpPriorityLog::writeMutex_;
 
 
 static void
@@ -118,7 +114,5 @@ CpPriorityLog::writeLog(
     int 	    	    line
 )
 {
-    Lock    lock(writeMutex_); (void)lock;
-
     S_cpLog(priority, file, line, "%s", logMessage);
 }

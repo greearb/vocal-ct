@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -60,6 +60,7 @@ static const char* const TcpServerSocketHeaderVersion =
 //User define class
 #include "mstring.hxx"
 #include "Connection.hxx"
+#include <BugCatcher.hxx>
 
 class VNetworkException;
 class TcpServerSocket;
@@ -88,66 +89,64 @@ class TcpServerSocket;
 
 */
 
-class TcpServerSocket
+class TcpServerSocket: public BugCatcher
 {
-    public:
+public:
 
-	/**
-	   Create a TCP server socket.
+   /**
+      Create a TCP server socket.
+      
+      @param local_ip   Bind to this local IP if specified.
+      @param servPort   listen on this port.
+      * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+      @throw VNetworkException
+   */
+   TcpServerSocket(const string& local_ip,
+                   const string& local_dev_to_bind_to,
+                   int servPort) throw (VNetworkException&);
+   
+   TcpServerSocket(const TcpServerSocket&);
+   
+   TcpServerSocket& operator=(TcpServerSocket& other);
+   virtual ~TcpServerSocket();
 
-           @param local_ip   Bind to this local IP if specified.
-	   @param servPort   listen on this port.
-           * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-	   @throw VNetworkException
-	*/
-        TcpServerSocket(const string& local_ip,
-                        const string& local_dev_to_bind_to,
-                        int servPort) throw (VNetworkException&);
+   /**
+      Accept an incoming connection, and create a Connection
+      object for it.
+      
+      @param con   the client connection is set to this object.
+      @throw VNetworkException
+   */
+   int accept(Connection& con) throw (VNetworkException&);
 
-        TcpServerSocket(const TcpServerSocket&);
+   /**
+      close the server connection.
+   */
+   void close();
 
-        TcpServerSocket& operator=(TcpServerSocket& other);
-        ~TcpServerSocket();
+   /// get the client connection (what is this?)
+   inline Connection& getClientConn() {
+      return _clientConn;
+   };
+   
+   /// get the server connection
+   inline Connection& getServerConn() {
+      return _serverConn;
+   };
 
-	/**
-	   Accept an incoming connection, and create a Connection
-	   object for it.
-	   
-	   @param con   the client connection is set to this object.
-	   @throw VNetworkException
-	*/
-        int accept(Connection& con) throw (VNetworkException&);
+   const string& getSpecifiedLocalIp() const { return local_ip; }
 
-	/**
-	   close the server connection.
-	*/
-        void close();
+protected:
+   string local_ip; // May be "", desired local IP address, or "" for default.
+   string curLocalIp; // What we really bound to (if we did)
+   
+private:
+   ///
+   void listenOn(const string& local_ip, const string& local_dev_to_bind_to,
+                 int servPort) throw (VNetworkException&);
 
-	/// get the client connection (what is this?)
-        inline Connection& getClientConn()
-        {
-            return _clientConn;
-        };
-
-	/// get the server connection
-        inline Connection& getServerConn()
-        {
-            return _serverConn;
-        };
-
-        const string& getSpecifiedLocalIp() const { return local_ip; }
-
-    protected:
-        string local_ip; // May be "", desired local IP address, or "" for default.
-        string curLocalIp; // What we really bound to (if we did)
-
-    private:
-        ///
-        void listenOn(const string& local_ip, const string& local_dev_to_bind_to,
-                      int servPort) throw (VNetworkException&);
-
-        Connection _serverConn;
-        Connection _clientConn;
+   Connection _serverConn;
+   Connection _clientConn;
 };
 
 #endif

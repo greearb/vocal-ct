@@ -6,6 +6,8 @@
 #include "LocalScopeAllocator.hxx"
 #include "atomic.h"
 #include "BugCatcher.hxx"
+#include "RCObject.hxx"
+
 
 #define NOT_FOUND -1
 #define FIRST -2

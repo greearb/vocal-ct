@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -116,7 +116,6 @@ typedef int socklen_t;
 #include "UdpStack.hxx"
 #include "cpLog.h"
 #include "vsock.hxx"
-#include "Lock.hxx"
 #include "InitTransport.hxx"
 #include "NetworkConfig.hxx"
 
@@ -179,7 +178,6 @@ typedef unsigned int  uintptr_t;
 #include "W32McastCfg.hxx"
 #endif
 
-static Mutex G_lock;
 
 static const char separator[7] = "\n****\n";
 
@@ -436,7 +434,6 @@ UdpStack::doServer ( int minPort,
         cpLog (LOG_DEBUG_STACK, "UdpStack::doServer");
         cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
     */
-    Lock helper(_lock);
 
     // this is a server
     if ( (minPort == -1) && (maxPort == -1) )

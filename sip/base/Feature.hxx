@@ -52,7 +52,7 @@
  */
 
 static const char* const Feature_hxx_Version = 
-    "$Id: Feature.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Feature.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -103,7 +103,7 @@ FooFeature.cxx:
 
 </pre>
 */
-class Feature
+class Feature: public BugCatcher
 {
     public:
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const ReferMsg_cxx_Version =
-    "$Id: ReferMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: ReferMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "ReferMsg.hxx"
 #include "SipContact.hxx"
@@ -74,7 +74,7 @@ using namespace Vocal;
 
 
 ReferMsg::ReferMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "ReferMsg")
 {
     myRequestLine.setMethod(REFER_METHOD);
     SipCSeq cseq( SIP_REFER, 0, getLocalIp() );
@@ -114,7 +114,7 @@ ReferMsg::operator ==(const ReferMsg& src)
     
 ReferMsg::ReferMsg( const StatusMsg& statusMsg, Sptr <BaseUrl> referToUrl,
                     const string& local_ip)
-    : SipCommand(local_ip)
+    : SipCommand(local_ip, "ReferMsg")
 {
     assert( referToUrl != 0 );
 
@@ -139,7 +139,7 @@ ReferMsg::ReferMsg( const StatusMsg& statusMsg, Sptr <BaseUrl> referToUrl,
 
 
 ReferMsg::ReferMsg( const SipCommand& sipCommand, Sptr <BaseUrl>  referToUrl)
-    : SipCommand(sipCommand.getLocalIp())
+    : SipCommand(sipCommand.getLocalIp(), "ReferMsg")
 {
     assert( referToUrl != 0 );
 
@@ -245,8 +245,7 @@ ReferMsg::setReferDetails( const SipMsg& sipMsg, Sptr <BaseUrl> referToUrl )
     Sptr < BaseUrl > myUrl = getFrom().getUrl();
     if( myUrl != 0 )
     {
-        Sptr<SipUrl> sipUrl;
-        sipUrl.dynamicCast( myUrl );
+        Sptr<SipUrl> sipUrl((SipUrl*)(myUrl.getPtr()));
         if( sipUrl != 0 )
         {
             sipVia.setHost( sipUrl->getHost() );
@@ -278,7 +277,7 @@ ReferMsg::setReferDetails( const SipMsg& sipMsg, Sptr <BaseUrl> referToUrl )
 
 
 ReferMsg::ReferMsg( const Data& data, const string& local_ip )
-    : SipCommand(local_ip)
+    : SipCommand(local_ip, "ReferMsg")
 {
     try
     {

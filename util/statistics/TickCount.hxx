@@ -53,11 +53,10 @@
 
 
 static const char* const TickCount_hxx_Version = 
-    "$Id: TickCount.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: TickCount.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "vtypes.h"
-#include "VThread.hxx"
 #include <sys/times.h>
 #include <unistd.h>
 

@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -63,16 +63,13 @@ static const char* const AgentApi_cxx_Version =
 #include "NetworkConfig.hxx"
 
 
-AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Default Argument*/ ) : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, VTHREAD_STACK_SIZE_DEFAULT)
+AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Default Argument*/ )
 {
-    char hostname[MAXHOSTNAMELEN];
     myServerType = serType;
     myApplName = appName;
 
-    memset(hostname, 0, sizeof(hostname));
     NetworkAddress na(""); //TODO:  Allow one to specify local IP.
     agentIpStr = na.getIpName().c_str();
-
 }
 
 
@@ -81,8 +78,6 @@ AgentApi::~AgentApi()
 {
     // close ports, deallocate memory
     cpLog( LOG_DEBUG, "entered agentApi destructor");
-    shutdown();
-    join();
 }
 
 /**
@@ -94,23 +89,20 @@ AgentApi::~AgentApi()
 voReturnStatus
 AgentApi::sendTrap(int trapType, string parameter)
 {
-    try
-    {
-        NetworkAddress dest(agentIpStr, agentTrapPort);
-        memset(&trapMessage, 0, sizeof(trapMessage));
-        trapMessage.action = (actionT)Trap;
-        trapMessage.mibVariable = (AgentApiMibVarT)trapType;
-        if (parameter.length() < PARM1SIZE )
-        {
-            strcpy(trapMessage.parm1, parameter.c_str());
-        }
-        else
-        {
-            return voFailure;
-        }
-        udpStack->transmitTo((char *)&trapMessage, sizeof(trapMessage), &dest);
-        return voSuccess;
-    }
+   try {
+      NetworkAddress dest(agentIpStr, agentTrapPort);
+      memset(&trapMessage, 0, sizeof(trapMessage));
+      trapMessage.action = (actionT)Trap;
+      trapMessage.mibVariable = (AgentApiMibVarT)trapType;
+      if (parameter.length() < PARM1SIZE ) {
+         strcpy(trapMessage.parm1, parameter.c_str());
+      }
+      else {
+         return voFailure;
+      }
+      udpStack->transmitTo((char *)&trapMessage, sizeof(trapMessage), &dest);
+      return voSuccess;
+   }
 #ifdef PtW32CatchAll
     PtW32CatchAll
 #else
@@ -256,6 +248,9 @@ sendRequest(string indexName, int setValue)
     return voFailure;
 }
 
+
+#warning "Needs to be converted to non-threading model"
+#if 0
 /**
  * first it registers on ports based on the type of agent it is, then 
  * infinate loop that waits for messages from other agentApi's and processes them.
@@ -279,7 +274,6 @@ AgentApi::thread()
     }
 
     memset(&message1, 0, sizeof(message1));
-    myLock.lock();
 
     switch (myServerType)
     {
@@ -325,8 +319,6 @@ AgentApi::thread()
 	    break;
     }
 
-    myLock.unlock();
-
     while (true)
     {
         try
@@ -359,3 +351,4 @@ AgentApi::thread()
         }
     }
 }
+#endif

@@ -49,22 +49,16 @@
  */
 
 static const char* const InitTransport_cxx_Version =
-    "$Id: InitTransport.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: InitTransport.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #include "global.h"
-#include "Mutex.hxx"
-
-using Vocal::Threads::Mutex;
 
 int initTransport()
 {
 	int err = 0;
 
 #ifdef WIN32
-	static Mutex lock;
 	static bool hasInitialized = false;
-
-	lock.lock();
 
 	if(!hasInitialized)
 	{
@@ -77,7 +71,6 @@ int initTransport()
 		err = WSAStartup( wVersionRequested, &wsaData );
 	}
 
-	lock.unlock();
 #endif
 	return err;
 }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdp_impl_cxx_Version = 
-    "$Id: SipUdp_impl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipUdp_impl.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
@@ -59,8 +59,6 @@ static const char* const SipUdp_impl_cxx_Version =
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "Fifo.h"
-#include "Lock.hxx"
 #include "SipCommand.hxx"
 #include "SipMsg.hxx"
 #include "SipTransactionGC.hxx"
@@ -73,7 +71,6 @@ static const char* const SipUdp_impl_cxx_Version =
 #include "misc.hxx"
 
 using namespace Vocal;
-using namespace Vocal::Threads;
 
 
 /// this is a function to print messages
@@ -101,7 +98,7 @@ const string SipUdp_impl::getLocalIp() const {
 }
 
 
-SipUdp_impl::SipUdp_impl(Fifo<SipMsgContainer*>* fifo,
+SipUdp_impl::SipUdp_impl(list< Sptr <SipMsgContainer> >* fifo,
                          const string& local_ip,
                          const string& local_interface_to_bind_to,
 			 int port /*default argument*/ )
@@ -109,14 +106,10 @@ SipUdp_impl::SipUdp_impl(Fifo<SipMsgContainer*>* fifo,
     randomLosePercent(0),
     udpStack(local_ip, local_interface_to_bind_to, NULL, port ),
     recFifo(fifo),
-    sendFifo(),
     shutdown(false)
 {
     //debugMemUsage("Beginning SipUdp_impl constructor", "gua_mem.txt");
     udpStack.setModeBlocking(false);
-    sendThread.spawn(sendThreadWrapper, this);
-    //debugMemUsage("After spawning sendThread", "gua_mem.txt");
-    receiveThread.spawn(rcvThreadWrapper, this);
     atomic_inc(&_cnt);
     //debugMemUsage("Done with SipUdp_impl constructor", "gua_mem.txt");
 }   
@@ -125,15 +118,11 @@ SipUdp_impl::SipUdp_impl(Fifo<SipMsgContainer*>* fifo,
 SipUdp_impl::~SipUdp_impl() 
 {      
     shutdown = true;
-
-    //insert shutdown message in the send fifo
-    sendFifo.add(0);
-    sendThread.join();
-    receiveThread.join();
     atomic_dec(&_cnt);
 }
 
-
+#warning "Port to non-threaded model"
+#if 0
 void*
 SipUdp_impl::receiveMain()
 {      
@@ -174,7 +163,7 @@ SipUdp_impl::receiveMain()
             {
                 sipMsg->msg.in->setReceivedIPName( sender.getIpName() );
                 sipMsg->msg.in->setReceivedIPPort( Data(sender.getPort()) );
-                recFifo->add(sipMsg);
+                // TODO:  recFifo->add(sipMsg);
                 cpLog(LOG_INFO, "Received UDP Message:\n\n<- HOST[%s] PORT[%d]\n\n%s", sender.getIpName().c_str(),
                       sender.getPort(), toBeEaten.logData());
 
@@ -203,15 +192,8 @@ SipUdp_impl::receiveMain()
     }
     return 0;
 }
-
+#endif
   
-void*
-SipUdp_impl::sendThreadWrapper(void *p) 
-{
-    return static_cast<SipUdp_impl*>(p)->sendMain();
-}
-
-    
 int
 SipUdp_impl::udpSend(SipMsgContainer *sipMsg)
 {
@@ -254,14 +236,8 @@ SipUdp_impl::udpSend(SipMsgContainer *sipMsg)
     return ret_status;
 } 
 
-
-void*
-SipUdp_impl::rcvThreadWrapper(void *p) 
-{
-    return static_cast<SipUdp_impl*>(p)->receiveMain();
-}       
-
-
+#warning "Port to non-threaded model"
+#if 0
 void* 
 SipUdp_impl::sendMain()
 {   
@@ -430,7 +406,7 @@ SipUdp_impl::sendMain()
 	}//if retransmit.
     }//end while
 }
-
+#endif
 
 void 
 SipUdp_impl::getHostPort(Sptr<SipMsg> sipMessage, Data* host, int* port)
@@ -463,8 +439,8 @@ SipUdp_impl::getHostPort(Sptr<SipMsg> sipMessage, Data* host, int* port)
     }
     else 
     {
-        Sptr<SipCommand> command;
-        command.dynamicCast(sipMessage);
+        assert(sipMessage->isSipCommand());
+        Sptr<SipCommand> command((SipCommand*)(sipMessage.getPtr()));
         if ( command != 0)
         {
             Sptr<SipUrl> dest = command->postProcessRouteAndGetNextHop();
@@ -573,7 +549,7 @@ SipUdp_impl::send(SipMsgContainer* msg, const Data& host, const Data& port)
     }
 
     //send immediately.
-    sendFifo.addDelayMs( retransDetails , 0);
+    // TODO: sendFifo.addDelayMs( retransDetails , 0);
 }
 
 

@@ -52,12 +52,12 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "Sptr.hxx"
-#include "Fifo.h"
-
+#include <BugCatcher.hxx>
+#include <list>
 
 namespace Vocal
 {
@@ -90,14 +90,14 @@ class CallInfo;
 
 </pre>
 */
-class SipProxyEvent
+class SipProxyEvent: public BugCatcher
 {
    public:
       ///
       SipProxyEvent();
 
       /// Create given an associated fifo.
-      SipProxyEvent(Sptr < Fifo < Sptr < SipProxyEvent > > > fifo);
+      SipProxyEvent(list < Sptr < SipProxyEvent > >* fifo);
 
       ///
       virtual ~SipProxyEvent();
@@ -109,7 +109,7 @@ class SipProxyEvent
 
       /// Post the given event to the given fifo.
       virtual void postEvent( const Sptr < SipProxyEvent > newEvent, 
-                              const Sptr < Fifo < Sptr < SipProxyEvent > > > newFifo) const;
+                              list < Sptr < SipProxyEvent > >* newFifo) const;
 
       /// Set the call info and the call container associated with this event.
       void setCallInfo(const Sptr < CallInfo > callInfo, 
@@ -124,7 +124,7 @@ class SipProxyEvent
       /** Accessor to the fifo associate with this event.
        *  May be zero if not set.
        */
-      Sptr < Fifo < Sptr < SipProxyEvent > > > getFifo() const;
+      list < Sptr < SipProxyEvent > >* getFifo() const { return myFifo; }
 
       /** Accessor to the call container for this event. 
        *  May be zero if not set.
@@ -140,16 +140,15 @@ class SipProxyEvent
       // The name of the extending class.
       virtual const char* const name() const = 0;
 
+   // To help with casting...
+   virtual bool isTimerEvent() = 0;
+   virtual bool isSipEvent() = 0;
+
       virtual string toString();
 
    protected:
       /// The fifo associated with this event.
-      Sptr < Fifo < Sptr < SipProxyEvent > > > myFifo;
-
-      /** The FifoEventId associated with this event. This only makes
-       *  sense for events that were posted to a fifo with a delay.
-       */
-      FifoEventId myId;
+      list < Sptr < SipProxyEvent > >* myFifo;
 
       /// The call info associated with this event.
       Sptr < CallInfo > myCallInfo;

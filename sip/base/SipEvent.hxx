@@ -53,7 +53,7 @@
 
 
 static const char* const SipEvent_hxx_Version = 
-    "$Id: SipEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 
@@ -92,7 +92,7 @@ class SipEvent : public SipProxyEvent
 
         /** Create the sip event given the associated fifo.
          */
-        SipEvent( const Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo );
+        SipEvent( list < Sptr < SipProxyEvent > >* outputFifo );
 
 
         /** Virtual destructor.
@@ -125,22 +125,22 @@ class SipEvent : public SipProxyEvent
         /** Set the sip message queue associated with this event.
          *  It also updates the sip message.
          */
-        void setSipMsgQueue( const Sptr < SipMsgQueue > sipRcv );
+        void setSipMsgQueue( SipMsgQueue* sipRcv );
 
 
         /** Get the sip message queue associated with this event.
          */
-        const Sptr < SipMsgQueue > getSipMsgQueue() const;
+        const SipMsgQueue* getSipMsgQueue() const;
 
 
         /** Calls setSipMsgQueue(). For backwards compatibility.
          */
-        void setSipReceive( const Sptr < SipMsgQueue > sipRcv );
+        void setSipReceive( SipMsgQueue* sipRcv );
         
 
         /** Calls getSipMsgQueue(). For backwards compatibility.
          */
-        const Sptr < SipMsgQueue > getSipReceive() const;
+        const SipMsgQueue* getSipReceive() const;
 
 
         /** Returns the INVITE associated with the event, or 0 if none exists
@@ -179,7 +179,7 @@ class SipEvent : public SipProxyEvent
         /** Sip message queue associate with this event. May be updated
          *  during the lifetime of an event.
          */
-        Sptr < SipMsgQueue > mySipMsgQueue;
+        SipMsgQueue* mySipMsgQueue;
 
 
         /** Sip call leg associated with this event. May be updated during

@@ -54,20 +54,16 @@
 
 
 static const char* const SipAgentVersion
-= "$Id: SipAgent.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipAgent.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "SipFtrSupportedTable.hxx"
 #include "SipUriSupportedTable.hxx"
 #include "AgentApi.hxx"
 #include "AgentApiMibVars.hxx"
 #include <map>
-#include "Lock.hxx"
 #include "SnmpData.hxx"
-#include "Mutex.hxx"
 #include "symbols.hxx"
 
-using namespace Vocal::Threads;
-    
 namespace Vocal
 {
 
@@ -109,7 +105,6 @@ class SipAgent: public AgentApi
         typedef map < unsigned long, unsigned long > Table;
         typedef Table::iterator TableIter;
         static Table SipCountersTable;
-        Vocal::Threads::Mutex itsMutex;
         Data name;
 };
  

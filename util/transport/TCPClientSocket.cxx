@@ -50,7 +50,7 @@
 
 
 static const char* const TCPClientSocket_cxx_Version = 
-    "$Id: TCPClientSocket.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TCPClientSocket.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -116,9 +116,8 @@ TCPClientSocket::~TCPClientSocket()
 Sptr<IPAddress>     
 TCPClientSocket::getRemoteIPAddress() const
 {
-    Sptr<IPAddress> remoteIPAddr;
-
-    return ( remoteIPAddr.dynamicCast(getRemoteAddress()) );
+    Sptr<IPAddress> remoteIPAddr((IPAddress*)(getRemoteAddress().getPtr()));
+    return remoteIPAddr;
 }    
 
 

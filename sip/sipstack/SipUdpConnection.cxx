@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -59,7 +59,7 @@ using namespace Vocal;
 
 atomic_t SipUdpConnection::_cnt;
 
-SipUdpConnection::SipUdpConnection(Fifo <SipMsgContainer *> *fifo,
+SipUdpConnection::SipUdpConnection(list < Sptr <SipMsgContainer> > *fifo,
                                    const string& local_ip,
                                    const string& local_dev_to_bind_to,
                                    int port)

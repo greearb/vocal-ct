@@ -50,7 +50,7 @@
 
 
 static const char* const TimerEvent_cxx_Version =
-    "$Id: TimerEvent.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: TimerEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -60,9 +60,7 @@ static const char* const TimerEvent_cxx_Version =
 using namespace Vocal;
 
 
-TimerEvent::TimerEvent( 
-    Sptr < Fifo < Sptr < SipProxyEvent > > > outputFifo 
-)
+TimerEvent::TimerEvent(list < Sptr < SipProxyEvent > >* outputFifo)
     :   SipProxyEvent(outputFifo)
 {
 }
@@ -76,7 +74,7 @@ TimerEvent::~TimerEvent()
 void
 TimerEvent::cancelTimer()
 {
-    myFifo->cancel(myId);
+   //TODO: myFifo->cancel(myId);
 }
 
 
@@ -85,7 +83,7 @@ TimerEvent::startTimer(Sptr < SipProxyEvent > newEvent, const int timerMs)
 {
     assert( newEvent != 0 );
 
-    myId = myFifo->addDelayMs(newEvent, timerMs);
+    // TODO: myId = myFifo->addDelayMs(newEvent, timerMs);
 }
 
 
@@ -99,13 +97,6 @@ TimerEvent::removeCall()
     assert( call != 0 );
 
     myCallContainer->removeCall(call);
-}
-
-
-FifoEventId
-TimerEvent::getTimerId()
-{
-    return ( myId );
 }
 
 

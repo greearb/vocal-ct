@@ -61,7 +61,6 @@
 #include "BaseUrl.hxx"
 #include "Sptr.hxx"
 #include "SipHeader.hxx"
-#include "Mutex.hxx"
 
 namespace Vocal
 {
@@ -153,7 +152,7 @@ class SipReferredBy : public SipHeader
         void setTokenDetails(const Data& token, const Data& tokenValue);
 
         ///
-        Sptr < ReferredByPgpMap > getTokenDetails();
+        const ReferredByPgpMap& getTokenDetails();
 
         ///
         Data getTokenValue(const Data& token);
@@ -177,7 +176,6 @@ class SipReferredBy : public SipHeader
         Data authScheme;
         //Data basicCookie;
 
-        mutable Threads::Mutex tokenMutex;
         void decode(const Data& data);
         void parse(const Data& data);
         void scanReferrerUrl(const Data& data);

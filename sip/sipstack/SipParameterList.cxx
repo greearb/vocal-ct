@@ -49,11 +49,10 @@
  */
 
 static const char* const SipParameterList_cxx_Version =
-    "$Id: SipParameterList.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipParameterList.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipParameterList.hxx"
-#include "Lock.hxx"
 
 #include <stdio.h>
 
@@ -95,7 +94,6 @@ SipParameterList::~SipParameterList()
 Data SipParameterList::encode() const
 {
     Data encoded;
-    Lock lockh(myMutex);
     Data delim;
     delim.setchar(0, myDelimiter);
     map<Data,Data>::const_iterator i;
@@ -229,7 +227,6 @@ Data
 SipParameterList::getValue(const Data& key) const
 {
     Data ret;
-    Lock lock(myMutex);
 
     map<Data, Data>::const_iterator itr = find(key);
     if(itr != end())
@@ -243,7 +240,6 @@ SipParameterList::getValue(const Data& key) const
 void 
 SipParameterList::setValue(const Data& key, const Data& value)
 {
-    Lock lock(myMutex);
     operator[](key) = value;
 }
 
@@ -251,7 +247,6 @@ SipParameterList::setValue(const Data& key, const Data& value)
 void 
 SipParameterList::clearValue(const Data& key)
 {
-    Lock lock(myMutex);
     erase(key);
 }
 

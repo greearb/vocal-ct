@@ -49,7 +49,7 @@
  */
 
 static const char* const StatusMsg_cxx_Version =
-    "$Id: StatusMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: StatusMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "support.hxx"
@@ -75,7 +75,7 @@ using namespace Vocal;
 
 StatusMsg::StatusMsg(const string& local_ip)
         :
-        SipMsg(local_ip),
+        SipMsg(local_ip, "StatusMsg"),
         statusLine()
 {
    
@@ -97,7 +97,7 @@ StatusMsg::~StatusMsg()
 
 StatusMsg::StatusMsg(const Data & data, const string& local_ip) throw (SipParserException&)
         :
-        SipMsg(local_ip),
+        SipMsg(local_ip, "StatusMsg"),
         statusLine()
 {
     try
@@ -140,7 +140,7 @@ bool StatusMsg::operator ==(const StatusMsg& src)
 
 StatusMsg::StatusMsg(SipCommand& command, int statusCode)
         :
-        SipMsg(command.getLocalIp()),
+        SipMsg(command.getLocalIp(), "StatusMsg"),
         statusLine()
 {
     //  set the SipStatusLine.

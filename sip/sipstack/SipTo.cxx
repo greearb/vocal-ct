@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTo_cxx_Version =
-    "$Id: SipTo.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTo.hxx"
@@ -83,9 +83,8 @@ SipTo::SipTo(const SipTo& src)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	   
-	    (sipUrl.dynamicCast(toUrl))->initializeTo();
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }
@@ -104,9 +103,8 @@ SipTo::SipTo( Sptr <BaseUrl> url, const string& local_ip )
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-    
-	    (sipUrl.dynamicCast(toUrl))->initializeTo();
+	    Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }
@@ -134,8 +132,8 @@ SipTo::SipTo( const Data& data, const string& local_ip,  UrlType type)
     
 	    if (toUrl->getType() == SIP_URL)
 	    {
-		Sptr <SipUrl> sipUrl;
-		(sipUrl.dynamicCast(toUrl))->initializeTo();
+                Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+                sipUrl->initializeTo();
 	    }
 	}
     }
@@ -159,15 +157,14 @@ SipTo::SipTo(const SipFrom& src)
         tag(src.getTag()),
         token(src.getToken()),
         qstring(src.getQstring()),
-        tokenMap(*src.getTokenDetails())
+        tokenMap(src.getTokenDetails())
 {
     if (toUrl != 0)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(toUrl);
-	    sipUrl->initializeTo();
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->initializeTo();
 	}
     }
 }
@@ -541,8 +538,8 @@ SipTo::setPortData(const Data& newport)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    (sipUrl.dynamicCast(toUrl))->setPort(newport);
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->setPort(newport);
 	}
     }
 }
@@ -556,8 +553,8 @@ SipTo::getPortData() const
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    toUrlport = (sipUrl.dynamicCast(toUrl))->getPort();
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            toUrlport = sipUrl->getPort();
 	}
     }
     return toUrlport;
@@ -571,12 +568,10 @@ SipTo::setTokenDetails(const Data& intoken, const Data& tokenValue)
 }
 
 
-Sptr < SipTo::TokenMapTo >
+const SipTo::TokenMapTo&
 SipTo::getTokenDetails() const
 {
-    Sptr < SipTo::TokenMapTo > dupMap = new TokenMapTo(tokenMap) ;
-
-    return dupMap;
+    return tokenMap;
 }
 
 
@@ -676,9 +671,8 @@ SipTo::setHost(const Data& newhost)
 
     	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-    
-	    (sipUrl.dynamicCast(toUrl))->setHost(newhost);
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->setHost(newhost);
 	}
     }
 }
@@ -692,9 +686,8 @@ SipTo::getHost() const
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-    
-	    toHost = (sipUrl.dynamicCast(toUrl))->getHost();
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            toHost = sipUrl->getHost();
 	}
     }
     return toHost;

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReferTo_cxx_version =
-    "$Id: SipReferTo.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipReferTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipParserMode.hxx"
@@ -102,8 +102,7 @@ SipReferTo::SipReferTo(Sptr <BaseUrl> url, const string& local_ip)
     {
         if (url->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(url);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(url.getPtr()));
 	    Data x = sipUrl->getNameAddr();
 	    Data sipdata;
 	    int ret = x.match(":", &sipdata, true);

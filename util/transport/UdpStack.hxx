@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -71,9 +71,7 @@ static const char* const UdpStackHeaderVersion =
 #include <string>
 #include <assert.h>
 #include "NetworkAddress.h"
-#include "Mutex.hxx"
 
-using namespace Vocal::Threads;
 
 ///
 typedef enum
@@ -161,7 +159,7 @@ public:
     someone requested it once.
 */
 
-class UdpStack
+class UdpStack: public RCObject
 {
     public:
         /** if local_ip is specified (not == ""), then we will attempt to 
@@ -455,7 +453,6 @@ class UdpStack
 
         int rcvCount ;
         int sndCount ;
-        Mutex _lock;
 	bool   blockingFlg;
         string localDev;
 };

@@ -50,7 +50,7 @@
  */
 
 static const char* const ByeMsg_cxx_Version =
-    "$Id: ByeMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: ByeMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include "ByeMsg.hxx"
@@ -80,7 +80,7 @@ callee, then the Bye Msg should be sent to the Contact obtained in the
 INVITE msg , or the ACK msg.  It is up to the User Agent to send the
 corrent SipMsg from which the Contact will be taken */
 
-ByeMsg::ByeMsg(const string& local_ip) : SipCommand(local_ip)
+ByeMsg::ByeMsg(const string& local_ip) : SipCommand(local_ip, "ByeMsg")
 {
     myRequestLine.setMethod(BYE_METHOD);
     SipCSeq cseq( SIP_BYE, "0", local_ip );
@@ -132,7 +132,7 @@ ByeMsg::ByeMsg(const SipCommand& src, const SipVia& via, const SipCSeq& cseq)
 
 
 ByeMsg::ByeMsg(const StatusMsg& statusMsg, const string& local_ip)
-        : SipCommand(statusMsg, local_ip)
+        : SipCommand(statusMsg, local_ip, "ByeMsg")
 {
     myRequestLine.setMethod(BYE_METHOD);
     cpLog(LOG_ERR, "myRequestLine: %s, local_ip: %s\n",
@@ -208,7 +208,7 @@ bool ByeMsg::operator ==(const ByeMsg& src)
 }
 
 ByeMsg::ByeMsg(const Data& data, const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "ByeMsg")
 {
         SipCommand::decode(data);  
 }
@@ -360,8 +360,7 @@ void ByeMsg::setByeDetails( const SipMsg& sipMessage)
     {
 	if (toUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    sipUrl.dynamicCast(toUrl);
+	    Sptr<SipUrl> sipUrl = (SipUrl*)(toUrl.getPtr());
     
 	    sipvia.setHost(sipUrl->getHost());
 	    sipvia.setPort(sipUrl->getPort().convertInt());

@@ -52,11 +52,12 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Connection.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
 #include <string.h>
+#include <BugCatcher.hxx>
 
 #include <string>
 
@@ -123,7 +124,7 @@ typedef struct sockaddr SA;
    </pre>
 
 */
-class Connection
+class Connection: public BugCatcher
 {
     public:
 

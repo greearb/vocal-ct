@@ -53,12 +53,13 @@
 
 
 static const char* const PriorityLog_hxx_Version = 
-    "$Id: PriorityLog.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: PriorityLog.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "Writer.hxx"
 #include <string>
 #include <strstream>
+#include "RCObject.hxx"
 
 
 /** Infrastructure common to VOCAL.
@@ -79,7 +80,7 @@ namespace Logging
  *  @see    Vocal::Logging::VLog
  *  @see    Vocal::Logging::CpPriorityLog   
  */
-class PriorityLog : public Vocal::IO::Writer
+   class PriorityLog : public Vocal::IO::Writer
 {
     protected:
 

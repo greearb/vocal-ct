@@ -52,7 +52,7 @@
  */
 
 static const char* const SipMsgVersion 
-= "$Id: SipMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: SipMsg.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "Data.hxx"
 #include "NetworkAddress.h"
@@ -127,20 +127,24 @@ typedef SipHeaderList <SipDiversion> SipDiversionList;
     This class is the base class for all SIP Messages. It is just a container
     class of all SIP Headers, common to SIP Requests and SIP responses. 
 */
-class SipMsg
+class SipMsg: public BugCatcher
 {
     public:
 
 	///SipMsg constructor
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
-	SipMsg(const string& local_ip);
+	SipMsg(const string& local_ip, const char* class_name);
 
 	///SipMsg copy constructor
 	SipMsg(const SipMsg&);
     
 	///SipMsg destructor
 	virtual ~SipMsg();
+
+        const string& getClassName() const { return className; }
+        virtual bool isSipCommand() const = 0;
+        virtual bool isStatusMsg() const = 0;
 
 	///	
 	SipMsg& operator=(const SipMsg& newSipMsg);
@@ -152,23 +156,15 @@ class SipMsg
 	//returns the type of the object in the sub classes.
 	virtual Method getType() const = 0;
 
-
-        /**@name general header methods 
-          */ 
-        //@{
         /// copy an arbitrary header from the src message
         void copyHeader(const SipMsg& src, SipHeaderType type);
 
         /// checks to see if an arbitrary header exists in the message
         bool containsHeader(SipHeaderType type);
-        //@}
-        
 
-	/**@name Accept Header Methods 
-          */
-        //@{
 	/// get the number of Accept items 
 	int getNumAccept() const;
+
 	/// Get the i'th Accept item. If i is -1, it gets the last one 
 	const SipAccept& getAccept( int i=-1) const;
 
@@ -201,12 +197,6 @@ class SipMsg
 	///
 	const vector<SipAccept*>& getAcceptList() const;
 
-        //@} 
-
-
-	/**@name AcceptEncoding Header Methods  
-          */
-        //@{
 	/// get the number of AcceptEncoding items 
 	int getNumAcceptEncoding() const;
 
@@ -243,12 +233,6 @@ class SipMsg
 	///
 	void flushAcceptEncodingList();
 
-        //@}
-
-	/**@name AcceptLanguage Header Methods  
-          */
-        //@{
-
 	/// get the number of AcceptLanguage items 
 	int getNumAcceptLanguage() const;
 	/// Get the i'th AcceptLanguage item. If i is -1, it gets the last one 
@@ -284,11 +268,6 @@ class SipMsg
 	/// compare acceptlanguage objects of this object to the src object
 	bool compareAcceptLanguage(const SipMsg& src) const;   
 
-        //@}
- 
-	/**@name CSeq Header Methods 
-          */
-        //@{
 	/// Get the current CSeq header 
 	const SipCSeq& getCSeq() const;
 	/// Set the CSeq header 
@@ -299,20 +278,12 @@ class SipMsg
         /// increments the cseq, if none there, 
         void incrementCSeq();
 
-        //@}
-        
-	/**@name CallId Header Methods 
-          */
-        //@{
-
 	/// Get the current CallId header 
 	const SipCallId& getCallId() const;
 	/// Set the CallId header 
 	void setCallId( const SipCallId& );
 	///
 	void setCallId( const Data& );
-
-        //@}
 
 	// ----------------- CallLeg Header Methods ------------------
 	/// Get the current CallLeg header 
@@ -360,12 +331,6 @@ class SipMsg
 	/// compare contact objects of this object to src object.
 	bool compareContact(const SipMsg& src) const;   
 
-        //@}
-  
-        /**@name ContentLength Header Methods 
-         */
-        //@{
-
 	///return the contentlength object.
 	const SipContentLength& getContentLength() const;
 
@@ -375,25 +340,12 @@ class SipMsg
 	///set the contentlength object as length.
 	void setContentLength( const Data& length);
 
-        //@} 
-    
-	/**@name ContentType Header Methods 
-          */
-        //@{
-
 	/// get the number of ContentType items 
 	const SipContentType& getContentType( ) const;
 
 	/** set or add another ContentType item, if the index is -1,
 	 * it is appended to the current list */
 	void setContentType(const SipContentType& item);
-
-
-        //@} 
-    
-	/**@name ContentDisposition Header Methods
-          */
-        //@{
 
 	/// get the contentdisposition item
 	const SipContentDisposition& getContentDisposition( ) const;
@@ -404,12 +356,6 @@ class SipMsg
 	///set ContentDisposition item
 	void setContentDisposition(const Data& item);
  
-        //@} 
-
-	/**@name ContentData Header Methods 
-          */
-        //@{
-
 	/// get the number of ContentData items 
 	int getNumContentData() const;
 
@@ -443,12 +389,6 @@ class SipMsg
         /** delete all of the current content datas */
         void flushContentData();
            
-        //@}
-                                                    
-	/**@name Date Header Methods
-          */
-        //@{
-
 	/// Get the current Date header 
 	const SipDate& getDate() const;
 
@@ -458,12 +398,6 @@ class SipMsg
 	/// Set the Date header using text data
 	void setDate( const Data& textData);
 
-        //@}
-
-	/**@name Encryption Header Methods
-          */
-        //@{
-
 	/// Get the current Encryption header 
 	const SipEncryption& getEncryption() const;
 
@@ -472,11 +406,8 @@ class SipMsg
 	/// Set the Encryption header using text data 
 	void setEncryption( const Data& textData);
    
-        //@} 
-
 	/**@name SubsNotifyEvent Header Methods 
           */
-        //@{
 
 	/// get the number of SubsNotifyEvent items 
 	int getNumSubsNotifyEvent() const;
@@ -1036,6 +967,8 @@ class SipMsg
     protected:
 
         string local_ip;
+        /** Help ensure our up-casts are sane */
+        string className;
 
 	/// the version of SIP being used
 	Data myVersion;
@@ -1078,7 +1011,7 @@ class SipMsg
 	 * IP port, set by the transceiver, and used by the Marshal
 	 * for IP authentication */
 	Data recvdIPPort;
-    
+
 	///  
 	void mimeDecode( const Data& mimeData );
 
@@ -1086,7 +1019,6 @@ class SipMsg
         bool myNextHopIsAProxy;
 
         SipMsg(); //Not Implemented.
-
 };
 
 ostream&

@@ -50,12 +50,11 @@
 
 
 static const char* const CallContainer_cxx_Version =
-    "$Id: CallContainer.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallContainer.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
 #include "CallContainer.hxx"
-#include "Lock.hxx"
 #include "CancelMsg.hxx"
 #include "StatusMsg.hxx"
 #include "SipCommand.hxx"
@@ -71,8 +70,6 @@ CallContainer::CallContainer()
 
 CallContainer::~CallContainer()
 {
-    Vocal::Threads::Lock lock(_mutex);
-
     myCallInfo.clear();
 }
 
@@ -84,8 +81,6 @@ CallContainer::getCall(const Sptr < SipCallLeg > newOrExistingCallLeg)
     assert ( newOrExistingCallLeg != 0 );
 
     Sptr < CallInfo > newCall = 0;
-
-    Vocal::Threads::Lock lock(_mutex);
 
     TableIter iter = myCallInfo.find(newOrExistingCallLeg);
     
@@ -116,8 +111,6 @@ CallContainer::getCall(const Sptr < SipCallLeg > newOrExistingCallLeg, Sptr < In
     assert ( newOrExistingCallLeg != 0 );
 
     Sptr < CallInfo > newCall = 0;
-
-    Vocal::Threads::Lock lock(_mutex);
 
     TableIter iter = myCallInfo.find(newOrExistingCallLeg);
     
@@ -154,8 +147,6 @@ CallContainer::findCall(const Sptr < SipCallLeg > newOrExistingCallLeg)
 
     Sptr < CallInfo > newCall = 0;
 
-    Vocal::Threads::Lock lock(_mutex);
-
     cpLog(LOG_DEBUG, "To find an entry in CallContainer\n%s",
           newOrExistingCallLeg->encode().logData());
 
@@ -184,8 +175,6 @@ CallContainer::addCall(const Sptr < SipCallLeg > newOrExistingCallLeg,
     assert ( newOrExistingCallLeg != 0 );
     assert ( theCallInfo != 0 );
 
-    Vocal::Threads::Lock lock(_mutex);
-
     cpLog(LOG_DEBUG, "addCall(): add a new entry in CallContainer\n%s",
           newOrExistingCallLeg->encode().logData());
 
@@ -200,8 +189,6 @@ void
 CallContainer::removeCall(const Sptr < SipCallLeg > existingCall)
 {
     assert ( existingCall != 0 );
-
-    Vocal::Threads::Lock lock(_mutex);
 
     const TableIter iter = myCallInfo.find( existingCall );
 
@@ -224,8 +211,6 @@ CallContainer::checkCalls()
    double call_duration;
 
    Sptr <CallInfo> existingCall = 0;
-
-   Vocal::Threads::Lock lock(_mutex);
 
    if (myCallInfo.size() != 0){
       for( TableIter iter = myCallInfo.begin(); iter != myCallInfo.end(); iter++){
@@ -258,7 +243,7 @@ CallContainer::cancelCall(const Sptr < CallInfo > callInfo)
    sipStack->sendReply( errorMsg );
 
    Sptr<CancelMsg> cancelMsg = new CancelMsg( *savedInvite );
-   sipStack->sendAsync( cancelMsg );
+   sipStack->sendAsync(cancelMsg.getPtr());
 
    cpLog(LOG_INFO, "Call cancelled");
 }

@@ -49,7 +49,7 @@
  */
 
 static const char* const AckMsg_cxx_Version =
-    "$Id: AckMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: AckMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -81,14 +81,14 @@ AckMsg::AckMsg(const AckMsg& src)
 
 
 AckMsg::AckMsg(const Data& data, const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "AckMsg")
 {
     SipCommand::decode(data);
 }
 
 
 AckMsg::AckMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "AckMsg")
 {
     myRequestLine.setMethod(ACK_METHOD);
     SipCSeq cseq( SIP_ACK, Data((int)0), local_ip);
@@ -104,7 +104,7 @@ AckMsg::AckMsg(const SipCommand& src, const SipVia& via, const SipCSeq& cseq)
 
 
 AckMsg::AckMsg(StatusMsg& statusMsg, const string& local_ip)
-        : SipCommand(statusMsg, local_ip)
+        : SipCommand(statusMsg, local_ip, "AckMsg")
 {
     myRequestLine.setMethod(ACK_METHOD);
     if (!statusMsg.viaEmpty())

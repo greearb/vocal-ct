@@ -49,7 +49,7 @@
  */
 
 static const char* const Builder_cxx_Version =
-    "$Id: Builder.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Builder.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -78,8 +78,7 @@ Builder::process(const Sptr < SipProxyEvent > nextEvent)
     assert ( nextEvent != 0 );
     assert ( myCallContainer != 0 );
     
-    Sptr < SipEvent > sipEvent;
-    sipEvent.dynamicCast(nextEvent);
+    Sptr < SipEvent > sipEvent((SipEvent*)(nextEvent.getPtr()));
     if ( sipEvent != 0) {
         cpLog(LOG_DEBUG_STACK, "Builder::process, event: %s\n", sipEvent->toString().c_str());
         Sptr < CallInfo > callInfo 

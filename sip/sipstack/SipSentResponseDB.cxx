@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentResponseDB_cxx_version =
-    "$Id: SipSentResponseDB.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSentResponseDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
@@ -146,11 +146,6 @@ SipSentResponseDB::processSend(const Sptr<SipMsg>& msg)
 	    }
 	}
 
-	/// release the lock acquired on top level node
-	if(topNode)
-        {
-	    topNode->lock.unlock();
-        }
     }
 
     return retVal;
@@ -256,26 +251,22 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
                             level2Node->seqNumber = msgSeqNumber;
                         }
                         else if( (msgSeqNumber < storedSeqNum) ||
-                                 (msgSeqNumber == storedSeqNum) )
-                        {             
-                             // Error condition
-                             Sptr<SipCommand> sipCmd;
-                             sipCmd.dynamicCast(msgContainer->msg.in);
-                             assert(sipCmd != 0);
-                             Sptr<StatusMsg> statusMsg = new StatusMsg(*sipCmd, 400); 
-                             Data reason = "Sequence number out of order";
-                             statusMsg->setReasonPhrase(reason);
-		             msgContainer->msg.in = statusMsg;
-                             msgContainer->msg.type = statusMsg->getType();
-                             msgContainer->msg.transport = statusMsg->getVia(0).getTransport();
+                                 (msgSeqNumber == storedSeqNum) ) {             
+                            // Error condition
+                            Sptr<SipCommand> sipCmd((SipCommand*)(msgContainer->msg.in.getPtr()));
+                            assert(sipCmd != 0);
+                            Sptr<StatusMsg> statusMsg = new StatusMsg(*sipCmd, 400); 
+                            Data reason = "Sequence number out of order";
+                            statusMsg->setReasonPhrase(reason);
+                            msgContainer->msg.in = statusMsg;
+                            msgContainer->msg.type = statusMsg->getType();
+                            msgContainer->msg.transport = statusMsg->getVia(0).getTransport();
 
-		             msgContainer->msg.out = "";
-	                     msgContainer->retransCount = 1;
+                            msgContainer->msg.out = "";
+                            msgContainer->retransCount = 1;
                      
-                             if(topNode)
-                               topNode->lock.unlock();
-                             processSend(statusMsg);
-                             return 0;
+                            processSend(statusMsg.getPtr());
+                            return 0;
                         }
                     }
                  }
@@ -283,7 +274,8 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
                  {
                      level2Node->seqNumber = msgSeqNumber;
                      level2Node->seqSet = true;
-                     cpLog(LOG_DEBUG_STACK, "***** Setting seq to %d for callId %s", msgSeqNumber, msgContainer->msg.in->getCallId().encode().logData());
+                     cpLog(LOG_DEBUG_STACK, "***** Setting seq to %d for callId %s",
+                           msgSeqNumber, msgContainer->msg.in->getCallId().encode().logData());
                  }
             }
 #endif
@@ -350,11 +342,6 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
             msgContainer->msg.in = 0;
 	}
     }
-    /// release the lock acquired on top level node
-    if(topNode)
-    {
-        topNode->lock.unlock();
-    }
     return retVal;
 }
 
@@ -362,13 +349,12 @@ SipTransLevel1Node*
 SipSentResponseDB::getTopNode(const SipTransactionId& id, 
                               const Sptr<SipMsg>& msg)
 {
-    SipTransHashTable::SipTransRWLockHelper helper;
     SipTransHashTable::Node * bktNode;
 
     if(msg->getType()==SIP_STATUS)
     {
-	/// this finds if there's a transaction, and locks for READ
-	bktNode = table.find(id.getLevel1(), &helper);
+	/// this finds if there's a transaction
+	bktNode = table.find(id.getLevel1());
 	if(bktNode)
 	  if(bktNode->myNode->toTag == NOVAL)
 	  {
@@ -401,11 +387,8 @@ SipSentResponseDB::getTopNode(const SipTransactionId& id,
     }
     else
     {
-	// this creates a new transaction, if none exists, and locks
-	// for write otherwise just returns the existing transaction
-	// with read lock
-
-	bktNode = table.findOrInsert(id.getLevel1(), &helper);
+	// this creates a new transaction, if none exists
+	bktNode = table.findOrInsert(id.getLevel1());
 	if(bktNode->myNode == 0)
 	{
 	    bktNode->myNode = new SipTransLevel1Node();
@@ -425,10 +408,6 @@ SipSentResponseDB::getTopNode(const SipTransactionId& id,
 
     if(bktNode)
     {
-	// acquire a lock on the top level node, before releasing the
-	// bucket node: due to race w/ cleanup thread!!!
-	bktNode->myNode->lock.lock();
-
 	return bktNode->myNode;
     }
     else

@@ -53,7 +53,7 @@
 
 
 static const char* const Builder_hxx_Version = 
-"$Id: Builder.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: Builder.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -110,7 +110,7 @@ class Feature;
 
 </pre>
 */
-class Builder
+class Builder: public BugCatcher
 {
    public:
 

@@ -53,7 +53,7 @@
 
 
 static const char* const ParsePair_hxx_Version =
-    "$Id: ParsePair.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: ParsePair.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "VocalCommon.hxx"
@@ -70,6 +70,7 @@ struct xmlDocPtr;
 #endif // VOCAL_USE_XML
 #include <string>
 #include <iostream>
+#include <BugCatcher.hxx>
 
 
 /** Vovida Open Communication Application Library.<br><br>
@@ -88,7 +89,7 @@ using std::string;
 using std::istream;
 
 
-class ParsePair : Vocal::NonCopyable
+class ParsePair : Vocal::NonCopyable, public BugCatcher
 {
     public:
 

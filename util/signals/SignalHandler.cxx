@@ -50,16 +50,13 @@
 
 
 static const char* const SignalHandler_cxx_Version = 
-    "$Id: SignalHandler.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: SignalHandler.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
 #include "SignalHandler.hxx"
 #include "SignalSet.hxx"
 #include "SignalAction.hxx"
-#if defined(__APPLE__)
-#include "pthread_adds.h"
-#endif
 #include "VLog.hxx"
 
 
@@ -67,6 +64,8 @@ using Vocal::Signals::SignalHandler;
 using Vocal::Signals::SignalAction;
 using Vocal::Signals::SignalSet;
 using Vocal::Logging::VLog;
+
+map<int, SignalAction*>* SignalHandler::sig_map = NULL;
 
 
 extern "C"
@@ -89,7 +88,6 @@ SignalHandler::signalHandler(sig, siginfo, y);
 
 
 SignalHandler::SignalActionRefCountMap	SignalHandler::myActionRefCountMap;
-SignalHandler::ThreadSignalMap	    	SignalHandler::myThreadSignalMap;
 
 
 void
@@ -98,6 +96,8 @@ SignalHandler::init()
     const string    fn("SignalHandler::init");
     VLog    	    log(fn);
     
+    sig_map = new map<int, SignalAction*>;
+
     VVERBOSE(log) << fn << VVERBOSE_END(log);
 }
 
@@ -111,16 +111,8 @@ SignalHandler::uninit()
     
     VVERBOSE(log) << fn << VVERBOSE_END(log);
 
-    for (   ThreadSignalMap::iterator it = myThreadSignalMap.begin();
-    	    it != myThreadSignalMap.end();
-	    ++it
-	)
-    {
-    	delete it->second;
-	it->second = 0;
-    }
-    
-    myThreadSignalMap.clear();
+    delete sig_map;
+    sig_map = NULL;
     #endif // !defined(WIN32)
 }
 
@@ -133,18 +125,6 @@ SignalHandler::SignalHandler()
     
     VVERBOSE(log) << fn << VVERBOSE_END(log);
 
-    ThreadSignalMap::iterator   i = myThreadSignalMap.find(VThread::selfId());
-
-    if ( i == myThreadSignalMap.end() )
-    {
-    	myThreadSignalMap[VThread::selfId()] = new SignalActionMap;
-    }
-    else
-    {
-    	// Can only have, at most, one signal handler per thread.
-	//
-    	assert( 0 );
-    }
     #endif // !defined(WIN32)
 }
 
@@ -157,13 +137,9 @@ SignalHandler::~SignalHandler()
     
     VVERBOSE(log) << fn << VVERBOSE_END(log);
 
-    ThreadSignalMap::iterator   i = myThreadSignalMap.find(VThread::selfId());
-
-    if ( i != myThreadSignalMap.end() )
-    {
-        delete i->second;
-
-        myThreadSignalMap.erase(VThread::selfId());
+    if (sig_map) {
+       delete sig_map;
+       sig_map = NULL;
     }
     #endif // !defined(WIN32)
 }
@@ -179,10 +155,10 @@ SignalHandler::add(SignalAction & action)
     // Find the signal map for this thread. It should exist since it
     // is created during construction.
     //
-    SignalActionMap *	sam = myThreadSignalMap[VThread::selfId()];
+    map<int, SignalAction*>*	sam = sig_map;
     assert( sam != 0 );
     
-    SignalActionMap &	signalActionMap = *sam;
+    map<int, SignalAction*> &	signalActionMap = *sam;
 
     VDEBUG(log) << fn << ": action = " << action << VDEBUG_END(log);
 
@@ -249,10 +225,6 @@ SignalHandler::remove(SignalAction & action)
     // Find the signal map for this thread. It should exist since it
     // is created during construction.
     //
-    SignalActionMap *	sam = myThreadSignalMap[VThread::selfId()];
-    assert( sam != 0 );
-    
-    SignalActionMap &	signalActionMap = *sam;
 
     VDEBUG(log) << fn << ": action = " << action << VDEBUG_END(log);
 
@@ -315,12 +287,13 @@ SignalHandler::remove(SignalAction & action)
     	// Remove the action from the map AFTER the sigaction has been
 	// reset. This avoids the race of a signal firing.
 	//
-    	signalActionMap.erase(signum);
+    	sig_map->erase(signum);
     }
     #endif // !defined(WIN32)
 }
 
 
+#if 0
 void	    	    	    
 SignalHandler::setBlocked(const SignalSet & signalSet)
 {
@@ -367,6 +340,7 @@ SignalHandler::unblock(const SignalSet & signalSet)
     assert( rc == 0 );
     #endif // !defined(WIN32)
 }
+#endif
 
 
 void	    	    	    
@@ -422,22 +396,13 @@ SignalHandler::signalHandler(int sig, siginfo_t * siginfo, void *)
 {
     #if !defined(WIN32) && !defined(__MACH__)
     assert( siginfo != 0 );
-
-    ThreadSignalMap::iterator   i = myThreadSignalMap.find(VThread::selfId());
-
-    if ( i == myThreadSignalMap.end() )
-    {
-        assert( 0 );
-        return;
-    }
-        
-    SignalActionMap &	signalActionMap = *(i->second);
+    assert(sig_map);
 
     int signum = ( siginfo == 0 ? sig : siginfo->si_signo );
 
-    SignalActionMap::iterator j = signalActionMap.find(signum);
+    map<int, SignalAction*>::iterator j = sig_map->find(signum);
     
-    if ( j == signalActionMap.end() )
+    if ( j == sig_map->end() )
     {
         assert( 0 );
         return;

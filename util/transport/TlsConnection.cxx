@@ -49,15 +49,13 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
  #include <openssl/err.h>
 #endif
 #include "cpLog.h"
-#include "Mutex.hxx"
-#include "Condition.hxx"
 
 bool TlsConnection::initThreads = false;
 

@@ -50,12 +50,11 @@
 
 
 static const char* const PriorityLog_cxx_Version = 
-    "$Id: PriorityLog.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: PriorityLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
 #include "PriorityLog.hxx"
-#include "VThread.hxx"
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>

@@ -53,10 +53,9 @@
 
 
 static const char* const CallInfo_hxx_Version = 
-    "$Id: CallInfo.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallInfo.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
-#include "Mutex.hxx"
 #include "Sptr.hxx"
 #include "SipCallLeg.hxx"
 #include "SipCommand.hxx"
@@ -66,8 +65,6 @@ static const char* const CallInfo_hxx_Version =
 #include "StateMachnData.hxx"
 #include <time.h>
 
-
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -86,7 +83,7 @@ class State;
 
 </pre>
 */
-class CallInfo
+class CallInfo: public BugCatcher
 {
     public:
 
@@ -176,15 +173,6 @@ class CallInfo
         void removeTimer();
 
 
-        /** Call mutex lock on CallInfo
-         */
-        void lock();
-
-
-        /** Call mutex unlock on CallInfo
-         */
-        void unlock();
- 
         /** Set the start time of the call
 	     */
         void setCallTime();
@@ -219,11 +207,6 @@ class CallInfo
          *  @return void
          */
         void copyRhsToThis(const CallInfo& rhs);
-
-
-        /** 
-         */
-        Mutex myMutex;
 
 
         /** Pointer to the call's Feature

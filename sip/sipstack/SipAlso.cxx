@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAlso_cxx_Version =
-    "$Id: SipAlso.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAlso.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
@@ -355,8 +355,7 @@ void SipAlso::setHost(const Data& newhost)
     {
     	if (alsoUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    sipUrl.dynamicCast(alsoUrl);
+	    Sptr<SipUrl> sipUrl((SipUrl*)(alsoUrl.getPtr()));
 	    sipUrl->setHost(newhost);
 	}
     } 
@@ -369,8 +368,7 @@ Data SipAlso::getHost() const
     {
     	if (alsoUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    sipUrl.dynamicCast(alsoUrl);
+	    Sptr<SipUrl> sipUrl((SipUrl*)(alsoUrl.getPtr()));
 	    host = sipUrl->getHost();
 	}
     } 
@@ -399,8 +397,7 @@ Data SipAlso::encode() const
 	
 	if (alsoUrl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    sipUrl.dynamicCast(alsoUrl);
+	    Sptr<SipUrl> sipUrl((SipUrl*)(alsoUrl.getPtr()));
 	    
 	    sipalso += "<";
 	    

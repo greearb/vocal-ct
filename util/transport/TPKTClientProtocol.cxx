@@ -50,7 +50,7 @@
 
 
 static const char* const TPKTClientProtocol_cxx_Version = 
-    "$Id: TPKTClientProtocol.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TPKTClientProtocol.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -79,6 +79,10 @@ TPKTClientProtocol::TPKTClientProtocol(const char * name)
 
 TPKTClientProtocol::~TPKTClientProtocol()
 {
+   if (pkt_) {
+      delete pkt_;
+      pkt_ = NULL;
+   }
 }
 
 
@@ -125,14 +129,13 @@ throw ( Vocal::SystemException,
     VDEBUG(log) << fn << ": TPKT arrived: length = " << pktLength_ 
     	    	<< VDEBUG_END(log);
 
-    Sptr< vector<u_int8_t> >	newPkt = pkt_;
-
-    pkt_    	    = 0;
-    pktPosition_    = 0;
-    pktLength_      = 0;
-
     // This may cause the object to be deleted. Don't put anything
     // after onTPKTArrived.
     //    		
-    onTPKTArrived(*newPkt);
+    onTPKTArrived(pkt_);
+
+    pkt_ = NULL;
+    pktPosition_    = 0;
+    pktLength_      = 0;
+
 }

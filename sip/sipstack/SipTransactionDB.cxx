@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -96,9 +96,7 @@ SipTransactionDB::cancel(SipMsgContainer *msg)
 
     /// just set the retrans count to 0, and the transport stack will
     /// feed it to cleanup thread
-    msg->myLock.lock();
     msg->retransCount = 0;
-    msg->myLock.unlock();
 }
 
 
@@ -140,11 +138,6 @@ SipTransactionDB::getCallLegMsgs(Sptr<SipMsg>& sipMsg)
 	}
     }
 
-    /// release the lock acquired on top level node
-    if(topNode)
-    {
-	topNode->lock.unlock();
-    }
     return retVal;
 }
 

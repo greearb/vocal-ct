@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAgent_cxx_Version =
-    "$Id: SipAgent.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAgent.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 // 24/11/03 fpi
@@ -59,8 +59,6 @@ static const char* const SipAgent_cxx_Version =
 #endif
 
 #include <iostream>
-#include "Lock.hxx"
-#include "Mutex.hxx"
 #include "SipAgent.hxx"
 #include "SipSnmpDetails.hxx"
 #include "cpLog.h"
@@ -68,7 +66,6 @@ static const char* const SipAgent_cxx_Version =
 #include "symbols.hxx"
 
 using namespace Vocal;
-using namespace Vocal::Threads;
 
 SipAgent::Table SipAgent::SipCountersTable;
 
@@ -84,7 +81,6 @@ SipAgent::SipAgent( const Data& inname)
 {
     name = inname;
 
-    run();
     unsigned long zerop, ulongp;
     for (int i = agentApiMibVarFirstEntry; i < agentApiMibVarLastEntry; i++)
     {
@@ -109,8 +105,6 @@ SipAgent::~SipAgent()
     {
         SipCountersTable.erase(i);
     }
-    shutdown();
-    join();
 }
 
 
@@ -119,7 +113,6 @@ SipAgent::updateSipCounter(AgentApiMibVarT inCounterName)
 {
     cpLog(LOG_DEBUG_STACK, "updateSipCounter %d", inCounterName);
     TableIter aCounter;
-    Lock lockHelper(itsMutex);
     aCounter = SipCountersTable.find((int) inCounterName);
     if ( aCounter != SipCountersTable.end() )
     {
@@ -141,7 +134,6 @@ SipAgent::getSipCounter(AgentApiMibVarT counter)
     int number = -1;
 
     TableIter aCounter;
-    Lock lockHelper(itsMutex);
     aCounter = SipCountersTable.find((int) counter);
     if ( aCounter != SipCountersTable.end() )
     {
@@ -499,9 +491,7 @@ SipAgent::processMessage(ipcMessage *inmessage, NetworkAddress *sender)
 void
 SipAgent::setstackData(int index , const snmpData& data )
 {
-    snmpdetails->getWriteLock();
     snmpdetails->setstackdata(index, data);
-    snmpdetails->getUnLock();
 
 }
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const CallContainer_hxx_Version =
-    "$Id: CallContainer.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallContainer.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "CallInfo.hxx"
@@ -76,7 +76,7 @@ namespace Vocal
     Check HeartLessProxy.cxx for more details on the usage.
 </pre>
 */
-class CallContainer
+class CallContainer: public BugCatcher
 {
     public:
 
@@ -156,11 +156,6 @@ class CallContainer
 
     private:
     
-        /** used to lock access to the CallContainer data.
-         */
-
-        mutable Vocal::Threads::Mutex _mutex;
-
         /** CallContainer map object
          */
         Table myCallInfo;

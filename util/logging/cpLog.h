@@ -64,10 +64,9 @@ information.  (The use of $Id makes CVS automatically insert its internal
 version code for the file into the file itself.)
 */  
 static const char* const cpLogHeaderVersion =
-    "$Id: cpLog.h,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: cpLog.h,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include <stdarg.h>
-#include "VThread.hxx"
 
 
 /**@name Log priority levels
@@ -278,23 +277,22 @@ Get the current priority level.
 @return the current priority level
 @see cpLogSetPriority
 */
-extern int cpLogGetPriority ();
+extern int cpLogGetPriority (int id = 0);
 
 /**
 Set the priority level at which messages should be printed for a particular
 thread, in a thread-safe manner.
 @see cpLogSetPriority
-@param thread_id a designator for the thread
 @param pri the new priority level
 */
-extern void cpLogSetPriorityThread (vthread_t thread_id, int pri);
+extern void cpLogSetPriorityThread (int id, int pri);
 
 /**
 Set the priority level for a particular thread to an undefined value.
 * @param thread_id a designator for the thread
 * @see cpLogSetPriority
 */
-extern void cpLogClearPriorityThread (vthread_t thread_id);
+extern void cpLogClearPriorityThread (int id);
 
 /**
 Give a thread a desciptive label, which will be included in all the log
@@ -302,14 +300,14 @@ messages that come from that thread.
 @param thread_id a designator for the thread
 @param label the label
 */
-extern void cpLogSetLabelThread (vthread_t thread_id, const char* label);
+extern void cpLogSetLabelThread (int id, const char* label);
 
 /**
 Remove a thread's descriptive label, so that no special identifier will
 be included in log messages it sends.
 @param thread_id a designator for the thread
 */
-extern void cpLogClearLabelThread (vthread_t thread_id);
+extern void cpLogClearLabelThread (int id);
 
 /**
 Give the current thread a descriptive label, which will be included in all

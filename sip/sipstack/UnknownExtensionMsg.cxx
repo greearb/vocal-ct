@@ -49,7 +49,7 @@
  */
 
 static const char* const UnknownExtensionMsg_cxx_Version =
-    "$Id: UnknownExtensionMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UnknownExtensionMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -77,7 +77,7 @@ using Vocal::SDP::SdpSession;
 using namespace Vocal;
 
 UnknownExtensionMsg::UnknownExtensionMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "UnknownExtensionMsg")
 {
 }
 
@@ -111,7 +111,7 @@ UnknownExtensionMsg::operator ==(const UnknownExtensionMsg& src)
 
 UnknownExtensionMsg::UnknownExtensionMsg(Sptr<BaseUrl> toUrl, const string& local_ip,
                                          int listenPort, int rtpPort)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "UnknownExtensionMsg")
 {
     cpLog(LOG_DEBUG_STACK, "C'tor of UnknownExtensionMsg");
 
@@ -120,7 +120,7 @@ UnknownExtensionMsg::UnknownExtensionMsg(Sptr<BaseUrl> toUrl, const string& loca
 
 
 UnknownExtensionMsg::UnknownExtensionMsg(const UnknownExtensionMsg& msg, enum UnknownExtensionMsgForward)
-    : SipCommand(msg.getLocalIp())
+    : SipCommand(msg.getLocalIp(), "UnknownExtensionMsg")
 {
     *this = msg;
 
@@ -274,7 +274,7 @@ void UnknownExtensionMsg::setUnknownExtensionMsgDetails(Sptr <BaseUrl> toUrl,
 
 
 UnknownExtensionMsg::UnknownExtensionMsg( Data& data, const string& local_ip )
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "UnknownExtensionMsg")
 {
     SipCommand::decode(data);
 }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SubscribeMsg_cxx_Version =
-    "$Id: SubscribeMsg.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SubscribeMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "SipCallLeg.hxx"
 #include "SipExpires.hxx"
@@ -65,7 +65,7 @@ using namespace Vocal;
 
 
 SubscribeMsg::SubscribeMsg(const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "SubscribeMsg")
 {
     myRequestLine.setMethod(SUBSCRIBE_METHOD);
     SipCSeq cseq( SIP_SUBSCRIBE, Data(0), getLocalIp() );
@@ -98,9 +98,8 @@ SubscribeMsg::SubscribeMsg(const string& local_ip)
     {
 	if (requestUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    
-	    (sipUrl.dynamicCast(requestUrl))->setHost(registerDomain);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(requestUrl.getPtr()));	    
+	    sipUrl->setHost(registerDomain);
 	}
     }
     setSubscribeDetails(from.getUrl(), requestUrl);
@@ -108,7 +107,7 @@ SubscribeMsg::SubscribeMsg(const string& local_ip)
 
     
 SubscribeMsg::SubscribeMsg(const Data& data, const string& local_ip)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "SubscribeMsg")
 {
     try
     {
@@ -123,7 +122,7 @@ SubscribeMsg::SubscribeMsg(const Data& data, const string& local_ip)
 
 //call-member subscriptions
 SubscribeMsg::SubscribeMsg(const SipCallLeg& callLeg, Sptr <BaseUrl> reqUrl)
-        : SipCommand(callLeg.getLocalIp())
+        : SipCommand(callLeg.getLocalIp(), "SubscribeMsg")
 {
     //set call-id, from, and to
     setCallId(callLeg.getCallId());
@@ -139,7 +138,7 @@ SubscribeMsg::SubscribeMsg(const SipCallLeg& callLeg, Sptr <BaseUrl> reqUrl)
 //third-party subscriptions
 SubscribeMsg::SubscribeMsg(const SipCallId& callId, const SipTo& to,
                            const string& local_ip, int port)
-        : SipCommand(local_ip)
+        : SipCommand(local_ip, "SubscribeMsg")
 {
     //set the call-id and to
     setCallId(callId);
@@ -236,9 +235,9 @@ SubscribeMsg::setSubscribeDetails(Sptr <BaseUrl> fromUrl,
     {
 	if (fromUrl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipVia.setHost((sipUrl.dynamicCast(fromUrl))->getHost());
-	    sipVia.setPort((sipUrl.dynamicCast(fromUrl))->getPort().convertInt());
+	    Sptr <SipUrl> sipUrl((SipUrl*)(fromUrl.getPtr()));
+	    sipVia.setHost(sipUrl->getHost());
+	    sipVia.setPort(sipUrl->getPort().convertInt());
 	}
     }
     setVia(sipVia);

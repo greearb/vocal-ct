@@ -51,7 +51,7 @@
 
 
 static const char* const FileDataStore_cxx_Version =
-    "$Id: FileDataStore.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: FileDataStore.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 #include "global.h"
@@ -72,7 +72,6 @@ FileDataStore::FileDataStore( int numBinsP, const string &fileRootP )
     assert( numBins >= 0 );
     assert( fileRoot.length() > 0 );
 
-    lock.lock(); //WriteLock();
     try
     {
         // check the root file system exists
@@ -96,10 +95,8 @@ FileDataStore::FileDataStore( int numBinsP, const string &fileRootP )
     }
     catch (...)
     {
-        lock.unlock(); //Unlock();
         throw;
     }
-    lock.unlock(); //Unlock();
 }
 
 
@@ -227,17 +224,14 @@ FileDataStore::getItem( const string& group, const string& name )
 throw(VException&)
 {
     string ret;
-    lock.lock(); //ReadLock();
     try
     {
         ret = VFileSystem::readFile( fileName(group, name) );
     }
     catch (...)
     {
-        lock.unlock(); //Unlock();
         throw;
     }
-    lock.unlock(); //Unlock();
 
     return ret;
 }
@@ -249,17 +243,14 @@ throw(VException&)
 {
     TimeStamp ret;
 
-    lock.unlock(); //ReadLock();
     try
     {
         ret = VFileSystem::getFileTime( fileName(group, name) );
     }
     catch (...)
     {
-        lock.unlock(); //Unlock();
         throw;
     }
-    lock.unlock(); //Unlock();
 
     return ret;
 }
@@ -270,17 +261,14 @@ throw(VException&)
 {
     int ret;
 
-    lock.lock(); //ReadLock();
     try
     {
         ret = VFileSystem::getFileSize( fileName(group, name) );
     }
     catch (...)
     {
-        lock.unlock(); //Unlock();
         throw;
     }
-    lock.unlock(); //Unlock();
 
     return ret;
 }
@@ -299,7 +287,6 @@ throw(VException&)
         addGroup(group);
     }
     string fName( fileName(group, name) );
-    lock.lock(); //WriteLock();
     try
     {
         VFileSystem::writeFile( fName, data );
@@ -312,10 +299,8 @@ throw(VException&)
     }
     catch (...)
     {
-        lock.unlock(); //Unlock();
         throw;
     }
-    lock.unlock(); //Unlock();
 }
 
 
@@ -323,17 +308,14 @@ void
 FileDataStore::removeItem( const string& group, const string& name)
 throw(VException&)
 {
-    lock.lock(); //WriteLock();
     try
     {
         VFileSystem::removeFile( fileName(group, name) );
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 }
 
 
@@ -342,17 +324,14 @@ FileDataStore::isItem( const string& group, const string& name)
 throw(VException&)
 {
     bool ret;
-    lock.lock(); //ReadLock();
     try
     {
         ret = VFileSystem::fileExists( fileName(group, name) );
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 
     return ret;
 }
@@ -364,7 +343,6 @@ throw(VException&)
 {
     StringList list;
 
-    lock.lock(); //ReadLock();
     try
     {
 
@@ -398,10 +376,8 @@ throw(VException&)
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 
     return list;
 }
@@ -411,7 +387,6 @@ void
 FileDataStore::addGroup( const string& group )
 throw(VException&)
 {
-    lock.lock(); //WriteLock();
     try
     {
 
@@ -422,11 +397,9 @@ throw(VException&)
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
 
-    lock.unlock();
 }
 
 
@@ -434,7 +407,6 @@ void
 FileDataStore::removeGroup( const string& group)
 throw(VException&)
 {
-    lock.lock(); //WriteLock();
     try
     {
 
@@ -446,10 +418,8 @@ throw(VException&)
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 }
 
 
@@ -459,7 +429,6 @@ throw(VException&)
 {
     bool ret;
 
-    lock.lock(); //ReadLock();
     try
     {
 
@@ -489,10 +458,8 @@ throw(VException&)
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 
     return ret;
 }
@@ -510,7 +477,6 @@ FileDataStore::listGroups()
         assert(0);
     }
 
-    lock.lock(); //ReadLock();
     try
     {
         // loop over all the groups found in bin 0
@@ -540,10 +506,8 @@ FileDataStore::listGroups()
     }
     catch (...)
     {
-        lock.unlock();
         throw;
     }
-    lock.unlock();
 
     return ret;
 }

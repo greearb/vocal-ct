@@ -49,7 +49,7 @@
  */
 
 static const char* const ImpBaseUrl_cxx_Version =
-    "$Id: ImpBaseUrl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: ImpBaseUrl.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -114,8 +114,7 @@ bool ImpBaseUrl::isLessThan(Sptr<BaseUrl> baseUrl) const
 {
     if (baseUrl->getType() == getType())
     {
-        Sptr<ImpBaseUrl> newUrl;
-        newUrl.dynamicCast(baseUrl);
+        Sptr<ImpBaseUrl> newUrl((ImpBaseUrl*)(baseUrl.getPtr()));
         return ( *(this) < *(newUrl) );
     }
     else

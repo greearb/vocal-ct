@@ -52,17 +52,18 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 
 #include "Sptr.hxx"
 #include "SipMsg.hxx"
-#include "Fifo.h"
 #include "SipTransactionId.hxx"
 #include "TransceiverSymbols.hxx"
 
 #include "SipTransactionLevels.hxx"
+#include <list>
+
 
 namespace Vocal
 {
@@ -71,18 +72,18 @@ class SipUdp_impl;
 class SipMsgContainer;
 
 ///
-class SipUdpConnection
+class SipUdpConnection: public BugCatcher
 {
     public:
         /**
          * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
          */
-        SipUdpConnection(Fifo <SipMsgContainer *> *fifo,
+        SipUdpConnection(list < Sptr <SipMsgContainer> > *fifo,
                          const string& local_ip,
                          const string& local_dev_to_bind_to,
                          int port = SIP_PORT);
         ///
-        ~SipUdpConnection();
+        virtual ~SipUdpConnection();
         ///
         void send(SipMsgContainer* msg, const Data& host="",
                        const Data& port="5060");

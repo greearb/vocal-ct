@@ -50,7 +50,7 @@
 
 
 static const char* const CallInfo_cxx_Version =
-    "$Id: CallInfo.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallInfo.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
 
 
 #include "global.h"
@@ -201,23 +201,6 @@ CallInfo::getCallStateData() const
     return ( myCallData );
 }
 
-
-
-void
-CallInfo::lock()
-{
-    cpLog( LOG_DEBUG, "Locking CallInfo" );
-    myMutex.lock();
-}
-
-
-
-void
-CallInfo::unlock()
-{
-    cpLog( LOG_DEBUG, "UnLocking CallInfo" );
-    myMutex.unlock();
-}
 
 void
 CallInfo::setCallTime()

@@ -49,20 +49,15 @@
  */
 
 static const char* const Verify_cxx_Version = 
-    "$Id: Verify.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Verify.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include <cassert>
 #include <iomanip>
 #include "Verify.hxx"
-#include "Lock.hxx"
-#include "Mutex.hxx"
 
-using Vocal::Threads::Lock;
-using Vocal::Threads::Mutex;
 
 TestStatistics* TestStatistics::myInstance = 0;
-Mutex * TestStatistics::myMutex = new Mutex;
 
 TestStatistics::TestStatistics()
     : myPassed(0),
@@ -79,7 +74,6 @@ TestStatistics::~TestStatistics()
 void
 TestStatistics::passed()
 {
-    Lock lock(*myMutex);
     if(!myInstance)
     {
 	myInstance = new TestStatistics();
@@ -91,7 +85,6 @@ TestStatistics::passed()
 void
 TestStatistics::failed()
 {
-    Lock lock (*myMutex);
     if(!myInstance)
     {
 	myInstance = new TestStatistics();
@@ -103,7 +96,6 @@ TestStatistics::failed()
 void
 TestStatistics::broken()
 {
-    Lock lock (*myMutex);
     if(!myInstance)
     {
 	myInstance = new TestStatistics();
@@ -115,7 +107,6 @@ TestStatistics::broken()
 void
 TestStatistics::unexpectedPass()
 {
-    Lock lock (*myMutex);
     if(!myInstance)
     {
 	myInstance = new TestStatistics();
@@ -127,7 +118,6 @@ TestStatistics::unexpectedPass()
 void
 TestStatistics::covered(const char * filename, int line, const char * label)
 {
-    Lock lock (*myMutex);
     if(!myInstance)
     {
 	myInstance = new TestStatistics();
@@ -147,7 +137,6 @@ int
 TestStatistics::finish(const char* filename, int testcase_count)
 {
     bool anyFailed = false;
-    Lock lock (*myMutex);
     if(myInstance)
     {
 	assert(filename);

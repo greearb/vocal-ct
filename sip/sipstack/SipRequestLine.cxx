@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRequestLine_cxx_Version =
-    "$Id: SipRequestLine.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRequestLine.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "SipRequestLine.hxx"
@@ -401,8 +401,7 @@ SipRequestLine::setTransportParam(const Data& transport)
     //Valid values for transport "TCP" or "UDP" 
     assert((transport == "TCP") || (transport == "UDP"));
     Sptr<BaseUrl> bUrl = getUrl();
-    Sptr<SipUrl> sUrl;
-    sUrl.dynamicCast(bUrl);
+    Sptr<SipUrl> sUrl((SipUrl*)(bUrl.getPtr()));
     if(sUrl != 0)
     {
         if(transport == "TCP")
@@ -422,8 +421,7 @@ SipRequestLine::getTransportParam() const
 {
     Data retVal;
     Sptr<BaseUrl> bUrl = getUrl();
-    Sptr<SipUrl> sUrl;
-    sUrl.dynamicCast(bUrl);
+    Sptr<SipUrl> sUrl((SipUrl*)(bUrl.getPtr()));
     if(sUrl != 0)
     {
         retVal = sUrl->getTransportParam();
@@ -434,8 +432,7 @@ SipRequestLine::getTransportParam() const
 Data
 SipRequestLine::getHost() const
 {
-    Sptr<SipUrl> sUrl;
-    sUrl.dynamicCast(requestUrl);
+    Sptr<SipUrl> sUrl((SipUrl*)(requestUrl.getPtr()));
     assert(sUrl != 0);
     return sUrl->getHost();
 }
@@ -444,8 +441,7 @@ SipRequestLine::getHost() const
 void 
 SipRequestLine::setHost(const Data& host)
 {
-    Sptr<SipUrl> sUrl;
-    sUrl.dynamicCast(requestUrl);
+    Sptr<SipUrl> sUrl((SipUrl*)(requestUrl.getPtr()));
     if(sUrl != 0)
     {
         sUrl->setHost(host);
@@ -456,8 +452,7 @@ SipRequestLine::setHost(const Data& host)
 void 
 SipRequestLine::setPort(const Data& port)
 {
-    Sptr<SipUrl> sUrl;
-    sUrl.dynamicCast(requestUrl);
+    Sptr<SipUrl> sUrl((SipUrl*)(requestUrl.getPtr()));
     if(sUrl != 0)
     {
         sUrl->setPort(port);

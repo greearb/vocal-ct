@@ -50,7 +50,7 @@
 
 
 static const char* const Poll_cxx_Version = 
-    "$Id: Poll.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Poll.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
 
 
 #include "global.h"
@@ -63,7 +63,6 @@ static const char* const Poll_cxx_Version =
 #include "ConnectionBrokenException.hxx"
 #include "ProtocolException.hxx"
 #include "IPAddress.hxx"
-#include "Lock.hxx"
 #include "VLog.hxx"
 #include <cerrno>
 #include <iomanip>
@@ -76,7 +75,6 @@ using Vocal::Transport::ConnectionBrokenException;
 using Vocal::IO::FileDescriptor;
 using Vocal::IO::file_descriptor_t;
 using Vocal::IO::Pipe;
-using Vocal::Threads::Lock;
 using Vocal::Logging::VLog;
 using Vocal::SystemException;
 using Vocal::ReturnCode;
@@ -482,8 +480,6 @@ throw ( Vocal::SystemException )
     const string    fn("Poll::interrupt");
     VLog    	    log(fn);
     
-    Lock    lock(myInterruptorMutex); (void)lock;
-
     myInterruptCount++;
     
     myInterruptor.writeFD().write(&myInterruptCount, 1);
@@ -581,8 +577,6 @@ Poll::processInterruptor(pollfd &   pollFdEntry)
 	{
 	    u_int8_t    interruptNumber = 0;
 	    IPAddress   remoteAddr;
-
-	    Lock    lock(myInterruptorMutex); (void)lock;
 
 	    VDEBUG(log) << fn << ": Interrupted: " << (unsigned)myInterruptCount 
     	    		<< " outstanding interrupts." << VDEBUG_END(log);

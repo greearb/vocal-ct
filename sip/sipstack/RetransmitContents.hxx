@@ -54,7 +54,7 @@
 
 
 static const char* const RetransmitContents_hxx_Version
-= "$Id: RetransmitContents.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: RetransmitContents.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 
 
@@ -67,7 +67,7 @@ static const char* const RetransmitContents_hxx_Version
 namespace Vocal
 {
 
-class RetransmitContents {
+class RetransmitContents: public BugCatcher {
     public:
   ///
   RetransmitContents();

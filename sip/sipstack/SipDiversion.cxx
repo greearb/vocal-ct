@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRedirect_cxx_Version =
-    "$Id: SipDiversion.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipDiversion.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
 
 #include "global.h"
 #include "cpLog.h"
@@ -102,8 +102,7 @@ SipDiversion::SipDiversion(const Data& data, const string& local_ip,
     
 	    if (rurl->getType() == SIP_URL)
 	    {
-		Sptr <SipUrl> sipUrl;
-		sipUrl.dynamicCast(rurl);
+		Sptr <SipUrl> sipUrl((SipUrl*)(rurl.getPtr()));
 		sipUrl->initializeFrom();
 		sipUrl->initializeTo();
 	    }
@@ -132,8 +131,7 @@ SipDiversion::SipDiversion(const SipDiversion& src)
     
 	if (rurl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(rurl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(rurl.getPtr()));
     
 	    sipUrl->initializeTo();
 	    sipUrl->initializeFrom();
@@ -167,8 +165,7 @@ Data SipDiversion::encode() const
 	    
 	    sipDiversion += "<";
     
-            Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(rurl);
+            Sptr <SipUrl> sipUrl((SipUrl*)(rurl.getPtr()));
     
 	    //get before the url param.
 	    Data nameaddr;
@@ -481,8 +478,7 @@ SipDiversion::setHost(const Data& newhost)
     {
 	if (rurl->getType() == SIP_URL)
 	{
-	    Sptr <SipUrl> sipUrl;
-	    sipUrl.dynamicCast(rurl);
+	    Sptr <SipUrl> sipUrl((SipUrl*)(rurl.getPtr()));
     
 	    sipUrl->setHost(newhost);
 	}
@@ -498,8 +494,7 @@ SipDiversion::getHost() const
     {
 	if (rurl->getType() == SIP_URL)
 	{
-	    Sptr<SipUrl> sipUrl;
-	    sipUrl.dynamicCast(rurl);
+	    Sptr<SipUrl> sipUrl((SipUrl*)(rurl.getPtr()));
     
 	    myHost = sipUrl->getHost();
 	}
@@ -860,12 +855,10 @@ SipDiversion::setTokenDetails(const Data& token, const Data& tokenValue)
 }
 
 
-Sptr < SipDiversion::TokenMapDiversion >
-SipDiversion::getTokenDetails()
-{
-    Sptr < SipDiversion::TokenMapDiversion > dmap = new TokenMapDiversion(tokenMap) ;
-
-    return dmap;
+/** Calling code better clean this memory up! */
+SipDiversion::TokenMapDiversion*
+SipDiversion::createTokenDetails() {
+    return new TokenMapDiversion(tokenMap);
 }
 
 
