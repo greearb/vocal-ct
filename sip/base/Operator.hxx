@@ -54,7 +54,7 @@
 
 
 static const char* const Operator_hxx_Version = 
-    "$Id: Operator.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: Operator.hxx,v 1.3 2004/10/22 22:24:43 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -82,80 +82,75 @@ class SipVia;
 
 </pre>
 */
-class Operator: public BugCatcher
-{
-    public:
+class Operator: public BugCatcher {
+public:
 
 
-        /** Default constructor.
-         */
-        Operator();
+   /** Default constructor.
+    */
+   Operator();
 
 
-        /** Virtual destructor
-         */
-        virtual ~Operator();
+   /** Virtual destructor
+    */
+   virtual ~Operator();
 
 
-        /** The extender of this class must provide the name of this
-         *  class via this abstract method.
-         */
-        virtual const char* const name() const = 0;
+   /** The extender of this class must provide the name of this
+    *  class via this abstract method.
+    */
+   virtual const char* const name() const = 0;
 
 
-        /** Process the incoming event. 
-         */
-        virtual const Sptr < State > process(const Sptr < SipProxyEvent > event)
-	{ 
-	    return ( 0 );
-	}
+   /** Process the incoming event. 
+    */
+   virtual const Sptr < State > process(const Sptr < SipProxyEvent > event);
         
         
-        /** Logging helper method
-         */
-        virtual void doCpLog() const
-        {
-            cpLog( LOG_DEBUG, "Operator: %s", name() );
-        }
+   /** Logging helper method
+    */
+   virtual void doCpLog() const {
+      cpLog( LOG_DEBUG, "Operator: %s", name() );
+   }
 
 
-        /** Add the local host address, port and version 2.0 to the 
-         *  given via list. 
-         *
-         * my_local_ip should be either what the user configured, or
-         * default local hostname.
-         *
-         *  Don't know that this is the correct place for this method.
-         */
-        void OpAddVia(SipVia& sipvia, const string& my_local_ip, int port = 5060) const;
+   /** Add the local host address, port and version 2.0 to the 
+    *  given via list. 
+    *
+    * my_local_ip should be either what the user configured, or
+    * default local hostname.
+    *
+    *  Don't know that this is the correct place for this method.
+    */
+   void OpAddVia(SipVia& sipvia, const string& my_local_ip, int port = 5060) const;
 
 
-        /** Takes an empty recordRoute, an existing sipUrl, and optionally
-         *  a port. It sets the host and port of the sipUrl to that of the
-         *  caller and sets the recordRoute's url to the new sipUrl.
-         *
-         * my_local_ip should be either what the user configured, or
-         * default local hostname.
-         *
-         *  Don't know that this is the correct place for this method.
-         */
-        void OpAddRecordRoute( SipRecordRoute       &   recordRoute,
-                               const Vocal::SipUrl  &   recordRouteUrl,
-                               const string& my_local_ip,
-                               const int            port = 5060) const;
+   /** Takes an empty recordRoute, an existing sipUrl, and optionally
+    *  a port. It sets the host and port of the sipUrl to that of the
+    *  caller and sets the recordRoute's url to the new sipUrl.
+    *
+    * my_local_ip should be either what the user configured, or
+    * default local hostname.
+    *
+    *  Don't know that this is the correct place for this method.
+    */
+   void OpAddRecordRoute( SipRecordRoute       &   recordRoute,
+                          const Vocal::SipUrl  &   recordRouteUrl,
+                          const string& my_local_ip,
+                          const int            port = 5060) const;
+   
+   
+private:
 
 
-    private:
+   /** Suppress copying
+    */
+   Operator(const Operator& rhs);
 
 
-        /** Suppress copying
-         */
-        Operator(const Operator& rhs);
-
-
-        /** Suppress copying
-         */
-        Operator& operator=(const Operator& rhs);
+   /** Suppress copying
+    */
+   Operator& operator=(const Operator& rhs);
 };
  
 }

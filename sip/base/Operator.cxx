@@ -49,7 +49,7 @@
  */
 
 static const char* const Operator_cxx_Version =
-    "$Id: Operator.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: Operator.cxx,v 1.3 2004/10/22 22:24:43 greear Exp $";
 
 #include "global.h"
 #include "Operator.hxx"
@@ -69,6 +69,10 @@ Operator::~Operator()
 {
 }
 
+const Sptr < State > Operator::process(const Sptr < SipProxyEvent > event) {
+   Sptr<State> rv;
+   return rv;
+}
 
 void
 Operator::OpAddVia(SipVia& sipvia, const string& my_local_ip, int port) const
