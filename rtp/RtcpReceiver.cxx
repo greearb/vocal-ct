@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.4 2004/06/15 06:20:35 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.5 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -666,6 +666,9 @@ int RtcpReceiver::getPort () {
     return myStack->getRxPort();
 };
 
-int RtcpReceiver::getSocketFD () {
-    return myStack->getSocketFD();
-};
+
+int RtcpReceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                         int& maxdesc, uint64& timeout, uint64 now) {
+   myStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   return 0;
+}

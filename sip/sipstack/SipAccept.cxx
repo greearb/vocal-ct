@@ -50,7 +50,7 @@
  */
 
 static const char* const SipAccept_cxx_Version =
-    "$Id: SipAccept.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAccept.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -736,7 +736,7 @@ SipAccept::encode() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipAccept::duplicate() const
 {
     return new SipAccept(*this);

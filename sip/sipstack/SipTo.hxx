@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTo_hxx_Version =
-    "$Id: SipTo.hxx,v 1.3 2004/06/14 00:33:55 greear Exp $";
+    "$Id: SipTo.hxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
 
 
 #include "global.h"
@@ -202,7 +202,7 @@ class SipTo : public SipHeader
 
         void decode(const Data& data);
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;

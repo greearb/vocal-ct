@@ -53,7 +53,7 @@
 
 
 static const char* const SipVia_hxx_Version =
-    "$Id: SipVia.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipVia.hxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx" 
@@ -192,7 +192,7 @@ class SipVia : public SipHeader
         /// true if the via is received
         bool isViaReceived() const;      
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -254,10 +254,4 @@ class SipVia : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

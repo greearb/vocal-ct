@@ -49,7 +49,7 @@
  */
 
 static const char* const SipContact_cxx_Version =
-    "$Id: SipContact.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipContact.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -599,7 +599,7 @@ SipContact::setExpires( const SipExpires& newexpires )
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipContact::duplicate() const
 {
     return new SipContact(*this);
@@ -628,10 +628,3 @@ Vocal::operator<<(ostream& s, const SipContact &msg)
 }
 
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

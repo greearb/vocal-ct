@@ -49,7 +49,7 @@
  */
 
 static const char* const SipDate_cxx_Version =
-    "$Id: SipDate.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipDate.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -877,7 +877,7 @@ SipDate::set(const Data& data)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipDate::duplicate() const
 {
     return new SipDate(*this);
@@ -899,9 +899,3 @@ SipDate::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipProxyAuthenticate_cxx_Version =
-    "$Id: SipProxyAuthenticate.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipProxyAuthenticate.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "cpLog.h"
@@ -277,7 +277,7 @@ SipProxyAuthenticate::getRealmValue() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipProxyAuthenticate::duplicate() const
 {
     return new SipProxyAuthenticate(*this);
@@ -297,9 +297,3 @@ SipProxyAuthenticate::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

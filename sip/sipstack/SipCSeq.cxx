@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCSeq_cxx_Version =
-    "$Id: SipCSeq.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipCSeq.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -409,7 +409,7 @@ SipCSeq::hashfn() const
 #endif
 
 
-SipHeader*
+Sptr<SipHeader>
 SipCSeq::duplicate() const
 {
     return new SipCSeq(*this);

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipAcceptEncoding_hxx_Version =
-    "$Id: SipAcceptEncoding.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAcceptEncoding.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx"
@@ -124,7 +124,7 @@ class SipAcceptEncoding : public SipHeader
         /// return the encoded string.
         Data encode() const;
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
@@ -142,11 +142,5 @@ class SipAcceptEncoding : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

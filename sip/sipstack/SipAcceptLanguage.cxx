@@ -50,7 +50,7 @@
  */
 
 static const char* const SipAcceptLanguage_cxx_Version =
-    "$Id: SipAcceptLanguage.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAcceptLanguage.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -311,7 +311,7 @@ Data SipAcceptLanguage::encode() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipAcceptLanguage::duplicate() const
 {
     return new SipAcceptLanguage(*this);

@@ -52,16 +52,17 @@
  */
 
 static const char* const SipTransactionId_hxx_version =
-    "$Id: SipTransactionId.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionId.hxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
 
 #include "Data.hxx"
+#include <BugCatcher.hxx>
 
 namespace Vocal
 {
 
 class SipMsg;
     
-class SipTransactionId {
+class SipTransactionId : public BugCatcher {
 public:
    /**
     * the first level key type - it's been chosen to be Data

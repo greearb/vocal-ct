@@ -161,7 +161,7 @@ class SipReferredBy : public SipHeader
         void scanAuthTokens( const Data& data);
 
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -189,10 +189,4 @@ class SipReferredBy : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

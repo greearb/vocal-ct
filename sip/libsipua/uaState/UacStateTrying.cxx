@@ -51,7 +51,7 @@
 
 
 static const char* const UacStateTrying_cxx_Version =
-    "$Id: UacStateTrying.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UacStateTrying.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "UacStateTrying.hxx"
 #include "UaStateFactory.hxx"
@@ -74,7 +74,7 @@ UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
         sipCmd.dynamicCast(agent.getRequest());
         Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd); 
         cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-        agent.getSipTransceiver()->sendAsync(cMsg);
+        agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
         changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
         return 0;
     }
@@ -126,11 +126,11 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(agent.getRequest());
             assert(sCommand != 0);
-	    addSelfInVia(agent, ackMsg);
+	    addSelfInVia(agent, ackMsg.getPtr());
             ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg);
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
             cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s" ,
-                   statusCode, ackMsg->encode().logData());
+                  statusCode, ackMsg->encode().logData());
         }
 	if (statusCode == 302){
 	    SipContactList contactList = statusMsg->getContactList();

@@ -50,7 +50,7 @@
 
 
 static const char* const UaServer_cxx_Version =
-    "$Id: UaServer.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaServer.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "ByeMsg.hxx" 
 #include "AckMsg.hxx" 
@@ -102,6 +102,6 @@ UaServer::sendBye()
     byeMsg->setCSeq( sipCSeq );
 
 
-    myStack->sendAsync(byeMsg);
-    return byeMsg;
+    myStack->sendAsync(byeMsg.getPtr());
+    return byeMsg.getPtr();
 }

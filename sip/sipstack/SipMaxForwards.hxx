@@ -54,7 +54,7 @@
 #include "global.h"
 
 static const char* const SipMaxForwardsVersion =
-    "$Id: SipMaxForwards.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMaxForwards.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "Data.hxx"
 #include "cpLog.h"
@@ -128,7 +128,7 @@ class SipMaxForwards : public SipHeader
         Data encode() const;
 
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
 
@@ -146,11 +146,5 @@ ostream&
 operator<<(ostream& s, const Vocal::SipMaxForwards &smf);
  
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

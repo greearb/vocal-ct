@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransferTo_cxx_Version =
-    "$Id: SipTransferTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransferTo.cxx,v 1.3 2004/06/16 06:51:26 greear Exp $";
 
 #include "global.h"
 #include "SipTransferTo.hxx"
@@ -533,7 +533,7 @@ SipTransferTo::setUrl(Sptr <BaseUrl>  tourl)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipTransferTo::duplicate() const
 {
     return new SipTransferTo(*this);
@@ -555,9 +555,3 @@ SipTransferTo::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

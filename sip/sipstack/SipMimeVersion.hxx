@@ -54,7 +54,7 @@
 #include "global.h"
 
 static const char* const SipMimeVersionVersion =
-    "$Id: SipMimeVersion.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMimeVersion.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -124,7 +124,7 @@ class SipMimeVersion : public SipHeader
         Data encode() const;
 
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 
 	/// decode the data
         void decode(const Data& data);
@@ -140,10 +140,4 @@ class SipMimeVersion : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

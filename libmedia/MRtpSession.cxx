@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -134,12 +134,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
 }
 
 void
-MRtpSession::processIncomingRTP(fd_set* fds)
-{
-    if ( myShutdown == true) {
-        return;
-    }
-
+MRtpSession::processIncomingRTP(fd_set* fds) {
     RtpSessionState sessionState = rtpStack->getSessionState();
     
     if ( sessionState == rtp_session_undefined ) {
@@ -167,8 +162,7 @@ MRtpSession::processIncomingRTP(fd_set* fds)
         // us to return here quickly... --Ben
 
     }//while
-
-}
+}//processIncomingRTP
 
 
 void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
@@ -176,12 +170,13 @@ void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
     // TODO:  Only drain jitter buffer every XXX miliseconds.
     // Maybe use the preferred timeout as calculated in the setFds method below?
 
-    processIncomingRTP(&netFD); /** Handles both RTCP and RTP receive logic,
-                                 * will not block. */
+    processIncomingRTP(input_fds); /** Handles both RTCP and RTP receive logic,
+                                     * will not block. */
 }
 
 int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                         int& maxdesc, uint64& timeout, uint64 now) {
+
     rtpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 
     if (mySession.getPtr()) {
@@ -194,13 +189,11 @@ int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 
 void 
-MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy)
-{
+MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
     // Cache the session obj, but have to protect this with a lock to keep
     // it from dis-appearing while we are using it!
-    if ((mySession == 0) || (mySessionId != mySession->getSessionId()))
-    {
-        mySession = MediaController::instance().getSession(mySessionId, true);
+    if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
+        mySession = MediaController::instance().getSession(mySessionId);
     }
 
     if (mySession == 0) {
@@ -216,12 +209,7 @@ MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy)
 ///Consume the raw data
 void 
 MRtpSession::sinkData(char* data, int length, VCodecType type,
-                      Sptr<CodecAdaptor> codec, bool silence_pkt)
-{
-    if (myShutdown == true) {
-        mySession = 0;
-        return;
-    }
+                      Sptr<CodecAdaptor> codec, bool silence_pkt) {
 
     //if the codec type is not same as the network type of the session
     //convert back, say for example if data is PCMU and sent over session codec
@@ -230,16 +218,14 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
     //Send RTP packet to the destination
     cpLog(LOG_DEBUG_STACK, "%s sinking data", description().c_str());
     int retVal = 0;
-    if(type == DTMF_TONE)
-    {
+    if(type == DTMF_TONE) {
         //First 8 bits will represent the event
         char event;
         memcpy(&event, data, 1);
         cerr << "Sending digit:" << (int)event << endl;
         retVal = rtpStack->transmitEvent(event);
     }
-    else 
-    {
+    else {
         if (type != myCodec->getType()) {
             //First convert the data from type to myType and then feed
             //it to the soundcard
@@ -288,32 +274,29 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
         }
     }
 
-    if(retVal < 0)
-    {
+    if (retVal < 0) {
         cpLog(LOG_ERR, "Failed to transmit RTP packets to %s:%d", 
                        myRemoteAddress->getIpName().c_str(),
                        myRemoteAddress->getPort());
     }
-}
+}//sinkData
 
-string
-MRtpSession::description()
-{
+
+string MRtpSession::description() {
     char buf[256];
-    sprintf(buf, "%s:%d->%s:%d", myLocalAddress->getIpName().c_str(),
-                                 myLocalAddress->getPort(),
-                                 myRemoteAddress->getIpName().c_str(),
-                                 myRemoteAddress->getPort());
+    snprintf(buf, 255, "%s:%d->%s:%d", myLocalAddress->getIpName().c_str(),
+             myLocalAddress->getPort(),
+             myRemoteAddress->getIpName().c_str(),
+             myRemoteAddress->getPort());
     return buf;
 }
 
-void 
-MRtpSession::recvDTMF(int event)
-{
+void MRtpSession::recvDTMF(int event) {
     cpLog(LOG_ERR, "Received DTMF: %d\n", event);
     char eventData = event;
     Sptr<CodecAdaptor> nll;
-    MediaController::instance().getSession(mySessionId, true)->processRaw(&eventData, 1, DTMF_TONE, nll, this, false);
+    MediaController::instance().getSession(mySessionId)->processRaw(&eventData, 1, DTMF_TONE,
+                                                                    nll, this, false);
 }
 
 void 

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipVia_cxx_Version = 
-    "$Id: SipVia.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipVia.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 
 
@@ -1205,7 +1205,7 @@ SipVia::isViaReceived() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipVia::duplicate() const
 {
     return new SipVia(*this);
@@ -1227,9 +1227,3 @@ SipVia::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -357,24 +357,22 @@ MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdapto
 /** Allow the receiver to throttle based on the current size of the
  * jitter buffer.  This timeout will be passed to select.
  */
-struct timeval MediaSession::getPreferredTimeout(unsigned int jitter_pkts_in_queue,
-                                                 unsigned int queue_max) {
-   struct timeval tv;
-   tv.tv_sec = 0;
-
+uint64 MediaSession::getPreferredTimeout(unsigned int jitter_pkts_in_queue,
+                                         unsigned int queue_max) {
+   uint64 rv = 0;
    if (myMediaDevice.getPtr()) {
-      tv.tv_usec = myMediaDevice->getDataRate() * 1000;
+      rv += myMediaDevice->getDataRate();
    }
 
    // Now, deal with some adaptive code to try to keep the jitter buffer half full.
    unsigned int desired = queue_max >> 1; // Half of max
    if (jitter_pkts_in_queue < (desired - desired/2)) {
-      tv.tv_usec +=  4000;
+      rv +=  4;
    }
    else if (jitter_pkts_in_queue > (desired + desired/2)) {
-      tv.tv_usec -= 4000;
+      rv -= 4;
    }
-   return tv;
+   return rv;
 }
 
 
@@ -385,7 +383,6 @@ MediaSession::startSession(VSdpMode mode)
     if (myRtpSession != 0) {
         myMediaDevice->start(myRtpSession->getCodec()->getType());
         myRtpSession->setMode(mode); 
-        myRtpSession->start(); 
     }
     else {
         cpLog(LOG_ERR, "WARNING:  myRtpSession is NULL in startSession");

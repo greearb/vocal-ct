@@ -50,7 +50,7 @@
  */
 
 static const char* const SipServer_cxx_Version =
-    "$Id: SipServer.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipServer.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipServer.hxx"
@@ -296,7 +296,7 @@ void SipServer::set( const Data& newdata )
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipServer::duplicate() const
 {
     return new SipServer(*this);
@@ -316,9 +316,3 @@ SipServer::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

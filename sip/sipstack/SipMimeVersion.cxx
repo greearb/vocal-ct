@@ -50,7 +50,7 @@
  */
 
 static const char* const SipMimeVersion_cxx_Version =
-    "$Id: SipMimeVersion.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMimeVersion.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -252,7 +252,7 @@ Data SipMimeVersion::encode() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipMimeVersion::duplicate() const
 {
     return new SipMimeVersion(*this);
@@ -272,9 +272,3 @@ SipMimeVersion::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

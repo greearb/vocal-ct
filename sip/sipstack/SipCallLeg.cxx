@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCallLeg_cxx_Version =
-    "$Id: SipCallLeg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipCallLeg.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -122,20 +122,15 @@ SipCallLeg::setFrom( const SipFrom& newfrom )
 
 
 bool
-SipCallLeg::operator == (const SipCallLeg& src) const
-{
+SipCallLeg::operator == (const SipCallLeg& src) const {
     cpLog(LOG_DEBUG, "in SipCallLeg::operator == ");
-    if ( getCallId() == src.getCallId() && cseq == src.cseq)
-    {
-        if ( to == src.to && from == src.from )
-        {
+    if ( getCallId() == src.getCallId() && cseq == src.cseq) {
+        if ( to == src.to && from == src.from ) {
             cpLog( LOG_DEBUG_STACK, "Exact Match" );
             return true;
         }
-        else
-        {
-            if ( to == src.from && from == src.to )
-            {
+        else {
+            if ( to == src.from && from == src.to ) {
                 cpLog( LOG_DEBUG_STACK, "To-From cross match" );
                 return true;
             }
@@ -280,7 +275,7 @@ SipCallLeg::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipCallLeg::duplicate() const
 {
     return new SipCallLeg(*this);
@@ -300,11 +295,3 @@ SipCallLeg::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

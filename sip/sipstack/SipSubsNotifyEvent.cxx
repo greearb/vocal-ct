@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSubsNotifyEvent_cxx_Version =
-    "$Id: SipSubsNotifyEvent.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSubsNotifyEvent.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 #include "global.h"
 #include "SipSubsNotifyEvent.hxx"
@@ -211,7 +211,7 @@ SipSubsNotifyEvent::scanSipSubsNotifyEvent(const Data& data)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipSubsNotifyEvent::duplicate() const
 {
     return new SipSubsNotifyEvent(*this);

@@ -50,7 +50,7 @@
 
 
 static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+    "$Id: UaBase.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -154,7 +154,7 @@ UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,
     mUrl->setPort(Data(_sipPort));
  
     SipContact me("", _localIp);
-    me.setUrl(mUrl);
+    me.setUrl(mUrl.getPtr());
     inviteMsg->setContact(me);
 
     //Clear VIA and set B2b as first via
@@ -230,7 +230,7 @@ UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,
         {
             sUrl->setTransportParam("tcp");
         }
-        reqLine.setUrl(sUrl);
+        reqLine.setUrl(sUrl.getPtr());
     }
 
     return inviteMsg;
@@ -284,8 +284,9 @@ UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode,
     }
     cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
     myStack->sendReply(sendSMsg);
-	 if (memorizeResponse)
-		 setResponse(sendSMsg);
+    if (memorizeResponse) {
+       setResponse(sendSMsg.getPtr());
+    }
 
     // return sendSMsg; // VEER
 }
@@ -315,25 +316,24 @@ UaBase::ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp)
  
             Sptr<SipUrl> sUrl;
             sUrl.dynamicCast(invMsg->getRequestLine().getUrl());
-            SipRequestLine rLine(SIP_ACK, sUrl, sMsg->getLocalIp());
+            SipRequestLine rLine(SIP_ACK, sUrl.getPtr(), sMsg->getLocalIp());
             ackMsg->setRequestLine(rLine);
         }
 
         // 28/1/04 fpi
         // adding slowstart management
-        if(sipSdp != 0) {
+        if (sipSdp != 0) {
            ackMsg->setNumContentData(0);
            ackMsg->setContentData(sipSdp.getPtr());
         }
 
-        myStack->sendAsync(ackMsg);
+        myStack->sendAsync(ackMsg.getPtr());
     }
 }
 
 
 
-UaBase::~UaBase()
-{
+UaBase::~UaBase() {
     //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
     cpLog(LOG_DEBUG_STACK , "(%s:%p) Deleting instance..\n",
           instanceName.c_str(), this);
@@ -344,30 +344,20 @@ UaBase::~UaBase()
     myControllerAgent = (BasicAgent*)(0x148);
 }
 
-void
-UaBase::clearRouteList()
-{
-    //cleanup the routelist
-    while(myRouteList.size())
-    {
-        SipRoute* r = myRouteList.back();
-        myRouteList.pop_back();
-        delete r;
-    }
+void UaBase::clearRouteList() {
+   myRouteList.clear();
 }
 
 
 void 
-UaBase::saveRouteList(const Sptr<SipMsg>& msg, bool reverse)
-{
+UaBase::saveRouteList(const Sptr<SipMsg>& msg, bool reverse) {
     clearRouteList();
     SipRecordRouteList rrList = msg->getrecordrouteList();
     SipRecordRouteList::iterator iter = rrList.begin();
 
     //Reverse the recordRoute list and form a route list
     // (A,B,C) -> (C,B, A)
-    while ( iter != rrList.end() )
-    {
+    while ( iter != rrList.end() ) {
         Sptr< BaseUrl > baseUrl = (*iter)->getUrl();
         if( baseUrl->getType() == TEL_URL )
         {
@@ -443,12 +433,11 @@ UaBase::fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp)
                     sUrl.dynamicCast(c.getUrl());
                     assert(sUrl != 0);
                     sUrl->setHost(natIp);
-                    c.setUrl(sUrl);
+                    c.setUrl(sUrl.getPtr());
                     sMsg->setNumContact(0);
                     sMsg->setContact(c);
                 }
-                else
-                {
+                else {
                    //Wrong status message type, return
                    return;
                 }
@@ -478,24 +467,26 @@ UaBase::fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp)
 }
 
 
-void UaBase::setState(UaState* state) {
+void UaBase::setState(Sptr<UaState> state) {
    string cs("NULL");
-   if (myState) {
+   if (myState != 0) {
       cs = myState->toString();
    }
-	else {
-		cs = "Undetermined state";
-	}
+   else {
+      cs = "Undetermined state";
+   }
+
    string ns("NULL");
-   if (state) {
+   if (state != 0) {
       ns = state->toString();
    }
-	else {
-		ns = "Undetermined state";
-	}
+   else {
+      ns = "Undetermined state";
+   }
+
    cpLog(LOG_DEBUG, "UaBase::setState:  %s:%s:%p changing state from: %s to: %s(%p)\n",
          className().c_str(), instanceName.c_str(),
-         this, cs.c_str(), ns.c_str(), state);
+         this, cs.c_str(), ns.c_str(), state.getPtr());
 
    myState = state;
 }

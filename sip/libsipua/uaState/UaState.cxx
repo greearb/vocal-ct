@@ -49,7 +49,7 @@
  *
  */
 static const char* const UaState_cxx_Version = 
-"$Id: UaState.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: UaState.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 #include <stdio.h>
 
 #include "UaState.hxx"
@@ -116,9 +116,10 @@ UaState::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 void
-UaState::changeState(UaBase& agent, UaState* newState) 
+UaState::changeState(UaBase& agent, Sptr<UaState> newState) 
 {
-    cpLog(LOG_DEBUG, "UaState::setState from (%s) -> (%s)", className().c_str(), newState->className().c_str());
+    cpLog(LOG_DEBUG, "UaState::setState from (%s) -> (%s)",
+          className().c_str(), newState->className().c_str());
     agent.setState(newState);
 }
 

@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFactory_cxx_Version = 
-"$Id: UaStateFactory.cxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+"$Id: UaStateFactory.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -93,9 +93,9 @@ Sptr<UaState>
 UaStateFactory::getState(UStateType stateType) {
    Sptr<UaState> retVal;
 
-   UaStateMap::iterator itr  = UaStateMap.find(stateType);
+   UaStateMap::iterator itr  = stateMap.find(stateType);
 
-   if (itr != UaStateMap.end()) {
+   if (itr != stateMap.end()) {
       return itr->second;
    }
    switch(stateType) {
@@ -132,7 +132,7 @@ UaStateFactory::getState(UStateType stateType) {
       break;
    }
 
-   UaStateMap[stateType] = retVal;
+   stateMap[stateType] = retVal;
    return retVal;
 }
 

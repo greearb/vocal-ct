@@ -50,7 +50,7 @@
  */
 
 static const char* const SipSupported_cxx_Version =
-    "$Id: SipSupported.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSupported.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 
 #include "global.h"
@@ -178,7 +178,7 @@ bool SipSupported::operator ==(const SipSupported& src) const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipSupported::duplicate() const
 {
     return new SipSupported(*this);
@@ -198,9 +198,3 @@ SipSupported::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

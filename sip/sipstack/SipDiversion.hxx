@@ -52,7 +52,7 @@
  */
 
 static const char* const SipDiversion_hxx_version =
-    "$Id: SipDiversion.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipDiversion.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include <map>
 
@@ -207,7 +207,7 @@ class SipDiversion : public SipHeader
 
         void print();
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -235,11 +235,5 @@ class SipDiversion : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipRequire_cxx_Version =
-    "$Id: SipRequire.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRequire.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipRequire.hxx"
@@ -173,7 +173,7 @@ Data SipRequire::encode() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipRequire::duplicate() const
 {
     return new SipRequire(*this);
@@ -193,9 +193,3 @@ SipRequire::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

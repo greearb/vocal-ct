@@ -50,7 +50,7 @@
 
 
 static const char* const ContactData_cxx_Version =
-    "$Id: ContactData.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: ContactData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -60,7 +60,7 @@ static const char* const ContactData_cxx_Version =
 ContactData::ContactData()
 {
 }
-ContactData::ContactData(const Sptr<SipCallLegData>& cLegData) 
+ContactData::ContactData(Sptr<SipCallLegData> cLegData) 
 { 
     addPeer(cLegData);
 };

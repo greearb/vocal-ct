@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReferredBy_cxx_version =
-    "$Id: SipReferredBy.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipReferredBy.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipReferredBy.hxx"
@@ -768,7 +768,7 @@ SipReferredBy::scanAuthTokens( const Data& data)
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipReferredBy::duplicate() const
 {
     return new SipReferredBy(*this);
@@ -789,10 +789,3 @@ SipReferredBy::compareSipHeader(SipHeader* msg) const
     }
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

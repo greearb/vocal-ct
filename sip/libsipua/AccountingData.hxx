@@ -53,9 +53,10 @@
 
 
 static const char* const AccountingDara_hxx_Version =
-    "$Id: AccountingData.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: AccountingData.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
+#include <BugCatcher.hxx>
 
 
 /** Data container for holding Accounting Data for a given session
@@ -71,8 +72,7 @@ static const char* const AccountingDara_hxx_Version =
 
     </pre>
 */
-class AccountingData 
-{
+class AccountingData : public BugCatcher {
    public:
       /// Create one with default values
       AccountingData(unsigned long sessionId)

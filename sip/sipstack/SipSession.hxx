@@ -53,7 +53,7 @@
 
 #include "global.h"
 static const char* const SipSessionVersion =
-    "$Id: SipSession.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSession.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -122,9 +122,9 @@ class SipSession : public SipHeader
     void setSessionQos(const bool&);
     ///
     void setSessionSecurity(const bool&);
-	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
-	/// compare two headers of (possibly) the same class
+	// method for copying sip headers of any type without knowing which type
+    Sptr<SipHeader> duplicate() const;
+	// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
 private:
     bool sessionMedia;
@@ -139,10 +139,4 @@ private:
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

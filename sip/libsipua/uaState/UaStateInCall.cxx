@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateInCall_cxx_Version =
-    "$Id: UaStateInCall.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UaStateInCall.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "UaStateInCall.hxx"
 #include "UaStateFactory.hxx"
@@ -83,12 +83,10 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Send 200 status msg
             agent.sendReplyForRequest(msg, 200);
             //Notify CC
-            agent.lock();
             BasicAgent* ba = agent.getControllerAgent();
             if (ba) {
                ba->receivedRequest(agent, msg);
             }
-            agent.unlock();
         }
         break;
         case SIP_BYE:
@@ -97,7 +95,6 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Send 200 
             agent.sendReplyForRequest(msg, 200);
             //Notify CC of the call end
-            agent.lock();
             BasicAgent* ba = agent.getControllerAgent();
             if (ba) {
                 cpLog(LOG_DEBUG, "UaStateInCall, found controller agent, agent: %p  controllerAgent: %p\n", &agent, ba);
@@ -110,7 +107,6 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
                 cpLog(LOG_DEBUG, "UaStateInCall, after received request\n");
                 ba->assertNotDeleted();
             }
-            agent.unlock();
 
             //Transit to Idle
             changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
@@ -123,12 +119,10 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Save the Ack message for future BYE
             agent.setAck(msg);
             //Notify CC
-            agent.lock();
             BasicAgent* ba = agent.getControllerAgent();
             if (ba) {
                ba->receivedRequest(agent, msg);
             }
-            agent.unlock();
         }
         break;
         case SIP_INVITE:
@@ -145,12 +139,10 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 				agent.setRequest(msg);
 
             //Notify CC
-            agent.lock();
             BasicAgent* ba = agent.getControllerAgent();
             if (ba) {
                 ba->hold(agent, msg);
             }
-            agent.unlock();
 
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_HOLD));
         }
@@ -163,45 +155,40 @@ UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             agent.sendReplyForRequest(msg, 487);
 
             //Notify CC of the call end
-            agent.lock();
             BasicAgent* ba = agent.getControllerAgent();
             if (ba) {
                ba->receivedRequest(agent, msg);
                ba->endCall();
             }
-            agent.unlock();
 
             //Transit to Idle
             changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
         }
         break;
 
-        case SIP_OPTIONS:
-        {
-            cpLog(LOG_DEBUG, "UaStateInCall, processing SIP_OPTIONS");
+        case SIP_OPTIONS: {
+           cpLog(LOG_DEBUG, "UaStateInCall, processing SIP_OPTIONS");
 
-				// 26/1/04 fpi
-				// avoid general reply for request, we nee to
-				// set allowed
-				// ! Send 200 status msg
-            // ! agent.sendReplyForRequest(msg, 200);				
-				Sptr<StatusMsg> infoStatusReply = new StatusMsg(*sipCmd, 200);
-				infoStatusReply->setAllow(Data(UaBase::allowField), 0);
-				
-				cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(),
-					infoStatusReply->encode().logData());
-				agent.getSipTransceiver()->sendReply(infoStatusReply);
-
-				// 26/1/04 fpi
-				// we do not notify the controllerAgent,
-				// because it's not interested in our reply
-            // ! Notify CC
-            // ! agent.lock();
-            // ! BasicAgent* ba = agent.getControllerAgent();
-            // ! if (ba) {
-            // !   ba->receivedRequest(agent, msg);
-            // ! }
-            // ! agent.unlock();
+           // 26/1/04 fpi
+           // avoid general reply for request, we nee to
+           // set allowed
+           // ! Send 200 status msg
+           // ! agent.sendReplyForRequest(msg, 200);				
+           Sptr<StatusMsg> infoStatusReply = new StatusMsg(*sipCmd, 200);
+           infoStatusReply->setAllow(Data(UaBase::allowField), 0);
+           
+           cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(),
+                 infoStatusReply->encode().logData());
+           agent.getSipTransceiver()->sendReply(infoStatusReply);
+           
+           // 26/1/04 fpi
+           // we do not notify the controllerAgent,
+           // because it's not interested in our reply
+           // ! Notify CC
+           // ! BasicAgent* ba = agent.getControllerAgent();
+           // ! if (ba) {
+           // !   ba->receivedRequest(agent, msg);
+           // ! }
         }
         break;
         default:
@@ -269,8 +256,9 @@ UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             }
             invMsg->setFrom(from);
 
-            cpLog(LOG_DEBUG, "(%s) Sending re-invite %s", agent.className().c_str(), invMsg->encode().logData());
-            agent.getSipTransceiver()->sendAsync(invMsg);
+            cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
+                  agent.className().c_str(), invMsg->encode().logData());
+            agent.getSipTransceiver()->sendAsync(invMsg.getPtr());
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_HOLD));
 	    
         }
@@ -286,7 +274,7 @@ UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             // adding slowstart management
             Sptr<SipSdp> sipSdp;
             sipSdp.dynamicCast(msg->getContentData(0));
-            agent.ackStatus(sMsg, sipSdp);
+            agent.ackStatus(sMsg.getPtr(), sipSdp);
 
             Sptr<AckMsg> ackMsg = new AckMsg(*sMsg, agent.getMyLocalIp());	
             if(sipSdp != 0) {
@@ -306,7 +294,7 @@ UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<SipCommand> sipCmd;
             sipCmd.dynamicCast(agent.getRequest());
             Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
-            agent.getSipTransceiver()->sendAsync(cMsg);
+            agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
             //Transit to End
             changeState(agent, UaStateFactory::instance().getState(U_STATE_END));
         }
@@ -339,12 +327,12 @@ UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
        Sptr<SipCommand> sCommand;
        sCommand.dynamicCast(agent.getRequest());
        assert(sCommand != 0);
-       addSelfInVia(agent, ackMsg);
+       addSelfInVia(agent, ackMsg.getPtr());
        ackMsg->setRouteList(agent.getRouteList());
        //Remove the top route
        ackMsg->removeRoute(0);
        ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-       agent.getSipTransceiver()->sendAsync(ackMsg);
+       agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
 
     }
     if(statusCode == 200)
@@ -352,7 +340,7 @@ UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
        if(statusMsg->getCSeq().getMethod() == INVITE_METHOD)
        {
           Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
-          addSelfInVia(agent, ackMsg);
+          addSelfInVia(agent, ackMsg.getPtr());
           ackMsg->setRouteList(agent.getRouteList());
           //Remove the top route
           ackMsg->removeRoute(0);
@@ -396,10 +384,10 @@ UaStateInCall::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         assert(mUrl != 0);
 
         mUrl->setHost(agent.getNatHost());
-        mUrl->setPort(Data(agent.getMySipPort()));
+        mUrl->setPort(agent.getMySipPort());
 
         SipContact me("", agent.getMyLocalIp());
-        me.setUrl(mUrl);
+        me.setUrl(mUrl.getPtr());
         sendSMsg->setNumContact( 0 );
         sendSMsg->setContact( me );
         agent.getSipTransceiver()->sendReply(sendSMsg);

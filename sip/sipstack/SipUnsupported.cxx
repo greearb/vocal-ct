@@ -50,7 +50,7 @@
  */
 
 static const char* const SipUnsupported_cxx_Version =
-    "$Id: SipUnsupported.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipUnsupported.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 #include "global.h"
 #include "SipUnsupported.hxx"
@@ -147,7 +147,7 @@ Data SipUnsupported::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipUnsupported::duplicate() const
 {
     return new SipUnsupported(*this);

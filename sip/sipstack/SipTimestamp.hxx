@@ -54,7 +54,7 @@
 #include "global.h"
 #include "SipHeader.hxx"
 static const char* const SipTimestampVersion =
-    "$Id: SipTimestamp.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTimestamp.hxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 
 
@@ -150,7 +150,7 @@ class SipTimestamp : public SipHeader
         Data encode() const;
 
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -164,10 +164,4 @@ class SipTimestamp : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MediaSession.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
@@ -138,8 +138,8 @@ class MediaSession : public BugCatcher
       /** Allow the receiver to throttle based on the current size of the
        * jitter buffer.  This timeout will be passed to select.
        */
-      virtual struct timeval getPreferredTimeout(unsigned int jitter_pkts_in_queue,
-                                                 unsigned int queue_max);
+      virtual uint64 getPreferredTimeout(unsigned int jitter_pkts_in_queue,
+                                         unsigned int queue_max);
 
       /**Based on the given mode ( VSDP_SND, VSDP_RECV,VSDP_SND_RECV), generate
         *local SDP data. Used when initiating a call.

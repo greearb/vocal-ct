@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -148,8 +148,7 @@ class MRtpSession  : public Adaptor
          void processRecv(RtpPacket& packet, const NetworkRes& sentBy);
 
          ///Interface to receive DTMF events from RTP stack
-         class MDTMFInterface: public DTMFInterface
-         {
+         class MDTMFInterface: public DTMFInterface {
              public:
                 MDTMFInterface(MRtpSession* s): mySession(s) { };
                 ///Do not know what to do with second argument
@@ -158,8 +157,6 @@ class MRtpSession  : public Adaptor
          };
         ///
         void processIncomingRTP(fd_set* fds);
-        ///
-        virtual void thread();
 
         ///
         int mySessionId;

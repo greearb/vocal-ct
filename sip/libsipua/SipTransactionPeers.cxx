@@ -50,39 +50,22 @@
 
 
 static const char* const SipTransactionPeers_cxx_Version =
-    "$Id: SipTransactionPeers.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipTransactionPeers.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "SipTransactionPeers.hxx" 
 #include <algorithm>
 
 
 void 
-SipTransactionPeers::copyObj(const SipTransactionPeers& src)
-{
-    myCallLegList.erase(myCallLegList.begin(), myCallLegList.end());
-    for(SipCallLegList::const_iterator itr = src.myCallLegList.begin(); 
-                     itr != src.myCallLegList.end(); itr++)
-    {
-        myCallLegList.push_back(*itr);
-    }
-    myTrId = src.myTrId;
-}
-
-
-void 
-SipTransactionPeers::addPeer(const SipCallLeg& callLeg)
-{
-    SipCallLegList::iterator itr = find(myCallLegList.begin(), myCallLegList.end(), callLeg);
-    assert(itr == myCallLegList.end());
-    myCallLegList.push_back(callLeg);
+SipTransactionPeers::addPeer(const SipCallLeg& callLeg) {
+   myCallLegList.push_back(callLeg);
 }
 
 void 
-SipTransactionPeers::removePeer(const SipCallLeg& callLeg)
-{
-    SipCallLegList::iterator itr = find(myCallLegList.begin(), myCallLegList.end(), callLeg);
-    if(itr != myCallLegList.end())
-    {
-        myCallLegList.erase(itr);
-    }
+SipTransactionPeers::removePeer(const SipCallLeg& callLeg) {
+   //TODO:  I don't think this works as desired.  How do we determine == for callLeg?
+   SipCallLegList::iterator itr = find(myCallLegList.begin(), myCallLegList.end(), callLeg);
+   if (itr != myCallLegList.end()) {
+      myCallLegList.erase(itr);
+   }
 }

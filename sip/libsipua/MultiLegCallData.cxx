@@ -50,14 +50,10 @@
 
 
 static const char* const MultiLegCallData_cxx_Version =
-    "$Id: MultiLegCallData.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: MultiLegCallData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "MultiLegCallData.hxx" 
-#include "Lock.hxx"
  
-using Vocal::Threads::Lock;
-
-
 
 void 
 MultiLegCallData::copyObj(const MultiLegCallData& src)
@@ -86,7 +82,6 @@ MultiLegCallData::copyObj(const MultiLegCallData& src)
 Sptr<SipCallLegData>  
 MultiLegCallData::getCallLeg(const SipCallLeg& callLeg)
 {
-    Lock lock1(myMutex);
     CallLegDataMap::iterator itr = myCallLegDataMap.find(callLeg);
     if(itr != myCallLegDataMap.end())
     {
@@ -102,9 +97,8 @@ MultiLegCallData::getCallLeg(const SipCallLeg& callLeg)
 }
 
 void 
-MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, const Sptr<SipCallLegData>& legData)
+MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData)
 {
-    Lock lock1(myMutex);
     assert(myCallLegDataMap.count(callLeg) == 0);
     myCallLegDataMap[callLeg] = legData;
 }
@@ -112,7 +106,6 @@ MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, const Sptr<SipCallLegDat
 void 
 MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg)
 {
-    Lock lock1(myMutex);
     CallLegDataMap::iterator itr = myCallLegDataMap.find(callLeg);
     if(itr != myCallLegDataMap.end())
     {
@@ -124,7 +117,6 @@ MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg)
 Sptr<SipTransactionPeers> 
 MultiLegCallData::findPeer(const SipTransactionId& trId)
 {
-     Lock lock1(myMutex);
      Sptr<SipTransactionPeers> retVal = 0;
      TransactionPeerMap::iterator itr = myTransactionPeerMap.find(trId); 
      if(itr != myTransactionPeerMap.end())
@@ -138,7 +130,6 @@ MultiLegCallData::findPeer(const SipTransactionId& trId)
 void 
 MultiLegCallData::addTransactionPeer(const Sptr<SipTransactionPeers>& peer)
 {
-    Lock lock1(myMutex);
     assert(myTransactionPeerMap.count(*(peer->getTrId())) == 0);
     myTransactionPeerMap[*(peer->getTrId())] = peer;
 }
@@ -146,7 +137,6 @@ MultiLegCallData::addTransactionPeer(const Sptr<SipTransactionPeers>& peer)
 void 
 MultiLegCallData::removeTransactionPeer(const SipTransactionId& trId)
 {
-     Lock lock1(myMutex);
      TransactionPeerMap::iterator itr = myTransactionPeerMap.find(trId); 
      if(itr != myTransactionPeerMap.end())
      {

@@ -53,7 +53,7 @@
 
 
 static const char* const MultiLegCallData_hxx_Version =
-    "$Id: MultiLegCallData.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+    "$Id: MultiLegCallData.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 
@@ -100,9 +100,6 @@ class ClassFoo
  void
  ClassFoo::addCallLeg(Sptr<UaBase> agent)
    {
-      Lock lock(myMutex); Locking depends upon the sharing it's good idea to make
-                         sure it is required.
-
       const SipCallLeg& cLeg = agent->getCallLeg();
 </br> Sptr<MultiLegCallData> mData = new MultiLegCallData();</br>
       mData->addCallLeg(cLeg, agent);
@@ -155,7 +152,8 @@ class MultiLegCallData : public BugCatcher
       Sptr<SipCallLegData>  getCallLeg(const SipCallLeg& callLeg);
 
       ///Add call-leg data for a given callLeg
-      void addCallLeg(const SipCallLeg& callLeg, const Sptr<SipCallLegData>& legData);
+      void addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData);
+
       ///
       void removeCallLeg(const SipCallLeg& callLeg);
 
@@ -175,8 +173,6 @@ class MultiLegCallData : public BugCatcher
       void setAccountingData(const Sptr<AccountingData>& accData) { myAccountingData = accData; };
 
    private:
-      ///
-      Mutex myMutex;
       /// 
       CallLegDataMap  myCallLegDataMap;
       ///

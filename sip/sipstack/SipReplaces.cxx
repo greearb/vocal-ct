@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReplaces_cxx_version =
-    "$Id: SipReplaces.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipReplaces.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "SipParserMode.hxx"
 #include "SipReplaces.hxx"
@@ -193,7 +193,7 @@ Data SipReplaces::encode() const
     return data;
 }
 
-SipHeader*
+Sptr<SipHeader>
 SipReplaces::duplicate() const
 {
     return new SipReplaces(*this);
@@ -214,9 +214,3 @@ SipReplaces::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -50,7 +50,7 @@
 
 
 static const char* const UaClient_cxx_Version =
-    "$Id: UaClient.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaClient.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "ByeMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -99,10 +99,10 @@ UaClient::sendBye()
     SipCSeq sipCSeq = byeMsg->getCSeq();
     sipCSeq.setCSeq( cseq );
     byeMsg->setCSeq( sipCSeq );
-    myStack->sendAsync(byeMsg);
+    myStack->sendAsync(byeMsg.getPtr());
     cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
 
     cpLog(LOG_DEBUG, "ByeMsg: %s\n", byeMsg->toString().c_str());
 
-    return byeMsg;
+    return byeMsg.getPtr();
 }

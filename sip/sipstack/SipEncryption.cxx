@@ -50,7 +50,7 @@
  */
 
 static const char* const SipEncryption_cxx_Version =
-    "$Id: SipEncryption.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipEncryption.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -237,7 +237,7 @@ Data SipEncryption::encode() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipEncryption::duplicate() const
 {
     return new SipEncryption(*this);

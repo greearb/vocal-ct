@@ -49,7 +49,7 @@
  */
 
 static const char* const SipContentLength_cxx_Version =
-    "$Id: SipContentLength.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipContentLength.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -187,7 +187,7 @@ SipContentLength::operator=(const SipContentLength& src)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipContentLength::duplicate() const
 {
     return new SipContentLength(*this);
@@ -209,9 +209,3 @@ SipContentLength::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

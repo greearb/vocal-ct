@@ -50,7 +50,7 @@
  */
 
 static const char* const SipSessionExpires_cxx_Version =
-    "$Id: SipSessionExpires.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSessionExpires.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -261,7 +261,7 @@ Data SipSessionExpires::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipSessionExpires::duplicate() const
 {
     return new SipSessionExpires(*this);
@@ -294,9 +294,3 @@ SipSessionExpires::parseError(const string& context)
                 __LINE__, DECODE_SESSION_EXPIRE_FAILED);
         }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

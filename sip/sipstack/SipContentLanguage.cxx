@@ -50,7 +50,7 @@
  */
 
 static const char* const SipContentLanguage_cxx_Version =
-    "$Id: SipContentLanguage.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipContentLanguage.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -218,7 +218,7 @@ bool SipContentLanguage::operator==(const SipContentLanguage& src) const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipContentLanguage::duplicate() const
 {
     return new SipContentLanguage(*this);
@@ -239,9 +239,3 @@ SipContentLanguage::compareSipHeader(SipHeader* msg) const
     }
 } 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipHide_cxx_Version =
-    "$Id: SipHide.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipHide.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipHide.hxx"
@@ -192,7 +192,7 @@ Data SipHide::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipHide::duplicate() const
 {
     return new SipHide(*this);

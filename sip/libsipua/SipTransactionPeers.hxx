@@ -53,12 +53,13 @@
 
 
 static const char* const SipTransactionPeers_hxx_Version =
-    "$Id: SipTransactionPeers.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipTransactionPeers.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionId.hxx" 
 #include "SipCallLeg.hxx" 
 #include "UaDef.hxx"
+#include <BugCatcher.hxx>
 
 using Vocal::SipMsg;
 using Vocal::SipCallLeg;
@@ -101,49 +102,36 @@ Example:
 
 </pre>
 */
-class SipTransactionPeers 
-{
-   public:
-      ///
-      typedef vector<SipCallLeg > SipCallLegList;
-      ///
-      SipTransactionPeers( const Sptr<SipTransactionId>& trId ): myTrId(trId) { };
+class SipTransactionPeers : public BugCatcher {
+public:
+   ///
+   typedef vector<SipCallLeg > SipCallLegList;
 
-      ///
-      SipTransactionPeers( const SipTransactionPeers& src )
-      {
-          copyObj(src);
-      }
+   ///
+   SipTransactionPeers( const Sptr<SipTransactionId>& trId ): myTrId(trId) { };
+   
+   ///
+   void addPeer(const SipCallLeg& callLeg);
 
-      /// 
-      const SipTransactionPeers& operator =( const SipTransactionPeers& src )
-      {
-          if(this != &src)
-          {
-              copyObj(src);
-          }
-          return *this;
-      }
+   ///
+   void removePeer(const SipCallLeg& callLeg);
+   
+   ///
+   const SipCallLegList&  getPeerList()  const { return myCallLegList; };
+   
+   ///
+   const Sptr<SipTransactionId>& getTrId() const { return myTrId; };
+   
+private:
+   /// 
+   Sptr<SipTransactionId> myTrId;
+   ///
+   SipCallLegList myCallLegList; 
 
-      ///
-      void copyObj(const SipTransactionPeers& src);
+   // Not implemented
+   SipTransactionPeers( const SipTransactionPeers& src );
+   SipTransactionPeers& operator=(const SipTransactionPeers& src );
 
-      ///
-      void addPeer(const SipCallLeg& callLeg);
-      ///
-      void removePeer(const SipCallLeg& callLeg);
-
-      ///
-      const SipCallLegList&  getPeerList()  const { return myCallLegList; };
-
-      ///
-      const Sptr<SipTransactionId>& getTrId() const { return myTrId; };
-
-   private:
-      /// 
-      Sptr<SipTransactionId> myTrId;
-      ///
-      SipCallLegList myCallLegList; 
 };
 
 

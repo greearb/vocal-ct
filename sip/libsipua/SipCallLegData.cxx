@@ -50,7 +50,7 @@
 
 
 static const char* const SipCallLegData_cxx_Version =
-    "$Id: SipCallLegData.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipCallLegData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "ContactData.hxx" 
 #include "SipCallLegData.hxx" 
@@ -61,10 +61,10 @@ using namespace Vocal::UA;
 
 SipCallLegData::SipCallLegData( const Sptr<SipMsg>& reqMsg )
           : myRequestMsg(reqMsg),
-            myCallLegState(CLS_NONE)
+            myCallLegState(CLS_NONE),
+            mySipCallLeg(reqMsg->getFrom(), reqMsg->getTo(),
+                         reqMsg->getCallId(), reqMsg->getLocalIp())
 {
-    mySipCallLeg = new SipCallLeg(reqMsg->getFrom(), reqMsg->getTo(),
-                                  reqMsg->getCallId(), reqMsg->getLocalIp());
     myLocalSdpData.dynamicCast(reqMsg->getContentData(0));
 };
 
@@ -111,14 +111,14 @@ SipCallLegData::popContact()
 
 
 void 
-SipCallLegData::setRequest(const Sptr<SipMsg>& sipMsg) 
+SipCallLegData::setRequest(Sptr<SipMsg> sipMsg) 
 { 
     assert(sipMsg->getType() == SIP_INVITE);
     myRequestMsg = sipMsg; 
 };
 
 void 
-SipCallLegData::setResponse(const Sptr<SipMsg>& sipMsg) 
+SipCallLegData::setResponse(Sptr<SipMsg> sipMsg) 
 { 
     assert(sipMsg->getType() == SIP_STATUS);
     myResponseMsg = sipMsg; 

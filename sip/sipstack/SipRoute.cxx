@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRoute_cxx_Version =
-    "$Id: SipRoute.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipRoute.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -313,7 +313,7 @@ SipRoute::operator ==(const SipRoute& src) const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipRoute::duplicate() const
 {
     return new SipRoute(*this);
@@ -342,9 +342,3 @@ Vocal::operator<<(ostream& s, const SipRoute& route)
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

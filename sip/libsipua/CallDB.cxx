@@ -50,15 +50,13 @@
 
 
 static const char* const CallDB_cxx_Version =
-    "$Id: CallDB.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallDB.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "UaDef.hxx" 
 #include "CallDB.hxx" 
-#include "Lock.hxx"
 
 using namespace Vocal::UA;
-using Vocal::Threads::Lock;
 
 CallDB* CallDB::myInstance = 0;
 
@@ -92,11 +90,10 @@ CallDB::CallDB()
 void
 CallDB::addCallLeg(Sptr<UaBase> agent)
 {
-    Lock lock(myMutex);
-    const SipCallLeg& cLeg = agent->getCallLeg();
+    SipCallLeg cLeg = agent->getCallLeg();
     assert(myMultiLegCallDataMap.count(cLeg) == 0);
     Sptr<MultiLegCallData> mData = new MultiLegCallData();
-    mData->addCallLeg(cLeg, agent);
+    mData->addCallLeg(cLeg, agent.getPtr());
 
     Sptr<SipTransactionId> trId = new SipTransactionId(*(agent->getRequest()));
     Sptr<SipTransactionPeers> tPeer = new SipTransactionPeers(trId);
@@ -125,7 +122,7 @@ CallDB::addPeer(Sptr<UaBase> userAgent, Sptr<UaBase> peerAgent)
 
     //Now add peer data with userAgent init 
     myMultiLegCallDataMap[peerLeg] = umData;
-    umData->addCallLeg(peerLeg, peerAgent);
+    umData->addCallLeg(peerLeg, peerAgent.getPtr());
 
     Sptr<SipTransactionId> peertrId = new SipTransactionId(*(peerAgent->getRequest()));
     Sptr<SipTransactionPeers> peertPeer = new SipTransactionPeers(peertrId);
@@ -134,17 +131,16 @@ CallDB::addPeer(Sptr<UaBase> userAgent, Sptr<UaBase> peerAgent)
     umData->addTransactionPeer(peertPeer);
 
     //Add the new contact
-    Sptr<ContactData> contactData = new ContactData(peerAgent);
+    Sptr<ContactData> contactData = new ContactData(peerAgent.getPtr());
     userAgent->pushContact(contactData);
 
-    Sptr<ContactData> contactData2 = new ContactData(userAgent);
+    Sptr<ContactData> contactData2 = new ContactData(userAgent.getPtr());
     peerAgent->pushContact(contactData2);
 }
 
 Sptr<MultiLegCallData> 
 CallDB::getMultiLegCallData(const SipCallLeg& callLeg)
 {
-    Lock lock(myMutex);
     //cerr << "CallDB::getMultiLegCallData:" << myMultiLegCallDataMap.size() << endl; 
     Sptr<MultiLegCallData> retVal = 0;
     MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(callLeg);
@@ -182,48 +178,41 @@ CallDB::getAccountingData( int sessionId)
 }
 
 
-Sptr<UserAgentPeerList>
-CallDB::findAllPeers(const UaBase& userAgent)
-{
-    Sptr<UserAgentPeerList> retVal = new UserAgentPeerList;
-    const SipCallLeg& cLeg = userAgent.getCallLeg();
-    Sptr<MultiLegCallData> mData = getMultiLegCallData(cLeg);
-    if(mData == 0)
-    {
-        cpLog(LOG_DEBUG, "No peer found for leg %s", cLeg.encode().logData());
-        return retVal;
-    };
+void CallDB::findAllPeers(const UaBase& userAgent, UserAgentPeerList& retVal) {
+   retVal.clear();
+   const SipCallLeg& cLeg = userAgent.getCallLeg();
+   Sptr<MultiLegCallData> mData = getMultiLegCallData(cLeg);
+   if (mData == 0) {
+      cpLog(LOG_DEBUG, "No peer found for leg %s", cLeg.encode().logData());
+      return;
+   };
 
-    SipTransactionId trId( *(userAgent.getRequest())); 
-    Sptr<SipTransactionPeers> tPeer = mData->findPeer(trId);
-    if(tPeer == 0)
-    {
-        cpLog(LOG_DEBUG, "No peer found for leg %s", cLeg.encode().logData());
-        return retVal;
-    }
-    const SipTransactionPeers::SipCallLegList& clegList = tPeer->getPeerList();    
-    for(SipTransactionPeers::SipCallLegList::const_iterator itr = clegList.begin();
-                                       itr != clegList.end(); itr++)
-    {
-        Sptr<SipCallLegData> cLegData = mData->getCallLeg(*itr);
-        assert(cLegData != 0);
-        Sptr<UaBase> uBase;
-        uBase.dynamicCast(cLegData);
-        assert(uBase != 0);
-        if(uBase->getCallLeg() != userAgent.getCallLeg())
-        {
-            retVal->push_back(uBase);
-        }
-    }
-    return retVal;
-}
+   SipTransactionId trId( *(userAgent.getRequest())); 
+   Sptr<SipTransactionPeers> tPeer = mData->findPeer(trId);
+   if(tPeer == 0) {
+      cpLog(LOG_DEBUG, "No peer found for leg %s", cLeg.encode().logData());
+      return;
+   }
+   const SipTransactionPeers::SipCallLegList& clegList = tPeer->getPeerList();    
+   for(SipTransactionPeers::SipCallLegList::const_iterator itr = clegList.begin();
+       itr != clegList.end(); itr++) {
+      Sptr<SipCallLegData> cLegData = mData->getCallLeg(*itr);
+      assert(cLegData != 0);
+      Sptr<UaBase> uBase;
+      uBase.dynamicCast(cLegData);
+      assert(uBase != 0);
+      if (uBase->getCallLeg() != userAgent.getCallLeg()) {
+         retVal.push_back(uBase);
+      }
+   }
+}//findALlPeers
+
 
 int 
 CallDB::removePeer(const UaBase& srcAgent, const UaBase& peerAgent)
 {
 	 cpLog(LOG_INFO, "RemovePeer Agent-Peer");
 
-    Lock lock(myMutex);
     int retVal =0;
     Sptr<MultiLegCallData> mData = 0;
     MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(peerAgent.getCallLeg());
@@ -254,18 +243,16 @@ CallDB::removePeer(const UaBase& agent)
 {
 	cpLog(LOG_INFO, "RemovePeer Agent and all Peers");
 
-   Sptr<UserAgentPeerList> pList = findAllPeers(agent); 
-   for(UserAgentPeerList::iterator itr = pList->begin();
-                                    itr != pList->end(); itr++)
-   {
-        const SipCallLeg& cLeg = (*itr)->getCallLeg();
-        Lock lock(myMutex);
-        MultiLegCallDataMap::iterator itr2 = myMultiLegCallDataMap.find(cLeg); 
-        if(itr2 != myMultiLegCallDataMap.end())
-        {
-            cleanupTransactionPeer(agent, *(*itr), (*itr2).second);
-            myMultiLegCallDataMap.erase(itr2);
-        }
+   UserAgentPeerList pList;
+   findAllPeers(agent, pList); 
+   for (UserAgentPeerList::iterator itr = pList.begin();
+       itr != pList.end(); itr++) {
+      const SipCallLeg& cLeg = (*itr)->getCallLeg();
+      MultiLegCallDataMap::iterator itr2 = myMultiLegCallDataMap.find(cLeg); 
+      if (itr2 != myMultiLegCallDataMap.end()) {
+         cleanupTransactionPeer(agent, *(*itr), (*itr2).second);
+         myMultiLegCallDataMap.erase(itr2);
+      }
    }
 
    removeCallData(agent);
@@ -300,7 +287,6 @@ CallDB::cleanupTransactionPeer(const UaBase &srcAgent, const UaBase& peerAgent,
 void
 CallDB::removeCallData(const UaBase& agent)
 {
-   Lock lock(myMutex);
    MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(agent.getCallLeg()); 
    if(itr != myMultiLegCallDataMap.end())
    {

@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFailure_cxx_Version =
-    "$Id: UaStateFailure.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UaStateFailure.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "UaStateFailure.hxx"
 #include "UaBase.hxx"
@@ -117,10 +117,10 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
             Sptr<SipUrl> sUrl;
             sUrl.dynamicCast(invMsg->getRequestLine().getUrl());
-            SipRequestLine rLine(SIP_ACK, sUrl, agent.getMyLocalIp());
+            SipRequestLine rLine(SIP_ACK, sUrl.getPtr(), agent.getMyLocalIp());
             ackMsg->setRequestLine(rLine);
 
-            agent.getSipTransceiver()->sendAsync(ackMsg);
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
         }
         //Notify CC
         if (agent.getControllerAgent()) {

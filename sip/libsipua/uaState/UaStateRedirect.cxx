@@ -105,10 +105,11 @@ UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(agent.getRequest());
             assert(sCommand != 0);
-	    addSelfInVia(agent, ackMsg);
+	    addSelfInVia(agent, ackMsg.getPtr());
             ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg);
-            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s" ,statusCode, ackMsg->encode().logData());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
+                  statusCode, ackMsg->encode().logData());
         }
         //Transit to Idle
         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));

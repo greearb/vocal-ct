@@ -51,7 +51,7 @@
 
 
 static const char* const UasStateTrying_cxx_Version =
-    "$Id: UasStateTrying.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UasStateTrying.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "UasStateTrying.hxx"
 #include "UaStateFactory.hxx"
@@ -116,7 +116,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         //Send status message
         Sptr<SipSdp> sipSdp;
         sipSdp.dynamicCast(msg->getContentData(0));
-        agent.sendReplyForRequest(agent.getRequest(), statusCode, sipSdp);
+        agent.sendReplyForRequest(agent.getRequest(), statusCode, sipSdp.getPtr());
         //Transit to ringing
         changeState(agent, UaStateFactory::instance().getState(U_STATE_RINGING));
     }
@@ -137,7 +137,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
 		 
        cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
        agent.getSipTransceiver()->sendReply(sendSMsg);
-       agent.setResponse(sendSMsg);
+       agent.setResponse(sendSMsg.getPtr());
 
        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
     }
@@ -179,14 +179,15 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         mUrl->setPort(Data(agent.getMySipPort()));
 
         SipContact me("", agent.getMyLocalIp());
-        me.setUrl(mUrl);
+        me.setUrl(mUrl.getPtr());
         sendSMsg->setNumContact( 0 );
         sendSMsg->setContact( me );
 
         cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
         agent.getSipTransceiver()->sendReply(sendSMsg);
-	agent.setResponse(sendSMsg);
-        if(agent.getControllerAgent()) agent.getControllerAgent()->inCall();
+	agent.setResponse(sendSMsg.getPtr());
+        if (agent.getControllerAgent())
+           agent.getControllerAgent()->inCall();
         agent.setCallLegState(C_LIVE);
         //Transit to ringing
         changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipContentEncoding_cxx_Version =
-    "$Id: SipContentEncoding.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipContentEncoding.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "SipContentEncoding.hxx"
 #include "SipParserMode.hxx"
@@ -186,7 +186,7 @@ SipContentEncoding::operator ==( const SipContentEncoding& src) const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipContentEncoding::duplicate() const
 {
     return new SipContentEncoding(*this);

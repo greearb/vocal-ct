@@ -53,7 +53,7 @@
 
 #include "global.h"
 static const char* const SipCallLegVersion =
-    "$Id: SipCallLeg.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipCallLeg.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -69,64 +69,63 @@ namespace Vocal
 {
 
 /// data container for CallLeg header
-class SipCallLeg : public SipHeader
-{
-    public:
-        /// Create one with default values
-        // local_ip cannot be "" here, must be the local IP we are bound to locally
-        // or 'hostaddress' if we are not specifically bound.
-        SipCallLeg(const string& local_ip);
-        virtual ~SipCallLeg()
-            {}
+class SipCallLeg : public SipHeader {
+public:
+   /// Create one with default values
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipCallLeg(const string& local_ip);
+   virtual ~SipCallLeg() {}
 
-        // local_ip cannot be "" here, must be the local IP we are bound to locally
-        // or 'hostaddress' if we are not specifically bound.
-        SipCallLeg( const SipFrom& from, const SipTo& to, 
-                    const SipCallId& callId, const string& local_ip);
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipCallLeg( const SipFrom& from, const SipTo& to, 
+               const SipCallId& callId, const string& local_ip);
 
-        SipCallLeg( const SipCallLeg& src);
-        SipCallLeg& operator=( const SipCallLeg& rhs );
+   SipCallLeg( const SipCallLeg& src);
+   SipCallLeg& operator=( const SipCallLeg& rhs );
 
-        virtual bool operator == (const SipCallLeg& src) const;
-        virtual bool operator != (const SipCallLeg& src) const;
+   virtual bool operator == (const SipCallLeg& src) const;
+   virtual bool operator != (const SipCallLeg& src) const;
 
-        virtual bool operator < (const SipCallLeg& src) const;
+   virtual bool operator < (const SipCallLeg& src) const;
 
-        SipFrom getFrom() const;
-        void setFrom(const SipFrom& newfrom);
+   SipFrom getFrom() const;
+   void setFrom(const SipFrom& newfrom);
 
-        SipTo getTo() const;
-        void setTo(const SipTo& newto);
+   SipTo getTo() const;
+   void setTo(const SipTo& newto);
 
-        const SipCallId& getCallId() const;
-        void setCallId(const SipCallId& newcallId);
+   const SipCallId& getCallId() const;
+   void setCallId(const SipCallId& newcallId);
 
-        const SipCSeq& getCSeq() const;
-        void setCSeq(const SipCSeq& newcseq);
+   const SipCSeq& getCSeq() const;
+   void setCSeq(const SipCSeq& newcseq);
 
-        /*** return the encoded string version of this. This call should only be
-             used inside the stack and is not part of the API */
-        Data encode() const;
+   /*** return the encoded string version of this. This call should only be
+        used inside the stack and is not part of the API */
+   Data encode() const;
 
-	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
-	/// compare two headers of (possibly) the same class
-	virtual bool compareSipHeader(SipHeader* msg) const;
+   /// method for copying sip headers of any type without knowing which type
+   Sptr<SipHeader> duplicate() const;
 
-        virtual string toString() const { return encode().c_str(); }
+   /// compare two headers of (possibly) the same class
+   virtual bool compareSipHeader(SipHeader* msg) const;
+   
+   virtual string toString() const { return encode().c_str(); }
 
-    private:
-        Data from;
-        Data to;
-        SipCallId callId;
-        SipCSeq cseq;
-
-        /*** Create by decoding the data string passed in. This is the decode
-             or parse. This call should only be used inside the stack and is
-             not part of the API */
-        //NOTE:  Implementation was:  assert(0).  Disabling entirely. --Ben
-        SipCallLeg( const Data& srcData );
-        SipCallLeg();
+private:
+   Data from;
+   Data to;
+   SipCallId callId;
+   SipCSeq cseq;
+   
+   /*** Create by decoding the data string passed in. This is the decode
+        or parse. This call should only be used inside the stack and is
+        not part of the API */
+   //NOTE:  Implementation was:  assert(0).  Disabling entirely. --Ben
+   SipCallLeg( const Data& srcData );
+   SipCallLeg();
 };
 
 } // namespace Vocal

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipRetryAfter_cxx_Version =
-    "$Id: SipRetryAfter.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipRetryAfter.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipRetryAfter.hxx"
@@ -405,7 +405,7 @@ Data SipRetryAfter::encode() const
 // End of File
 
 
-SipHeader*
+Sptr<SipHeader>
 SipRetryAfter::duplicate() const
 {
     return new SipRetryAfter(*this);

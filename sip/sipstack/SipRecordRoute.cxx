@@ -50,7 +50,7 @@
  */
 
 static const char* const SipRecordRoute_cxx_Version =
-    "$Id: SipRecordRoute.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipRecordRoute.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipRecordRoute.hxx"
@@ -304,7 +304,7 @@ SipRecordRoute::operator == (const SipRecordRoute& src) const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipRecordRoute::duplicate() const
 {
     return new SipRecordRoute(*this);

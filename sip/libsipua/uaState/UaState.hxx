@@ -54,7 +54,7 @@
 
 
 static const char* const UaState_hxx_Version = 
-"$Id: UaState.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: UaState.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "CInvalidStateException.hxx"
 #include "SipMsg.hxx"
@@ -111,7 +111,7 @@ class UaState : public BugCatcher {
          void info(const string& errMsg);
 
          ///
-         void changeState(UaBase& agent, UaState* newState);
+         void changeState(UaBase& agent, Sptr<UaState> newState);
 
    private:
          string _className;

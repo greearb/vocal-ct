@@ -50,7 +50,7 @@
  */
 
 static const char* const SipPriority_cxx_Version =
-    "$Id: SipPriority.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipPriority.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -198,7 +198,7 @@ Data SipPriority::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipPriority::duplicate() const
 {
     return new SipPriority(*this);
@@ -218,9 +218,3 @@ SipPriority::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

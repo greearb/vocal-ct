@@ -52,7 +52,7 @@
  */
 
 static const char* const sipHeaderVersion =
-"$Id: SipHeader.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+"$Id: SipHeader.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "Data.hxx"
 #include "Sptr.hxx"
@@ -200,7 +200,7 @@ class SipHeader: public BugCatcher
         static SipHeader* decodeHeader( SipHeaderType type, const Data& value,
                                         const string& local_ip);
         /// virtual method for copying sip headers of any type without knowing which type
-        virtual SipHeader* duplicate() const = 0;
+        virtual Sptr<SipHeader> duplicate() const = 0;
         /// compare two headers of (possibly) the same class
         virtual bool compareSipHeader(SipHeader* msg) const = 0;
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -186,6 +186,14 @@ RtpReceiver::~RtpReceiver () {
 }
 
 
+
+int RtpReceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        int& maxdesc, uint64& timeout, uint64 now) {
+   myStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   return 0;
+}
+
+
 /* --- receive packet functions ------------------------------------ */
 
 int RtpReceiver::receive (RtpPacket& pkt,  fd_set* fds) {
@@ -195,7 +203,7 @@ int RtpReceiver::receive (RtpPacket& pkt,  fd_set* fds) {
     int seq;
 
     bool read_ntwk = false;
-    if (fds && FD_ISSET(getSocketFD(), fds)) {
+    if (fds && FD_ISSET(myStack->getSocketFD(), fds)) {
        read_ntwk = true;
     }
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipWarning_cxx_Version =
-    "$Id: SipWarning.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipWarning.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
 
 
 
@@ -275,7 +275,7 @@ Data SipWarning::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipWarning::duplicate() const
 {
     return new SipWarning(*this);
@@ -295,9 +295,3 @@ SipWarning::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

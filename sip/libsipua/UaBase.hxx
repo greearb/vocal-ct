@@ -53,7 +53,7 @@
 
 
 static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+    "$Id: UaBase.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include <string>
 #include <vector>
@@ -108,7 +108,7 @@ public:
    virtual ~UaBase();
 
    ///Set the ua-agent state 
-   virtual void setState(UaState* state);
+   virtual void setState(Sptr<UaState> state);
 
    /**Gets called by the application when a message is received on the
     * calleg, the agent is representing.

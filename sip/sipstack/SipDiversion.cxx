@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRedirect_cxx_Version =
-    "$Id: SipDiversion.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipDiversion.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "cpLog.h"
@@ -1031,7 +1031,7 @@ SipDiversion::print()
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipDiversion::duplicate() const
 {
     return new SipDiversion(*this);
@@ -1053,9 +1053,3 @@ SipDiversion::compareSipHeader(SipHeader* msg) const
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

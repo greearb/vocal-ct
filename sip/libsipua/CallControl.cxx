@@ -50,7 +50,7 @@
 
 
 static const char* const CallControl_cxx_Version =
-    "$Id: CallControl.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallControl.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -104,18 +104,12 @@ CallControl::processEvent(const Sptr<SipProxyEvent>& event)
 }
 
 
-CallControl::~CallControl()
-{
-    myShutdownFlag = true;
-    myFriedFifo.add(0);
-    myCleanupThread.join();
+CallControl::~CallControl() {
+   // Nothing to do
 }
 
-CallControl::CallControl()
-      : myShutdownFlag(false),
-        myMutex("CallControl", false, true) /* recursive mutex */
-{
-    myCleanupThread.spawn(CallControl::cleanupThread, this);
+CallControl::CallControl() {
+   // Nothing to do
 }
 
 void*

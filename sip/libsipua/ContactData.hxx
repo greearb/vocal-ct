@@ -53,11 +53,12 @@
 
 
 static const char* const ContactData_hxx_Version =
-    "$Id: ContactData.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: ContactData.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include <vector>
 #include "SipCallLeg.hxx"
+#include <BugCatcher.hxx>
 
 
 class SipCallLegData;
@@ -85,8 +86,7 @@ class SipCallLegData;
 </pre>
 
 */
-class ContactData 
-{
+class ContactData : public BugCatcher {
    public:
       ///
       typedef vector<Sptr<SipCallLegData> > CallPeerList;
@@ -95,7 +95,7 @@ class ContactData
       ContactData();
 
       /// Create one with contact values
-      ContactData(const Sptr<SipCallLegData>& cLegData);
+      ContactData(Sptr<SipCallLegData> cLegData);
 
       ///
       ContactData( const ContactData& src );

@@ -54,7 +54,7 @@
 #include "global.h"
 
 static const char* const SipContentTypeVersion =
-    "$Id: SipContentType.hxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipContentType.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include <map>
 #include "Data.hxx"
@@ -171,7 +171,7 @@ class SipContentType : public SipHeader
         
         /** method for copying sip headers of any type without knowing
             which type */
-        SipHeader* duplicate() const;
+   Sptr<SipHeader> duplicate() const;
 
         /// compare two headers of (possibly) the same class
         virtual bool compareSipHeader(SipHeader* msg) const;

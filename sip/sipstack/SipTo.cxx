@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTo_cxx_Version =
-    "$Id: SipTo.cxx,v 1.3 2004/06/14 00:33:54 greear Exp $";
+    "$Id: SipTo.cxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
 
 #include "global.h"
 #include "SipTo.hxx"
@@ -775,7 +775,7 @@ SipTo::setUrl(Sptr<BaseUrl> tourl)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipTo::duplicate() const
 {
     return new SipTo(*this);
@@ -796,10 +796,3 @@ SipTo::compareSipHeader(SipHeader* msg) const
     }
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipProxyAuthorizeVersion =
-    "$Id: SipProxyAuthorization.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipProxyAuthorization.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx"
@@ -145,7 +145,7 @@ class SipProxyAuthorization : public SipHeader
 
 	/** method for copying sip headers of any type without knowing
             which type */
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -164,10 +164,4 @@ class SipProxyAuthorization : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 #include <sys/types.h>
@@ -155,6 +155,10 @@ public:
    int receive (RtpPacket& pkt, fd_set* fds);
 
 
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              int& maxdesc, uint64& timeout, uint64 now);
+
+
    /** Receive an RTP packet from buffer.
        pkt is passed in, and is expected to be ready to receive a pkt
        @return <= 0 implies one should not inspect pkt, nothing worth receiving
@@ -219,8 +223,6 @@ public:
 
    /// Port this stack is sending its singal
    int getPort () const { return myStack->getRxPort(); }
-   /// Socket File Descriptor used for select()
-   int getSocketFD () const { return myStack->getSocketFD(); }
 
    /// receiver error code;
    RtpReceiverError receiverError;

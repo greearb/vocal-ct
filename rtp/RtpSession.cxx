@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -803,29 +803,16 @@ int RtpSession::transmitEvent( int event )
 }
 
 
-void RtpSession::setReadFdBits(fd_set* netFD, int& maxdesc) {
-   int incomingFd = -1;
+int RtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       int& maxdesc, uint64& timeout, uint64 now) {
    if (recv) {
-      incomingFd = recv->getSocketFD();
-      if (incomingFd >= 0) {
-         if (incomingFd > maxdesc) {
-            maxdesc = incomingFd;
-         }
-         FD_SET(incomingFd, netFD);
-      }
+      recv->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }
-
    if (rtcpRecv) {
-      incomingFd = rtcpRecv->getSocketFD();
-      if (incomingFd >= 0) {
-         if (incomingFd > maxdesc) {
-            maxdesc = incomingFd;
-         }
-         FD_SET(incomingFd, netFD);
-      }
+      rtcpRecv->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }
-}//setReadFdBits
-
+   return 0;
+}
 
 
 int RtpSession::receive (RtpPacket& pkt, fd_set* fds)
@@ -842,7 +829,7 @@ int RtpSession::receive (RtpPacket& pkt, fd_set* fds)
     }
 
     if (rtcpRecv) {
-       if (!fds || (FD_ISSET(rtcpRecv->getSocketFD(), fds))) {
+       if (!fds || (FD_ISSET(rtcpRecv->getUdpStack()->getSocketFD(), fds))) {
           receiveRTCP();
        }
     }

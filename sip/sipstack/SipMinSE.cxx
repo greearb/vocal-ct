@@ -50,7 +50,7 @@
  */
 
 static const char* const SipMinSE_cxx_Version =
-    "$Id: SipMinSE.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipMinSE.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -195,7 +195,7 @@ Data SipMinSE::encode() const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipMinSE::duplicate() const
 {
     return new SipMinSE(*this);

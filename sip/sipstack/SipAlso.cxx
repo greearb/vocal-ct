@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAlso_cxx_Version =
-    "$Id: SipAlso.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipAlso.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "global.h"
@@ -440,7 +440,7 @@ void SipAlso::setUrl(Sptr <BaseUrl> alsourl)
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipAlso::duplicate() const
 {
     return new SipAlso(*this);

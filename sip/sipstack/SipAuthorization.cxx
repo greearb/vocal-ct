@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAuthorization_cxx_version =
-    "$Id: SipAuthorization.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipAuthorization.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipAuthorization.hxx"
@@ -310,7 +310,7 @@ SipAuthorization::getTokenValue(const Data& token) const
 }
 
 
-SipHeader*
+Sptr<SipHeader>
 SipAuthorization::duplicate() const
 {
     return new SipAuthorization(*this);

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReferTo_cxx_version =
-    "$Id: SipReferTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipReferTo.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include "SipParserMode.hxx"
@@ -395,7 +395,7 @@ Data SipReferTo::getUrlType() const
 
 
 
-SipHeader*
+Sptr<SipHeader>
 SipReferTo::duplicate() const
 {
     return new SipReferTo(*this);

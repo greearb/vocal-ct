@@ -53,7 +53,7 @@
  */
 
 static const char* const RtcpReceiver_hxx_Version =
-    "$Id: RtcpReceiver.hxx,v 1.3 2004/06/15 06:20:35 greear Exp $";
+    "$Id: RtcpReceiver.hxx,v 1.4 2004/06/16 06:51:25 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -173,8 +173,9 @@ public:
    
    /// Port this receiver is receiving it signal
    int getPort ();
-   /// Socket File Descriptor used for select()
-   int getSocketFD ();
+
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              int& maxdesc, uint64& timeout, uint64 now);
    
    /// get the ptr of my UdpStack
    Sptr<UdpStack> getUdpStack() {

@@ -54,7 +54,7 @@
 
 
 static const char* const UaStateFactory_hxx_Version = 
-"$Id: UaStateFactory.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+"$Id: UaStateFactory.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include <map>
 #include "CInvalidStateException.hxx"
@@ -142,6 +142,8 @@ protected:
    
    ///Destructor
    virtual ~UaStateFactory();
+
+   UaStateMap stateMap;
    
    ///
    static UaStateFactory* myInstance;

@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateRinging_cxx_Version =
-    "$Id: UaStateRinging.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UaStateRinging.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "UaStateRinging.hxx"
 #include "UaStateFactory.hxx"
@@ -108,11 +108,12 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
             sCommand.dynamicCast(agent.getRequest());
             assert(sCommand != 0);
 
-	    addSelfInVia(agent, ackMsg);
+	    addSelfInVia(agent, ackMsg.getPtr());
 
             ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg);
-            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s" ,statusCode, ackMsg->encode().logData());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
+                  statusCode, ackMsg->encode().logData());
         }
 
         //Notify CC
@@ -169,16 +170,16 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
        mUrl->setPort(Data(agent.getMySipPort()));
 		 
        SipContact me("", agent.getMyLocalIp());
-       me.setUrl(mUrl);
+       me.setUrl(mUrl.getPtr());
        sendSMsg->setNumContact( 0 );
        sendSMsg->setContact( me );
 		 
        cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
        agent.getSipTransceiver()->sendReply(sendSMsg);
-       agent.setResponse(sendSMsg);
+       agent.setResponse(sendSMsg.getPtr());
        
        agent.setCallLegState(C_LIVE);
-       agent.setResponse(sendSMsg);
+       agent.setResponse(sendSMsg.getPtr());
 		 
        //Transit to failure
        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
@@ -226,21 +227,23 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
 
     assert(mUrl != 0);
     mUrl->setHost(agent.getNatHost());
-    mUrl->setPort(Data(agent.getMySipPort()));
+    mUrl->setPort(agent.getMySipPort());
 
     SipContact me("", agent.getMyLocalIp());
-    me.setUrl(mUrl);
+    me.setUrl(mUrl.getPtr());
     sendSMsg->setNumContact( 0 );
     sendSMsg->setContact( me );
 
 
     cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
     agent.getSipTransceiver()->sendReply(sendSMsg);
-    agent.setResponse(sendSMsg);
+    agent.setResponse(sendSMsg.getPtr());
     //Notify CC to start the call monitor
-    if(agent.getControllerAgent()) agent.getControllerAgent()->inCall();
+    if (agent.getControllerAgent()) {
+       agent.getControllerAgent()->inCall();
+    }
     agent.setCallLegState(C_LIVE);
-    agent.setResponse(sendSMsg);
+    agent.setResponse(sendSMsg.getPtr());
     //Transit to inCall
     changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
     return 0;
@@ -289,7 +292,7 @@ UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
          sipCmd.dynamicCast(agent.getRequest());
          Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
          cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-         agent.getSipTransceiver()->sendAsync(cMsg);
+         agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
          //Transit to Failure
          changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
          return 0;

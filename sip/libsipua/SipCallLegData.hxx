@@ -53,7 +53,7 @@
 
 
 static const char* const SipCallLegData_hxx_Version =
-    "$Id: SipCallLegData.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+    "$Id: SipCallLegData.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
 
 #include "global.h"
 #include <vector>
@@ -119,122 +119,124 @@ Example:
 
 </pre>
 */
-class SipCallLegData : public BugCatcher
-{
-   public:
-      ///
-      typedef vector<Sptr<ContactData> > ContactVector;
+class SipCallLegData : public BugCatcher {
+public:
+   ///
+   typedef vector<Sptr<ContactData> > ContactVector;
+   
+   ///
+   SipCallLegData( const Sptr<SipMsg>& reqMsg );
+   
+#if 0
+   ///
+   SipCallLegData( const SipCallLegData& src ) {
+      copyObj(src);
+   }
 
-      ///
-      SipCallLegData( const Sptr<SipMsg>& reqMsg );
-
-      ///
-      SipCallLegData( const SipCallLegData& src )
-      {
-          copyObj(src);
+   /// 
+   const SipCallLegData& operator =( const SipCallLegData& src ) {
+      if(this != &src) {
+         copyObj(src);
       }
+      return *this;
+   }
 
-      /// 
-      const SipCallLegData& operator =( const SipCallLegData& src )
-      {
-          if(this != &src)
-          {
-              copyObj(src);
-          }
-          return *this;
+   ///
+   void copyObj(const SipCallLegData& src) {
+      mySipCallLeg = src.mySipCallLeg;
+      myLocalSdpData = src.myLocalSdpData;
+      myRemoteSdpData = src.myRemoteSdpData;
+      myRequestMsg = src.myRequestMsg;
+      myContactVector.erase(myContactVector.begin(), myContactVector.end());
+      for(ContactVector::const_iterator itr = src.myContactVector.begin(); 
+          itr != src.myContactVector.end(); itr++) {
+         myContactVector.push_back(*itr);
       }
+   }
+#endif
 
-      ///
-      void copyObj(const SipCallLegData& src) 
-      {
-          mySipCallLeg = src.mySipCallLeg;
-          myLocalSdpData = src.myLocalSdpData;
-          myRemoteSdpData = src.myRemoteSdpData;
-          myRequestMsg = src.myRequestMsg;
-          myContactVector.erase(myContactVector.begin(), myContactVector.end());
-          for(ContactVector::const_iterator itr = src.myContactVector.begin(); 
-                                itr != src.myContactVector.end(); itr++)
-          {
-              myContactVector.push_back(*itr);
-          }
-      }
+   /**Insert an element in vector, insert in the begining 
+    * if begining == true.
+    */
+   void addContact(const Sptr<ContactData>& contact, bool begining);
 
-      /**Insert an element in vector, insert in the begining 
-      * if begining == true.
-      */
-      void addContact(const Sptr<ContactData>& contact, bool begining);
+   ///
+   void pushContact(const Sptr<ContactData>& contact);
+   
+   ///
+   Sptr<ContactData> popContact();
+   
+   ///
+   int getNumContacts() const { return myContactVector.size(); };
+   
+   /**Get the contact data at a certain index. By default
+    * entry push last is returned.
+    */
+   Sptr<ContactData> getContactData(int index=-1) const;
+   
+   ///Set the INVITE being sent/received for the call-leg
+   void setRequest(Sptr<SipMsg> sipMsg);
+   ///Set the 2xx response sent/received for the call-leg
+   void setResponse(Sptr<SipMsg> sipMsg);
+   
+   ///Set the Ack being sent/received for the call-leg.
+   void setAck(const Sptr<SipMsg>& sipMsg);
+   
+   ///Set the local SDP answerd or offerd.
+   void setLocalSdp(const Sptr<SipSdp>& sdpData) { myLocalSdpData = sdpData; } ;
+   ///Set the remote SDP received
+   void setRemoteSdp(const Sptr<SipSdp>& sdpData) { myRemoteSdpData = sdpData; } ;
+   
+   ///Valid values C_LIVE, C_HOLD, C_DISCONNECTED
+   void setCallLegState(Vocal::UA::CallLegState cState) { myCallLegState = cState; };
+   
+   ///
+   const Sptr<SipSdp> getLocalSdp() const { return myLocalSdpData; };
+   ///
+   const Sptr<SipSdp> getRemoteSdp() const { return myRemoteSdpData; };
+   
+   ///
+   Vocal::UA::CallLegState getCallLegState() const { return myCallLegState; };
+   
+   ///
+   const Sptr<SipMsg> getRequest() const { return myRequestMsg; };
+   
+   ///
+   const Sptr<SipMsg> getResponse() const { return myResponseMsg; };
+   
+   ///
+   const Sptr<SipMsg> getAck() const { return myAckMsg; };
+   
+   const SipCallLeg& getCallLeg() const { return mySipCallLeg; };
+   
+   ///
+   virtual ~SipCallLegData() { };
 
-      ///
-      void pushContact(const Sptr<ContactData>& contact);
+protected:
+   ///
+   Sptr<SipSdp> myLocalSdpData;
+   ///
+   Sptr<SipSdp> myRemoteSdpData;
+   
+   ///
+   Sptr<SipMsg> myRequestMsg;
+   ///
+   Sptr<SipMsg> myResponseMsg;
+   ///
+   Sptr<SipMsg> myAckMsg;
+   ///
+   Vocal::UA::CallLegState myCallLegState;
+   /// 
+   SipCallLeg mySipCallLeg;
+   ///
+   ContactVector myContactVector; 
 
-      ///
-      Sptr<ContactData> popContact();
+private:
 
-      ///
-      int getNumContacts() const { return myContactVector.size(); };
+   // Don't use these.
+   SipCallLegData( const SipCallLegData& src );
+   const SipCallLegData& operator =( const SipCallLegData& src );
 
-      /**Get the contact data at a certain index. By default
-       * entry push last is returned.
-       */
-      Sptr<ContactData> getContactData(int index=-1) const;
-
-      ///Set the INVITE being sent/received for the call-leg
-      void setRequest(const Sptr<SipMsg>& sipMsg);
-      ///Set the 2xx response sent/received for the call-leg
-      void setResponse(const Sptr<SipMsg>& sipMsg);
-
-      ///Set the Ack being sent/received for the call-leg.
-      void setAck(const Sptr<SipMsg>& sipMsg);
-
-      ///Set the local SDP answerd or offerd.
-      void setLocalSdp(const Sptr<SipSdp>& sdpData) { myLocalSdpData = sdpData; } ;
-      ///Set the remote SDP received
-      void setRemoteSdp(const Sptr<SipSdp>& sdpData) { myRemoteSdpData = sdpData; } ;
-
-      ///Valid values C_LIVE, C_HOLD, C_DISCONNECTED
-      void setCallLegState(Vocal::UA::CallLegState cState) { myCallLegState = cState; };
-
-      ///
-      const Sptr<SipSdp> getLocalSdp() const { return myLocalSdpData; };
-      ///
-      const Sptr<SipSdp> getRemoteSdp() const { return myRemoteSdpData; };
-
-      ///
-      Vocal::UA::CallLegState getCallLegState() const { return myCallLegState; };
-
-      ///
-      const Sptr<SipMsg> getRequest() const { return myRequestMsg; };
-
-      ///
-      const Sptr<SipMsg> getResponse() const { return myResponseMsg; };
-
-      ///
-      const Sptr<SipMsg> getAck() const { return myAckMsg; };
-
-      ///
-      const SipCallLeg& getCallLeg() const { return *mySipCallLeg; };
-
-      ///
-      virtual ~SipCallLegData() { };
-
-   protected:
-      ///
-      Sptr<SipSdp> myLocalSdpData;
-      ///
-      Sptr<SipSdp> myRemoteSdpData;
-
-      ///
-      Sptr<SipMsg> myRequestMsg;
-      ///
-      Sptr<SipMsg> myResponseMsg;
-      ///
-      Sptr<SipMsg> myAckMsg;
-      ///
-      Vocal::UA::CallLegState myCallLegState;
-      /// 
-      Sptr<SipCallLeg> mySipCallLeg;
-      ///
-      ContactVector myContactVector; 
 };
 
 

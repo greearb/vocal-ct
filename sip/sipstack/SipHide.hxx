@@ -53,7 +53,7 @@
 #include "global.h"
 
 static const char* const SipHideVersion =
-    "$Id: SipHide.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipHide.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 #include "Data.hxx"
 #include "symbols.hxx"
@@ -120,7 +120,7 @@ class SipHide : public SipHeader
         Data encode() const;
 
 	/// method for copying sip headers of any type without knowing which type
-	SipHeader* duplicate() const;
+	Sptr<SipHeader> duplicate() const;
 	/// compare two headers of (possibly) the same class
 	virtual bool compareSipHeader(SipHeader* msg) const;
     private:
@@ -135,10 +135,4 @@ class SipHide : public SipHeader
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

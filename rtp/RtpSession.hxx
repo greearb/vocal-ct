@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 
 
 
@@ -318,27 +318,27 @@ class RtpSession
 
 
         /// RTP transmitter
-        RtpTransmitter* getRtpTran ()
-        {
+        RtpTransmitter* getRtpTran () {
             return tran;
         }
+
         /// RTP recevier
-        RtpReceiver* getRtpRecv ()
-        {
+        RtpReceiver* getRtpRecv () {
             return recv;
         }
+
         /// RTCP transmitter
-        RtcpTransmitter* getRtcpTran ()
-        {
+        RtcpTransmitter* getRtcpTran () {
             return rtcpTran;
         }
+
         /// RTCP receiver
-        RtcpReceiver* getRtcpRecv ()
-        {
+        RtcpReceiver* getRtcpRecv () {
             return rtcpRecv;
         }
 
-        void setReadFdBits(fd_set* netFD, int& maxdesc);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
         //Current number of elements in jitter buffer.
         unsigned int getJitterPktsInQueueCount() const {

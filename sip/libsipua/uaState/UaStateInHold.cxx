@@ -81,8 +81,8 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         if(statusMsg->getCSeq().getMethod() == INVITE_METHOD)
         {
             Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
-	    addSelfInVia(agent, ackMsg);
-            agent.getSipTransceiver()->sendAsync(ackMsg);
+	    addSelfInVia(agent, ackMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
         }
     }
     if(statusCode == 200) {
@@ -133,7 +133,7 @@ UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         mUrl->setPort(Data(agent.getMySipPort()));
 
         SipContact me("", agent.getMyLocalIp());
-        me.setUrl(mUrl);
+        me.setUrl(mUrl.getPtr());
         sendSMsg->setNumContact( 0 );
         sendSMsg->setContact( me );
         agent.getSipTransceiver()->sendReply(sendSMsg); 
@@ -281,8 +281,9 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             }
             invMsg->setFrom(from);
 
-            cpLog(LOG_DEBUG, "(%s) Sending re-invite %s", agent.className().c_str(), invMsg->encode().logData());
-            agent.getSipTransceiver()->sendAsync(invMsg);
+            cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
+                  agent.className().c_str(), invMsg->encode().logData());
+            agent.getSipTransceiver()->sendAsync(invMsg.getPtr());
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
 	    
         }
@@ -294,9 +295,10 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             sMsg.dynamicCast(agent.getResponse());
             assert(sMsg != 0);
             Sptr<AckMsg> ackMsg = new AckMsg(*sMsg, agent.getMyLocalIp());
-	    addSelfInVia(agent, ackMsg);
-            agent.getSipTransceiver()->sendAsync(ackMsg);
-            cpLog(LOG_DEBUG, "(%s) Sending Ack %s", agent.className().c_str(), ackMsg->encode().logData());
+	    addSelfInVia(agent, ackMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            cpLog(LOG_DEBUG, "(%s) Sending Ack %s",
+                  agent.className().c_str(), ackMsg->encode().logData());
         }
         break;
         case SIP_CANCEL:
@@ -305,7 +307,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<SipCommand> sipCmd;
             sipCmd.dynamicCast(agent.getRequest());
             Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
-            agent.getSipTransceiver()->sendAsync(cMsg);
+            agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
             //Transit to End
             changeState(agent, UaStateFactory::instance().getState(U_STATE_END));
         }
