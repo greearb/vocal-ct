@@ -19,3 +19,14 @@ Add rtp-type mapping to MRtpSession constructor
 Add to UaFacade constructor (priority mapping)
 
 Add to UaConfiguration files so we can influence the priority for the codecs.
+
+To make the gua actually prefer a particular codec, change the
+gua.cfg to have entries like this (g729 is preferred in this example):
+
+G711uPrio string 0
+G726_16Prio string 0
+G726_24Prio string 0
+G726_32Prio string 0
+G726_40Prio string 0
+SpeexPrio string 0
+G729aPrio string 1
