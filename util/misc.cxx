@@ -109,6 +109,7 @@ void vhexDump(const char* msg, int len, string& _retval,
 int vsetPrio(int sk, uint16 tos, uint32 val, const char* dbg) {
    vsetTosHelper_priv(sk, tos);
    vsetPriorityHelper_priv(sk, val, dbg);
+   return 0;
 }
 
 
