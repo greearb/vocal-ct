@@ -51,7 +51,7 @@
 
 
 static const char* const CdrConfig_cxx_Version =
-    "$Id: CdrConfig.cxx,v 1.5 2004/08/18 22:39:14 greear Exp $";
+    "$Id: CdrConfig.cxx,v 1.6 2004/08/25 01:45:02 greear Exp $";
 
 
 #include <fstream.h>
@@ -106,25 +106,6 @@ CdrConfig::CdrConfig()
         m_fileCheckFreq(1800),
         m_billRingTime(false),
         m_localIp("")
-{}
-
-CdrConfig::CdrConfig( const CdrConfig &rhs )
-      : m_serverHost( rhs.m_serverHost ),
-        m_serverPort( rhs.m_serverPort ),
-        m_billingFrequency( rhs.m_billingFrequency ),
-        m_billingDirectory( rhs.m_billingDirectory ),
-        m_billingFileName( rhs.m_billingFileName ),
-        m_logLevel( rhs.m_logLevel ),
-        m_radiusServerHost( rhs.m_radiusServerHost ),
-        m_radiusRetries( rhs.m_radiusRetries ),
-        m_radiusSecretKey( rhs.m_radiusSecretKey ),
-        m_unsentFileExt( rhs.m_unsentFileExt ),
-        m_billingLockFile( rhs.m_billingLockFile ),
-        m_rolloverSize( rhs.m_rolloverSize ),
-        m_rolloverPeriod( rhs.m_rolloverPeriod ),
-        m_fileCheckFreq( rhs.m_fileCheckFreq ),
-        m_billRingTime( rhs.m_billRingTime ),
-        m_localIp( rhs.m_localIp )
 {}
 
 int
@@ -237,33 +218,43 @@ CdrConfig::setEnvCdr() {
    }
 }
 
-#warning "Implement getting CDR info from ProvisionInterface"
-#if 0
-// TODO:  Get this from the provisioning server
-   m_billingDirectory = psCdrData.getBillingDir();
-   m_billingFileName = psCdrData.getBillingDataFile();
-   m_billingFrequency = psCdrData.getBillingFreq();
-   m_unsentFileExt = psCdrData.getBillingUnsentExt();
-   m_billingLockFile = psCdrData.getBillingLockFile();
-   m_serverPort = psCdrData.getPort();
-   m_radiusServerHost = psCdrData.getRadiusHost();
-   m_radiusSecretKey = psCdrData.getRadiusKey();
-   m_radiusRetries = psCdrData.getRadiusRetries();
-   m_rolloverSize = psCdrData.getRolloverSize();
-   m_rolloverPeriod = psCdrData.getRolloverPeriod();
-   m_billRingTime = psCdrData.getBillForRingtime();
-   
-   // Logically, the file check frequency should not be more than
-   // the rolloverPeriod
-   if (m_fileCheckFreq > m_rolloverPeriod) {
-      m_fileCheckFreq = m_rolloverPeriod;
-   }
 
+void CdrConfig::getProvisioningData(const string& key) {
+
+   Sptr<Server> s = HeartbeatThread::instance().findServer(key);
+   Sptr<BaseServerProvData> bd = s->getProvData();
+   Sptr<VCdrServerData> psCdrData;
+   psCdrData.dynamicCast(bd);
+   if (psCdrData == 0) {
+      cpLog(LOG_ERR, "ERROR:  Failed to cast server-data to VCdrServerData!\n");
+   }
+   else {
+      m_billingDirectory = psCdrData->getBillingDir();
+      m_billingFileName = psCdrData->getBillingDataFile();
+      m_billingFrequency = psCdrData->getBillingFreq();
+      m_unsentFileExt = psCdrData->getBillingUnsentExt();
+      m_billingLockFile = psCdrData->getBillingLockFile();
+      m_serverPort = psCdrData->getPort();
+      m_radiusServerHost = psCdrData->getRadiusHost();
+      m_radiusSecretKey = psCdrData->getRadiusKey();
+      m_radiusRetries = psCdrData->getRadiusRetries();
+      m_rolloverSize = psCdrData->getRolloverSize();
+      m_rolloverPeriod = psCdrData->getRolloverPeriod();
+      m_billRingTime = psCdrData->getBillForRingtime();
+   
+      // Logically, the file check frequency should not be more than
+      // the rolloverPeriod
+      if (m_fileCheckFreq > m_rolloverPeriod) {
+         m_fileCheckFreq = m_rolloverPeriod;
+      }
+   }
+   
    // since the env vars are used for debugging, they override
    // the config and ps values
+   
    setEnvCdr();
-}
-#endif
+}//getProvisioningData
+
 
 void
 CdrConfig::print(const int loglevel) {

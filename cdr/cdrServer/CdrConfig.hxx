@@ -53,7 +53,7 @@
 
 
 static const char* const CdrConfig_hxx_Version =
-    "$Id: CdrConfig.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrConfig.hxx,v 1.4 2004/08/25 01:45:02 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -97,12 +97,6 @@ public:
    ///
    CdrConfig();
     
-   /**
-    * Copy constructor
-    * @param CdrConfig& object to copy
-    */
-   CdrConfig( const CdrConfig &rhs );
-    
    ///
    virtual ~CdrConfig() {}
     
@@ -121,11 +115,9 @@ public:
    void setEnvCdr();
 
    /**
-    * Load data from the config file, environment vars override file
-    * @param string& configuration filename
-    * @return void
+    * Load data from the Provision server.
     */
-   void getData( const string &fileName ) throw (VCdrException&);
+   void getProvisioningData(const string& key);
 
    /**
     * Load data from provisioning, environment vars override ps
