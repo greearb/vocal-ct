@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/08/13 07:33:33 greear Exp $
+# $Id: Makefile,v 1.5 2004/11/16 01:06:46 greear Exp $
 
 
 BUILD = build
@@ -192,21 +192,15 @@ netMgnt:  snmpplusplus
 cdrlib:
 	cd cdr/cdrLib; $(MAKE)
 
-pslib: contrib sdp2 proxy_base
+psutil:
 	cd provisioning/util; $(MAKE)
+
+pslib: contrib sdp2 proxy_base psutil
 	cd provisioning/psLib; $(MAKE)
 
 dbmodules: contrib_xerces_c util
 	cd prov/cpp/pserver/dbmodules; $(MAKE)
 
-provcommon: contrib_xerces_c util
-	cd prov/cpp/common; $(MAKE) 
-
-provlib: provcommon contrib
-	cd prov/cpp/psLib; $(MAKE)
-
-psagent: provlib
-	cd prov/cpp/psAgent; $(MAKE)
 
 libpep:
 	cd policy/libpep; $(MAKE)
@@ -341,7 +335,7 @@ http_test: http
 #	cd sip/b2b/; $(MAKE)
 
 sipset: uagui 
-gua: proxy_base newsndfile libsoundcard rtp libmedia libsipua 
+gua: psutil proxy_base newsndfile libsoundcard rtp libmedia libsipua 
 	@( test -d sip/gua/ && test -f sip/gua/Makefile ) || ( echo; echo; echo "please check out the sip/gua directory first" ; echo;echo && exit -1 )
 	cd sip/gua/; $(MAKE)
 libsipua: util 
