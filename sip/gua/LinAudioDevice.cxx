@@ -135,7 +135,6 @@ LinAudioDevice::processAudio()
     /*
     int myFD = mySoundCard.getFd();
 
-    //myMutex.unlock();
     fd_set netFD;
     FD_ZERO (&netFD);
     if (myFD >= 0) {
@@ -160,17 +159,12 @@ LinAudioDevice::processAudio()
     */
 
     // The read will block as needed, so no need to select here...
-    myMutex.lock();
-
     if (!audioActive) {
-        myMutex.unlock();
-        vusleep(50000);
         return;
     }
     else {
         processOutgoingAudio();
     }
-    myMutex.unlock();
 
     //}
 
@@ -182,7 +176,6 @@ int
 LinAudioDevice::start(VCodecType codec_type)
 {
     cerr << "%%% Starting audio" << endl;
-    Lock lock(myMutex);
     if( audioActive )
     {
         return 1;
@@ -199,7 +192,6 @@ LinAudioDevice::start(VCodecType codec_type)
 int
 LinAudioDevice::stop()
 {
-    Lock lock(myMutex);
 
     if( !audioActive )
     {
@@ -219,7 +211,6 @@ void
 LinAudioDevice::sinkData(char* data, int length, VCodecType type,
                          Sptr<CodecAdaptor> codec, bool silence_pkt)
 {
-    Lock lock(myMutex);
     cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
     if(type == DTMF_TONE)
     {
@@ -257,7 +248,6 @@ LinAudioDevice::sinkData(char* data, int length, VCodecType type,
 int
 LinAudioDevice::suspend()
 {
-    Lock lock(myMutex);
     cerr << "%%% Suspending audio" << endl;
     audioActive = false;
     return(mySoundCard.close());
@@ -266,7 +256,6 @@ LinAudioDevice::suspend()
 int
 LinAudioDevice::resume()
 {
-    Lock lock(myMutex);
     cerr << "%%% Resuming audio" << endl;
     audioActive = true;
     return(mySoundCard.reopen());

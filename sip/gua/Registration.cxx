@@ -50,7 +50,7 @@
  */
 
 static const char* const Registration_cxx_Version =
-    "$Id: Registration.cxx,v 1.2 2004/06/18 07:06:04 greear Exp $";
+    "$Id: Registration.cxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -75,12 +75,12 @@ Registration::Registration(const string& local_ip)
 }
 
 
-Registration::Registration(const RegisterMsg& srcMsg)
+Registration::Registration(Sptr<RegisterMsg> srcMsg)
         :
         status(0),
         seqNum(0)
 {
-    registerMsg = new RegisterMsg(srcMsg);
+    registerMsg = new RegisterMsg(*srcMsg);
     nextRegisterMs = 0;
 }
 
@@ -110,7 +110,7 @@ Registration::getNextRegistrationMsg() {
 
 Sptr<RegisterMsg>
 Registration::getNextRegistrationCancel() {
-    SipExpires expires("", registerMsg.getLocalIp());
+    SipExpires expires("", registerMsg->getLocalIp());
 
     expires.setDelta(Data("0"));
     registerMsg->setExpires(expires);
@@ -168,9 +168,9 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
                 expires = msg.getExpires().getDate().get();
 #endif     
             if ( expires != "" ) {
-                SipExpires sipexpires("", registerMsg.getLocalIp());
+                SipExpires sipexpires("", registerMsg->getLocalIp());
                 sipexpires.setDelta(expires);
-                registerMsg.setExpires(sipexpires);
+                registerMsg->setExpires(sipexpires);
             }
         }
 
@@ -219,7 +219,7 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
         Data user = UaConfiguration::instance().getValue(UserNameTag);
         Data password = UaConfiguration::instance().getValue(PasswordTag);
 
-	if (!authenticateMessage(msg, registerMsg, user, password)) {
+	if (!authenticateMessage(msg, *registerMsg, user, password)) {
 	    // i could not find auth information, so delay
             delay = DEFAULT_DELAY;
 	}

@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaCli.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaCli.cxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
 
 
 #include <unistd.h>
@@ -60,6 +60,7 @@ static const char* const UaFacade_cxx_Version =
 #include "cpLog.h"
 #include <Data.hxx>
 #include "GuiEvent.hxx"
+#include "UaFacade.hxx"
 
 using namespace Vocal;
 using namespace Vocal::UA;
@@ -70,19 +71,15 @@ void showDebug() {
         << " Data Buffers: " << Data::getTotalBuff() << endl;
 }
 
-UaCli::UaCli(int readFd, int writeFd)
-   : myReadFd(readFd),
-     myWriteFd(writeFd),
-     inCall(false)
-{
-    cpLog(LOG_DEBUG, "Reading on (%d), writing on (%d)",
-                      readFd, writeFd);
-
-    // Don't start this guy if we're embedded in LANforge...
-    if (UaConfiguration::instance().getValue(ReadStdinTag) != "0") {
-       // TODO:
-       //myKeyinThread.spawn(keyinThrWrapper, this);
-    }
+UaCli::UaCli(UaFacade* f)
+   : inCall(false) {
+   facade = f;
+   
+   // Don't start this guy if we're embedded in LANforge...
+   if (UaConfiguration::instance().getValue(ReadStdinTag) != "0") {
+      cout << "\nVocal UA\n!!! Type ? for help  !!!" << endl; 
+      cout << "Not Registered" << endl;
+   }
 }
 
 
@@ -90,83 +87,42 @@ UaCli::~UaCli() {
 }
 
 
-void 
-UaCli::readThr()
-{
-   char buf[1024];
-   memset(buf, 0, 1024);
+void UaCli::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                 uint64 now) {
+   if (FD_ISSET(STDIN_FILENO, input_fds)) {
+      char buf[256];
+      int readCnt;
+      cpLog(LOG_DEBUG, "CLI Reading on %d", STDIN_FILENO);
+      if ((readCnt = read(STDIN_FILENO, buf, 256)) > 0) {
+         buf[readCnt] = 0;
+         cpLog(LOG_DEBUG, "CLI: Read %d bytes, string: -:%s:-\n", readCnt, buf);
 
-   int rv;
-   while (!shutdown) {
-      if ((rv = read(myReadFd, buf, 1023)) < 0) {
-         cpLog(LOG_ERR, "Failed to read input");
-         continue;
-      }
-      if (shutdown)
-         break;
-      buf[rv] = 0; //Null terminate the fellow.
-      cpLog(LOG_DEBUG, "UaCli::readThr: Read %d bytes, string: -:%s:-\n", rv, buf);
-
-      // Due to the lame-assed messaging protocol, we can read several messages
-      // at once.  They seem to be separated by a "|" character.  I will pray
-      // that that character is not used in normal messages...
-      char* msg = buf;
-      char tmp;
-      int sofar = 0;
-      bool done_one = false;
-      int i = 0;
-      while (sofar < rv) {
-         if (msg[i] == '|') {
-            if (sofar+1 < rv) {
-               tmp = msg[i+1];
-               msg[i+1] = 0;
-               done_one = true;
-               parseInput(msg);
-               msg[i+1] = tmp;
-               msg = msg + i + 1;
-               i = 0;
+         for (int i = 0; i<readCnt; i++) {
+            if (buf[i] == '\n') {
+               parseInput(inMsg);
+               cout << "gua> " << flush;
+               inMsg = "";
             }
             else {
-               done_one = true;
-               parseInput(msg);
-               break;
+               inMsg += buf[i];
             }
-         }
-         else {
-            i++;
-         }
-         sofar++;
-      }//for
-
-      if (!done_one) {
-         parseInput(msg);
+         }//for
+      }
+      else {
+         cpLog(LOG_DEBUG, "Read %d bytes", readCnt);
       }
    }
+}
 
-   cpLog(LOG_ERR, "NOTE:  Done with UaCli reader thread!!\n");
+int UaCli::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                  int& maxdesc, uint64& timeout, uint64 now) {
+   FD_SET(STDIN_FILENO, input_fds);
+   maxdesc = max(maxdesc, STDIN_FILENO);
+   return 0;
 }
 
 void 
-UaCli::keyinThr()
-{
-    cout << "\nVocal UA\n!!! Type ? for help  !!!" << endl; 
-    cout << "Not Registered" << endl;
-    while(1)
-    {
-        if(shutdown) break;
-        cout << "gua>" ;
-        char buf[256];
-        memset(buf, 0, 256);
-        cin.getline(buf, 256);
-        cpLog(LOG_INFO, "Read from keyboard:%s\n", buf);
-        if(buf[0] == 'q') shutdown = true;
-        parseInput(buf);
-    }
-}
-
-void 
-UaCli::parseInput(const string& input)
-{
+UaCli::parseInput(const string& input) {
     // Don't handle anything if we're embedded in LANforge...
     if (UaConfiguration::instance().getValue(ReadStdinTag) == "0") {
        return;
@@ -184,8 +140,7 @@ UaCli::parseInput(const string& input)
             break;
             case 'c': printConfig();
             break;
-            case 'q': 
-            {
+            case 'q': {
                 cout << "Exiting.. wait..." << endl;
                 writeToController(UA_SHUTDOWN_STR); 
             }
@@ -239,7 +194,7 @@ UaCli::parseInput(const string& input)
         string ctlString(UA_INVITE_STR);
         ctlString += " ";
         ctlString += rhs;
-        cerr << "Calling :" << ctlString << endl;
+        cout << "Calling :" << ctlString << endl;
         UaCli::writeToController(ctlString);
         //Sendit to the Controller
     }
@@ -297,12 +252,9 @@ UaCli::parseInput(const string& input)
 }
 
 void
-UaCli::writeToController(string txt)
-{
-    if(write(myWriteFd, txt.c_str(), txt.length()) < 0)
-    {
-        cpLog(LOG_ERR, "Failed to write (%s) to controller", txt.c_str());
-    }
+UaCli::writeToController(const string& txt) {
+   // Send this to something that cares!
+   facade->queueEvent(new GuiEvent(txt));
 }
 
 void

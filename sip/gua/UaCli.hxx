@@ -53,14 +53,22 @@
 
 
 static const char* const UaCli_hxx_Version = 
-    "$Id: UaCli.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaCli.hxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
 
+#include <BugCatcher.hxx>
+#include <string>
+#include <misc.hxx>
+
+
+using namespace std;
 
 namespace Vocal
 {
 
 namespace UA
 {
+
+class UaFacade;
 
 /** UaCli is the CLI(command-line interface) wrapper, 
  *  that handles all command-line input
@@ -71,15 +79,22 @@ namespace UA
 class UaCli : public BugCatcher {
 public:
    ///
-   UaCli(int readFd, int writeFd);
+   UaCli(UaFacade* handler);
    
    ///
    string className() { return "UaCli"; }
    
    ///
-   ~UaCli();
+   virtual ~UaCli();
    
    void parseInput(const string& input);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
 
 private:
 
@@ -89,19 +104,18 @@ private:
    void printConfig();
 
    ///
-   void writeToController(string txt);
-
-   ///
-   int myReadFd;
-   ///
-   int myWriteFd;
-
+   void writeToController(const string& txt);
 
    /// Suppress copying
    UaCli(const UaCli &);
         
    /// Suppress copying
    const UaCli & operator=(const UaCli &);
+
+
+   string inMsg;
+
+   UaFacade* facade; // We send messages here.
 
    ///
    bool  inCall;

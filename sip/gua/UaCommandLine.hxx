@@ -54,9 +54,10 @@
 #include <map>
 #include <string>
 #include "Sptr.hxx"
+#include <BugCatcher.hxx>
 
 static const char* const UaCommandLineVersion =
-    "$Id: UaCommandLine.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaCommandLine.hxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
 
 
 static const char* const appUsage = "[-dhqr] [-v[<log-level>]] [-f <config-file>]";
@@ -70,55 +71,53 @@ namespace UA
 /**
  *  Processes command line input and runtime options
  */
-class UaCommandLine : public BugCatcher
-{
-    public:
+class UaCommandLine : public BugCatcher {
+public:
 
-        ///
-        static void instance ( const int argc,
-                               const char** argv,
-                               const char* applicationUsage = appUsage
-                             );
+   ///
+   static void instance ( const int argc,
+                          const char** argv,
+                          const char* applicationUsage = appUsage);
 
-        ///
-        static Sptr < UaCommandLine > instance();
+   ///
+   static Sptr < UaCommandLine > instance();
 
-        ///
-        const string& getStringOpt(const string& cmdLineOption);
+   ///
+   const string& getStringOpt(const string& cmdLineOption);
 
-        ///
-        int getIntOpt(const string& cmdLineOption);
+   ///
+   int getIntOpt(const string& cmdLineOption);
+   
+   ///
+   bool getBoolOpt(const string& cmdLineOption);
 
-        ///
-        bool getBoolOpt(const string& cmdLineOption);
+private:
 
-    private:
+   ///
+   UaCommandLine();
 
-        ///
-        UaCommandLine();
+   ///
+   void setDefaultValues();
 
-        ///
-        void setDefaultValues();
+   ///
+   void parseCommandLine( const int argc,
+                          const char** argv,
+                          const char* applicationUsage );
 
-        ///
-        void parseCommandLine( const int argc,
-                               const char** argv,
-                               const char* applicationUsage );
+   ///
+   static Sptr < UaCommandLine > commandLine;
 
-        ///
-        static Sptr < UaCommandLine > commandLine;
+   ///
+   typedef map < string, string > Table;
 
-        ///
-        typedef map < string, string > Table;
+   ///
+   typedef Table::iterator TableIter;
 
-        ///
-        typedef Table::iterator TableIter;
+   ///
+   static const pair < const char*, const char* > cmdLineOptionString[];
 
-        ///
-        static const pair < const char*, const char* > cmdLineOptionString[];
-
-        ///
-        Table cmdLineOptionTable;
+   ///
+   Table cmdLineOptionTable;
 };
 }
 

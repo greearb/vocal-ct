@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/06/17 06:56:51 greear Exp $
+# $Id: Makefile,v 1.3 2004/06/19 00:51:07 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -127,7 +127,6 @@ SRC = \
 CallAgent.cxx \
 UaFacade.cxx \
 UaCallControl.cxx \
-GuiEventThread.cxx \
 UaConfiguration.cxx \
 RegistrationManager.cxx \
 Registration.cxx \

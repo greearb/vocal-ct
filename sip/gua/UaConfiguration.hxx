@@ -52,10 +52,12 @@
  */
 
 static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaConfiguration.hxx,v 1.2 2004/06/19 00:51:07 greear Exp $";
 
 #include <string>
 #include <list>
+
+using namespace std;
 
 namespace Vocal
 {

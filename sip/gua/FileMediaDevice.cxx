@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
 
 
 
@@ -109,17 +109,15 @@ FileMediaDevice::~FileMediaDevice(void)
 void
 FileMediaDevice::processAudio ()
 {
-    Lock lock(myMutex);
     if ( !audioActive )
     {
-        vusleep(30000);
         return ;
     }
     int wait = networkPktSize - (getTimeOfDay() - nextTime);
 
     if ( wait > 0 ) 
     {
-	vusleep(wait*1000);
+       //vusleep(wait*1000);
     }
 
     nextTime += networkPktSize;
@@ -134,7 +132,7 @@ FileMediaDevice::processAudio ()
                  new UaHardwareEvent( myId );
          signal->type = HardwareAudioType;
          signal->request.type = AudioStop;
-         UaFacade::instance().queueEvent(signal);
+         UaFacade::instance().queueEvent(signal.getPtr());
     }
     Sptr<CodecAdaptor> nll;
     processRaw((char*)buffer, networkPktSize*8, G711U, nll, false);
@@ -150,7 +148,6 @@ FileMediaDevice::processAudio ()
 int
 FileMediaDevice::start(VCodecType codec_type)
 {
-    Lock lock(myMutex);
     if ( audioActive )
     {
         cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
@@ -178,7 +175,7 @@ FileMediaDevice::start(VCodecType codec_type)
                      new UaHardwareEvent( myId );
         signal->type = HardwareAudioType;
         signal->request.type = AudioStop;
-        UaFacade::instance().getEventFifo()->add( signal );
+        UaFacade::instance().queueEvent( signal.getPtr() );
     };
 
     return 0;
@@ -195,7 +192,6 @@ FileMediaDevice::start(VCodecType codec_type)
 int
 FileMediaDevice::stop (void)
 {
-    Lock lock(myMutex);
     if (!audioActive) {
         cpLog(LOG_DEBUG, "stop: No audio active, ignored the request");
         return 1;
@@ -218,7 +214,6 @@ void
 FileMediaDevice::sinkData(char* data, int length, VCodecType type,
                           Sptr<CodecAdaptor> codec, bool silence_pkt)
 {
-    Lock lock(myMutex);
     cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
     if(type == DTMF_TONE)
     {

@@ -49,7 +49,7 @@
  */
 
 static const char* const UaCommandLine_cxx_Version =
-    "$Id: UaCommandLine.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCommandLine.cxx,v 1.2 2004/06/19 00:51:07 greear Exp $";
 
 #include "global.h"
 #if defined(WIN32) || defined(linux)
@@ -64,10 +64,12 @@ static const char* const UaCommandLine_cxx_Version =
 #endif
 
 #include <cstdio>
+#include <iostream>
 #include "cpLog.h"
 #include "UaCommandLine.hxx"
 
 using namespace Vocal::UA;
+using namespace std;
 
 Sptr<UaCommandLine> UaCommandLine::commandLine = 0;
 
@@ -206,8 +208,7 @@ UaCommandLine::parseCommandLine( const int argc,
         exit( -1 );
     }
 
-    if(helpFlg)
-    {
+    if (helpFlg) {
         cout << "Usage:" << myargv[0] ;
         cout << " [ -a | -m | -M ] [ -h ] -f <config_file>  " << endl;
         cout << " -a : run gua in announcement mode" << endl;

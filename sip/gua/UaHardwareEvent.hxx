@@ -52,8 +52,9 @@
  */
 
 static const char* const UaHardwareEventVersion =
-    "$Id: UaHardwareEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaHardwareEvent.hxx,v 1.2 2004/06/19 00:51:08 greear Exp $";
 
+#include <string>
 #include <vector>
 #include "SipProxyEvent.hxx"
 
@@ -98,24 +99,23 @@ struct HardwareAudioRequest
 };
 
 /// Message for hardware
-class UaHardwareEvent : public SipProxyEvent
-{
-    public:
-        ///
-        UaHardwareEvent(int id);
-        ///
-        virtual ~UaHardwareEvent();
-        ///
-        virtual const char* const name() const;
-
-        ///
-        HardwareMsgType type;
-        ///
-        struct HardwareAudioRequest request;
-        ///
-        vector < string > dataList;
-        ///
-        int myId;
+class UaHardwareEvent : public SipProxyEvent {
+public:
+   ///
+   UaHardwareEvent(int id);
+   ///
+   virtual ~UaHardwareEvent();
+   ///
+   virtual const char* const name() const;
+   
+   ///
+   HardwareMsgType type;
+   ///
+   struct HardwareAudioRequest request;
+   ///
+   vector < string > dataList;
+   ///
+   int myId;
 };
  
 }

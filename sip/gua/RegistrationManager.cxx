@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -255,7 +255,7 @@ RegistrationManager::addRegistration(int check) {
 
    // Set Via header
    SipVia sipvia = registerMsg->getVia();
-   sipvia.setPort(port);
+   sipvia.setPort(atoi(port.c_str()));
    sipvia.setTransport(config.getValue(SipTransportTag));
 
    registerMsg->removeVia();
@@ -278,7 +278,7 @@ RegistrationManager::addRegistration(int check) {
          contactUrl->setTransportParam( Data("tcp") );
       } 
     
-      myContact.setUrl( contactUrl );
+      myContact.setUrl( contactUrl.getPtr() );
    }
    else {
       myContact.setNullContact();
@@ -295,6 +295,6 @@ RegistrationManager::addRegistration(int check) {
    }
    registerMsg->setExpires( sipExpires );
 
-   Sptr<Registration> registration = new Registration( registerMsg);
+   Sptr<Registration> registration = new Registration(registerMsg);
    addRegistration( registration );
 }

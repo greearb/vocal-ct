@@ -52,7 +52,7 @@
  */
 
 static const char* const Registration_hxx_Version =
-    "$Id: Registration.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
+    "$Id: Registration.hxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
 #include <Data.hxx>
 #include <RegisterMsg.hxx>
 #include <StatusMsg.hxx>
@@ -68,7 +68,7 @@ namespace Vocal
 class Registration : public BugCatcher {
 public:
    Registration(const string& local_ip); // local_ip cannot be ""
-   Registration(const RegisterMsg& srcMsg);
+   Registration(Sptr<RegisterMsg> srcMsg);
    Registration(const Registration& src);
 
    virtual ~Registration();

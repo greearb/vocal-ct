@@ -53,14 +53,13 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.3 2004/06/19 00:51:08 greear Exp $";
 
 
 #include "global.h"
 #include <map>
 #include "Sptr.hxx"
 #include "StatusMsg.hxx"
-#include "GuiEventThread.hxx"
 #include "SipThread.hxx"
 #include "RegistrationManager.hxx"
 #include "SipTransceiver.hxx"
@@ -73,7 +72,6 @@ class LFVoipThread;
 
 using Vocal::SipTransceiver;
 using Vocal::SipThread;
-using Vocal::UA::GuiEventThread;
 using Vocal::UA::RegistrationManager;
 
 namespace Vocal
@@ -177,8 +175,6 @@ public:
 #endif
 
 private:
-   ///
-   void setUpGuiEventThread();
 
    /** Create the Instance of UaFacade, to wrap up the application wide
     *  sipStack .
@@ -192,8 +188,6 @@ private:
    static UaFacade* myInstance;
    ///
    Sptr<SipThread> mySipThread;
-   ///
-   Sptr<GuiEventThread> myGuiEventThread;
 
 #ifdef USE_LANFORGE
    LFVoipThread* myLFThread;
@@ -210,12 +204,6 @@ private:
 
    ///
    Sptr<MediaDevice> myMediaDevice;
-
-   ///
-   int myReadFd;
-
-   ///
-   int myWriteFd;
 
    ///
    Sptr<UaCli>  myUaCli;
@@ -236,10 +224,6 @@ private:
 
    ///
    MediaDeviceMap myMediaDeviceMap;
-   ///
-   string myReadPath;
-   ///
-   string myWritePath;
 };
 
 }

@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
 
 
 #include <sys/types.h>
@@ -79,6 +79,7 @@ static const char* const UaFacade_cxx_Version =
 #include "UaCli.hxx"
 #include <misc.hxx>
 #include "gua.hxx"
+#include <SipEvent.hxx>
 
 //Libmedia
 #include "MediaController.hxx"
@@ -250,8 +251,6 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
       //};
       
       DEBUG_MEM_USAGE("Before setting up GUI thread.");
-      //Setup the GUI event thread
-      setUpGuiEventThread();
 
       DEBUG_MEM_USAGE("After GUI thread.");
       while (true) {
@@ -304,7 +303,7 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
 
       if (UaCommandLine::instance()->getIntOpt("cmdline")) {
          DEBUG_MEM_USAGE("Creating CLI.");
-         myUaCli = new UaCli(myWriteFd, myReadFd);
+         myUaCli = new UaCli(this);
       }
       
       //Initialize the MediaController library
@@ -350,88 +349,6 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
    cpLog(LOG_ERR, "UaFacade:  Done with constructor...\n");
 }
 
-void
-UaFacade::setUpGuiEventThread()
-{
-    cpLog(LOG_INFO, "Setting up GuiEventThread");
-    Data uId((int)getuid());
-    Data pId((int)getpid());
-
-    Data LocalDirectory = NamedDir;
-    LocalDirectory += uId;
-    
-    mkdir(LocalDirectory.c_str(), 0700);
-    chmod(LocalDirectory.c_str(), 0700);
-
-    struct stat statbuf;
-    int err = lstat(LocalDirectory.c_str(), &statbuf);
-    if (err) {
-       cpLog(LOG_ERR, "Cannot continue, failed to stat directory: %s",
-             strerror(errno));
-       exit(-1);
-    }
-
-    if (statbuf.st_uid != getuid() ||
-        statbuf.st_mode != 0040700) {
-       cpLog(LOG_ERR, 
-             "Cannot continue, directory %s does not have right permissions", 
-             LocalDirectory.c_str());
-       exit(-1);
-    }
-
-    myReadPath = LocalDirectory.c_str();
-    myReadPath += "/";
-    myReadPath += NamedReadFile;
-    myReadPath += pId.c_str();
-
-    myWritePath = LocalDirectory.c_str();
-    myWritePath += "/";
-    myWritePath += NamedWriteFile;
-    myWritePath += pId.c_str();
-
-    int retVal = mkfifo(myReadPath.c_str(), 0600);
-    if (retVal < 0 && errno != EEXIST) {
-       cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s",
-             strerror(errno));
-       exit(-1);
-    }
-
-    retVal = mkfifo(myWritePath.c_str(), 0600);
-    if (retVal < 0 && errno != EEXIST) {
-       cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s",
-             strerror(errno));
-       exit(-1);
-    }
-
-    if ((myReadFd = open(myReadPath.c_str(), O_RDWR)) < 0) {
-       cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s",
-             strerror(errno));
-       exit(-1);
-    }
-
-
-    if ((myWriteFd = open(myWritePath.c_str(), O_RDWR)) < 0) {
-       cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s",
-             strerror(errno));
-       exit(-1);
-    }
-
-#ifndef __FreeBSD__
-    ioctl(myWriteFd, I_FLUSH, FLUSHRW);
-#endif
-
-    //TODO:  Consider getting rid of gui thread (but maybe it's not really GUI, but UI thread??)
-    //if (! UaCommandLine::instance()->getIntOpt("cmdline")) {
-    //Create the GuiEventThread to receive GUI events
-
-    myGuiEventThread = new GuiEventThread(myReadFd);
-    cpLog(LOG_INFO, "GuiEventThread created...");
-
-    //}
-    //else {
-    //cpLog(LOG_ALERT, "NOTE:  Not starting GUI Event Thread, using cmdline only.\n");
-    //}
-}
 
 #ifdef USE_LANFORGE
 void UaFacade::setLFThread(LFVoipThread* lft) {
@@ -440,11 +357,13 @@ void UaFacade::setLFThread(LFVoipThread* lft) {
 
 #endif
 
-UaFacade::~UaFacade()
-{
-    if(myReadPath.size()) unlink(myReadPath.c_str());
-    if(myWritePath.size()) unlink(myWritePath.c_str());
-
+UaFacade::~UaFacade() {
+#ifdef USE_LANFORGE
+   if (myLFThread) {
+      delete myLFThread;
+      myLFThread = NULL;
+   }
+#endif
 }
 
 // Received from the stack
@@ -588,11 +507,10 @@ void
 UaFacade::postMsg(const string& msg) {
    cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());
    if ((myMode == CALL_MODE_UA) || (myMode == CALL_MODE_LANFORGE)) {
-      string lstr(msg);
-      lstr += "|";
-      cpLog(LOG_DEBUG, "Posting to GUI:[%s]", lstr.c_str());
-      if (write(myWriteFd, lstr.c_str(), lstr.size()) < 0) {
-         cpLog(LOG_ERR, "Failed to write data to named pipe");
+      // TODO:  Post to GUI if we support that again in the future.
+
+      if (myUaCli != 0) {
+         myUaCli->parseInput(msg);
       }
    }
 
@@ -704,11 +622,14 @@ UaFacade::releaseMediaDevice(int id) {
    }
 }//releaseMediaDevice
 
+void UaFacade::queueEvent(Sptr <SipProxyEvent> event) {
+   eventList.push_back(event);
+}
+
 void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                     uint64 now) {
    mySipThread->tick(input_fds, output_fds, exc_fds, now);
    myRegistrationManager->tick(input_fds, output_fds, exc_fds, now);
-   myGuiEventThread->tick(input_fds, output_fds, exc_fds, now);
 #ifdef USE_LANFORGE
    myLFThread->tick(input_fds, output_fds, exc_fds, now);
 #endif
@@ -725,7 +646,6 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      int& maxdesc, uint64& timeout, uint64 now) {
    mySipThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    myRegistrationManager->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
-   myGuiEventThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #ifdef USE_LANFORGE
    myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #endif
