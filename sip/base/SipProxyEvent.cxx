@@ -49,7 +49,7 @@
  */
 
 static const char* const SipProxyEvent_cxx_Version =
-    "$Id: SipProxyEvent.cxx,v 1.5 2004/06/17 06:56:51 greear Exp $";
+    "$Id: SipProxyEvent.cxx,v 1.6 2004/06/20 07:09:38 greear Exp $";
 
 
 #include "global.h"
@@ -58,17 +58,14 @@ static const char* const SipProxyEvent_cxx_Version =
 #include "SipTransceiver.hxx"
 
 
-#warning "I wonder if this class is really needed..."
-
-
 using namespace Vocal;
 
-SipProxyEvent::SipProxyEvent()
-    :
-	myCallInfo(0),
+SipProxyEvent::SipProxyEvent(uint64 runTimerMs)
+      : myCallInfo(0),
 	myCallContainer(0),
         mySipStack(0)
 {
+   runTimer = runTimerMs;
 }
 
 SipProxyEvent::~SipProxyEvent()

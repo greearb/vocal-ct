@@ -51,7 +51,7 @@
  *
  */
 static const char* const VmcpDevice_hxx_Version =
-    "$Id: VmcpDevice.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: VmcpDevice.hxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
 
 //#include "Vmcp.h"
 #include "PlayQueue.h"
@@ -59,7 +59,6 @@ static const char* const VmcpDevice_hxx_Version =
 #include "VmTime.h"
 #include "DeviceEvent.hxx"
 #include "MediaDevice.hxx"
-#include "VmcpThread.hxx"
 
 class Vmcp;
 
@@ -157,19 +156,11 @@ class VmcpDevice: public MediaDevice
         VmTime nextTime;
         VmTime nextRecTime;
         int networkPktSize;
-        Sptr<VmcpThread> myVmServerThread;
 };
  
 }
 
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

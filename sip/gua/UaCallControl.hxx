@@ -53,7 +53,7 @@
 
 
 static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
+    "$Id: UaCallControl.hxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -66,6 +66,9 @@ static const char* const UaCallControl_hxx_Version =
 namespace Vocal {
 
 namespace UA {
+
+// TODO:  Make this a member of UaFacade and get rid of the
+// singleton.  --Ben
 
 /// Main interface to handle requests in UA
 class UaCallControl : public CallControl {
@@ -81,21 +84,24 @@ public:
       gets register to atexit() function at the time of creation.
    */
    static void destroy(void);
-   
+
+#if 0   
    ///
    void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
    ///
    void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
+#endif
 
-   void processEventQueue();
-   
    ///
-   bool processEvent(const Sptr<SipProxyEvent>& event);
+   bool processEvent(Sptr<SipProxyEvent> event);
+
+protected:
    
    ///
    void handleGuiEvents(Sptr<GuiEvent> gEvent);
    
 private:
+
    ///
    bool busy(Sptr<SipCommand> sipMsg);
    
@@ -114,8 +120,6 @@ private:
    ///
    UaCallControl() : CallControl() { };
 
-   list<Sptr<SipProxyEvent> > eventQueue;
-   
    ///
    static UaCallControl* myInstance;
 };

@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.5 2004/06/20 07:09:38 greear Exp $";
 
 
 #include <sys/types.h>
@@ -623,7 +623,7 @@ UaFacade::releaseMediaDevice(int id) {
 }//releaseMediaDevice
 
 void UaFacade::queueEvent(Sptr <SipProxyEvent> event) {
-   eventList.push_back(event);
+   eventQueue.push(event);
 }
 
 void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
@@ -635,10 +635,14 @@ void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 #endif
 
    // Queue incomming events, handle them all in the tick() method.
-   while (eventList.size()) {
-      list<Sptr<SipProxyEvent> >::iterator i = eventList.begin();
-      handleEvent(*i);
-      eventList.pop_front();
+   while (eventQueue.size()) {
+      if (eventQueue.top()->getRunTimer() > now) {
+         // Wait a while, not ready to send any more at this time
+         break;
+      }
+      Sptr<SipProxyEvent> ev = eventQueue.top();
+      UaCallControl::instance().processEvent(ev);
+      eventQueue.pop();
    }
 }
 
@@ -650,8 +654,14 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #endif
 
-   if (eventList.size()) {
-      timeout = 0;
+   if (eventQueue.size()) {
+      uint64 ntx = eventQueue.top()->getRunTimer();
+      if (ntx < now) {
+         timeout = 0;
+      }
+      else {
+         timeout = min(timeout, ntx - now);
+      }
    }
    return 0;
 }

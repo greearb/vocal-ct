@@ -71,7 +71,6 @@
 %dir @prefix@/bin/images/
 @prefix@/bin/images/blueball.gif
 @prefix@/bin/images/redball.gif
-@prefix@/bin/b2bua
 @prefix@/bin/sample-b2bua-cfg.xml/b2bConfig.xml
 @prefix@/bin/radiusServer
 @prefix@/bin/radiusClient

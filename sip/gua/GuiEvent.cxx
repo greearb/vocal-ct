@@ -1,5 +1,4 @@
-#ifndef VmcpThread_H
-#define VmcpThread_H
+
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -51,36 +50,54 @@
  *
  */
 
-static const char* const VmcpThreadVersion =
-    "$Id: VmcpThread.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+#include "GuiEvent.hxx"
+#include "misc.hxx"
+#include <string>
 
+using namespace Vocal;
 
-namespace Vocal
-{
-
-namespace UA
-{
-
-class VmcpDevice;
-
-/**
- * Thread driver for the VmcpDevice for VoiceMail processing.
- */
-class VmcpThread : public BugCatcher {
-public:
-   ///
-   VmcpThread(Sptr<VmcpDevice> device )
-         : myDevice(device) { };
-   ///
-   virtual ~VmcpThread() { };
-protected:
-
-   ///
-   Sptr<VmcpDevice>  myDevice;
-};
- 
+GuiEvent::GuiEvent(string eName, uint64 timer)
+      : SipProxyEvent(timer) {
+   string::size_type pos = eName.find_first_of(" :");
+   if (pos != string::npos) {
+      myKey = eName.substr(0, pos);
+      myValue = eName.substr(pos+1, eName.size());
+   }
+   else {
+      myKey = eName;
+   }
+   myType = G_NONE;
+   if (myKey == UA_INVITE_STR) {
+      myType = G_INVITE;
+   }
+   else if (myKey == UA_HOLD_STR) {
+      myType = G_HOLD;
+   }
+   else if (myKey == UA_REDIRECT_STR) {
+      myType = G_REDIRECT;
+   }
+   else if (myKey == UA_RESUME_STR) {
+      myType = G_RESUME;
+   }
+   else if (myKey == UA_DOSUBSCRIBE_STR) {
+      myType = G_DOSUBSCRIBE;
+   }
+   else if (myKey == UA_REGISTRATIONEXPIRED_STR) {
+      myType = G_REGISTRATIONEXPIRED;
+   }
+   else if (myKey == UA_STOP_STR) {
+      myType = G_STOP;
+   }
+   else if (myKey == UA_PURGE_STR) {
+      myType = G_PURGE;
+   }
+   else if (myKey == UA_ACCEPT_STR) {
+      myType = G_ACCEPT;
+   }
+   else if (myKey == UA_PREF_STR) {
+      myType = G_PREF;
+   }
+   else if (myKey == UA_SHUTDOWN_STR) {
+      myType = G_SHUTDOWN;
+   }
 }
-
-}
-
-#endif

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/06/19 00:51:07 greear Exp $
+# $Id: Makefile,v 1.4 2004/06/20 07:09:38 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -126,6 +126,7 @@ TESTPROGRAMS = \
 SRC = \
 CallAgent.cxx \
 UaFacade.cxx \
+GuiEvent.cxx \
 UaCallControl.cxx \
 UaConfiguration.cxx \
 RegistrationManager.cxx \
@@ -151,8 +152,7 @@ endif
 
 ifeq ($(USE_VM),1)
 SRC += VmcpDevice.cxx \
-       Recorder.cxx \
-       VmcpThread.cxx
+       Recorder.cxx
 endif
 ifeq ($(USE_MPEGLIB),1)
 SRC += VideoDevice.cxx 

@@ -53,12 +53,13 @@
 
 
 static const char* const GuiEvent_hxx_Version =
-    "$Id: GuiEvent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: GuiEvent.hxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
 
 #include "global.h"
 #include <string>
 #include "SipProxyEvent.hxx"
 #include "BasicAgent.hxx"
+#include "misc.hxx"
 
 namespace Vocal {
 
@@ -103,91 +104,33 @@ typedef enum {
 } GuiEventType;
 
 ///GUI event for call control
-class GuiEvent : public SipProxyEvent
-{
-   public:
-      GuiEvent(string eName)
-      {
-          string::size_type pos = eName.find_first_of(" :");
-          if(pos != string::npos)
-          {
-              myKey = eName.substr(0, pos);
-              myValue = eName.substr(pos+1, eName.size());
-          }
-          else
-          {
-              myKey = eName;
-          }
-          myType = G_NONE;
-          if(myKey == UA_INVITE_STR)
-          {
-              myType = G_INVITE;
-          }
-          else if(myKey == UA_HOLD_STR)
-          {
-              myType = G_HOLD;
-          }
-          else if(myKey == UA_REDIRECT_STR)
-          {
-              myType = G_REDIRECT;
-          }
-	   else if(myKey == UA_RESUME_STR)
-          {
-              myType = G_RESUME;
-          }
-          else if(myKey == UA_DOSUBSCRIBE_STR)
-          {
-              myType = G_DOSUBSCRIBE;
-          }
+class GuiEvent : public SipProxyEvent {
+public:
+   GuiEvent(string eName, uint64 runAfter = 0);
 
-	    else if(myKey == UA_REGISTRATIONEXPIRED_STR)
-          {
-              myType = G_REGISTRATIONEXPIRED;
-          }
-          else if(myKey == UA_STOP_STR)
-          {
-              myType = G_STOP;
-          }
-          else if(myKey == UA_PURGE_STR)
-          {
-              myType = G_PURGE;
-          }
-          else if(myKey == UA_ACCEPT_STR)
-          {
-              myType = G_ACCEPT;
-          }
-          else if(myKey == UA_PREF_STR)
-          {
-              myType = G_PREF;
-          }
-          else if(myKey == UA_SHUTDOWN_STR)
-          {
-              myType = G_SHUTDOWN;
-          }
-      }
-      ///
-      virtual ~GuiEvent() { };
-      ///
-      virtual string className() { return "GuiEvent"; }
+   ///
+   virtual ~GuiEvent() { };
+   ///
+   virtual string className() { return "GuiEvent"; }
 
-      ///
-      const char* const name() const { return "GuiEvent"; };
+   ///
+   const char* const name() const { return "GuiEvent"; };
 
-      ///
-      GuiEventType getType() { return myType; }
+   ///
+   GuiEventType getType() { return myType; }
 
-      ///
-      const string& getValue() const { return myValue; };
-      ///
-      const string& getKey() const { return myKey; };
-   private:
-      GuiEvent();
-      ///
-      GuiEventType myType;
-      ///
-      string myKey;
-      ///
-      string myValue;
+   ///
+   const string& getValue() const { return myValue; };
+   ///
+   const string& getKey() const { return myKey; };
+private:
+   GuiEvent();
+   ///
+   GuiEventType myType;
+   ///
+   string myKey;
+   ///
+   string myValue;
 };
 
 

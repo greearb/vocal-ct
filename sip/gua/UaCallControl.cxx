@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -91,6 +91,7 @@ UaCallControl* UaCallControl::myInstance = 0;
 
 #define NUM_TAG_RANDOMNESS 4
 
+#if 0
 void 
 UaCallControl::receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg)
 {
@@ -101,11 +102,10 @@ UaCallControl::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)
 {
    //Nothing to do here
 }
-
+#endif
 
 bool 
-UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
-{
+UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
     cpLog(LOG_DEBUG, "UaCallControl::processEvent");
     if (CallControl::processEvent(event)) {
         cpLog(LOG_DEBUG, "Event handled by the base class");

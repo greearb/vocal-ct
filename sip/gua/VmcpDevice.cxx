@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
 
 
 
@@ -93,8 +93,6 @@ VmcpDevice::VmcpDevice(int id)
     myCodec = new CodecG711U();
     //myCodec = new CodecG729C();
 
-    myVmServerThread = new VmcpThread(this);
-    myVmServerThread->run();
 }  // end VmcpDevice::VmcpDevice()
 
 
@@ -107,10 +105,7 @@ VmcpDevice::VmcpDevice(int id)
 VmcpDevice::~VmcpDevice(void)
 {
     cpLog(LOG_DEBUG, "VmcpDevice::~VmcpDevice(void)");
-    myVmServerThread->shutdown();
-    myVmServerThread->join();
-    if(ss)
-    {
+    if (ss) {
         myVmStack->sendClose();
         close(ss);   
     }
@@ -118,6 +113,7 @@ VmcpDevice::~VmcpDevice(void)
 } // end VmcpDevice::~VmcpDevice()
 
 
+#warning "Port to non-blocking, non-threaded model."
 void
 VmcpDevice::vmThread ()
 {
@@ -129,7 +125,7 @@ VmcpDevice::vmThread ()
 
     if(ss <= 0) 
     {
-        vusleep(50000);
+       //vusleep(50000);
         return;
     }
     // reset file descriptor
@@ -158,29 +154,24 @@ VmcpDevice::vmThread ()
 void
 VmcpDevice::processAudio ()
 {
-    myMutex.lock();
     if ( (!audioActive) || (!hookStateOffhook) || hasPlayed )
     {
-        myMutex.unlock();
-        vusleep(50000);
-        return ;
+       //vusleep(50000);
+       return ;
     }
-    myMutex.unlock();
 
     int wait = networkPktSize - (vm_gettimeofday() - nextTime);
  
     if ( wait > 0 )
     {
-        vusleep(wait*1000);
+       //vusleep(wait*1000);
     }
  
     nextTime += networkPktSize;
  
-    myMutex.lock();
     //Since we wakeup, see if any of the device state has changed
     if ( (!audioActive) || (!hookStateOffhook) || hasPlayed )
     {
-        myMutex.unlock();
         return ;
     }
 
@@ -200,7 +191,6 @@ VmcpDevice::processAudio ()
     {
         processRaw((char*)buffer, networkPktSize*8, G711U, NULL, false);
     }
-    myMutex.unlock();
 }
 
 
@@ -216,8 +206,6 @@ VmcpDevice::processAudio ()
 int
 VmcpDevice::process (fd_set* fd)
 { 
-    Lock lock(myMutex);
-
     if ( (hookStateOffhook == true) && (ss > 0 ))
     {
         if (FD_ISSET(ss, fd))
@@ -303,7 +291,6 @@ VmcpDevice::process (fd_set* fd)
 int
 VmcpDevice::addToFdSet (fd_set* fd)
 {
-    Lock lock(myMutex);
     if( hookStateOffhook && (ss > 0 ))
     {
 	// set the VM controller to active
@@ -317,8 +304,6 @@ VmcpDevice::addToFdSet (fd_set* fd)
 int
 VmcpDevice::start(VCodecType codec_type)
 {
-    Lock lock(myMutex);
-
     if ( audioActive )
     {
         cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
@@ -350,8 +335,6 @@ VmcpDevice::start(VCodecType codec_type)
 int
 VmcpDevice::stop (void)
 {
-    Lock lock(myMutex);
-
     if (!audioActive) 
     {
          return 1;
@@ -383,7 +366,6 @@ void
 VmcpDevice::sinkData(char* data, int length, VCodecType type,
                      Sptr<CodecAdaptor> codec, bool silence_pkt)
 {
-    Lock lock(myMutex);
     cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
     if(type == DTMF_TONE)
     {
@@ -441,13 +423,13 @@ VmcpDevice::sinkData(char* data, int length, VCodecType type,
     //Synchronize writing
     if ( (!audioActive) || (!hookStateOffhook) )
     {
-        vusleep(30000);
+       //vusleep(30000);
         return ;
     }
     int wait = networkPktSize - (vm_gettimeofday() - nextRecTime);
     if ( wait > 0 )
     {
-        vusleep(wait*1000);
+       //vusleep(wait*1000);
     }
     nextRecTime += networkPktSize;
 
@@ -546,10 +528,10 @@ void
 VmcpDevice::reportEvent(DeviceEventType eventType )
 {
     cpLog( LOG_INFO, "Got device event: %d", eventType );
-    Sptr < DeviceEvent > event = new DeviceEvent( UaFacade::instance().getEventFifo() );
+    Sptr < DeviceEvent > event = new DeviceEvent();
     event->type = eventType;
     event->id = myId;
-    UaFacade::instance().getEventFifo()->add( event );
+    UaFacade::instance().queueEvent(event.getPtr());
 }
 
 int

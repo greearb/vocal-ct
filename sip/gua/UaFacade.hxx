@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.3 2004/06/19 00:51:08 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
 
 
 #include "global.h"
@@ -152,9 +152,6 @@ public:
    // Add the event to our queue.  Will process it next tick()
    void queueEvent(Sptr <SipProxyEvent> event);
 
-   // Act on the event
-   void handleEvent(Sptr<SipProxyEvent> event);
-
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      uint64 now);
 
@@ -200,7 +197,9 @@ private:
    Sptr<RegistrationManager> myRegistrationManager;
 
    // Queue incomming events, handle them all in the tick() method.
-   list<Sptr<SipProxyEvent> > eventList;
+   priority_queue<Sptr<SipProxyEvent>,
+                  vector< Sptr<SipProxyEvent> >,
+                  SipProxyEventComparitor> eventQueue;
 
    ///
    Sptr<MediaDevice> myMediaDevice;

@@ -52,12 +52,13 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.6 2004/06/17 06:56:51 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.7 2004/06/20 07:09:38 greear Exp $";
 
 
 #include "Sptr.hxx"
 #include <BugCatcher.hxx>
 #include <list>
+#include <misc.hxx>
 
 namespace Vocal
 {
@@ -69,7 +70,7 @@ class CallInfo;
 class SipProxyEvent: public BugCatcher {
 public:
    ///
-   SipProxyEvent();
+   SipProxyEvent(uint64 runTimerMs = 0);
 
    ///
    virtual ~SipProxyEvent();
@@ -102,6 +103,9 @@ public:
    virtual bool isTimerEvent() const { return false; }
    virtual bool isSipEvent() const { return false; }
 
+   // Run no sooner than this, in Miliseconds.
+   uint64 getRunTimer() const { return runTimer; }
+
    virtual string toString();
 
 protected:
@@ -115,6 +119,9 @@ protected:
    /// Sip stack associated with this event.
    Sptr < SipTransceiver > mySipStack;
 
+   // Should not process the event before this time (in miliseconds)
+   uint64 runTimer;
+
 private:
 
    // Suppress copying
@@ -122,6 +129,14 @@ private:
         
    // Suppress copying
    const SipProxyEvent & operator=(const SipProxyEvent &);
+};
+
+// We want the lower time to be first in the heap, used to sort
+// event queues.
+struct SipProxyEventComparitor {
+   bool operator()(Sptr<SipProxyEvent> a, Sptr<SipProxyEvent> b) {
+      return (b->getRunTimer() < a->getRunTimer());
+   }
 };
  
 }
