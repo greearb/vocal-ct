@@ -49,7 +49,7 @@
  */
 
 static const char* const cdrserv_cxx_Version =
-    "$Id: cdrserv.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: cdrserv.cxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 #include "VCdrException.hxx"
 #include "CommandLine.hxx"
@@ -113,7 +113,7 @@ int main( const int argc, const char** argv ) {
             configData.getPsData(psHost,
                                  altHost,
                                  readSecret, 
-                                 writeSecret);
+                                 writeSecret, true /* use tls? */);
             configData.m_logLevel = logLevel;
         }
         else if (configFile[0]) {
@@ -160,7 +160,6 @@ int main( const int argc, const char** argv ) {
 
             now = vgetCurMs();
             
-            CdrBilling::setFds(&input_set, &output_set, &exc_set, maxdesc, sleep_for, now);
             CdrManager::instance().setFds(&input_set, &output_set, &exc_set, maxdesc,
                                           sleep_for, now);
 
@@ -192,7 +191,6 @@ int main( const int argc, const char** argv ) {
 
             // Either we timed out, or a file descriptor is readable.  Let the
             // BasicProxy do it's job.
-            CdrBilling::tick(&input_set, &output_set, &exc_set, now);
             CdrManager::instance().tick(&input_set, &output_set, &exc_set, now);
         }//while
     }

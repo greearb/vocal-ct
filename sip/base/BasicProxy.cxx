@@ -50,7 +50,7 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.8 2004/06/14 00:33:54 greear Exp $";
 
 
 #include "global.h"
@@ -81,7 +81,7 @@ BasicProxy::BasicProxy(const Sptr < Builder >  builder,
    cpLog(LOG_INFO, "Initializing heartbeat mechanism");
    HeartbeatThread::initialize(local_ip, local_dev_to_bind_to,
                                myType,
-                               HB_RX|HB_TX|HB_HOUSEKEEPING);
+                               HB_RX|HB_TX|HB_HOUSEKEEPING, NULL);
    HeartbeatThread::instance().addServerContainer(SERVER_RS); //Listen for Register Servers
    HeartbeatThread::instance().addServerContainer(SERVER_POS); //Listen for Provision servers.
 }

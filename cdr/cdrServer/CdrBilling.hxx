@@ -53,11 +53,13 @@
 
 
 static const char* const CdrBilling_hxx_Version =
-    "$Id: CdrBilling.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrBilling.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 
 #include "CdrConfig.hxx"
 #include "CdrUserCache.hxx"
+#include <misc.hxx>
+
 
 // Forward Declarations
 //

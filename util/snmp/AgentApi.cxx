@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.5 2004/06/10 23:16:17 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.6 2004/06/14 00:33:55 greear Exp $";
 
 
 #include "global.h"
@@ -267,26 +267,27 @@ AgentApi::sendResponse(string parameter, NetworkAddress *sender)
  * @param sender destination of message
  */
 voReturnStatus
-AgentApi::sendResponse(void *inData, NetworkAddress *sender)
-{
-    try
-    {
-        message.action = (actionT)Response;
-	memset(message.parm2, 0, sizeof(message.parm2));
-        memcpy(message.parm2, inData, sizeof(message.parm2));
-        cpLog( LOG_DEBUG, "send generic response to %s:%d",
-               sender->getHostName().c_str(), sender->getPort());
-        udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
-        return voSuccess;
-    }
+AgentApi::sendResponse(void *inData, int len, NetworkAddress *sender) {
+   // This is still shitty, but at least now it will not randomly over-write
+   // memory. --Ben
+   assert(len <= (int)(sizeof(message.parm2)));
+   try {
+      message.action = (actionT)Response;
+      memset(message.parm2, 0, sizeof(message.parm2));
+      memcpy(message.parm2, inData, len);
+      cpLog( LOG_DEBUG, "send generic response to %s:%d",
+             sender->getHostName().c_str(), sender->getPort());
+      udpStack->queueTransmitTo((char *)&message, sizeof(message), sender);
+      return voSuccess;
+   }
 #ifdef PtW32CatchAll
-    PtW32CatchAll
+   PtW32CatchAll
 #else
-    catch ( ... ) 
+   catch ( ... ) 
 #endif
-    {
-        return voFailure;
-    }
+   {
+      return voFailure;
+   }
 }
 
 voReturnStatus

@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.8 2004/06/03 23:54:17 greear Exp $";
+    "$Id: Connection.hxx,v 1.9 2004/06/14 00:33:55 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -151,11 +151,18 @@ public:
 
    virtual bool needsToWrite() { return outBuf.getCurLen() > 0; }
    virtual int getSendQueueSize() { return outBuf.getCurLen(); }
-   virtual void consumeRcvdBytes(int cnt) { rcvBuf.dropFromTail(cnt); }
+
+   // How many bytes can we grab w/out blocking?
+   virtual int getRcvBytesWaiting() { return rcvBuf.getCurLen(); }
+
 
    // Returns the number of bytes actually peeked, and
    // buf will be null-terminated.
    int peekRcvdBytes(unsigned char* buf, int mx_buf_len);
+
+   // Call this after peeking the bytes, if you don't want to peek
+   // them again.  This actually consumes the bytes..
+   virtual void consumeRcvdBytes(int cnt) { rcvBuf.dropFromTail(cnt); }
 
    /**
       this is true if the two Connection objects have the same

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTo_hxx_Version =
-    "$Id: SipTo.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTo.hxx,v 1.3 2004/06/14 00:33:55 greear Exp $";
 
 
 #include "global.h"
@@ -131,6 +131,8 @@ class SipTo : public SipHeader
 
         ///
         void setPortData(const Data& newport);
+        void setPortData(int newport);
+
         ///
         Data getPortData() const ;
 

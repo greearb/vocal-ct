@@ -51,7 +51,7 @@
 
 
 static const char* const CdrConfig_cxx_Version =
-    "$Id: CdrConfig.cxx,v 1.3 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrConfig.cxx,v 1.4 2004/06/14 00:33:53 greear Exp $";
 
 
 #include <fstream.h>
@@ -361,10 +361,10 @@ CdrConfig::getData( const string &fileName ) throw (VCdrException&) {
 
 void
 CdrConfig::getPsData( const NetworkAddress& psHost,
-                      const NetworkAddress& altHost
+                      const NetworkAddress& altHost,
 		      const string& readSecret,
                       const string& writeSecret,
-                      bool usTls)
+                      bool useTls)
     throw (VCdrException&) {
    // read configuration file
    cpLog(LOG_ALERT, "Loading config data from provisioning");
@@ -390,7 +390,7 @@ CdrConfig::getPsData( const NetworkAddress& psHost,
       ProvisionInterface::initialize(psHost.getHostName().c_str(),
                                      psHost.getPort(),
                                      altHost.getHostName().c_str(),
-                                     altPort.getPort(),
+                                     altHost.getPort(),
                                      readSecret.c_str(),
                                      writeSecret.c_str(),
                                      useTls);

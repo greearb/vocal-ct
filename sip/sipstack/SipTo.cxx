@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTo_cxx_Version =
-    "$Id: SipTo.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTo.cxx,v 1.3 2004/06/14 00:33:54 greear Exp $";
 
 #include "global.h"
 #include "SipTo.hxx"
@@ -518,26 +518,34 @@ SipTo::operator ==(const SipTo& srcTo) const
 }
 
 void
-SipTo::setPort(int portNum)
-{
-    setPortData(Data(portNum));
+SipTo::setPort(int portNum) {
+    setPortData(portNum);
 }
 
-void 
-SipTo::setPortData(const Data& newport)
-{
-    if (urlType  == TEL_URL)
-    {
+void SipTo::setPortData(const Data& newport) {
+    if (urlType  == TEL_URL) {
 	return;
     }
-    if (toUrl == 0)
-    {
+    if (toUrl == 0) {
 	toUrl = new SipUrl("", getLocalIp());
     }
-    if (toUrl != 0)
-    {
-	if (toUrl->getType() == SIP_URL)
-	{
+    if (toUrl != 0) {
+	if (toUrl->getType() == SIP_URL) {
+            Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
+            sipUrl->setPort(newport);
+	}
+    }
+}
+
+void SipTo::setPortData(int newport) {
+    if (urlType  == TEL_URL) {
+	return;
+    }
+    if (toUrl == 0) {
+	toUrl = new SipUrl("", getLocalIp());
+    }
+    if (toUrl != 0) {
+	if (toUrl->getType() == SIP_URL) {
             Sptr <SipUrl> sipUrl((SipUrl*)(toUrl.getPtr()));
             sipUrl->setPort(newport);
 	}

@@ -51,7 +51,7 @@
 
 
 static const char* const CdrServer_cxx_Version =
-    "$Id: CdrServer.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrServer.cxx,v 1.2 2004/06/14 00:33:53 greear Exp $";
 
 
 #include "CdrServer.hxx"
@@ -62,15 +62,15 @@ static const char* const CdrServer_cxx_Version =
 
 
 CdrServer::CdrServer ( const CdrConfig &cdata ) :
-    EventObj( (int)0 ),      // ensure use of constructor EventObj(int)
+    EventObj( (int)0, true ),      // ensure use of constructor EventObj(int)
     m_data( cdata )          // set non-blocking
 {
     m_tcpSock = new TcpServerSocket( m_data.m_localIp,
                                      "", /* local_dev_to_bind_to */
-                                     m_data.m_serverPort );
-    Connection &servCon = m_tcpSock->getServerConn();
+                                     m_data.m_serverPort, false );
+    Sptr<Connection> servCon = m_tcpSock->getServerConn();
 
-    m_fileDesc = servCon.getConnId();
+    m_fileDesc = servCon->getConnId();
 }
 
 CdrServer::~CdrServer()
@@ -78,17 +78,15 @@ CdrServer::~CdrServer()
     delete m_tcpSock;
 }
 
-void
-CdrServer::onData()
-{
-    // accept new marshal connections
+void CdrServer::onData() {
+   // accept new marshal connections
 
-    CdrMarshal *newMs( new CdrMarshal );
+   Sptr<CdrMarshal> newMs = new CdrMarshal();
 
-    m_tcpSock->accept( newMs->getConn() );
-    newMs->preRegister();
+   m_tcpSock->accept( newMs->getConn() );
+   newMs->preRegister();
 
-    CdrManager::instance().registerEvent( newMs );
+   CdrManager::instance().registerEvent( newMs.getPtr() );
 
-    cpLog( LOG_INFO, "A new Marshal has requested a connection" );
+   cpLog( LOG_INFO, "A new Marshal has requested a connection" );
 }

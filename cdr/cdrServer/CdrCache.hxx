@@ -53,7 +53,7 @@
 
 
 static const char* const CdrCache_hxx_Version =
-    "$Id: CdrCache.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrCache.hxx,v 1.2 2004/06/14 00:33:53 greear Exp $";
 
 
 #include <string>
@@ -97,42 +97,41 @@ class CdrFileHandler;
     relayed to the billing server by CdrBilling
 **/
 
-class CdrCache : public EventObj
-{
-    public:
+class CdrCache : public EventObj {
+public:
 
-        /**
-         * Must be constructed with configuration data
-         * @param CdrConfig& configuration data
-         */
-        CdrCache( const CdrConfig &cdata );
+   /**
+    * Must be constructed with configuration data
+    * @param CdrConfig& configuration data
+    */
+   CdrCache( const CdrConfig &cdata );
     
-        ///
-        virtual ~CdrCache();
+   ///
+   virtual ~CdrCache();
+   
+   /// Event call back
+   void onTimer();
 
-        /// Event call back
-        void onTimer();
+   /**
+    * Correlate client data with radius records.
+    * Each record is written to the cdr billing file.
+    * @param CdrClient& data record
+    * @return void
+    */
+   void add( const CdrClient &dat ) throw (VCdrException&);
 
-        /**
-         * Correlate client data with radius records.
-         * Each record is written to the cdr billing file.
-         * @param CdrClient& data record
-         * @return void
-         */
-        void add( const CdrClient &dat ) throw (VCdrException&);
+   /// Purge billed and old records
+   void purgeCache();
 
-        /// Purge billed and old records
-        void purgeCache();
+private:
 
-    private:
-
-        ///
-        CdrMap m_cdrMap;
-        ///
-        CdrFileHandler m_fileHandle;
-        ///
-        CdrConfig m_data;
-        ///
-        unsigned long int m_lastFileCheck;
+   ///
+   CdrMap m_cdrMap;
+   ///
+   CdrFileHandler m_fileHandle;
+   ///
+   CdrConfig m_data;
+   ///
+   unsigned long int m_lastFileCheck;
 };
 #endif

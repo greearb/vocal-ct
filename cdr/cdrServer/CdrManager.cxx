@@ -51,7 +51,7 @@
 
 
 static const char* const CdrManager_cxx_Version =
-    "$Id: CdrManager.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrManager.cxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 
 #include <time.h>
@@ -117,11 +117,12 @@ int CdrManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
       obj->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
       itr++;
    }
+   billing.setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 }
    
 void CdrManager::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       uint64 now) {
-
+   billing.tick(input_fds, output_fds, exc_fds, now);
    list < EventObj* > ::iterator itr;
    itr = m_eventList.begin();
    while (itr != m_eventList.end()) {

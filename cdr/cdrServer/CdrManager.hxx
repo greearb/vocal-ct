@@ -53,13 +53,15 @@
 
 
 static const char* const CdrManager_hxx_Version =
-    "$Id: CdrManager.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrManager.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 
 #include <list>
 #include "CdrConfig.hxx"
 #include "CdrData.hxx"
 #include <misc.hxx>
+#include "CdrBilling.hxx"
+#include <Sptr.hxx>
 
 class CdrServer;
 class CdrCache;
@@ -94,14 +96,14 @@ public:
     * @param EventObj*
     * @return void
     */
-   void registerEvent( EventObj *obj );
+   void registerEvent( Sptr<EventObj> obj );
 
    /**
     * Remove an existing event
     * @param EventObj*
     * @return void
     */
-   void unregister( const EventObj *obj );
+   void unregister(Sptr<EventObj> obj );
 
 
 
@@ -138,5 +140,7 @@ private:
    Sptr<CdrServer> cdrServer;
    ///
    Sptr<CdrCache>  cdrCache;
+
+   CdrBilling billing;
 };
 #endif

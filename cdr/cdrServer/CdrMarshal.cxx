@@ -51,7 +51,7 @@
 
 
 static const char* const CdrMarshal_cxx_Version =
-    "$Id: CdrMarshal.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrMarshal.cxx,v 1.2 2004/06/14 00:33:53 greear Exp $";
 
 
 #include "CdrMarshal.hxx"
@@ -61,46 +61,43 @@ static const char* const CdrMarshal_cxx_Version =
 
 
 CdrMarshal::CdrMarshal() :
-    EventObj( (int)0 ),      // ensure use of constructor EventObj(int)
+    EventObj( (int)0, true ),      // ensure use of constructor EventObj(int)
     m_conn( false )          // set non-blocking
 {}
 
 void
-CdrMarshal::onData()
-{
-    try
-    {
-        getData();
-    }
-    catch ( VNetworkException &e )
-    {
-        // remove marshal from list when it's connection is closed
-        m_done = true;
-
-        cpLog( LOG_ALERT, "Marshal marked for removal from list. Reason:%s",
-               e.getDescription().c_str() );
-    }
+CdrMarshal::onData() {
+   try {
+      getData();
+   }
+   catch ( VNetworkException &e ) {
+      // remove marshal from list when it's connection is closed
+      m_done = true;
+      
+      cpLog( LOG_ALERT, "Marshal marked for removal from list. Reason:%s",
+             e.getDescription().c_str() );
+   }
 }
 
 void
-CdrMarshal::getData() throw (VNetworkException&)
-{
-    if ( m_conn.isReadReady() )
-    {
-        CdrClient msg;
-        const int datasize = sizeof(CdrClient);
+CdrMarshal::getData() throw (VNetworkException&) {
+   CdrClient msg;
+   static int datasize = sizeof(msg);
 
-        int n = m_conn.readn(&msg, datasize);
+   
+   int n = m_conn.read();
 
-        if ( n == datasize )
-        {
-            CdrManager::instance().addCache(msg);
-        }
-        else if ( n == 0 || n < datasize )
-        {
-            m_conn.close();
-            throw VNetworkException( "Socket read failed, connection terminated",
-                                     __FILE__, __LINE__ );
-        }
-    }
-}
+   if (( n < datasize ) || (!m_conn.isLive())) {
+      m_conn.close();
+      // TODO:  Gotta be a cleaner way than throwing an exception here.
+      throw VNetworkException( "Socket read failed, connection terminated",
+                               __FILE__, __LINE__ );
+   }
+
+   
+   while (m_conn.getRcvBytesWaiting() >= datasize) {
+      m_conn.peekRcvdBytes((unsigned char*)(&msg), datasize);
+      m_conn.consumeRcvdBytes(datasize);
+      CdrManager::instance().addCache(msg);
+   }
+}//getData

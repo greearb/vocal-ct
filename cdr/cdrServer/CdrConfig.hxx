@@ -53,11 +53,12 @@
 
 
 static const char* const CdrConfig_hxx_Version =
-    "$Id: CdrConfig.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrConfig.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 #include "global.h"
 #include <string>
 #include "VCdrException.hxx"
+#include <NetworkAddress.h>
 
 /**
    CdrConfig will use the variable values from the environment
@@ -132,7 +133,7 @@ public:
    void getPsData( const NetworkAddress& psHost,
                    const NetworkAddress& altHost,
                    const string& readSecret,
-                   const string& writeSecret)
+                   const string& writeSecret, bool useTls)
       throw (VCdrException&);
 
 public:

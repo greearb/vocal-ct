@@ -83,7 +83,7 @@
 
 
 static const char* const RadiusStack_hxx_Version =
-    "$Id: RadiusStack.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: RadiusStack.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 #include "global.h"
 #include <sys/types.h>
@@ -91,6 +91,7 @@ static const char* const RadiusStack_hxx_Version =
 #include <string>
 #include "VRadiusException.hxx"
 #include <BugCatcher.hxx>
+#include <Sptr.hxx>
 
 /// Global constants
 

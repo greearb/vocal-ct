@@ -53,9 +53,11 @@
 
 
 static const char* const EventObj_hxx_Version =
-    "$Id: EventObj.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: EventObj.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
 
 #include <BugCatcher.hxx>
+#include <misc.hxx>
+
 
 /**
  **   EventObj, base class which manages time and data events
@@ -69,10 +71,10 @@ public:
     * @param int fileDesc of the data event
     * @param bool reoccuring false if a one off
     */
-   EventObj( int fileDesc, bool reoccuring = true )
+   EventObj( int fileDesc, bool reoccuring)
          : m_fileDesc( fileDesc ),
-           m_seconds( 0 ),
-           m_lastTime( 0 ),
+           timerMs(0),
+           lastTime( 0 ),
            m_reoccuring( reoccuring ),
            m_done( false ) {}
    
@@ -81,10 +83,10 @@ public:
     * @param int seconds time interval for events
     * @param bool reoccuring false if a one off
     */
-   EventObj( unsigned long int seconds, bool reoccuring = true )
+   EventObj(uint64 _timerMs, bool reoccuring)
          : m_fileDesc( -1 ),
-           m_seconds( seconds ),
-           m_lastTime( 0 ),
+           timerMs(_timerMs),
+           lastTime( 0 ),
            m_reoccuring( reoccuring ),
            m_done( false ) {}
    

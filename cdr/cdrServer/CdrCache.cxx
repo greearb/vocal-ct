@@ -51,7 +51,7 @@
 
 
 static const char* const CdrCache_cxx_Version =
-    "$Id: CdrCache.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrCache.cxx,v 1.2 2004/06/14 00:33:53 greear Exp $";
 
 
 #include <strstream>
@@ -64,13 +64,13 @@ static const char* const CdrCache_cxx_Version =
 
 // Global constants
 //
-const unsigned long int CDR_MAX_LIFE = 86400;  // Max life of a call record
-const unsigned long int CDR_BILL_LIFE = 10;    // Max life of billed call in cache
-const unsigned long int CDR_PURGE_FREQ = 10;   // purge every 10 secs
+const uint64 CDR_MAX_LIFE = 86400 * 1000;  // Max life of a call record
+const uint64 CDR_BILL_LIFE = 10 * 1000;    // Max life of billed call in cache
+const uint64 CDR_PURGE_FREQ = 10 * 1000;   // purge every 10 secs
 
 
 CdrCache::CdrCache( const CdrConfig &cdata ) :
-        EventObj(CDR_PURGE_FREQ),
+        EventObj(CDR_PURGE_FREQ, true),
         m_fileHandle(cdata.m_billingDirectory, cdata.m_billingFileName),
         m_data(cdata),
         m_lastFileCheck(0)
