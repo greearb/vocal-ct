@@ -51,7 +51,7 @@
  *
  */
 static const char* const NullDeviceVersion =
-    "$Id: NullDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: NullDevice.hxx,v 1.4 2004/12/15 00:25:19 greear Exp $";
 
 #include "MediaDevice.hxx"
 #include <iostream>
@@ -74,7 +74,7 @@ class NullDevice : public MediaDevice {
 public:
    ///Just create a dummy soundcard device
    NullDevice():
-         MediaDevice(SOUNDCARD, AUDIO)
+         MediaDevice("NullDevice", SOUNDCARD, AUDIO)
       { };
    
    ///

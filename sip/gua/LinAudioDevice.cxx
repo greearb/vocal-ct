@@ -61,7 +61,7 @@ using namespace Vocal::UA;
 
 
 LinAudioDevice::LinAudioDevice( const char* deviceName)
-    : MediaDevice(SOUNDCARD, AUDIO), 
+    : MediaDevice("LinAudioDevice", SOUNDCARD, AUDIO), 
       mySoundCard(deviceName)
 {
     // open audio hardware device

@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.4 2004/06/21 19:33:20 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.5 2004/12/15 00:25:19 greear Exp $";
 
 
 
@@ -75,7 +75,7 @@ static int clkTicksPerSec = 0;
 //***************************************************************************
 
 FileMediaDevice::FileMediaDevice(int id)
-    : MediaDevice(WAVE, AUDIO), hasPlayed(false), myId(id)
+    : MediaDevice("FileMediaDevice", WAVE, AUDIO), hasPlayed(false), myId(id)
 {
     if(clkTicksPerSec == 0)
     {

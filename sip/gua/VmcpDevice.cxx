@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.5 2004/12/15 00:25:19 greear Exp $";
 
 
 
@@ -79,7 +79,7 @@ using namespace Vocal::UA;
 
 
 VmcpDevice::VmcpDevice(int id)
-    : MediaDevice(WAVE, AUDIO),
+    : MediaDevice("VmcpDevice", WAVE, AUDIO),
       hasPlayed(false),
       myId(id),
       audioActive(false),

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: MediaDevice.hxx,v 1.4 2004/12/15 00:25:19 greear Exp $";
 
 #include <stdio.h>
 #include "Sptr.hxx"
@@ -90,7 +90,7 @@ public:
    virtual ~MediaDevice();
 
    ///
-   string className() { return "MediaDevice"; }
+   const string& getInstanceName() const { return _instanceName; }
 
    ///
    string description() { 
@@ -132,10 +132,14 @@ public:
 
 
 protected:
-   MediaDevice(VDeviceType dType, VMediaType mType) 
-         : Adaptor(dType, mType), busy(false) , mySessionId (-1),
+   MediaDevice(const char* instanceName, VDeviceType dType, VMediaType mType) 
+         : Adaptor(instanceName, "MediaDevice", dType, mType),
+           busy(false) , mySessionId (-1),
            mySession(0) {
+      _instanceName = instanceName;
    };
+
+   string _instanceName;
 
    ///
    bool busy;

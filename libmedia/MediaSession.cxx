@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.5 2004/11/09 00:49:51 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.6 2004/12/15 00:25:19 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -339,13 +339,21 @@ void
 MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
                          Adaptor* adp, bool silence_pkt) {
    assertNotDeleted();
+   //cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s\n",
+   //      (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
+   //      adp->getDescription().c_str());
    if (adp->getDeviceType() != RTP) {
       //Data from hardware, ship it out to the RTP session
       if (myRtpSession != 0) {
          myRtpSession->sinkData(data, len, cType, codec, silence_pkt);
       }
+      else {
+         cpLog(LOG_ERR, "ERROR:  myRtpSession is NULL!\n");
+      }
    }
    else {
+      //cpLog(LOG_ERR, "processRaw, using device: %s to sink data.\n",
+      //      myMediaDevice->getInstanceName().c_str());
       myMediaDevice->sinkData(data, len, cType, codec, silence_pkt);
    }
 }

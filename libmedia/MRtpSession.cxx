@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.7 2004/11/05 07:25:05 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.8 2004/12/15 00:25:19 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -70,7 +70,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                          u_int32_t ssrc)
-    : Adaptor(RTP, NONE), mySessionId(sessionId),
+    : Adaptor("MRtpSession", "MRtpSession", RTP, NONE), mySessionId(sessionId),
       rtp_rx_packet(1012)
 {
 
@@ -174,60 +174,74 @@ void MRtpSession::retrieveRtpSample() {
                   rtp_rx_packet.getPayloadType(), myCodec->getType(), myCodec->getRtpType());
         }
     }//if
+    else {
+       cpLog(LOG_DEBUG_STACK, "failed to rtpStack->retriev, rv: %d\n", rv);
+    }
 }//retrieveRtpSample
 
 
 void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                        uint64 now) {
-    readNetwork(input_fds); /** Handles both RTCP and RTP receive logic,
-                             * will not block. */
+   readNetwork(input_fds); /** Handles both RTCP and RTP receive logic,
+                            * will not block. */
 
-    // Only drain jitter buffer every XXX miliseconds.
-    if (mySession.getPtr()) {
-        uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                     rtpStack->getCurMaxPktsInQueue());
-        if ((lastRtpRetrieve + pref) <= now) {
-            retrieveRtpSample();
-            lastRtpRetrieve = now;
-        }
-    }
+   if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
+      mySession = MediaController::instance().getSession(mySessionId);
+   }
+   
+   //cpLog(LOG_DEBUG_STACK, "MrtpSession::tick, mySession: %p", mySession.getPtr());
+   // Only drain jitter buffer every XXX miliseconds.
+   if (mySession.getPtr()) {
+      uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
+                                                   rtpStack->getCurMaxPktsInQueue());
+      if ((lastRtpRetrieve + pref) <= now) {
+         retrieveRtpSample();
+         lastRtpRetrieve = now;
+      }
+      else {
+         //cpLog(LOG_ERR, "Too soon to retrieve sample, lastRtpRetrieve: %llu  pref: %llu  now: %llu",
+         //      lastRtpRetrieve, pref, now);
+      }
+   }
 }//tick
 
 int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                         int& maxdesc, uint64& timeout, uint64 now) {
 
-    rtpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   rtpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 
-    if (mySession.getPtr()) {
-        uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                     rtpStack->getCurMaxPktsInQueue());
-        if (pref + lastRtpRetrieve > now) {
-            timeout = min(timeout, (pref + lastRtpRetrieve) - now);
-        }
-        else {
-            timeout = 0;
-        }
-    }
-    return 0;
+   if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
+      mySession = MediaController::instance().getSession(mySessionId);
+   }
+   
+   if (mySession.getPtr()) {
+      uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
+                                                   rtpStack->getCurMaxPktsInQueue());
+      if (pref + lastRtpRetrieve > now) {
+         timeout = min(timeout, (pref + lastRtpRetrieve) - now);
+      }
+      else {
+         timeout = 0;
+      }
+   }
+   return 0;
 }//setFds
 
 
-void 
-MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
-    // Cache the session obj, but have to protect this with a lock to keep
-    // it from dis-appearing while we are using it!
-    if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
-        mySession = MediaController::instance().getSession(mySessionId);
-    }
+void MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
+   if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
+      mySession = MediaController::instance().getSession(mySessionId);
+   }
 
-    if (mySession == 0) {
-        cpLog(LOG_ERR, "ERROR:  Could not get session: %d\n", mySessionId);
-    }
-    else {
-        mySession->processRaw((char*) packet.getPayloadLoc(), packet.getPayloadUsage(),
-                              myCodec->getType(), myCodec, this,
-                              packet.isMissing() || packet.isSilenceFill());
-    }
+   if (mySession == 0) {
+      cpLog(LOG_ERR, "ERROR:  Could not get session: %d\n", mySessionId);
+   }
+   else {
+      //cpLog(LOG_ERR, "MRtpSession::procesRecv\n");
+      mySession->processRaw((char*) packet.getPayloadLoc(), packet.getPayloadUsage(),
+                            myCodec->getType(), myCodec, this,
+                            packet.isMissing() || packet.isSilenceFill());
+   }
 }
 
 ///Consume the raw data
@@ -316,11 +330,16 @@ string MRtpSession::description() {
 }
 
 void MRtpSession::recvDTMF(int event) {
-    cpLog(LOG_ERR, "Received DTMF: %d\n", event);
-    char eventData = event;
-    Sptr<CodecAdaptor> nll;
-    MediaController::instance().getSession(mySessionId)->processRaw(&eventData, 1, DTMF_TONE,
-                                                                    nll, this, false);
+   cpLog(LOG_DEBUG_STACK, "Received DTMF: %d\n", event);
+   char eventData = event;
+   Sptr<CodecAdaptor> nll;
+   
+   if ((mySession == 0) || (mySessionId != mySession->getSessionId())) {
+      mySession = MediaController::instance().getSession(mySessionId);
+   }
+   if (mySession.getPtr()) {
+      mySession->processRaw(&eventData, 1, DTMF_TONE, nll, this, false);
+   }
 }
 
 void 

@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.4 2004/12/15 00:25:18 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -79,7 +79,7 @@ namespace UA
 class Adaptor : public BugCatcher {
 public:
    /// Virtual destructor
-   virtual ~Adaptor() { };
+   virtual ~Adaptor() { }
 
    ///
    VDeviceType getDeviceType() const { return myDeviceType; };
@@ -94,9 +94,9 @@ public:
    int getDataRate() const { return myDataRate; };
 
    ///
-   virtual string className() { return "Adaptor"; }
+   const string& getInstanceName() const { return _instanceName; }
    ///
-   virtual string description() {  return "Adaptor"; };
+   const string& getDescription() const {  return _description; }
 
    /** Consume the data
     * @param silence_pkt - The packet is silence, generated locally, probably because
@@ -126,10 +126,12 @@ protected:
     * the pref when multiple codecs can be used, a 0 priority means
     * equal preferrence
     */
-   Adaptor(VDeviceType dType, VMediaType mType)
-         : myDeviceType(dType), myMediaType(mType), myDataRate(20)
-      {
-      };
+   Adaptor(const char* instanceName, const char* desc,
+           VDeviceType dType, VMediaType mType)
+         : myDeviceType(dType), myMediaType(mType), myDataRate(20) {
+      _instanceName = instanceName;
+      _description = desc;
+   };
 
    ///
    VDeviceType myDeviceType; 
@@ -145,6 +147,9 @@ protected:
     */
    Adaptor(const Adaptor &);
    const Adaptor & operator=(const Adaptor &);
+
+   string _instanceName;
+   string _description;
 
 };
 
