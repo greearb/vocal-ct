@@ -53,14 +53,13 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaController.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include <list>
 #include <map>
 #include "Sptr.hxx"
 #include "Rtp.hxx"
-#include "Mutex.hxx"
 #include "VException.hxx"
 #include "MediaDevice.hxx"
 #include "NetworkRes.hxx"
@@ -70,7 +69,6 @@ static const char* const MediaController_hxx_Version =
 #include "MediaException.hxx"
 
 using Vocal::SDP::SdpSession;
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -180,7 +178,7 @@ class MediaController
       MediaCapability& getMediaCapability() { return myMediaCapability; };
 
       ///Get a session associated with a sessionId.
-      Sptr<MediaSession> getSession(unsigned int sessionId, bool grab_lock);
+      Sptr<MediaSession> getSession(unsigned int sessionId);
 
       ///Starts a session identified by sId and given mode.
       // mode used to default to VSDP_SND_RECV
@@ -236,8 +234,6 @@ class MediaController
 
         ///
         int   myRollingSessionId;
-        ///
-        Mutex   myMutex;
 
         ///
         MediaCapability myMediaCapability;

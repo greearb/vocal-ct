@@ -50,12 +50,11 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaController.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "MediaController.hxx"
 #include "SdpHandler.hxx"
-#include "Lock.hxx"
 #include "CodecG711U.hxx"
 #include "CodecG726_16.hxx"
 #include "CodecG726_24.hxx"
@@ -94,8 +93,7 @@ MediaController::MediaController(const string& _local_ip,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map)
-      : myMutex("MediaController", false, true),
-        local_ip(_local_ip),
+      : local_ip(_local_ip),
         localDevToBindTo(local_dev_to_bind_to)
 {
     cpLog(LOG_DEBUG, "MediaController::MediaController");
@@ -106,12 +104,11 @@ MediaController::MediaController(const string& _local_ip,
         //Check to see if port is free
         try
         {
-            UdpStack uStack(local_ip, localDevToBindTo, 0, i , i );
+            UdpStack uStack(false, local_ip, localDevToBindTo, 0, i , i );
             Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
             myNetworkResList.push_back(res);
         }
-        catch(...)
-        {
+        catch(...) {
              cpLog(LOG_ERR, "Port %d is busy, try next", i);
         }
     } 
@@ -231,7 +228,6 @@ MediaController::createSessionImpl(string& localAddr,
 {
     //Get a NetworkRes from the list of resources and devices
     //and create a session Id to assign
-    Lock lock(myMutex);
     int sId = myRollingSessionId++;
     //Get a free NetworkRes and a device
     Sptr<NetworkRes> localRes; 
@@ -273,29 +269,16 @@ void
 MediaController::freeSession(int sId)
 {
     //Free the resources associated with the session Id
-   myMutex.lock();
    map<int, Sptr<MediaSession> >::iterator itr = myMediaSessionMap.find(sId);
    if(itr == myMediaSessionMap.end()) {
       cpLog(LOG_ERR, "Session %d does not exists", sId);
-      myMutex.unlock();
       return;
    }
 
    Sptr<MediaSession> ms = itr->second;
 
-   myMutex.unlock();
-   // NOTE:  Holding this lock while tearing down can cause
-   // deadlock because of MRtpSession receiving a pkt and trying
-   // to grab the session lock near line 244:
-   //if ((mySession == 0) || (mySessionId != mySession->getSessionId()))
-   // {
-   //     mySession = MediaController::instance().getSession(mySessionId, true);
-   // }
-
    if (ms->tearDown()) {
-      myMutex.lock();
       myMediaSessionMap.erase(itr);
-      myMutex.unlock();
    }
    else {
       cpLog(LOG_ERR, "NOT Freeing session %d, teardDown failed", sId);
@@ -306,7 +289,6 @@ MediaController::freeSession(int sId)
 void
 MediaController::addDeviceToSession(unsigned int sessionId, Sptr<MediaDevice> mDevice)
 {
-    Lock lock(myMutex);
     if(myMediaSessionMap.count(sessionId) == 0)
     {
         cpLog(LOG_ERR, "No session exists for if (%d), ignoring the add device request",
@@ -322,34 +304,23 @@ MediaController::addToSession(SdpSession& localSdp, SdpSession& remoteSdp)
 {
     unsigned int sId = localSdp.getSessionId();
     cpLog(LOG_DEBUG, "Adding to session (%d)", sId);
-    Lock lock(myMutex);
     assert(myMediaSessionMap.count(sId));
     Sptr<MediaSession> mSession = myMediaSessionMap[sId];
     mSession->addToSession(localSdp, remoteSdp);
 }
 
 Sptr<MediaSession>
-MediaController::getSession(unsigned int sessionId, bool grab_lock)
+MediaController::getSession(unsigned int sessionId)
 {
-   if (grab_lock) {
-      Lock lock(myMutex);
-      map<int, Sptr<MediaSession> >::iterator itr = myMediaSessionMap.find(sessionId);
-      assert(itr != myMediaSessionMap.end());
-      return((*itr).second);
-   }
-   else {
-      // Caller better have already locked us!!!
-      map<int, Sptr<MediaSession> >::iterator itr = myMediaSessionMap.find(sessionId);
-      assert(itr != myMediaSessionMap.end());
-      return((*itr).second);
-   }
+   map<int, Sptr<MediaSession> >::iterator itr = myMediaSessionMap.find(sessionId);
+   assert(itr != myMediaSessionMap.end());
+   return((*itr).second);
 }
 
 void 
 MediaController::registerDevice(Sptr<MediaDevice> mDevice)
 {
-   Lock lock(myMutex);
-   myMediaDeviceList.push_back(mDevice);
+   myMediaDeviceList.push_back(mDevice.getPtr());
 }
 
 list<Sptr<MediaDevice> >
@@ -357,8 +328,6 @@ MediaController::getListOfMediaDevices()
 {
     //get the list fo devices audio/video which are currently
     //available
-    Lock lock(myMutex);
-
     list<Sptr<MediaDevice> > retList;
     //Return list of devices which either support audio or video
     for(list<Sptr<Adaptor> >::iterator itr = myMediaDeviceList.begin();
@@ -368,9 +337,8 @@ MediaController::getListOfMediaDevices()
         {
             Sptr<MediaDevice> mDevice;
             mDevice.dynamicCast((*itr));
-            if(!mDevice->isBusy())
-            {
-                retList.push_back(mDevice);
+            if ((mDevice != 0) && (!mDevice->isBusy())) {
+                retList.push_back(mDevice.getPtr());
             }
         }
     }
@@ -381,37 +349,36 @@ MediaController::getListOfMediaDevices()
 void 
 MediaController::registerCodec(Sptr<CodecAdaptor> cAdp)
 {
-    Lock lock(myMutex);
     myMediaCapability.addCodec(cAdp);
 }
 
 void
 MediaController::startSession(unsigned int sId, VSdpMode mode)
 {
-    getSession(sId, true)->startSession(mode);
+    getSession(sId)->startSession(mode);
 }
 
 void
 MediaController::suspendSession(unsigned int sId)
 {
-    getSession(sId, true)->suspend();
+    getSession(sId)->suspend();
 }
 void
 MediaController::resumeSession(unsigned int sId, SdpSession& remoteSdp)
 {
-    getSession(sId, true)->resume(remoteSdp);
+    getSession(sId)->resume(remoteSdp);
 }
 
 SdpSession
 MediaController::getSdp(unsigned int sId, VSdpMode mode)
 {
-    return (getSession(sId, true)->getSdp(mode));
+    return (getSession(sId)->getSdp(mode));
 }
 
 SdpSession
 MediaController::getSdp(unsigned int sId, SdpSession& remoteSdp)
 {
-    return (getSession(sId, true)->getSdp(remoteSdp));
+    return (getSession(sId)->getSdp(remoteSdp));
 }
 
 

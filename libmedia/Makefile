@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:16 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/15 06:20:35 greear Exp $
 
 BUILD = ../build
 
@@ -9,7 +9,7 @@ include $(BUILD)/Makefile.pre
 
 TARGET_LIBRARY = libmedia 
 
-PACKAGES += RTP MEDIALIB SDP2 PTHREAD UTIL OPENSSL
+PACKAGES += RTP MEDIALIB SDP2 UTIL OPENSSL
 
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/rtp/obj.$(TARGET_NAME)/ \
@@ -17,7 +17,7 @@ MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/rtp/obj.$(TARGET
   -L$(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib \
   -L$(ROOT)/contrib/Equivalence.$(OS_ARCH)/openh323-1.11.4/lib
 
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil -lrtp -lm -lsdp2 -lspeex
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lrtp -lm -lsdp2 -lspeex
 
 
 INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
@@ -42,7 +42,6 @@ endif
 TESTPROGRAMS = 
 
 SRC = \
-AudioThread.cxx \
 MediaDevice.cxx \
 CodecG711U.cxx \
 CodecAdaptor.cxx \

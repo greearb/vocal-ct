@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -61,6 +61,7 @@ static const char* const Adaptor_hxx_Version =
 #include "NetworkRes.hxx"
 #include "CodecAdaptor.hxx"
 #include "Def.hxx"
+#include <BugCatcher.hxx>
 
 
 namespace Vocal
@@ -74,7 +75,7 @@ namespace UA
     implementation must derive from this interface in order to plug into the 
     Media Framework.
  */
-class Adaptor 
+class Adaptor : public BugCatcher
 {
     public:
       /// Virtual destructor

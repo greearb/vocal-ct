@@ -69,8 +69,7 @@ bool NetworkRes::isPortTaken(const string& local_ip, string local_if) const {
    // TODO:  This is about 100 times less efficient than it should be!!!
    try {
       // Attempt to bind to local interface...if that works, then the port is free
-     
-     UdpStack uStack(local_ip, local_if , NULL, getPort(), getPort() );
+      UdpStack uStack(false, local_ip, local_if , NULL, getPort(), getPort() );
       return false;
    }
    catch (...) {

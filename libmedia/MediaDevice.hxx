@@ -53,19 +53,14 @@
 
 
 static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaDevice.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include <stdio.h>
 #include "Sptr.hxx"
 #include "cpLog.h"
 #include "Adaptor.hxx"
-#include "Mutex.hxx"
-#include "AudioThread.hxx"
-#include "Lock.hxx"
 #include "Sptr.hxx"
 #include "MediaSession.hxx"
-
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -126,7 +121,6 @@ class MediaDevice : public Adaptor
       virtual void processRaw(char* data, int length, VCodecType type,
                               Sptr<CodecAdaptor> codec, bool silence_pkt);
 
-      ///Called by the AudioThread to query device for new input
       virtual void processAudio() = 0;
 
       //Returns 0 if successfully started
@@ -140,15 +134,11 @@ class MediaDevice : public Adaptor
       ///Returns 0 if successfully stopped
       virtual int resume() = 0;
 
-      /// shutdown the threads before destruction.  safer and more hygenic.
-      virtual int shutdownThreads();
-
     protected:
       MediaDevice(VDeviceType dType, VMediaType mType) 
         : Adaptor(dType, mType), busy(false) , mySessionId (-1),
           mySession(0)
-      { 
-         myAudioThread = NULL;
+      {
       };
 
       ///
@@ -163,17 +153,9 @@ class MediaDevice : public Adaptor
       /** Suppress copying
       */
       const MediaDevice & operator=(const MediaDevice &);
-      ///
-      ///
-      Mutex  myMutex; 
 
       ///
       Sptr<MediaSession> mySession;
-
-private:
-      AudioThread* myAudioThread;
-
-
 };
 
 }

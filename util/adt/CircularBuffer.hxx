@@ -52,13 +52,10 @@
  */
 
 static const char* const CircularBuffer_hxx_version =
-    "$Id: CircularBuffer.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CircularBuffer.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include <cassert>
-#include "Mutex.hxx"
-#include "Lock.hxx"
 
-using namespace Vocal::Threads;
 
 /** Infrastructure common to VOCAL.
  */
@@ -74,8 +71,7 @@ namespace ADT
 /** Circular buffer class.  used to keep a queue of bytes for the user
  */
 template < class T >
-class CircularBuffer
-{
+class CircularBuffer {
     public:
         /** construct a buffer with maximum size
             @param  size   maximum size
@@ -105,7 +101,6 @@ class CircularBuffer
         int myStartUsed;
         int myEndUsed;
         int mySize;
-        mutable Mutex myMutex;
 };
 
 
@@ -152,7 +147,6 @@ template < class T >
 int 
 CircularBuffer<T>::bytesAvailable() const
 {
-    Vocal::Threads::Lock x_ (myMutex);
     return available();
 }
 
@@ -161,7 +155,6 @@ template < class T >
 int
 CircularBuffer<T>::bytesUsed() const
 {
-    Vocal::Threads::Lock x_(myMutex);
     return used();
 }
 
@@ -170,7 +163,6 @@ template < class T >
 int
 CircularBuffer<T>::get(T* data, int maxSize)
 {
-    Vocal::Threads::Lock x_(myMutex);
     // true for this input
     assert(maxSize <= mySize);
 
@@ -204,8 +196,6 @@ template < class T >
 int
 CircularBuffer<T>::put(const T* data, int size)
 {
-    Vocal::Threads::Lock x_(myMutex);
-
     // always true
     assert(myStartUsed >= 0);
     assert(myEndUsed >= 0);
@@ -234,12 +224,5 @@ CircularBuffer<T>::put(const T* data, int size)
 
 } // namespace ADT
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

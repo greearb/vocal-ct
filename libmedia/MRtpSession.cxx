@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -70,7 +70,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                          u_int32_t ssrc)
-    : Adaptor(RTP, NONE), mySessionId(sessionId), myShutdown(false),
+    : Adaptor(RTP, NONE), mySessionId(sessionId),
       rtp_rx_packet(1012)
 {
 
@@ -131,21 +131,6 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
     myDTMFInterface = new MDTMFInterface(this);
     rtpStack->setDTMFInterface(myDTMFInterface);
     rtpStack->setMarkerOnce();
-    threadStarted = false;
-}
-
-void
-MRtpSession::start()
-{
-    if(!threadStarted)
-    {
-        if((rtpStack->getSessionState() == rtp_session_recvonly) ||
-           (rtpStack->getSessionState() == rtp_session_sendrecv))
-        {
-            myThread.spawn(processThreadWrapper, this); 
-            threadStarted = true;
-        }
-    }
 }
 
 void
@@ -185,107 +170,32 @@ MRtpSession::processIncomingRTP(fd_set* fds)
 
 }
 
-void* 
-MRtpSession::processThreadWrapper(void *p)
-{
-    MRtpSession* self = static_cast<MRtpSession*>(p);
-    self->thread();
+
+void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       uint64 now) {
+    // TODO:  Only drain jitter buffer every XXX miliseconds.
+    // Maybe use the preferred timeout as calculated in the setFds method below?
+
+    processIncomingRTP(&netFD); /** Handles both RTCP and RTP receive logic,
+                                 * will not block. */
+}
+
+int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        int& maxdesc, uint64& timeout, uint64 now) {
+    rtpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+
+    if (mySession.getPtr()) {
+        uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
+                                                     rtpStack->getCurMaxPktsInQueue());
+        timeout = min(timeout, pref);
+    }
     return 0;
 }
 
 
-void
-MRtpSession::thread()
-{
-    threadStarted = true;
-
-    struct timeval timeout;
-    fd_set netFD;
-    int maxdesc;
-
-    while ( true )
-    {
-        if ( myShutdown == true)
-        {
-            myMutex.lock();
-            mySession = 0;
-            myMutex.unlock();
-            break;
-        }
-
-        maxdesc = 0;
-        FD_ZERO (&netFD);
-        rtpStack->setReadFdBits(&netFD, maxdesc);
-
-        bool pref_to = false;
-        if (mySession.getPtr()) {
-            timeout = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                     rtpStack->getCurMaxPktsInQueue());
-            pref_to = true;
-        }
-        else {
-            timeout.tv_sec = 1;
-            timeout.tv_usec = 0;
-        }
-
-#ifndef __linux__
-        // Linux allows neat trick with select...others may not.
-        uint64 extra_sleep;
-        uint64 toWait = vtv_to_ms(timeout);
-        uint64 before;
-        if (pref_to) {
-            before = vgetCurMs();
-        }
-#endif
-
-        int selret = select(maxdesc + 1, &netFD, 0, 0, &timeout);
-
-#ifndef __linux__
-        // Linux allows neat trick with select...others may not.
-        uint64 after;
-        if (pref_to) {
-            after = getCurMs();
-            extra_sleep = toWait - (after - before);
-            if (extra_sleep > 1000000) {
-                // Wrapped due to over-flow in subtraction.
-                extra_sleep = 0;
-            }
-            timeout = vms_to_tv(extra_sleep);
-        }
-#endif
-
-        // Make sure we sleep for long enough, this keeps us from overly
-        // draining our jitter buffer.  (If error is less than 2ms, then
-        // just keep going, we'll use up that much time processing code, etc.
-        // NOTE:  This does not seem to be a good idea! --Ben
-        // TODO:  Try using linux real-time clock to ensure milisecond precision
-        //        sleeps.
-        //if (pref_to && (timeout.tv_usec > 2000)) {
-        //    select(1, NULL, NULL, NULL, &timeout);
-        //}
-
-        if (selret > 0) {
-            processIncomingRTP(&netFD); // Handles both RTCP and RTP receive logic,
-                                        // will not block.
-        }
-        else if (selret < 0) {
-            cpLog(LOG_ERR, "Select returned error: %s!!\n", strerror(errno));
-        }
-    }
-    cpLog(LOG_DEBUG, "MRtpSession::thread-exiting...");
-    return;
-}
-
 void 
 MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy)
 {
-    myMutex.lock();
-
-    if (myShutdown == true) {
-        myMutex.unlock();
-        return;
-    }
-
     // Cache the session obj, but have to protect this with a lock to keep
     // it from dis-appearing while we are using it!
     if ((mySession == 0) || (mySessionId != mySession->getSessionId()))
@@ -301,7 +211,6 @@ MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy)
                               myCodec->getType(), myCodec, this,
                               packet.isMissing() || packet.isSilenceFill());
     }
-    myMutex.unlock();
 }
 
 ///Consume the raw data
@@ -310,9 +219,7 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
                       Sptr<CodecAdaptor> codec, bool silence_pkt)
 {
     if (myShutdown == true) {
-        myMutex.lock();
         mySession = 0;
-        myMutex.unlock();
         return;
     }
 

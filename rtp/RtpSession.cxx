@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "global.h"
@@ -526,14 +526,10 @@ RtpSession::setReceiver ( const string& local_ip,
     {
         if (portRange != 0)
         {
-            if (recv)
-            {
-                assert (recv->getUdpStack());
+            if (recv) {
                 recv->getUdpStack()->setLocal(localPort, localPort + portRange);
             }
-            else if (tran)
-            {
-                assert (tran->getUdpStack());
+            else if (tran) {
                 tran->getUdpStack()->setLocal(localPort, localPort + portRange);
                 recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
                                        per_sample_size, samplesize);
@@ -546,14 +542,10 @@ RtpSession::setReceiver ( const string& local_ip,
             }
         }
         else {
-            if (recv)
-            {
-                assert (recv->getUdpStack());
+            if (recv) {
                 recv->getUdpStack()->setLocal(localPort, localPort + portRange);
             }
-            else if (tran)
-            {
-                assert (tran->getUdpStack());
+            else if (tran) {
                 tran->getUdpStack()->setLocal(localPort, localPort + portRange);
                 recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
                                        per_sample_size, samplesize);
@@ -569,15 +561,11 @@ RtpSession::setReceiver ( const string& local_ip,
     if (rtcpLocalPort != 0)
     {
        if (portRange != 0) {
-            if (rtcpRecv)
-            {
-                assert (rtcpRecv->getUdpStack());
+            if (rtcpRecv) {
                 rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort,
                                                   rtcpLocalPort + portRange);
             }
-            else if (rtcpTran)
-            {
-                assert (rtcpTran->getUdpStack());
+            else if (rtcpTran) {
                 rtcpTran->getUdpStack()->setLocal(rtcpLocalPort,
                                                   rtcpLocalPort + portRange);
                 rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
@@ -589,14 +577,10 @@ RtpSession::setReceiver ( const string& local_ip,
             }
        }
        else {
-            if (rtcpRecv)
-            {
-                assert(rtcpRecv->getUdpStack());
+            if (rtcpRecv) {
                 rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort);
             }
-            else if (rtcpTran)
-            {
-                assert(rtcpTran->getUdpStack());
+            else if (rtcpTran) {
                 rtcpTran->getUdpStack()->setLocal(rtcpLocalPort);
                 rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
             }

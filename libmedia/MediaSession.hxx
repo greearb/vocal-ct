@@ -53,14 +53,12 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaSession.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
 #include "NetworkRes.hxx"
-#include "MediaDevice.hxx"
 #include "Sdp2Session.hxx"
-#include "VThread.hxx"
 #include "Def.hxx"
 #include "MRtpSession.hxx"
 
@@ -74,6 +72,7 @@ namespace UA
 
 
 class Adaptor;
+class MediaDevice;
 
 /** Class identified by a unique session-id, implements a Media session between
   * two parties. The participants can be a physical Media device and/or a RTP

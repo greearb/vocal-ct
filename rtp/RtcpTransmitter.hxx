@@ -52,7 +52,7 @@
  */
 
 static const char* const RtcpTransmitter_hxx_Version =
-    "$Id: RtcpTransmitter.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtcpTransmitter.hxx,v 1.3 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -142,10 +142,10 @@ class RtcpTransmitter
 
 
         /// Used for calculating RR information
-        u_int32_t calcLostFrac (RtpTranInfo* source);
+        u_int32_t calcLostFrac (Sptr<RtpTranInfo> source);
 
         /// Used for calculating RR information
-        u_int32_t calcLostCount (RtpTranInfo* source);
+        u_int32_t calcLostCount (Sptr<RtpTranInfo> source);
 
         ///
         void setSdesCname ();

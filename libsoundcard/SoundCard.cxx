@@ -49,7 +49,7 @@
  */
 
 static const char* const SoundCard_cxx_Version =
-    "$Id: SoundCard.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: SoundCard.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include <iostream>
 #include <fstream>
@@ -74,12 +74,10 @@ static const char* const SoundCard_cxx_Version =
 #include "SoundCard.hxx"
 #include "cpLog.h"
 #include <cassert>
-#include "Lock.hxx"
 #include "../util/misc.hxx"
 
 using namespace Vocal;
 using namespace Vocal::UA;
-using Vocal::Threads::Lock;
 
 extern "C"
 {
@@ -113,8 +111,6 @@ int SoundCard::reopen()
 int 
 SoundCard::open()
 {
-    deviceMutex.lock();
-
     cpLog(LOG_DEBUG, "Opening audio hardware" );
 
     // open audio device
@@ -125,7 +121,6 @@ SoundCard::open()
     if( ( myFD = ::open( myDeviceName.getData(lo), O_RDWR , 0 ) ) == -1 )
     {
         perror("Open failed:");
-	deviceMutex.unlock();
 	myFD = -1;
 	return -1;
     }
@@ -134,14 +129,12 @@ SoundCard::open()
     if (waveInGetNumDevs() <= 0) 
     {
         cpLog(LOG_DEBUG, "could not get any devices");
-        deviceMutex.unlock();
 	myFD = -1;
 	return -1;
     }
     if (!m_aSoundCardWinOut.Open(SoundOut)) 
     {
         perror("Open openAudioHardware failed (not found input sound card device) : ");
-        deviceMutex.unlock();
 	myFD = -1;
 	return -1;
     }
@@ -151,7 +144,6 @@ SoundCard::open()
         //AND:Need for run 2 exemplars program on one computer (debug version)
         m_aSoundCardWinOut.Close();
         perror("Open openAudioHardware failed (not found output sound card device) : ");
-        deviceMutex.unlock();
 	myFD = -1;
 	return -1;
 #endif
@@ -166,7 +158,6 @@ SoundCard::open()
     {
         perror("could not reset DSP");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;        
     }
@@ -177,7 +168,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_GETCAPS");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -194,7 +184,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_GETFMTS");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -228,7 +217,6 @@ SoundCard::open()
         if( ioctlParam & AFMT_U16_BE )     printf("  AFMT_U16_BE\n");
         if( ioctlParam & AFMT_MPEG )       printf("  AFMT_MPEG\n");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -240,7 +228,6 @@ SoundCard::open()
     {   
         perror("SNDCTL_DSP_SETFMT");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -248,7 +235,6 @@ SoundCard::open()
     {   
         perror("Failed to set DSP Format, sound card returned format");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -264,7 +250,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_CHANNELS");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -282,7 +267,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_SPEED");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -290,7 +274,6 @@ SoundCard::open()
     {
         perror("Failed to set sample rate");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -300,7 +283,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_GETBLKSIZE");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -309,7 +291,6 @@ SoundCard::open()
     {
         perror("SNDCTL_DSP_SYNC");
         ::close(myFD);
-        deviceMutex.unlock();
 	myFD = -1;
         return -1;
     }
@@ -319,7 +300,6 @@ SoundCard::open()
 #else
     myFormat = SoundCardSigned16LE;
 #endif
-    deviceMutex.unlock();
 
     myMultiplier = 1;
 
@@ -375,7 +355,6 @@ void SoundCard::write ( const unsigned char* data, int samples ) {
         return;
     }
 
-    deviceMutex.lock();
     cc = myWriteBuffer.get(dataBuffer, samples);
 
 #ifndef WIN32
@@ -422,7 +401,6 @@ void SoundCard::write ( const unsigned char* data, int samples ) {
     m_aSoundCardWinOut.Write(reinterpret_cast<char*>(dataBuffer), cc);
 #endif
 
-    deviceMutex.unlock();
     return;
 }
 
@@ -443,7 +421,6 @@ SoundCard::read( unsigned char* data,
     case SoundCardUlaw:
         // no conversion needed
         cc = 0;
-	deviceMutex.lock();
         audio_buf_info info;
         ::ioctl(myFD, SNDCTL_DSP_GETISPACE, &info);
 
@@ -461,7 +438,6 @@ SoundCard::read( unsigned char* data,
 
 
 	myReadBuffer.put(rdataBuffer, cc);
-	deviceMutex.unlock();
 
         // TODO:  This is a wasted memory copy unless cc == requested
         // read size.  Could optimize this if desired... --Ben
@@ -471,7 +447,6 @@ SoundCard::read( unsigned char* data,
 #endif
     case SoundCardSigned16LE:
         // convert sound sample from Liner16 to ULAW
-	deviceMutex.lock();
 #ifndef WIN32
         ::ioctl(myFD, SNDCTL_DSP_GETISPACE, &info);
 
@@ -492,7 +467,6 @@ SoundCard::read( unsigned char* data,
 
         cc = ::read( myFD, rawAudio, bigs );
 
-	deviceMutex.unlock();
         if(cc)
         {
             myReadBuffer.put(rawAudio, cc);
@@ -502,7 +476,6 @@ SoundCard::read( unsigned char* data,
 
 #else
         cc = m_aSoundCardWinIn.Read( (char*)rawAudio, samples * 2 );
-	deviceMutex.unlock();
 #endif
         q = 0;
         for(p = 0; p < cc; p += (myNumChannels * myMultiplier * 2) )
@@ -547,7 +520,6 @@ int
 SoundCard::close()
 {
     int retval = 0;
-    deviceMutex.lock();
 
     cpLog(LOG_DEBUG, "Closing audio hardware" );
 
@@ -567,8 +539,6 @@ SoundCard::close()
 
     myFD = -1;
 
-    deviceMutex.unlock();
-
     return retval;
 }
 
@@ -576,7 +546,6 @@ SoundCard::close()
 SoundCardFormat
 SoundCard::getFormat() const
 {
-    Lock mylock_(deviceMutex);
     return myFormat;
 }
 
@@ -584,14 +553,5 @@ SoundCard::getFormat() const
 int 
 SoundCard::getFd() const
 {
-    Lock mylock_(deviceMutex);
     return myFD;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

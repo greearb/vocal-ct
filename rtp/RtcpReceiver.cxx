@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.4 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "global.h"
@@ -263,7 +263,7 @@ void RtcpReceiver::readSR (RtcpHeader* head) {
    if (head->type == rtcpTypeSR) {
       RtcpSender* senderBlock = reinterpret_cast < RtcpSender* >
          ((char*)head + sizeof(RtcpHeader));
-      RtpTranInfo* s = findTranInfo(ntohl(senderBlock->ssrc));
+      Sptr<RtpTranInfo> s = findTranInfo(ntohl(senderBlock->ssrc));
       
       uint32 nts = ntohl(senderBlock->ntpTimeSec);
       uint32 ntf = ntohl(senderBlock->ntpTimeFrac);
@@ -441,7 +441,7 @@ void RtcpReceiver::readSDES (RtcpHeader* head) {
 
 
 void RtcpReceiver::addSDESItem (RtpSrc src, RtcpSDESItem* item) {
-   RtpTranInfo* s = findTranInfo(src);
+   Sptr<RtpTranInfo> s = findTranInfo(src);
    
    switch (item->type) {
    case rtcpSdesCname:
@@ -602,7 +602,7 @@ int RtcpReceiver::addTranFinal (Sptr<RtpTranInfo> s) {
 int RtcpReceiver::removeTranInfo (RtpSrc src, int flag)
 {
     //    cout << "RTCP: removing: " << src << endl;
-   map < RtpSrc, RtpTranInfo* > ::iterator p = tranInfoList.find(src);
+   map < RtpSrc, Sptr<RtpTranInfo> > ::iterator p = tranInfoList.find(src);
    if (p == tranInfoList.end()) {
       // src not found
       assert (0);
@@ -629,7 +629,7 @@ int RtcpReceiver::removeTranInfo (RtpSrc src, int flag)
 Sptr<RtpTranInfo> RtcpReceiver::findTranInfo (RtpSrc src) {
    Sptr<RtpTranInfo> info;
 
-   map < RtpSrc, RtpTranInfo* > ::iterator p = tranInfoList.find(src);
+   map < RtpSrc, Sptr<RtpTranInfo> > ::iterator p = tranInfoList.find(src);
 
    if (p == tranInfoList.end())
       // receiver not found, so add it
@@ -645,7 +645,7 @@ Sptr<RtpTranInfo> RtcpReceiver::getTranInfoList (int index) {
    assert (index >= 0);
    assert (index < getTranInfoCount());
 
-   map < RtpSrc, RtpTranInfo* > ::iterator p = tranInfoList.begin();
+   map < RtpSrc, Sptr<RtpTranInfo> > ::iterator p = tranInfoList.begin();
    for (int i = 0; i < index; i++) {
       ++p;
    }

@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaDevice_cxx_Version =
-    "$Id: MediaDevice.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MediaDevice.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -68,54 +68,24 @@ MediaDevice::~MediaDevice()
 
 
 int
-MediaDevice::shutdownThreads()
-{
-   if (myAudioThread) {
-      myAudioThread->shutdown();
-      myAudioThread->join();
-   }
-   return 0;
-}
-
-int
-MediaDevice::start(VCodecType codec_type)
-{
-
-   assert(!myAudioThread);
-   myAudioThread = new AudioThread(this);
-
+MediaDevice::start(VCodecType codec_type) {
    //Cache the session
    if (! mySession) {
-      mySession = MediaController::instance().getSession(mySessionId, true);
+      mySession = MediaController::instance().getSession(mySessionId);
    }
    else if (mySession->getSessionId() != mySessionId) {
-      mySession = MediaController::instance().getSession(mySessionId, true);
+      mySession = MediaController::instance().getSession(mySessionId);
    }
    
    assert(mySession != 0);
 
-   myAudioThread->run();
-      
    return 0;
 }
 
 int 
-MediaDevice::stop()
-{
-   // Don't think this needs a lock...
-   shutdownThreads();
-
-   myMutex.lock();
-
+MediaDevice::stop() {
    //clear the cache
    mySession = NULL;
-
-   if (myAudioThread) {
-      delete myAudioThread;
-      myAudioThread = NULL;
-   }
-   myMutex.unlock();
-
    return 1;
 }
 

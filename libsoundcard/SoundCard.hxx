@@ -51,9 +51,8 @@
  */
 
 static const char* const SoundCard_hxx_Version =
-    "$Id: SoundCard.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: SoundCard.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
-#include "Mutex.hxx"
 #include "Data.hxx"
 #include "CircularBuffer.hxx"
 
@@ -64,8 +63,6 @@ using Vocal::ADT::CircularBuffer;
 #include "ASoundCardWin.hxx"
 #endif
 
-
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -152,7 +149,6 @@ class SoundCard
 
     private:
         int myFD;
-        mutable Mutex deviceMutex;
         Data myDeviceName;
         SoundCardFormat myFormat;
         int myNumChannels;

@@ -49,7 +49,7 @@
  */
 
 static const char* const testsound_cxx_Version =
-    "$Id: testsound.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: testsound.cxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "SoundCard.hxx"
 #include "cpLog.h"
@@ -62,7 +62,6 @@ static const char* const testsound_cxx_Version =
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "Condition.hxx"
 
 using Vocal::UA::SoundCard;
 using Vocal::UA::SoundCardFormat;

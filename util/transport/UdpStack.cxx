@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.6 2004/06/10 23:16:17 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.7 2004/06/15 06:20:35 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -259,13 +259,13 @@ UdpStack::UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socke
            fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
                    strerror(errno));
         }
-#if 1
+
         if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
                        (int *)&rcvbufnew, rcvbufnewlen) < 0) {
             fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
                     strerror(errno));
         }
-#endif
+
         if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
                        (int*)&rcvbuf, &rcvbuflen) < 0) {
             fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
@@ -357,7 +357,7 @@ UdpStack::UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socke
     }
 
 
-// This is totally busted, need to see the file name somewhere!!
+// This is totally busted, need to set the file name somewhere!!
 #if 0
     if (logFlag) {
        strstream logFileNameRcv;
@@ -490,14 +490,14 @@ UdpStack::doServer ( int minPort,
         {
 	    // failed, so keep trying
 
-        #if !defined(WIN32)
+#if !defined(WIN32)
             err = errno;
             if ( err == EADDRINUSE )
             {
                 freeaddrinfo(sa);
                 continue;  // this port is in use - try the next one
             }
-        #else
+#else
 	    // 25/11/03 fpi
 	    // WorkAround Win32
 	    // uncomment code
@@ -510,7 +510,7 @@ UdpStack::doServer ( int minPort,
                 continue;  // this port is in use - try the next one
             }
 				
-        #endif
+#endif
 
 	    // some other error
 
@@ -523,8 +523,7 @@ UdpStack::doServer ( int minPort,
 	    bError = true;
             cpLog(LOG_ERR, "%s",  errMsg.str());
         }
-        else
-        {
+        else {
 	    // successful binding occured
 
             // NOTE to self: netinet/in.h defines in_addr, 
@@ -540,8 +539,7 @@ UdpStack::doServer ( int minPort,
             portOk = true;
             memcpy(data->localAddr, sa->ai_addr, sa->ai_addrlen);
 	    bError = false;
-            if(sa->ai_family == AF_INET6)
-            {
+            if (sa->ai_family == AF_INET6) {
                 cpLog(LOG_DEBUG, "(IPv6) Udp bound to fd = %d, port = %d, local_ip: %s",
                       data->socketFd, localPort, curLocalIp.c_str());
                 //Set the sockoption so that we get get source IP
@@ -560,27 +558,27 @@ UdpStack::doServer ( int minPort,
             }
         }
         freeaddrinfo(sa);
-	if (portOk) break;
+	if (portOk)
+           break;
     }
 
-    if (bError) throw UdpStackException("fecked");//errMsg.str());
+    if (bError)
+       throw UdpStackException("fecked");//errMsg.str());
 
 
     // deal with errors
-    if (!portOk)
-    {
-        // all ports are in use
-        //localPort = -1;
-        strstream errMsg;
-        errMsg << "UdpStack<" << getLclName()
-               << ">::UdpStack all ports in range "
-               << minPort << " to " << maxPort
-               << " are in use.";
-        errMsg << char(0);
-        cpLog(LOG_ERR, errMsg.str());
-        throw UdpStackExceptionPortsInUse(errMsg.str());
-        errMsg.freeze(false);
-        //assert(0);
+    if (!portOk) {
+       // all ports are in use
+       //localPort = -1;
+       strstream errMsg;
+       errMsg << "UdpStack<" << getLclName()
+              << ">::UdpStack all ports in range "
+              << minPort << " to " << maxPort
+              << " are in use.";
+       errMsg << char(0);
+       cpLog(LOG_ERR, errMsg.str());
+       throw UdpStackExceptionPortsInUse(errMsg.str());
+       errMsg.freeze(false);
     }
 
     // reset name now that the port is defined

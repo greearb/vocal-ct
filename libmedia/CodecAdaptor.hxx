@@ -53,12 +53,13 @@
 
 
 static const char* const CodecAdaptor_hxx_Version = 
-    "$Id: CodecAdaptor.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecAdaptor.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
 #include "global.h"
 #include <string>
 #include <map>
 #include "Def.hxx"
+#include <BugCatcher.hxx>
 
 namespace Vocal
 {
@@ -71,7 +72,7 @@ namespace UA
 /** CodecAdaptor - Interface to plugin codecs, a Codec implementation must derive
     from this interface in order to plug in into Media Framework
  */
-class CodecAdaptor {
+class CodecAdaptor : public BugCatcher {
 public:
    // Used when we are negotiating the protocol, ie type >= 96
    int getRtpType() const {

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtcpTransmitter.cxx,v 1.3 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "global.h"
@@ -247,67 +247,65 @@ int RtcpTransmitter::addSR (RtcpPacket* p, int npadSize)
     if ((rtcpRecv) && (rtcpRecv->getTranInfoCount() > 0))
     {
         //cpLog (LOG_DEBUG_STACK, "RTCP: Making Report Block");
-        RtpTranInfo* tranInfo = NULL;
-        RtpReceiver* recvInfoSpec = NULL;
-        RtcpReport* reportBlock = NULL;
-        for (int i = 0; i < rtcpRecv->getTranInfoCount(); i++)
-        {
-            tranInfo = rtcpRecv->getTranInfoList(i);
-            recvInfoSpec = tranInfo->recv;
+       Sptr<RtpTranInfo> tranInfo;
+       RtpReceiver* recvInfoSpec = NULL;
+       RtcpReport* reportBlock = NULL;
+       for (int i = 0; i < rtcpRecv->getTranInfoCount(); i++) {
+          tranInfo = rtcpRecv->getTranInfoList(i);
+          recvInfoSpec = tranInfo->recv;
 
-            // only receieved RTCP packets from transmitter
-            if (recvInfoSpec == NULL)
-                continue;
+          // only receieved RTCP packets from transmitter
+          if (recvInfoSpec == NULL)
+             continue;
 
-            // don't report on probation transmitters
-            if (recvInfoSpec->probation < 0)
-                continue;
+          // don't report on probation transmitters
+          if (recvInfoSpec->probation < 0)
+             continue;
 
-            //cpLog (LOG_DEBUG_STACK, "RTCP:  Report block for src %d",
-            //       recvInfoSpec->ssrc);
-            reportBlock = reinterpret_cast < RtcpReport* > (p->freeData());
-            usage += p->allocData (sizeof(RtcpReport));
+          //cpLog (LOG_DEBUG_STACK, "RTCP:  Report block for src %d",
+          //       recvInfoSpec->ssrc);
+          reportBlock = reinterpret_cast < RtcpReport* > (p->freeData());
+          usage += p->allocData (sizeof(RtcpReport));
 
-            reportBlock->ssrc = htonl(recvInfoSpec->ssrc);
-            reportBlock->fracLost = calcLostFrac(tranInfo);
-            u_int32_t lost = (calcLostCount(tranInfo)) & 0xffffff;
-            reportBlock->cumLost[2] = lost & 0xff;
-            reportBlock->cumLost[1] = (lost & 0xff00) >> 8;
-            reportBlock->cumLost[0] = (lost & 0xff0000) >> 16;
-            reportBlock->recvCycles = htons(recvInfoSpec->recvCycles);
-            reportBlock->lastSeqRecv = htons(recvInfoSpec->prevSeqRecv);
+          reportBlock->ssrc = htonl(recvInfoSpec->ssrc);
+          reportBlock->fracLost = calcLostFrac(tranInfo);
+          u_int32_t lost = (calcLostCount(tranInfo)) & 0xffffff;
+          reportBlock->cumLost[2] = lost & 0xff;
+          reportBlock->cumLost[1] = (lost & 0xff00) >> 8;
+          reportBlock->cumLost[0] = (lost & 0xff0000) >> 16;
+          reportBlock->recvCycles = htons(recvInfoSpec->recvCycles);
+          reportBlock->lastSeqRecv = htons(recvInfoSpec->prevSeqRecv);
 
-            // fracational
-            // reportBlock->jitter = htonl((u_int32_t)recvInfoSpec->jitter);
+          // fracational
+          // reportBlock->jitter = htonl((u_int32_t)recvInfoSpec->jitter);
+          
+          // integer
+          //            if (recvInfoSpec->jitter > 0)
+          reportBlock->jitter = htonl(recvInfoSpec->jitter >> 4);
 
-            // integer
-            //            if (recvInfoSpec->jitter > 0)
-            reportBlock->jitter = htonl(recvInfoSpec->jitter >> 4);
 
+          reportBlock->lastSRTimeStamp = htonl(tranInfo->lastSRTimestamp);
 
-            reportBlock->lastSRTimeStamp = htonl(tranInfo->lastSRTimestamp);
-
-            // reportBlock->lastSRDelay in the unit of 1/65536 of sec ??
-            // Yes, per RFC 1889, line 1492.  Fixing code accordingly. --Ben
-            if (tranInfo->lastSRTimestamp == 0) {
+          // reportBlock->lastSRDelay in the unit of 1/65536 of sec ??
+          // Yes, per RFC 1889, line 1492.  Fixing code accordingly. --Ben
+          if (tranInfo->lastSRTimestamp == 0) {
+             reportBlock->lastSRDelay = 0;
+          }
+          else {
+             NtpTime thenNtp = tranInfo->recvLastSRTimestamp;
+             if (nowNtp > thenNtp) {
+                unsigned int msecs = nowNtp.getMs() - thenNtp.getMs();
+                //Convert into 1/65536 second units.
+                msecs = msecs * 65;
+                reportBlock->lastSRDelay = htonl(msecs);
+             }
+             else {
                 reportBlock->lastSRDelay = 0;
-            }
-            else
-            {
-                NtpTime thenNtp = tranInfo->recvLastSRTimestamp;
-                if (nowNtp > thenNtp) {
-                    unsigned int msecs = nowNtp.getMs() - thenNtp.getMs();
-                    //Convert into 1/65536 second units.
-                    msecs = msecs * 65;
-                    reportBlock->lastSRDelay = htonl(msecs);
-                }
-                else {
-                    reportBlock->lastSRDelay = 0;
-                }
-            }
-            // next known transmitter
-            header->count++;
-        }
+             }
+          }
+          // next known transmitter
+          header->count++;
+       }
     }
 
     // profile-specific extensions
@@ -332,7 +330,7 @@ int RtcpTransmitter::addSR (RtcpPacket* p, int npadSize)
 
 
 
-u_int32_t RtcpTransmitter::calcLostFrac (RtpTranInfo* s)
+u_int32_t RtcpTransmitter::calcLostFrac (Sptr<RtpTranInfo> s)
 {
     /* from A.3 of RFC 1889 - RTP/RTCP Standards */
 
@@ -357,7 +355,7 @@ u_int32_t RtcpTransmitter::calcLostFrac (RtpTranInfo* s)
 }
 
 
-u_int32_t RtcpTransmitter::calcLostCount (RtpTranInfo* s)
+u_int32_t RtcpTransmitter::calcLostCount (Sptr<RtpTranInfo> s)
 {
     /* from A.3 of RFC 1889 - RTP/RTCP Standards */
 

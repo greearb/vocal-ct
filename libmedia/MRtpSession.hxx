@@ -51,26 +51,21 @@
  *
  */
 
-#include "Fifo.h"
 #include "NetworkRes.hxx"
-#include "ThreadIf.hxx"
 #include "RtpSession.hxx"
 #include "Sdp2Session.hxx"
 #include "Adaptor.hxx"
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
 
-#include "VThread.hxx"
 #include "Sptr.hxx"
-#include "Mutex.hxx"
 
 class RtpSession;
 
 using Vocal::SDP::SdpSession;
 using Vocal::UA::VSdpMode;
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -82,7 +77,7 @@ namespace UA
 class CodecAdaptor;
 class MediaSession;
 ///Sample class to abstract RTP data handling. Currently uses Vovida's RTP stack.
-class MRtpSession  : public Adaptor, public BugCatcher
+class MRtpSession  : public Adaptor
 {
     public:
         /**Constructor
@@ -104,10 +99,6 @@ class MRtpSession  : public Adaptor, public BugCatcher
                     u_int32_t ssrc);
 
         virtual ~MRtpSession() {
-             if(threadStarted) {
-                 shutdown();
-                 myThread.join();
-             }
              delete myRemoteAddress;
              delete rtpStack;
              delete myLocalAddress;
@@ -132,14 +123,8 @@ class MRtpSession  : public Adaptor, public BugCatcher
          ///
          void shutdown() 
          { 
-             myMutex.lock(); 
-             myShutdown = true; 
              mySession = 0;
-             myMutex.unlock(); 
          };
-
-         ///Start listening for RTP packets
-         void start();
 
          ///Re-initialise connection to remote party based on the remote SDP
          void adopt(SdpSession& remoteSdp);
@@ -151,6 +136,12 @@ class MRtpSession  : public Adaptor, public BugCatcher
         void recvDTMF(int event);
 
         RtpSession* getRtpSession() { return rtpStack; }
+
+        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now);
+
+        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now);
 
     protected:
          ///Process the data received over the wire
@@ -182,20 +173,9 @@ class MRtpSession  : public Adaptor, public BugCatcher
         ///
         MDTMFInterface* myDTMFInterface;
 
-        ///
-        static void* processThreadWrapper(void *p);
-        ///
-        VThread myThread;
-        ///
-        bool    myShutdown;
-
     private:
         ///
         Sptr<MediaSession> mySession;
-        ///
-        bool threadStarted;
-        ///
-        Mutex   myMutex;
         ///
         NetworkRes* myLocalAddress;
         string localDevToBindTo;
@@ -207,13 +187,5 @@ class MRtpSession  : public Adaptor, public BugCatcher
 }
 
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -53,7 +53,7 @@
  */
 
 static const char* const RtcpReceiver_hxx_Version =
-    "$Id: RtcpReceiver.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtcpReceiver.hxx,v 1.3 2004/06/15 06:20:35 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -152,7 +152,8 @@ public:
 
    /// Adds receiver to source listing
    Sptr<RtpTranInfo> addTranInfo (RtpSrc src, RtpReceiver* recv = NULL);
-   int addTranFinal (RtpTranInfo* s);
+   int addTranFinal (Sptr<RtpTranInfo> s);
+
    /** Remove receiver from  source listing
     *  @return 0 sucess, 1 not found
     **/
