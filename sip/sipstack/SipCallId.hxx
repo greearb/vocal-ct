@@ -53,7 +53,7 @@
 
 #include "global.h"
 static const char* const SipCallIdVersion =
-"$Id: SipCallId.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+"$Id: SipCallId.hxx,v 1.3 2004/11/04 05:16:41 greear Exp $";
 
 
 
@@ -98,8 +98,7 @@ class SipCallIdParserException : public VException
 
 };
 /// data container for CallId header
-class SipCallId : public SipHeader
-{
+class SipCallId : public SipHeader {
     public:
 
         ///
@@ -110,35 +109,32 @@ class SipCallId : public SipHeader
 
         ///
         Data getData() const;
-        Data getLocalId() const
-            {
-                return localid;
-            }
-        Data getHost() const
-            {
-                return host;
-            }
-        void setLocalId(const Data & newlocalid)
-            {
-                localid = newlocalid;
-            }
-        void setHost(const Data & newhost)
-            {
-                host = newhost;
-            }
-        ///
+        Data getLocalId() const {
+            return localid;
+        }
+        Data getHost() const {
+            return host;
+        }
+        void setLocalId(const Data & newlocalid) {
+            localid = newlocalid;
+        }
+        void setHost(const Data & newhost) {
+            host = newhost;
+        }
+        //
         bool operator == ( const SipCallId& other ) const;
-        ///
+        
+        //
         bool operator != (const SipCallId& other) const
             { return !(*this == other);}
-        ///
+        //
         const SipCallId& operator = ( const SipCallId& src );
 
-        ///
+        //
         bool operator < ( const SipCallId& other ) const;
 
-        ///
-         bool operator >( const SipCallId& other ) const;
+        //
+        bool operator >( const SipCallId& other ) const;
 
 
         /*** Create by decoding the data string passed in. This is the decode
@@ -160,6 +156,8 @@ class SipCallId : public SipHeader
         /// compare two headers of (possibly) the same class
         virtual bool compareSipHeader(SipHeader* msg) const;
 
+        string toString() const { string s(getData().c_str()); return s; }
+
     private:
         Data localid;
         Data host;
@@ -174,16 +172,7 @@ class SipCallId : public SipHeader
         friend class SipMsg;
 };
 
- ostream& operator<<(ostream& strm, const SipCallId& id);
+ostream& operator<<(ostream& strm, const SipCallId& id);
 } // namespace Vocal
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
-
 
 #endif

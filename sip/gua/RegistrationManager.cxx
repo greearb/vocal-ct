@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.5 2004/10/25 23:21:14 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.6 2004/11/04 05:16:41 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -64,18 +64,17 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 ///
-RegistrationManager::RegistrationManager( Sptr < SipTransceiver > sipstack )
-{
-    sipStack = sipstack;
-
-    cpLog(LOG_DEBUG, "Starting Registration Mananger");
-
-    addRegistration(0);
+RegistrationManager::RegistrationManager( Sptr < SipTransceiver > sipstack ) {
+   sipStack = sipstack;
+   
+   cpLog(LOG_DEBUG, "Starting Registration Mananger");
+   
+   addRegistration(0);
 }
 
 ///
 RegistrationManager::~RegistrationManager() {
-    flushRegistrationList();
+   flushRegistrationList();
 }
 
 
@@ -113,7 +112,7 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
 
    Sptr<RegisterMsg> registerMsg = registration->getNextRegistrationMsg();
 
-   if ( 0 != sipStack ) {
+   if (sipStack != 0) {
       cpLog(LOG_DEBUG, "sending register message");
       sipStack->sendAsync( registerMsg.getPtr() );
       UaFacade::instance().postInfo(registerMsg.getPtr());
@@ -125,18 +124,21 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
 
 ///
 Sptr<Registration>
-RegistrationManager::findRegistration(const StatusMsg& statusMsg)
-{
+RegistrationManager::findRegistration(const StatusMsg& statusMsg) {
    Sptr<Registration> registration;
 
    RegistrationList::iterator iter = registrationList.begin();
    while ( iter != registrationList.end() ) {
       Sptr<RegisterMsg> regMsg = (*iter)->getRegistrationMsg();
       if ( regMsg->computeCallLeg() == statusMsg.computeCallLeg() ) {
+         cpLog(LOG_DEBUG, "Found registration...\n");
          registration = (*iter);
          break;
       }
       else {
+         cpLog(LOG_DEBUG_STACK, "regMsg callLeg: %s  statusMsg callLeg: %s  didn't match.\n",
+               regMsg->computeCallLeg().toString().c_str(),
+               statusMsg.computeCallLeg().toString().c_str());
          // So, match on Call-ID instead.  But this will be a backup.
          if (regMsg->getCallId() == statusMsg.getCallId()) {
             registration = *iter;
@@ -145,16 +147,16 @@ RegistrationManager::findRegistration(const StatusMsg& statusMsg)
             // is a good idea! --Ben
          }
          else {
-            cpLog(LOG_DEBUG, "regMsg callLeg: %s  statusMsg callLeg: %s  didn't match.\n",
-                  regMsg->computeCallLeg().toString().c_str(),
-                  statusMsg.computeCallLeg().toString().c_str());
+            cpLog(LOG_DEBUG_STACK, "regMsg callId: %s  statusMsg callId: %s  didn't match.\n",
+                  regMsg->getCallId().toString().c_str(),
+                  statusMsg.getCallId().toString().c_str());
          }
       }
       iter++;
-   }
+   }//while
 
    return registration;
-}
+}//findRegistration
 
 ///
 void RegistrationManager::addRegistration(Sptr<Registration> item) {
@@ -178,8 +180,9 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
       return false;
    }
 
-   cpLog(LOG_DEBUG, "RegistrationManager::updating registration information");
    int delay = registration->updateRegistrationMsg(statusMsg);
+   cpLog(LOG_DEBUG, "RegistrationManager::updating registration information, delay: %d",
+         delay);
 
    if ( registration->getStatusCode() == 100 ) {
       delay = DEFAULT_DELAY;
@@ -190,10 +193,10 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
       delay = 0;
       cpLog(LOG_DEBUG, "The new delay is %d, status code: %d",
             delay, registration->getStatusCode());
-      registration->setNextRegister(vgetCurMs());
+      registration->setNextRegister(vgetCurMs() + (delay * 1000));
    }
    else if (delay) {
-      registration->setNextRegister(vgetCurMs());
+      registration->setNextRegister(vgetCurMs() + (delay * 1000));
    }
    else {
       // Register again in a day, ie basically wait forever.

@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.8 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.9 2004/11/04 05:16:41 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -93,329 +93,311 @@ UaCallControl* UaCallControl::myInstance = 0;
 
 bool 
 UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
-    cpLog(LOG_DEBUG, "UaCallControl::processEvent");
-    if (CallControl::processEvent(event)) {
-        cpLog(LOG_DEBUG, "Event handled by the base class");
+   cpLog(LOG_DEBUG, "UaCallControl::processEvent, event: %s", event->toString().c_str());
+   if (CallControl::processEvent(event)) {
+      cpLog(LOG_DEBUG, "Event handled by the base class");
 
-        Sptr<SipEvent> sipEvent;
-        sipEvent.dynamicCast(event);
+      Sptr<SipEvent> sipEvent;
+      sipEvent.dynamicCast(event);
 
-        string m("SIP_PROXY_EVENT: ");
+      string m("SIP_PROXY_EVENT: ");
            
-        if (sipEvent != 0) {
-           Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
-           if (sipMsg != 0) {
-              UaFacade::instance().postInfo(sipMsg);
-              return true;
-           }
-           else {
-              m += event->name();
-           }
-        }
-        else {
-           m += event->name();
-        }
-
-        UaFacade::instance().postMsg(m);
-
-        //Already handled by the base class, so return
-        return true;
-    }
-    //handle all-kinds of events, from GUI, CLI here
-
-    Sptr<SipEvent> sipEvent;
-    sipEvent.dynamicCast(event);
-    if(sipEvent != 0)
-    {
-        cpLog(LOG_DEBUG, "Handling SIP event");
-        //Only Incoming INVITE is accepted, rest is an error
-        Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
-        assert(sipMsg != 0);
-        if(sipMsg->getType() != SIP_INVITE)
-        {
-           UaFacade::instance().postInfo(sipMsg);
-           if(sipMsg->getType() == SIP_REGISTER)
-           {
-              Sptr<SipCommand> sCommand;
-              sCommand.dynamicCast(sipMsg);
-              Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
-              UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-              UaFacade::instance().postInfo(sMsg.getPtr());
-              cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
-                    sMsg->encode().logData());
-              return true;
-           }
-            if((sipMsg->getType() == SIP_STATUS) )
-            {
-               if(sipMsg->getCSeq().getMethod() == REGISTER_METHOD)
-               {
-                    Sptr<StatusMsg> statusMsg;
-                    statusMsg.dynamicCast(sipMsg);
-                    if(statusMsg->getStatusLine().getStatusCode() == 200)
-                    {
-                       cpLog(LOG_DEBUG, "Expires for statusMsg: %s\n",
-                             statusMsg->getExpires().encode().c_str());
-                       cpLog(LOG_DEBUG, "Contact for statusMsg: %s\n",
-                             statusMsg->getContact().encode().c_str());
-                       if((statusMsg->getExpires().getDelta().convertInt()))
-                       {
-                          UaFacade::instance().postMsg("REGISTERED ");
-                       } else
-                       {
-                          UaFacade::instance().postMsg("REGISTRATIONEXPIRED ");
-                       }
-                    }
-                    cpLog(LOG_DEBUG, "Sending registration response to RegManager.\n");
-                    UaFacade::instance().getRegistrationManager()->handleRegistrationResponse(*statusMsg);
-               }
-               else if (sipMsg->getCSeq().getMethod() == CANCEL_METHOD)
-               {
-                  UaFacade::instance().postMsg("L_HANGUP ");
-               }
-            }
-            else if (sipMsg->getType() == SIP_SUBSCRIBE)
-            {
-
-               Sptr<SipCommand> sCommand;
-               int _myPort = atoi((UaConfiguration::instance().getValue(LocalSipPortTag)).c_str());
-               sCommand.dynamicCast(sipMsg);
-               Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
-               UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-               Sptr<SubscribeMsg> sbMsg;
-               sbMsg.dynamicCast(sipMsg);
-               SipSubsNotifyEvent ev("Notify", UaConfiguration::instance().getMyLocalIp());
-               Sptr<NotifyMsg> nMsg = new NotifyMsg(*sbMsg, ev,
-                                                    UaConfiguration::instance().getMyLocalIp());
-               SipVia sipVia("", UaConfiguration::instance().getMyLocalIp());
-               sipVia.setprotoVersion("2.0");
-               sipVia.setHost(Data(UaConfiguration::instance().getMyLocalIp()) );
-               sipVia.setPort(_myPort);
-               nMsg->flushViaList();
-               nMsg->setVia(sipVia);
-               if (sbMsg->getNumContact() == 1)
-               {
-                  SipRoute route("", UaConfiguration::instance().getMyLocalIp());
-                  route.setUrl(sbMsg->getContact().getUrl());
-                  nMsg->setRoute(route);
-
-                  //remove the contact header.
-                  nMsg->setNumContact(0);
-               }
-               SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
-               Sptr< SipUrl > contactUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
-               contactUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
-               contactUrl->setPort(Data(_myPort));
-               myContact.setUrl( contactUrl.getPtr() );
-               nMsg->setContact(myContact);
-               SipUserAgent uAgent("Vovida-SIP-SoftPhone/1.5.0 (www.vovida.org)",
-                                   UaConfiguration::instance().getMyLocalIp());
-               nMsg->setUserAgent(uAgent);
-               Sptr<SipUrl> tmpinetSipUrl;
-               tmpinetSipUrl.dynamicCast(sbMsg->getContact().getUrl());
-               assert(tmpinetSipUrl != 0);
-               // Create the XML blob as per IETF Draft "A Data format for
-               // Presense using XML"
-               Data buf;
-               buf += "<?xml version=\"1.0\"?>";
-               buf += "\r\n";
-               buf +="<!DOCTYPE presence";
-               buf += "\r\n";
-               buf += "PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">";
-               buf +=  "\r\n";
-               buf += "<presence>";
-               buf += "\r\n";
-               buf += "<presentity uri=\"";
-               buf += tmpinetSipUrl->getNameAddr();
-               buf += "\" />";
-               buf += "\r\n";
-               buf +="<atom id=\"";
-               buf += RandomHex::get(4);
-               buf += "\">";
-               buf += "\r\n";
-               buf += "<address uri=\"";
-               buf +=  contactUrl->getNameAddr();
-               buf +=  ";user=ip\" priority=\"0.800000\">";
-               buf += "\r\n";
-               buf += "<status status=\"open\" />";
-               buf += "\r\n";
-               buf += "<duplex duplex=\"full\" />";
-               buf += "\r\n";
-               buf += "</address>";
-               buf += "\r\n";
-               buf += "</atom>";
-               buf += "\r\n";
-               buf += "</presence>";
-
-               SipTextData Txt(buf,"xpidf+xml");
-               nMsg->setContentData(&Txt);
-
-               // Send Notify Message to whoever SUBSCRIBED
-               UaFacade::instance().getSipTransceiver()->sendAsync(nMsg.getPtr());
-
-            }
-            else if (sipMsg->getType() == SIP_BYE)
-            {
-		Sptr<SipCommand> sCommand;
-		sCommand.dynamicCast(sipMsg);
-		Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
-		UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-                cpLog(LOG_ERR, "Out of dialog message (%s)", sipMsg->encode().logData());
-		cpLog(LOG_DEBUG, "Replying the Above msg to stop flodding (%s)\n", sMsg->encode().logData());
-            }
-            else if ((sipMsg->getType() != SIP_ACK) && (sipMsg->getType() != SIP_SUBSCRIBE))
-            {
-		Sptr<SipCommand> sCommand;
-		sCommand.dynamicCast(sipMsg);
-		Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
-		UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-                cpLog(LOG_ERR, "Not Implemented message (%s)", sipMsg->encode().logData());
-		cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
-            }
+      if (sipEvent != 0) {
+         Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
+         if (sipMsg != 0) {
+            UaFacade::instance().postInfo(sipMsg);
             return true;
-        }
-        //Send 4xx if busy
-        Sptr<SipCommand> sCmd;
-        sCmd.dynamicCast(sipMsg);
-        if(busy(sCmd))
-        {
-            cpLog(LOG_INFO, "Agent is busy, ignoring the call\n");
+         }
+         else {
+            m += event->name();
+         }
+      }
+      else {
+         m += event->name();
+      }
+
+      UaFacade::instance().postMsg(m);
+
+      //Already handled by the base class, so return
+      return true;
+   }
+   //handle all-kinds of events, from GUI, CLI here
+
+   Sptr<SipEvent> sipEvent;
+   sipEvent.dynamicCast(event);
+   if (sipEvent != 0) {
+      cpLog(LOG_DEBUG, "Handling SIP event");
+      //Only Incoming INVITE is accepted, rest is an error
+      Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
+      assert(sipMsg != 0);
+      if (sipMsg->getType() != SIP_INVITE) {
+         UaFacade::instance().postInfo(sipMsg);
+         if (sipMsg->getType() == SIP_REGISTER) {
+            Sptr<SipCommand> sCommand;
+            sCommand.dynamicCast(sipMsg);
+            Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            UaFacade::instance().postInfo(sMsg.getPtr());
+            cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
+                  sMsg->encode().logData());
             return true;
-        }
-	Sptr<InviteMsg> inMg;
-        inMg.dynamicCast(sipMsg);
-	Sptr<SipSdp> remoteSdp;
-        remoteSdp.dynamicCast(inMg->getContentData(0));
+         }
+         if ((sipMsg->getType() == SIP_STATUS) ) {
+            if (sipMsg->getCSeq().getMethod() == REGISTER_METHOD) {
+               Sptr<StatusMsg> statusMsg;
+               statusMsg.dynamicCast(sipMsg);
+               if (statusMsg->getStatusLine().getStatusCode() == 200) {
+                  cpLog(LOG_DEBUG, "Expires for statusMsg: %s\n",
+                        statusMsg->getExpires().encode().c_str());
+                  cpLog(LOG_DEBUG, "Contact for statusMsg: %s\n",
+                        statusMsg->getContact().encode().c_str());
+                  if ((statusMsg->getExpires().getDelta().convertInt())) {
+                     UaFacade::instance().postMsg("REGISTERED ");
+                  }
+                  else {
+                     UaFacade::instance().postMsg("REGISTRATIONEXPIRED ");
+                  }
+               }
+               cpLog(LOG_DEBUG, "Sending registration response to RegManager.\n");
+               UaFacade::instance().getRegistrationManager()->handleRegistrationResponse(*statusMsg);
+            }
+            else if (sipMsg->getCSeq().getMethod() == CANCEL_METHOD) {
+               UaFacade::instance().postMsg("L_HANGUP ");
+            }
+         }
+         else if (sipMsg->getType() == SIP_SUBSCRIBE) {
+            Sptr<SipCommand> sCommand;
+            int _myPort = atoi((UaConfiguration::instance().getValue(LocalSipPortTag)).c_str());
+            sCommand.dynamicCast(sipMsg);
+            Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            Sptr<SubscribeMsg> sbMsg;
+            sbMsg.dynamicCast(sipMsg);
+            SipSubsNotifyEvent ev("Notify", UaConfiguration::instance().getMyLocalIp());
+            Sptr<NotifyMsg> nMsg = new NotifyMsg(*sbMsg, ev,
+                                                 UaConfiguration::instance().getMyLocalIp());
+            SipVia sipVia("", UaConfiguration::instance().getMyLocalIp());
+            sipVia.setprotoVersion("2.0");
+            sipVia.setHost(Data(UaConfiguration::instance().getMyLocalIp()) );
+            sipVia.setPort(_myPort);
+            nMsg->flushViaList();
+            nMsg->setVia(sipVia);
+            if (sbMsg->getNumContact() == 1) {
+               SipRoute route("", UaConfiguration::instance().getMyLocalIp());
+               route.setUrl(sbMsg->getContact().getUrl());
+               nMsg->setRoute(route);
+                 
+               //remove the contact header.
+               nMsg->setNumContact(0);
+            }
+            SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
+            Sptr< SipUrl > contactUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
+            contactUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
+            contactUrl->setPort(Data(_myPort));
+            myContact.setUrl( contactUrl.getPtr() );
+            nMsg->setContact(myContact);
+            SipUserAgent uAgent("Vovida-SIP-SoftPhone/1.5.0 (www.vovida.org)",
+                                UaConfiguration::instance().getMyLocalIp());
+            nMsg->setUserAgent(uAgent);
+            Sptr<SipUrl> tmpinetSipUrl;
+            tmpinetSipUrl.dynamicCast(sbMsg->getContact().getUrl());
+            assert(tmpinetSipUrl != 0);
+            // Create the XML blob as per IETF Draft "A Data format for
+            // Presense using XML"
+            Data buf;
+            buf += "<?xml version=\"1.0\"?>";
+            buf += "\r\n";
+            buf +="<!DOCTYPE presence";
+            buf += "\r\n";
+            buf += "PUBLIC \"-//IETF//DTD RFCxxxx XPIDF 1.0//EN\" \"xpidf.dtd\">";
+            buf +=  "\r\n";
+            buf += "<presence>";
+            buf += "\r\n";
+            buf += "<presentity uri=\"";
+            buf += tmpinetSipUrl->getNameAddr();
+            buf += "\" />";
+            buf += "\r\n";
+            buf +="<atom id=\"";
+            buf += RandomHex::get(4);
+            buf += "\">";
+            buf += "\r\n";
+            buf += "<address uri=\"";
+            buf +=  contactUrl->getNameAddr();
+            buf +=  ";user=ip\" priority=\"0.800000\">";
+            buf += "\r\n";
+            buf += "<status status=\"open\" />";
+            buf += "\r\n";
+            buf += "<duplex duplex=\"full\" />";
+            buf += "\r\n";
+            buf += "</address>";
+            buf += "\r\n";
+            buf += "</atom>";
+            buf += "\r\n";
+            buf += "</presence>";
+              
+            SipTextData Txt(buf,"xpidf+xml");
+            nMsg->setContentData(&Txt);
 
-	if(remoteSdp == 0)
-	{
-	    // no SDP, so abort
-	    Sptr<SipCommand> Cmd;
-	    Cmd.dynamicCast(sipMsg);
-	    Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
-	    UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-	    cpLog(LOG_ERR, "No SDP in INVITE message (%s)", 
-		  sipMsg->encode().logData());
-	    cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", 
-		  sMsg->encode().logData());
-	    return true;
-	}
-
-	if(!(inMg->getContentLength().getLength().convertInt() == 0) && (remoteSdp->getRtpPort() == 0)){
-	     Sptr<SipCommand> Cmd;
-	     Cmd.dynamicCast(sipMsg);
-	     Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
-	     UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-	     cpLog(LOG_ERR, "No Port in the m line of SDP in INVITE message (%s)", 
-                                                           sipMsg->encode().logData());
-	     cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
-	     return true;
-	}
-
-        int callId = myCallMap.size();
-
-        //Create the CallAgent to control UaServer
-        Sptr<CallAgent> cAgent = new CallAgent(callId, sipMsg, &(UaFacade::instance()),
-                                               Vocal::UA::A_SERVER);
-
-        //Persist the agent for the duration of the call
-        myCallMap[cAgent->getId()] = cAgent;
-
-        //Post message to the GUI
-        strstream s;
-        s << "RINGING " << sipMsg->getFrom().getUser().logData() << endl << ends;
-        UaFacade::instance().postMsg(s.str());
-        s.freeze(false);
-
-        //Send the 180 back to the caller
-        Sptr<SipCommand> sCommand;
-        sCommand.dynamicCast(sipMsg);
-        Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 180);
-        cAgent->getInvokee()->sendMsg(sMsg.getPtr());
-        //UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-
-        if((UaFacade::instance().getMode() == CALL_MODE_ANNON) ||
-           (UaFacade::instance().getMode() == CALL_MODE_VMAIL) || 
-           (UaFacade::instance().getMode() == CALL_MODE_SPEECH)
-	    )
-        {
-            cAgent->acceptCall();
-        }
+            // Send Notify Message to whoever SUBSCRIBED
+            UaFacade::instance().getSipTransceiver()->sendAsync(nMsg.getPtr());
+              
+         }
+         else if (sipMsg->getType() == SIP_BYE) {
+            Sptr<SipCommand> sCommand;
+            sCommand.dynamicCast(sipMsg);
+            Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            cpLog(LOG_ERR, "Out of dialog message (%s)", sipMsg->encode().logData());
+            cpLog(LOG_DEBUG, "Replying the Above msg to stop flodding (%s)\n", sMsg->encode().logData());
+         }
+         else if ((sipMsg->getType() != SIP_ACK) && (sipMsg->getType() != SIP_SUBSCRIBE)) {
+            Sptr<SipCommand> sCommand;
+            sCommand.dynamicCast(sipMsg);
+            Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            cpLog(LOG_ERR, "Not Implemented message (%s)", sipMsg->encode().logData());
+            cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
+         }
+         return true;
+      }
+      //Send 4xx if busy
+      Sptr<SipCommand> sCmd;
+      sCmd.dynamicCast(sipMsg);
+      if (busy(sCmd)) {
+         cpLog(LOG_INFO, "Agent is busy, ignoring the call\n");
+         return true;
+      }
+      Sptr<InviteMsg> inMg;
+      inMg.dynamicCast(sipMsg);
+      Sptr<SipSdp> remoteSdp;
+      remoteSdp.dynamicCast(inMg->getContentData(0));
         
-        //UaServer state-machine will take the call from here
-        return true;
-    }//if was SIP event
+      if (remoteSdp == 0) {
+         // no SDP, so abort
+         Sptr<SipCommand> Cmd;
+         Cmd.dynamicCast(sipMsg);
+         Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
+         UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+         cpLog(LOG_ERR, "No SDP in INVITE message (%s)", 
+               sipMsg->encode().logData());
+         cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", 
+               sMsg->encode().logData());
+         return true;
+      }
+
+      if (!(inMg->getContentLength().getLength().convertInt() == 0)
+          && (remoteSdp->getRtpPort() == 0)){
+         Sptr<SipCommand> Cmd;
+         Cmd.dynamicCast(sipMsg);
+         Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
+         UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+         cpLog(LOG_ERR, "No Port in the m line of SDP in INVITE message (%s)", 
+               sipMsg->encode().logData());
+         cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
+         return true;
+      }
+
+      int callId = myCallMap.size();
+
+      //Create the CallAgent to control UaServer
+      Sptr<CallAgent> cAgent = new CallAgent(callId, sipMsg, &(UaFacade::instance()),
+                                             Vocal::UA::A_SERVER);
+
+      //Persist the agent for the duration of the call
+      myCallMap[cAgent->getId()] = cAgent;
+
+      //Post message to the GUI
+      strstream s;
+      s << "RINGING " << sipMsg->getFrom().getUser().logData() << endl << ends;
+      UaFacade::instance().postMsg(s.str());
+      s.freeze(false);
+
+      //Send the 180 back to the caller
+      Sptr<SipCommand> sCommand;
+      sCommand.dynamicCast(sipMsg);
+      Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 180);
+      cAgent->getInvokee()->sendMsg(sMsg.getPtr());
+      //UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+
+      if ((UaFacade::instance().getMode() == CALL_MODE_ANNON) ||
+          (UaFacade::instance().getMode() == CALL_MODE_VMAIL) || 
+          (UaFacade::instance().getMode() == CALL_MODE_SPEECH)
+         ) {
+         cAgent->acceptCall();
+      }
+        
+      //UaServer state-machine will take the call from here
+      return true;
+   }//if was SIP event
 
 
-    Sptr<GuiEvent> gEvent;
-    gEvent.dynamicCast(event);
-    if(gEvent != 0)
-    {
-        cpLog(LOG_DEBUG, "Got GuiEvent...\n");
-        handleGuiEvents(gEvent);
-        return true;
-    }
+   Sptr<GuiEvent> gEvent;
+   gEvent.dynamicCast(event);
+   if (gEvent != 0) {
+      cpLog(LOG_DEBUG, "Got GuiEvent...\n");
+      handleGuiEvents(gEvent);
+      return true;
+   }
 
-    Sptr<UaHardwareEvent> hEvent;
-    hEvent.dynamicCast(event);
-    if(hEvent != 0) {
-        //Get the event id
-        cpLog(LOG_ERR, "Got HardwareEvent...\n");
-        int id = hEvent->myId;
-        Sptr<CallAgent> cAgent;
-        if (myCallMap.count(id)) {
-            cAgent.dynamicCast(myCallMap[id]);
-            if (hEvent->type == HardwareAudioType) {
-                if (hEvent->request.type == AudioStop) {
-                    cAgent->doBye();
-                    UaFacade::instance().postMsg("AUDIO_STOP");
-                }
-                else {
-                   cpLog(LOG_ERR, "ERROR: Un-handled hardware event, type: %d\n",
-                         hEvent->request.type);
-                   assert(0); //TODO:  Remove assert.
-                }
+   Sptr<UaHardwareEvent> hEvent;
+   hEvent.dynamicCast(event);
+   if (hEvent != 0) {
+      //Get the event id
+      cpLog(LOG_ERR, "Got HardwareEvent...\n");
+      int id = hEvent->myId;
+      Sptr<CallAgent> cAgent;
+      if (myCallMap.count(id)) {
+         cAgent.dynamicCast(myCallMap[id]);
+         if (hEvent->type == HardwareAudioType) {
+            if (hEvent->request.type == AudioStop) {
+               cAgent->doBye();
+               UaFacade::instance().postMsg("AUDIO_STOP");
             }
             else {
-               cpLog(LOG_ERR, "ERROR: Un-handled event type: %d\n",
-                     hEvent->type);
+               cpLog(LOG_ERR, "ERROR: Un-handled hardware event, type: %d\n",
+                     hEvent->request.type);
                assert(0); //TODO:  Remove assert.
             }
-        }
-        else {
-            cpLog(LOG_ERR, "Did not find agent for id:%d" ,id);
-        }
-        return true;
-    }
-
-    Sptr<DeviceEvent> dEvent;
-    dEvent.dynamicCast(event);
-    if(dEvent != 0)
-    {
-        //Get the event id
-        int id = dEvent->id;
-        Sptr<CallAgent> cAgent;
-        if(myCallMap.count(id)) {
-            cAgent.dynamicCast(myCallMap[id]);
-            if(dEvent->type == DeviceEventHookDown) {
-                //VMCP server sent an event, cleanup
-                cAgent->doBye();
-            }
+         }
+         else {
+            cpLog(LOG_ERR, "ERROR: Un-handled event type: %d\n",
+                  hEvent->type);
+            assert(0); //TODO:  Remove assert.
+         }
+      }
+      else {
+         cpLog(LOG_ERR, "Did not find agent for id:%d" ,id);
+      }
+      return true;
+   }
+    
+   Sptr<DeviceEvent> dEvent;
+   dEvent.dynamicCast(event);
+   if (dEvent != 0) {
+      //Get the event id
+      int id = dEvent->id;
+      Sptr<CallAgent> cAgent;
+      if(myCallMap.count(id)) {
+         cAgent.dynamicCast(myCallMap[id]);
+         if (dEvent->type == DeviceEventHookDown) {
+            //VMCP server sent an event, cleanup
+            cAgent->doBye();
+         }
 #if 0
-	    if(dEvent->type == DeviceEventReferUrl) {
-		SipUrl url(dEvent->item);
-		cAgent->doBlindXfer(url);
+         if (dEvent->type == DeviceEventReferUrl) {
+            SipUrl url(dEvent->item);
+            cAgent->doBlindXfer(url);
 //		cAgent->doBye();
-	    }
+         }
 #endif
-        }
-        else
-        {
-            cpLog(LOG_DEBUG, "Did not find agent for id:%d" ,id);
-        }
-        return true;
-    }
-
-    return true;
+      }
+      else {
+         cpLog(LOG_DEBUG, "Did not find agent for id:%d" ,id);
+      }
+      return true;
+   }
+    
+   return true;
 }
 
 void

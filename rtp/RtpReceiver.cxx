@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.6 2004/11/04 05:16:40 greear Exp $";
 
 
 #include "global.h"
@@ -266,8 +266,12 @@ int RtpReceiver::readNetwork() {
                 tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
                 seq, prevSeqRecv);
 
-         int tmp;
-         assert((tmp = RtpSeqDifference(seq, prevSeqRecv)) > 1);
+         int tmp= RtpSeqDifference(seq, prevSeqRecv);
+         if (tmp <= 1) {
+            cpLog(LOG_ERR, "ERROR:  repSeqDiff: %d between seq: %d and prevSeqRecv: %d is <=1, BUT, the rtpTime shows a gap.  Recovering as best we can.\n",
+                  tmp, seq, prevSeqRecv);
+            break;
+         }
 
          if ( cpLogGetPriority() >= LOG_DEBUG_HB ) {
             cerr << "s" << sampleSize;
