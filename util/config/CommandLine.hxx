@@ -52,7 +52,7 @@
  */
 
 static const char* const CommandLineVersion 
-    = "$Id: CommandLine.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    = "$Id: CommandLine.hxx,v 1.3 2004/08/17 07:30:12 greear Exp $";
 
 #include <unistd.h>
 #include <cstdio>
@@ -102,8 +102,7 @@ For example to check if -d option is given, call interface
     }
 </pre>
 */
-class CommandLine : public RCObject
-{
+class CommandLine : public RCObject {
     public:
 
         ///
@@ -136,7 +135,7 @@ class CommandLine : public RCObject
 #else
         void print(const int loglevel);
 #endif
-        ~CommandLine() {};
+        virtual ~CommandLine() {};
     private:
 
         CommandLine();
@@ -155,12 +154,5 @@ class CommandLine : public RCObject
         static const pair < const char*, const char* > cmdLineOptionString[];
         map < Data, Data > myMap;
 };
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

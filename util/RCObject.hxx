@@ -68,10 +68,10 @@ public:
    }
    
 
-   int incrementReferenceCount() { count++; return count; }
-   int decrementReferenceCount() { count--; return count; }
+   virtual int incrementReferenceCount() { count++; return count; }
+   virtual int decrementReferenceCount() { count--; return count; }
    
-   int getReferenceCount() { return count; }
+   virtual int getReferenceCount() { return count; }
 };
 
 #endif
