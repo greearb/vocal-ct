@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/06/15 00:30:10 greear Exp $
+# $Id: Makefile,v 1.3 2004/06/20 21:55:42 greear Exp $
 
 
 BUILD = build
@@ -580,21 +580,21 @@ cleanall:
 	touch $$.$$.$$.d
 	find . -name 'obj.*' -print -exec /bin/rm -rf {} \;
 	find . -name 'bin.*' -print -exec /bin/rm -rf {} \;
+	find . -name 'lib.*' -print -exec /bin/rm -rf {} \;
+	find . -name '*.o' -print -exec /bin/rm -f {} \;
+	find . -name '*.a' -print -exec /bin/rm -f {} \;
 	find . -name '*.d' -print -exec /bin/rm -f {} \;
+	find . -name 'core' -print -exec /bin/rm -f {} \;
 	find . -name '.link_host' -print -exec /bin/rm -f {} \;
 	for i in $(SUBDIRS) ; do ( cd $$i && $(MAKE) cleanall ) ; done
 	rm -rf release/bin.*/*
 	rm -rf release/lib.*/*
 	rm -rf release/include/*
+	rm -f stage/gua.gz stage/rs stage/psClient.jar stage/cdrsrv stage/sipset
+	rm -f stage/ms stage/pserver stage/fs
+	rm -f build/Makefile.conf
 
-veryclean: clean
-	- find . -name 'obj.*' -print -exec /bin/rm -rf {} \;
-	- find . -name 'bin.*' -print -exec /bin/rm -rf {} \;
-	- find . -name '*.o' -print -exec /bin/rm -f {} \;
-	- find . -name '*.a' -print -exec /bin/rm -f {} \;
-	- find . -name 'core' -print -exec /bin/rm -f {} \;
-	- find . -name '.link_host' -print -exec /bin/rm -f {} \;
-	- rm -f build/Makefile.conf
+veryclean: cleanall
 
 cleanln:
 	ln -s LICENSE .asdfasdfadsasdfadsf
