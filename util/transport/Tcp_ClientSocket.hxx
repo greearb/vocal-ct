@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -135,6 +135,7 @@ class TcpClientSocket
            connect to the far side.
         */
         void connect() throw (VNetworkException&);
+
         /**
            close the connnection.
         */
@@ -143,10 +144,12 @@ class TcpClientSocket
         /**
            get the Connection which was created by this object.
         */
-        inline Connection& getConn()
-        {
+        Connection& getConn() {
             return _conn;
         };
+
+        bool isConnected() const;
+
     private:
         void initalize();
         const char* connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const;

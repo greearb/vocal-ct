@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 
 #include "global.h"
@@ -64,12 +64,65 @@ static const char* const AgentApi_cxx_Version =
 
 
 AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Default Argument*/ )
+      : sender(""),
+        dest("0.0.0.0")
 {
     myServerType = serType;
     myApplName = appName;
 
     NetworkAddress na(""); //TODO:  Allow one to specify local IP.
     agentIpStr = na.getIpName().c_str();
+
+    if ((NetworkConfig::instance().isDualStack()) ||
+        (NetworkConfig::instance().getAddrFamily() == PF_INET)) {
+       dest.setHostName(registerMulticastIP);
+       dest.setPort(registerMulticastPort );
+    }
+    else {
+       dest.setHostName("ff14::1");
+       dest.setPort(registerMulticastPort );
+    }
+
+    memset(&message1, 0, sizeof(message1));
+
+    switch (myServerType) {
+    case SERVER_Agent:
+       // register to receive the messages on the well known agent port
+       // then send out the multicast message.
+#ifdef __linux__
+       udpStack = new UdpStack("", "", 0, agentTrapPort, agentTrapPort, sendrecv, false);
+#else
+       udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
+#endif	
+       message1.action = (actionT)Register_Req;
+       udpStack->transmitTo((char *)&message1, sizeof(message1), &dest);
+       break;
+
+    case SERVER_NetMgnt:
+       udpStack = new UdpStack("", "", 0, MANAGERTRAPPORT , MANAGERTRAPPORT, sendrecv, false);
+       break;
+
+    default :
+
+       udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
+
+       memset(&message, 0, sizeof(message));
+       message1.action = (actionT)Register;
+       int *pi = (int *)message1.parm1;
+       int tmpPort = udpStack->getRxPort();
+       memcpy(&pi[0], &myServerType, sizeof(int));
+       memcpy(&pi[1], &tmpPort, sizeof(int));
+       if (sizeof(message1.parm2) < myApplName.length()) {
+          memcpy(message1.parm2, (char*)myApplName.c_str(), 
+                 sizeof(message1.parm2));
+       } 
+       else {
+          memcpy(message1.parm2, (char*)myApplName.c_str(), 
+                 myApplName.length());
+       }
+       agentRegister = new AgentRegister((void *) & message1, 
+                                         sizeof(message1));
+    }
 }
 
 
@@ -249,106 +302,41 @@ sendRequest(string indexName, int setValue)
 }
 
 
-#warning "Needs to be converted to non-threading model"
-#if 0
-/**
- * first it registers on ports based on the type of agent it is, then 
- * infinate loop that waits for messages from other agentApi's and processes them.
- */
-void
-AgentApi::thread()
-{
-    int bytesRead = 0;
-    NetworkAddress sender("");
-    NetworkAddress dest("0.0.0.0");
-    if((NetworkConfig::instance().isDualStack()) ||
-       (NetworkConfig::instance().getAddrFamily() == PF_INET))
-    {
-        dest.setHostName(registerMulticastIP);
-        dest.setPort(registerMulticastPort );
-    }
-    else
-    {
-        dest.setHostName("ff14::1");
-        dest.setPort(registerMulticastPort );
-    }
+int AgentApi::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     int& maxdesc, uint64& timeout, uint64 now) {
+   if (agentRegister != 0) {
+      agentRegister->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
 
-    memset(&message1, 0, sizeof(message1));
-
-    switch (myServerType)
-    {
-        case SERVER_Agent:
-        // register to receive the messages on the well known agent port
-        // then send out the multicast message.
-#ifdef __linux__
-	    udpStack = new UdpStack("", "", 0, agentTrapPort, agentTrapPort, sendrecv, false);
-#else
-	    udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
-#endif	
-	    message1.action = (actionT)Register_Req;
-	    udpStack->transmitTo((char *)&message1, sizeof(message1), &dest);
-	    break;
-
-        case SERVER_NetMgnt:
-	    udpStack = new UdpStack("", "", 0, MANAGERTRAPPORT , MANAGERTRAPPORT, sendrecv, false);
-	    break;
-
-        default :
-
-	    udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
-
-	    memset(&message, 0, sizeof(message));
-	    message1.action = (actionT)Register;
-	    int *pi = (int *)message1.parm1;
-	    int tmpPort = udpStack->getRxPort();
-	    memcpy(&pi[0], &myServerType, sizeof(int));
-	    memcpy(&pi[1], &tmpPort, sizeof(int));
-	    if (sizeof(message1.parm2) < myApplName.length()) 
-	    {
-		memcpy(message1.parm2, (char*)myApplName.c_str(), 
-		       sizeof(message1.parm2));
-	    } 
-	    else 
-	    {
-		memcpy(message1.parm2, (char*)myApplName.c_str(), 
-		       myApplName.length());
-	    }
-	    agentRegister = new AgentRegister((void *) & message1, 
-					      sizeof(message1));
-	    agentRegister->run();
-	    break;
-    }
-
-    while (true)
-    {
-        try
-        {
-            // Poll every second 
-
-            memset((void *)&message, 0, sizeof(ipcMessage));
-            bytesRead = udpStack->receiveTimeout((char *) & message, 
-						 sizeof(ipcMessage), 
-						 &sender, 
-						 0, 100);
-            if ( bytesRead )
-            {
-                cpLog( LOG_DEBUG, "bytes read=%d", bytesRead);
-                processMessage(&message, &sender);
-            }
-        }
-#ifdef PtW32CatchAll
-    PtW32CatchAll
-#else
-    catch ( ... ) 
-#endif
-        {
-            cpLog( LOG_ERR, "Exception from udpstack for AgentApiRx" );
-        }
-
-        if ( isShutdown() == true )
-        {
-            return ;
-        }
-    }
+   udpStack->addToFdSet(input_fds);
+   maxdesc = udpStack->getMaxFD(maxdesc);
+   return 0;
 }
-#endif
+
+void AgentApi::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                    uint64 now) {
+   if (agentRegister != 0) {
+      agentRegister->tick(input_fds, output_fds, exc_fds, now);
+   }
+
+   if (udpStack->checkIfSet(input_fds)) {
+      try {
+         memset((void *)&message, 0, sizeof(ipcMessage));
+         int bytesRead = udpStack->receiveTimeout((char *) & message, 
+                                                  sizeof(ipcMessage), 
+                                                  &sender, 0, 0);
+         if ( bytesRead > 0 ) {
+            cpLog( LOG_DEBUG, "bytes read=%d", bytesRead);
+            processMessage(&message, &sender);
+         }
+      }
+#ifdef PtW32CatchAll
+      PtW32CatchAll
+#else
+      catch ( ... )
+#endif 
+      {
+         cpLog( LOG_ERR, "Exception from udpstack for AgentApiRx" );
+      }
+   }// if socket is readable
+}//tick

@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -119,18 +119,18 @@ public:
    */
    int accept(Connection& con) throw (VNetworkException&);
 
+   /** Returns < 0 if cannot immediately accept a connection, uses
+    * select to determine if can select or not.
+    */
+   int acceptNB(Connection& con);
+
    /**
       close the server connection.
    */
    void close();
 
-   /// get the client connection (what is this?)
-   inline Connection& getClientConn() {
-      return _clientConn;
-   };
-   
    /// get the server connection
-   inline Connection& getServerConn() {
+   Connection& getServerConn() {
       return _serverConn;
    };
 
@@ -146,7 +146,6 @@ private:
                  int servPort) throw (VNetworkException&);
 
    Connection _serverConn;
-   Connection _clientConn;
 };
 
 #endif

@@ -56,7 +56,7 @@
 #define AgentRegister_H
 
 static const char* const AgentRegisterHeaderVersion =
-    "$Id: AgentRegister.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: AgentRegister.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 #ifdef __cplusplus
 
@@ -67,6 +67,8 @@ static const char* const AgentRegisterHeaderVersion =
 #include "SnmpCommon.h"
 #include "UdpStack.hxx"
 #include "cpLog.h"
+#include <misc.hxx>
+
 #endif /* __cplusplus */
 
 /* common between c and c++ code: */
@@ -77,10 +79,16 @@ static const char* const AgentRegisterHeaderVersion =
 #define registerMulticastIP "230.1.2.3"
 #ifdef __cplusplus
 
-class AgentRegister: public RCObject {
+class AgentRegister: public BugCatcher {
 public:
    AgentRegister(void *msg, int msgLEN);
    virtual ~AgentRegister();
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
    
 private:
    //This stack is used to receive multicast messages 

@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: Connection.cxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 #ifndef __vxworks
 
@@ -476,19 +476,22 @@ Connection::close()
 void
 Connection::setState()
 {
+    if (_connId) {
 #ifndef WIN32
-    if (!_blocking)
-    {
-        fcntl(_connId, F_SETFL, O_NONBLOCK);
-    }
+        if (!_blocking) {
+            fcntl(_connId, F_SETFL, O_NONBLOCK);
+        }
 #else
-    unsigned long non_blocking = _blocking ? 0 : 1;
-    if (ioctlsocket(_connId, FIONBIO, &non_blocking) == SOCKET_ERROR)
-    {
-	cpLog(LOG_ERR, "Error setting Connection FIONBIO: %d", WSAGetLastError());
-    }
+        unsigned long non_blocking = _blocking ? 0 : 1;
+        if (ioctlsocket(_connId, FIONBIO, &non_blocking) == SOCKET_ERROR) {
+            cpLog(LOG_ERR, "Error setting Connection FIONBIO: %d", WSAGetLastError());
+        }
 #endif
-    _live = true;
+        _live = true;
+    }
+    else {
+        _live = false;
+    }
 }
 
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -270,7 +270,7 @@ class UdpStack: public RCObject
         void addToFdSet ( fd_set* set );
 
         /// Find the max of any file descripts in this stack and the passed value
-        int getMaxFD ( int prevMax = 0 );
+        int getMaxFD ( int prevMax);
 
         /// Check and see if this stacks file descriptor is set in fd_set
         bool checkIfSet ( fd_set* set );

@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.4 2004/05/06 05:41:05 greear Exp $";
 
 
 #include "HeartbeatThread.hxx"
@@ -118,6 +118,8 @@ public:
 
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      uint64 now);
+
+   virtual void startTxHeartbeat();
 
 protected:
 

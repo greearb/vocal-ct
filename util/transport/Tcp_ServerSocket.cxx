@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
 #ifndef __vxworks
 
 
@@ -205,7 +205,6 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
 TcpServerSocket::TcpServerSocket(const TcpServerSocket& other)
 {
     _serverConn = other._serverConn;
-    _clientConn = other._clientConn;
     local_ip = other.local_ip;
 }
 
@@ -217,7 +216,6 @@ TcpServerSocket::operator=(TcpServerSocket& other)
     {
         local_ip = other.local_ip;
         _serverConn = other._serverConn;
-        _clientConn = other._clientConn;
     }
     return *this;
 }
@@ -225,6 +223,31 @@ TcpServerSocket::operator=(TcpServerSocket& other)
 TcpServerSocket::~TcpServerSocket()
 {
     close();
+}
+
+
+/** Returns < 0 if cannot immediately accept a connection, uses
+ * select to determine if can select or not.
+ */
+int TcpServerSocket::acceptNB(Connection& con) {
+   fd_set rdfds;
+   FD_ZERO(&rdfds);
+   FD_SET(_serverConn._connId, &rdfds);
+   struct timeval tv;
+   tv.tv_usec = 0;
+   tv.tv_sec = 0;
+
+   if (select(_serverConn._connId + 1, &rdfds, NULL, NULL, &tv) > 0) {
+      if ((con._connId = ::accept(_serverConn._connId, (SA*) con._connAddr,
+                                  &con._connAddrLen)) < 0) {
+         return -errno;
+      }
+      cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
+      con._live = true;
+      con.setState();
+      return con._connId;
+   }
+   return 0;
 }
 
 

@@ -56,7 +56,7 @@
 
 
 static const char* const AgentApiHeaderVersion =
-    "$Id: AgentApi.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: AgentApi.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 /*
   This file is used by both the server (RS/FS...) C++ code and the snmp agent process
   (snmpd ) C code.  The snmpd uses only the type definitions.
@@ -77,6 +77,7 @@ static const char* const AgentApiHeaderVersion =
 #include "SnmpCommon.h"
 #include "UdpStack.hxx"
 #include "cpLog.h"
+#include <misc.hxx>
 
 #endif /* __cplusplus */
 #include "AgentRegister.hxx"
@@ -137,8 +138,18 @@ public:
    voReturnStatus sendRequest(string indexName, string setValue);
    voReturnStatus sendRequest(string indexName, int setValue);
 
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
 protected:
    ///
+
+    NetworkAddress sender;
+    NetworkAddress dest;
 
 private:
    ///

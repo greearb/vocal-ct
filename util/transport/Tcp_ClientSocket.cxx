@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
 
 #ifndef __vxworks
 
@@ -163,6 +163,16 @@ TcpClientSocket::~TcpClientSocket()
 }
 
 
+bool TcpClientSocket::isConnected() const {
+    if (_conn.isLive()) {
+        if (!_conn.isConnectInProgress()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 void
 TcpClientSocket::connect() throw (VNetworkException&)
 {
@@ -175,8 +185,7 @@ TcpClientSocket::connect() throw (VNetworkException&)
     int myerrno = 0;
 
     sprintf(pBuf, "%d", _serverPort);
-    if((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0)
-    {
+    if((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
         char buf[256];
         sprintf(buf, "Failed to getaddrinfo for server %s:%d, reason %s",
             _hostName.c_str(), 
@@ -186,11 +195,11 @@ TcpClientSocket::connect() throw (VNetworkException&)
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
     tSave = res;
-    do
-    {
+    do {
+        assert(_conn._connId < 0); // Make sure we don't leak sockets
+
         _conn._connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (_conn._connId < 0)
-        {
+        if (_conn._connId < 0) {
             char buf[256];
             sprintf(buf, "Failed to create socket: reason %s",
                 strerror(errno));
@@ -246,30 +255,32 @@ TcpClientSocket::connect() throw (VNetworkException&)
             }
         }
 
-
-        if (::connect(_conn._connId,
-                  res->ai_addr,
-                  res->ai_addrlen) == 0)
-        {
+        int rv = ::connect(_conn._connId, res->ai_addr, res->ai_addrlen);
+        if (rv >= 0) {
             ///Success
             char descBuf[256];
             cpLog(LOG_DEBUG, "Connected to %s", connectionDesc(res, descBuf, 256));
             delete []_conn._connAddr;
             _conn._connAddr = (struct sockaddr*) new char[res->ai_addrlen];
             memcpy((_conn._connAddr), (res->ai_addr), res->ai_addrlen);
-            cpLog(LOG_DEBUG, "SIze:%d, size2:%d", sizeof(*_conn._connAddr), res->ai_addrlen);
+            cpLog(LOG_DEBUG, "SIze:%d, size2:%d",
+                  sizeof(*_conn._connAddr), res->ai_addrlen);
             _conn._connAddrLen = res->ai_addrlen;
             break;
         }
         else {
             myerrno = errno;
+            // If we are non-blocking, then EINPROGRESS is OK
+            if (myerrno == EINPROGRESS) {
+                _conn.setConnectInProgress(true);
+                break;
+            }
         }
 
         _conn.close();
     } while ((res = res->ai_next) != 0);
 
-    if(res == 0)
-    {
+    if (res == 0) {
         char buf[256];
         sprintf(buf, "Failed to connect to server %s:%d, reason %s (%d)",
             _hostName.c_str(), 

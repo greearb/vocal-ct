@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: Connection.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -299,6 +299,9 @@ class Connection: public BugCatcher
         /// @deprecated
         void deepCopy(const Connection& src, char** bufPtr, int* bufLenPtr);
 
+        void setConnectInProgress(bool v) { _inProgress = true; }
+        bool isConnectInProgress() const { return _inProgress; }
+
     protected:
         ssize_t effRead(char* ptr);
 
@@ -318,6 +321,7 @@ class Connection: public BugCatcher
         socklen_t _connAddrLen;
         struct sockaddr* _connAddr;
         bool _blocking;
+        bool _inProgress; // Doing a non-blocking connect
         static bool _init;  /// Set to true if signal handler initialized
         bool _isClient; //  set if it is the client
 };
