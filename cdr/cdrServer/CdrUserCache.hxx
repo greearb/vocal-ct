@@ -53,14 +53,12 @@
 
 
 static const char* const CdrUserCache_hxx_Version =
-    "$Id: CdrUserCache.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrUserCache.hxx,v 1.2 2004/06/07 08:32:19 greear Exp $";
 
 
 #include <string>
 #include <map>
 #include <utility>
-
-#include "VRWLock.hxx"
 
 
 #if defined (__linux__) && !defined (__INTEL_COMPILER)
@@ -89,67 +87,63 @@ typedef map < string, pair < string, unsigned long int > > UserMap;
    CdrUserCache, responsible for caching users as they are needed
 **/
 
-class CdrUserCache
-{
-    public:
+class CdrUserCache : public BugCatcher {
+public:
 
-        ///
-        CdrUserCache();
+   ///
+   CdrUserCache();
     
-        ///
-        virtual ~CdrUserCache();
+   ///
+   virtual ~CdrUserCache();
+   
+   /**
+    * Get the primary customer ID (master ID)
+    * @param string& alias ID
+    * @return string master ID
+    */
+   string getCustomerId( const string& aliasId );
     
-        /**
-         * Get the primary customer ID (master ID)
-         * @param string& alias ID
-         * @return string master ID
-         */
-        string getCustomerId( const string& aliasId );
+   /**
+    * Any change in the user record in provisioning will
+    * result in an update callback. The entry in the cache
+    * for this ID and all related ones will be deleted.
+    * @param string& data contains the ID
+    * @param string& filename (not used)
+    * @param bool deletedDir no action required if true
+    * @return string master ID
+    */
+   static void updateMasterId( const string& data,
+                               const string& filename,
+                               const bool deletedDir );
     
-        /**
-         * Any change in the user record in provisioning will
-         * result in an update callback. The entry in the cache
-         * for this ID and all related ones will be deleted.
-         * @param string& data contains the ID
-         * @param string& filename (not used)
-         * @param bool deletedDir no action required if true
-         * @return string master ID
-         */
-        static void updateMasterId( const string& data,
-                                    const string& filename,
-                                    const bool deletedDir );
+   /**
+    * Any change in the user record in provisioning will
+    * result in an update callback. The entry in the cache
+    * for this ID will be deleted.
+    * @param string& data contains the ID
+    * @param string& filename (not used)
+    * @param bool deletedDir no action required if true
+    * @return string master ID
+    */
+   static void updateAliases( const string& data,
+                              const string& filename,
+                              const bool deletedDir );
     
-        /**
-         * Any change in the user record in provisioning will
-         * result in an update callback. The entry in the cache
-         * for this ID will be deleted.
-         * @param string& data contains the ID
-         * @param string& filename (not used)
-         * @param bool deletedDir no action required if true
-         * @return string master ID
-         */
-        static void updateAliases( const string& data,
-                                   const string& filename,
-                                   const bool deletedDir );
-    
-        /// destroy the static cache
-        static void destroy();
+   /// destroy the static cache
+   static void destroy();
 
-    private:
+private:
 
-        ///
-        int cleanCache();
+   ///
+   int cleanCache();
     
-        /// map< aliasId, pair< masterId, index > >
-        static UserMap m_userMap;
+   /// map< aliasId, pair< masterId, index > >
+   static UserMap m_userMap;
     
-        /// index of oldest record in the map (used for deletions)
-        static unsigned long int m_oldestIdx;
+   /// index of oldest record in the map (used for deletions)
+   static unsigned long int m_oldestIdx;
 
-        /// current index for map
-        static unsigned long int m_currentIdx;
-
-        ///
-        static VRWLock m_lock;
+   /// current index for map
+   static unsigned long int m_currentIdx;
 };
 #endif

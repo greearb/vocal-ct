@@ -58,53 +58,57 @@
 
 
 static const char* const DataStoreVersion =
-    "$Id: DataStore.hxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
+    "$Id: DataStore.hxx,v 1.3 2004/06/07 08:32:20 greear Exp $";
 
 
 
 /// Class that specifies access signature for abstract data storage
-class DataStore: public BugCatcher
-{
-    protected:
+class DataStore: public BugCatcher {
+protected:
 
-    ///
-    DataStore( int aproxNumUsersP );
+   ///
+   DataStore( int aproxNumUsersP );
 
 
-    public:
+public:
 
-    ///
-    virtual ~DataStore();
+   ///
+   virtual ~DataStore();
     
     
-    /// get the specified item
-    virtual string
-    getItem( const string& group, const string& name )
-        throw(VException&) = 0;
+   /// get the specified item
+   virtual string
+   getItem( const string& group, const string& name )
+      throw(VException&) = 0;
     
-    /// get the last modification time for the specfied item
-    virtual TimeStamp
-    getItemTimeStamp( const string& group, const string& name )
-        throw(VException&) = 0;
+   /// get the last modification time for the specfied item
+   virtual TimeStamp
+   getItemTimeStamp( const string& group, const string& name )
+      throw(VException&) = 0;
     
-    /// get the size in bytes of the data in the specified item
+   /// get the size in bytes of the data in the specified item
+   virtual int
+   getItemSize( const string& group, const string& name )
+      throw(VException&) = 0;
+    
+   /**
+    * store the data into the specified item, 
+    * it time is not specifeid, current time is used
+    * Return < 0 on failure, 0 if no changes were made (ie the data-store
+    *  was already as requested), > 0 if changes were actually made.
+    */
+   virtual int
+   putItem( const string& group,
+            const string& name,
+            const string& data,
+            TimeStamp timeStamp = 0 )
+      throw(VException&) = 0;
+    
+   /** Remove the specified item
+    *  Return < 0 on failure, 0 if no changes were made (ie the data-store
+    *  was already as requested), > 0 if changes were actually made.
+    */
     virtual int
-    getItemSize( const string& group, const string& name )
-        throw(VException&) = 0;
-    
-    /**
-     * store the data into the specified item, 
-     * it time is not specifeid, current time is used
-     */
-    virtual void
-    putItem( const string& group,
-             const string& name,
-             const string& data,
-             TimeStamp timeStamp = 0 )
-        throw(VException&) = 0;
-    
-    /// Remove the specified item
-    virtual void
     removeItem( const string& group, const string& name)
         throw(VException&) = 0;
     
@@ -118,13 +122,19 @@ class DataStore: public BugCatcher
     listItems(const string& group)
         throw(VException&) = 0;
     
-    /// add a new group
-    virtual void
+   /** add a new group
+    *  Return < 0 on failure, 0 if no changes were made (ie the data-store
+    *  was already as requested), > 0 if changes were actually made.
+    */
+    virtual int
     addGroup( const string& group )
         throw(VException&) = 0;
     
-    /// remove a group
-    virtual void
+   /** remove a group
+    *  Return < 0 on failure, 0 if no changes were made (ie the data-store
+    *  was already as requested), > 0 if changes were actually made.
+    */
+    virtual int
     removeGroup( const string& group)
         throw(VException&) = 0;
     

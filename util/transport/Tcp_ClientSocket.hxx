@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.5 2004/06/06 08:32:37 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.6 2004/06/07 08:32:20 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -81,107 +81,110 @@ class NetworkAddress;
 
    </pre>
 */
-class TcpClientSocket: public BugCatcher
-{
-    public:
+class TcpClientSocket: public BugCatcher {
+public:
 
-        /**
-           Create client TCP connection.
+   /**
+      Create client TCP connection.
+      
+      @param hostName   host:port to connect to.  Host can be fqdn or ip addr as string.
+      @param closeCon   allow close() to close the connection.
+      @param blocking   reads should be blocking.
+      @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
+      @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
+   */
+   TcpClientSocket(const string& hostName,
+                   const string& local_dev_to_bind_to,
+                   const string& local_ip_to_bind_to,
+                   bool closeCon, bool blocking);
 
-           @param hostName   host:port to connect to.  Host can be fqdn or ip addr as string.
-           @param closeCon   allow close() to close the connection.
-           @param blocking   reads should be blocking.
-           @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
-           @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
-        */
-        TcpClientSocket(const string& hostName,
-                        const string& local_dev_to_bind_to,
-                        const string& local_ip_to_bind_to,
-                        bool closeCon, bool blocking);
-
-        /**
-           Create client TCP connection.
-
-           @param hostName   host name to connect to.  Host can be fqdn or ip addr as string.
-           @param port       host port to connect to.
-           @param closeCon   allow close() to close the connection.
-           @param blocking   reads should be blocking.
-           @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
-           @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
-
-        */
-        TcpClientSocket(const string& hostName, int servPort,
-                        const string& local_dev_to_bind_to,
-                        const string& local_ip_to_bind_to,
-                        bool closeCon, bool blocking);
-
-        /**
-           Create client TCP connection.
-
-           @param server    host and port to connect to.
-           @param closeCon   allow close() to close the connection.
-           @param blocking   reads should be blocking.
-           @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
-           @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
-
-        */
-        TcpClientSocket(const NetworkAddress& server,
-                        const string& local_dev_to_bind_to,
-                        const string& local_ip_to_bind_to,
-                        bool closeCon, bool blocking);
-
-        virtual ~TcpClientSocket();
-
-
-        /**
-           connect to the far side.
-        */
-        void connect() throw (VNetworkException&);
-        
-        /**
-           close the connnection.
-        */
-        void close();
-
-        /**
-           get the Connection which was created by this object.
-        */
-        Sptr <Connection> getConn() {
-            return _conn;
-        };
-
-        void setConnection(Sptr<Connection> c) {
-            _conn = c;
-        }
-
-        bool isConnected() const;
-        bool isConnectInProgress() const;
-
-        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                          uint64 now);
-
-        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                           int& maxdesc, uint64& timeout, uint64 now);
-
-        virtual void clear();
-
-    private:
-        void initalize();
-        const char* connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const;
-
-        string local_dev_to_bind_to;
-        string local_ip_to_bind_to;
-
-        Sptr <Connection> _conn;
-        Data _hostName;
-        int _serverPort;
-        bool _closeCon;
-        bool _blocking;
+   /**
+      Create client TCP connection.
+      
+      @param hostName   host name to connect to.  Host can be fqdn or ip addr as string.
+      @param port       host port to connect to.
+      @param closeCon   allow close() to close the connection.
+      @param blocking   reads should be blocking.
+      @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
+      @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
+      
+   */
+   TcpClientSocket(const string& hostName, int servPort,
+                   const string& local_dev_to_bind_to,
+                   const string& local_ip_to_bind_to,
+                   bool closeCon, bool blocking);
+   
+   /**
+      Create client TCP connection.
+      
+      @param server    host and port to connect to.
+      @param closeCon   allow close() to close the connection.
+      @param blocking   reads should be blocking.
+      @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
+      @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
+      
+   */
+   TcpClientSocket(const NetworkAddress& server,
+                   const string& local_dev_to_bind_to,
+                   const string& local_ip_to_bind_to,
+                   bool closeCon, bool blocking);
+   
+   virtual ~TcpClientSocket();
 
 
-        // These are not implemented (and should not be)
-        TcpClientSocket(const TcpClientSocket&);
-        TcpClientSocket& operator=(TcpClientSocket& other);
+   /**
+      connect to the far side.
+   */
+   void connect() throw (VNetworkException&);
+   
+   /**
+      close the connnection.
+   */
+   void close();
+
+   /**
+      get the Connection which was created by this object.
+   */
+   Sptr <Connection> getConn() {
+      return _conn;
+   };
+
+   void setConnection(Sptr<Connection> c) {
+      _conn = c;
+   }
+
+   virtual bool isConnected() const;
+   virtual bool isConnectInProgress() const;
+
+   virtual bool isLive() {
+      return (isConnected() || isConnectInProgress());
+   }
+   
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+   
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+   
+   virtual void clear();
+
+private:
+   void initalize();
+   const char* connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const;
+   
+   string local_dev_to_bind_to;
+   string local_ip_to_bind_to;
+   
+   Sptr <Connection> _conn;
+   Data _hostName;
+   int _serverPort;
+   bool _closeCon;
+   bool _blocking;
+
+   
+   // These are not implemented (and should not be)
+   TcpClientSocket(const TcpClientSocket&);
+   TcpClientSocket& operator=(TcpClientSocket& other);
 };
 
 #endif

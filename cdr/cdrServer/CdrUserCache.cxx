@@ -51,7 +51,7 @@
 
 
 static const char* const CdrUserCache_cxx_Version =
-    "$Id: CdrUserCache.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrUserCache.cxx,v 1.2 2004/06/07 08:32:19 greear Exp $";
 
 
 #include "CdrUserCache.hxx"
@@ -60,7 +60,6 @@ static const char* const CdrUserCache_cxx_Version =
 
 // Initialize static vars
 UserMap CdrUserCache::m_userMap;
-VRWLock CdrUserCache::m_lock;
 unsigned long int CdrUserCache::m_oldestIdx  = 0;
 unsigned long int CdrUserCache::m_currentIdx = 0;
 
@@ -69,24 +68,19 @@ const unsigned long int MAX_CACHE_SIZE = 10000;    // Max # entries in userCache
 const unsigned long int MAX_CACHE_DELETES = 5000;  // Max # entries to delete from userCache
 
 
-CdrUserCache::CdrUserCache()
-{
-    try
-    {
-        // register for provisioning updates on "Accounts" and "Aliases"
-	//
-        ProvisionInterface::instance().registerDirForUpdate(
-            CdrUserCache::updateMasterId,
-            "Accounts" );
-        //
-        ProvisionInterface::instance().registerDirForUpdate(
-            CdrUserCache::updateAliases,
-            "Aliases" );
+CdrUserCache::CdrUserCache() {
+   try {
+      // register for provisioning updates on "Accounts" and "Aliases"
+      //
+      ProvisionInterface::instance().registerDirForUpdate(CdrUserCache::updateMasterId,
+                                                          "Accounts" );
+      //
+      ProvisionInterface::instance().registerDirForUpdate(CdrUserCache::updateAliases,
+                                                          "Aliases" );
     }
-    catch (VException& e)
-    {
-        cpLog( LOG_ALERT, "Failed to connect to Provisioning Server, reason %s",
-               e.getDescription().c_str());
+    catch (VException& e) {
+       cpLog( LOG_ALERT, "Failed to connect to Provisioning Server, reason %s",
+              e.getDescription().c_str());
     }
 }
 
@@ -96,103 +90,76 @@ CdrUserCache::~CdrUserCache()
 
 
 void
-CdrUserCache::destroy()
-{
-    m_lock.WriteLock();
-    m_userMap.clear();
-    m_oldestIdx = 0;
-    m_currentIdx = 0;
-    m_lock.Unlock();
+CdrUserCache::destroy() {
+   m_userMap.clear();
+   m_oldestIdx = 0;
+   m_currentIdx = 0;
 }
 
 
 string
-CdrUserCache::getCustomerId( const string& aliasId )
-{
-    //
-    // The map structure is:
-    //  map< aliasId, pair< masterId, index > >
-    //
+CdrUserCache::getCustomerId( const string& aliasId ) {
+   //
+   // The map structure is:
+   //  map< aliasId, pair< masterId, index > >
+   //
 
-    string masterId( aliasId );
-    bool found = false;
+   string masterId( aliasId );
+   bool found = false;
 
-    m_lock.WriteLock();
+   UserMap::iterator itr = m_userMap.find(aliasId.c_str());
+   if ( itr != m_userMap.end() ) {
+      found = true;
+      masterId = (*itr).second.first;           // return the alias name
+      (*itr).second.second = m_currentIdx++;    // update the index
+   }
 
-    UserMap::iterator itr = m_userMap.find(aliasId.c_str());
-    if ( itr != m_userMap.end() )
-    {
-        found = true;
-        masterId = (*itr).second.first;           // return the alias name
-        (*itr).second.second = m_currentIdx++;    // update the index
-    }
+   if ( !found ) {
+      // check if provisioning has the id and load it
+      // assume ProvisionInterface has already been initialized
+      //
+      try {
+         // if the aliasId is not the master, get the master
+         if ( ! ProvisionInterface::instance().isAccount( aliasId ) ) {
+            masterId  = ProvisionInterface::instance().getMasterUser( aliasId );
+         }
 
-    m_lock.Unlock();
-
-    if ( !found )
-    {
-        // check if provisioning has the id and load it
-        // assume ProvisionInterface has already been initialized
-        //
-        try
-        {
-            // if the aliasId is not the master, get the master
-            if ( ! ProvisionInterface::instance().isAccount( aliasId ) )
-            {
-               masterId  = ProvisionInterface::instance().getMasterUser( aliasId );
-            }
-
-            found = true;
-        }
-        catch ( VMissingDataException &e )
-        {
-            cpLog( LOG_DEBUG, "User %s not found in alias list", aliasId.c_str() );
-        }
-        catch ( VException &e )
-        {
-            cpLog( LOG_ALERT, "Failed to connect to Provisioning Server, reason %s",
-                   e.getDescription().c_str());
-        }
+         found = true;
+      }
+      catch ( VMissingDataException &e ) {
+         cpLog( LOG_DEBUG, "User %s not found in alias list", aliasId.c_str() );
+      }
+      catch ( VException &e ) {
+         cpLog( LOG_ALERT, "Failed to connect to Provisioning Server, reason %s",
+                e.getDescription().c_str());
+      }
     
-        unsigned long int deleteCount = 0;
+      unsigned long int deleteCount = 0;
     
-        // Lock map before accessing
-        m_lock.WriteLock();
-
-        if ( found )
-	{
-            // if cache is too large, delete half the oldest entries
-            //
-            if ( m_userMap.size() >= MAX_CACHE_SIZE )
-            {
-                deleteCount = cleanCache();
-            }
-	}
+      if ( found ) {
+         // if cache is too large, delete half the oldest entries
+         //
+         if ( m_userMap.size() >= MAX_CACHE_SIZE ) {
+            deleteCount = cleanCache();
+         }
+      }
     
-        // add user to cache, even if it is not in provisioning
-        //
-        pair < string, unsigned long int > masterPair = make_pair( masterId, m_currentIdx++ );
-        m_userMap[ aliasId ] = masterPair;
+      // add user to cache, even if it is not in provisioning
+      //
+      pair < string, unsigned long int > masterPair = make_pair( masterId, m_currentIdx++ );
+      m_userMap[ aliasId ] = masterPair;
 
-        // Always ensure map is unlocked
-        m_lock.Unlock();
+      if ( deleteCount > 0 ) {
+         cpLog( LOG_INFO, "User cache cleaned, deleted %d entries from the cache",
+                deleteCount );
+      }
+   }
 
-        // Do cpLogs outside of the lock
-        //
-        if ( deleteCount > 0 )
-        {
-            cpLog( LOG_INFO, "User cache cleaned, deleted %d entries from the cache",
-                   deleteCount );
-        }
-    }
-
-    return masterId;
+   return masterId;
 }
 
 
-int
-CdrUserCache::cleanCache()
-{
+int CdrUserCache::cleanCache() {
     // Set delete criteria, delete half of the cache
     //
     unsigned long int upperRange = ((m_currentIdx - m_oldestIdx) / 2) + m_oldestIdx;
@@ -206,26 +173,22 @@ CdrUserCache::cleanCache()
 
     // Delete all entries within the delete range
     //
-    while ( itr != m_userMap.end() )
-    {
-        if ( (*itr).second.second < upperRange )
-        {
-            UserMap::iterator itr2 = itr++;
-            m_userMap.erase(itr2);
+    while ( itr != m_userMap.end() ) {
+        if ( (*itr).second.second < upperRange ) {
+           UserMap::iterator itr2 = itr++;
+           m_userMap.erase(itr2);
     
-            if ( ++deleteCount > MAX_CACHE_DELETES )
-		break;
+           if ( ++deleteCount > MAX_CACHE_DELETES )
+              break;
         }
-        else
-        {
+        else {
             itr++;
         }
     }
 
-    if ( deleteCount == 0 && m_userMap.size() > 0 )
-    {
-        // recursively call cleanCache() until at least 1 element is deleted
-        deleteCount = cleanCache();
+    if ( deleteCount == 0 && m_userMap.size() > 0 ) {
+       // recursively call cleanCache() until at least 1 element is deleted
+       deleteCount = cleanCache();
     }
     
     return deleteCount;
@@ -235,63 +198,47 @@ CdrUserCache::cleanCache()
 void
 CdrUserCache::updateAliases( const string& data,
                              const string& fileName,
-                             const bool deletedDir )
-{
-    // we want to ignore deleting directory, should never happen
-    if (deletedDir)
-    {
-        return ;
-    }
+                             const bool deletedDir ) {
+   // we want to ignore deleting directory, should never happen
+   if (deletedDir) {
+      return ;
+   }
 
-    cpLog( LOG_INFO, "Received update for user alias: %s", data.c_str() );
+   cpLog( LOG_INFO, "Received update for user alias: %s", data.c_str() );
 
-    m_lock.WriteLock();
+   // just remove user alias from cache, will be added next time it is used
 
-    // just remove user alias from cache, will be added next time it is used
+   UserMap::iterator itr = m_userMap.find( data );
 
-    UserMap::iterator itr = m_userMap.find( data );
-
-    if ( itr != m_userMap.end() )
-    {
-        m_userMap.erase(itr);
-    }
-
-    m_lock.Unlock();
+   if ( itr != m_userMap.end() ) {
+      m_userMap.erase(itr);
+   }
 }
 
 
 void
 CdrUserCache::updateMasterId( const string& data,
                               const string& fileName,
-                              const bool deletedDir )
-{
-    // we want to ignore deleting directory, should never happen
-    if (deletedDir)
-    {
-        return ;
-    }
+                              const bool deletedDir ) {
+   // we want to ignore deleting directory, should never happen
+   if (deletedDir) {
+      return ;
+   }
 
-    cpLog( LOG_INFO, "Received update for user: %s", data.c_str() );
+   cpLog( LOG_INFO, "Received update for user: %s", data.c_str() );
 
-    m_lock.WriteLock();
+   // just remove user from cache, will be added next time it is used
 
-    // just remove user from cache, will be added next time it is used
-
-    UserMap::iterator itr = m_userMap.begin();
-    UserMap::iterator itr2;
+   UserMap::iterator itr = m_userMap.begin();
+   UserMap::iterator itr2;
     
-    while ( itr != m_userMap.end() )
-    {
-        if ( (*itr).second.first == data )
-        {
-            itr2 = itr++;
-            m_userMap.erase(itr2);
-        }
-        else
-        {
-            itr++;
-        }
-    }
-
-    m_lock.Unlock();
+   while ( itr != m_userMap.end() ) {
+      if ( (*itr).second.first == data ) {
+         itr2 = itr++;
+         m_userMap.erase(itr2);
+      }
+      else {
+         itr++;
+      }
+   }
 }

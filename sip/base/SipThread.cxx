@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipThread.cxx,v 1.5 2004/06/07 08:32:20 greear Exp $";
 
 
 #include "global.h"
@@ -137,7 +137,7 @@ void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
             nextEvent->setCallLeg();
          }
 
-         myProxy->process(nextEvent);
+         myProxy->process(nextEvent.getPtr());
       }
    }
 

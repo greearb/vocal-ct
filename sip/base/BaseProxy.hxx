@@ -56,7 +56,7 @@
 #include "Operator.hxx"
 #include "SipTransceiver.hxx"
 #include "cpLog.h"
-#include "SipEvent.hxx"
+#include "SipProxyEvent.hxx"
 
 
 namespace Vocal
@@ -69,7 +69,7 @@ public:
    virtual ~BaseProxy() { }
 
    //
-   virtual void process(const Sptr < SipEvent > event) const = 0;
+   virtual void process(const Sptr < SipProxyEvent > event) const = 0;
 
 };
  

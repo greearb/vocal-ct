@@ -51,7 +51,7 @@
 
 
 static const char* const FileDataStore_cxx_Version =
-    "$Id: FileDataStore.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: FileDataStore.cxx,v 1.3 2004/06/07 08:32:20 greear Exp $";
 
 
 #include "global.h"
@@ -72,30 +72,20 @@ FileDataStore::FileDataStore( int numBinsP, const string &fileRootP )
     assert( numBins >= 0 );
     assert( fileRoot.length() > 0 );
 
-    try
-    {
-        // check the root file system exists
-        if ( !VFileSystem::dirExists( fileRoot ) )
-        {
-            throw VIoException( strerror(errno),
-                                __FILE__,
-                                __LINE__,
-                                errno );
-        }
-
-        // check all the groups dirs are created
-        for ( int bin = 0; bin < numBins; bin++ )
-        {
-            string dir = rootName( bin );
-            if ( !VFileSystem::dirExists( dir ) )
-            {
-                VFileSystem::createDir( dir );
-            }
-        }
+    // check the root file system exists
+    if ( !VFileSystem::dirExists( fileRoot ) ) {
+       throw VIoException( strerror(errno),
+                           __FILE__,
+                           __LINE__,
+                           errno );
     }
-    catch (...)
-    {
-        throw;
+
+    // check all the groups dirs are created
+    for ( int bin = 0; bin < numBins; bin++ ) {
+       string dir = rootName( bin );
+       if ( !VFileSystem::dirExists( dir ) ) {
+          VFileSystem::createDir( dir );
+       }
     }
 }
 
@@ -127,7 +117,6 @@ FileDataStore::getBin( int i ) const
     c[3] = 0;
 
     string res(c);
-
     return res;
 }
 
@@ -145,8 +134,7 @@ FileDataStore::rootName( int bin ) const
 {
     string ret = fileRoot;
 
-    if (numBins != 0)
-    {
+    if (numBins != 0) {
         ret += "/";
         ret += getBin(bin);
     }
@@ -164,58 +152,54 @@ FileDataStore::dirName(const string& group, const string& name ) const
 string
 FileDataStore::dirName(const string& group, int bin ) const
 {
-    string ret = rootName( bin );
-    ret += "/";
+   string ret = rootName( bin );
+   ret += "/";
+   
+   string g = group;
+   
+   if ( numBins != 0 ) {
+      // flatten the group name - replace / with #
+      for (unsigned int i = 0; i < g.length(); i++) {
+         if ( g[i] == '/' ) {
+            g[i] = '#';
+         }
+      }
+   }
 
-    string g = group;
-
-    if ( numBins != 0 )
-    {
-        // flatten the group name - replace / with #
-        for (unsigned int i = 0; i < g.length(); i++)
-        {
-            if ( g[i] == '/' )
-            {
-                g[i] = '#';
-            }
-        }
-    }
-
-    ret += g;
-    return ret;
+   ret += g;
+   return ret;
 }
 
 
 string
 FileDataStore::fileName(const string& group, const string& name ) const
 {
-    string ret = dirName(group, name);
-    ret += "/";
-    ret += name;
-    ret += ".xml";
-    return ret;
+   string ret = dirName(group, name);
+   ret += "/";
+   ret += name;
+   ret += ".xml";
+   return ret;
 }
 
 
 int
 FileDataStore::hash(const string& group, const string& name ) const
 {
-    // There are no doubt better hashes but hey this looks like it will work
-    int h1 = 0;
-    int h2 = 0;
+   // There are no doubt better hashes but hey this looks like it will work
+   int h1 = 0;
+   int h2 = 0;
 
-    for ( unsigned int i = 0; i < name.length(); i++ )
-    {
-        h1 += name[i];
-        h2 += (h2 << 4) + name[i];
-    }
+   for ( unsigned int i = 0; i < name.length(); i++ ) {
+      h1 += name[i];
+      h2 += (h2 << 4) + name[i];
+   }
 
-    int h = (abs(h1 + h2)) % numBins;
+   int h = (abs(h1 + h2)) % numBins;
 
-    assert( h >= 0 );
-    assert( h < numBins );
+   assert( h >= 0 );
+   assert( h < numBins );
 
-    return h;
+   return h;
 }
 
 
@@ -223,17 +207,9 @@ string
 FileDataStore::getItem( const string& group, const string& name )
 throw(VException&)
 {
-    string ret;
-    try
-    {
-        ret = VFileSystem::readFile( fileName(group, name) );
-    }
-    catch (...)
-    {
-        throw;
-    }
-
-    return ret;
+   string ret;
+   ret = VFileSystem::readFile( fileName(group, name) );
+   return ret;
 }
 
 
@@ -241,40 +217,22 @@ TimeStamp
 FileDataStore::getItemTimeStamp( const string& group, const string& name )
 throw(VException&)
 {
-    TimeStamp ret;
-
-    try
-    {
-        ret = VFileSystem::getFileTime( fileName(group, name) );
-    }
-    catch (...)
-    {
-        throw;
-    }
-
-    return ret;
+   TimeStamp ret;
+   ret = VFileSystem::getFileTime( fileName(group, name) );
+   return ret;
 }
 
 int
 FileDataStore::getItemSize( const string& group, const string& name )
 throw(VException&)
 {
-    int ret;
-
-    try
-    {
-        ret = VFileSystem::getFileSize( fileName(group, name) );
-    }
-    catch (...)
-    {
-        throw;
-    }
-
-    return ret;
+   int ret;
+   ret = VFileSystem::getFileSize( fileName(group, name) );
+   return ret;
 }
 
 
-void
+int
 FileDataStore::putItem( const string& group,
                         const string& name,
                         const string& data,
@@ -282,40 +240,40 @@ FileDataStore::putItem( const string& group,
 throw(VException&)
     // timestamp defaults to 0
 {
-    if (!isGroup(group))
-    {
-        addGroup(group);
-    }
-    string fName( fileName(group, name) );
-    try
-    {
-        VFileSystem::writeFile( fName, data );
+   int rv = 1;
+   try {
+      string s = getItem(group, name);
+      if (s == data) {
+         rv = 0;
+      }
+   }
+   catch (...) {
+      // Do nothing
+   }
 
-        if (timeStamp != 0 )
-        {
-            VFileSystem::setFileTime( fName, timeStamp );
-        }
+   if (!isGroup(group)) {
+      addGroup(group);
+   }
+   string fName( fileName(group, name) );
 
-    }
-    catch (...)
-    {
-        throw;
-    }
+   VFileSystem::writeFile( fName, data );
+      
+   if (timeStamp != 0 ) {
+      VFileSystem::setFileTime( fName, timeStamp );
+   }
+   return rv;
 }
 
 
-void
+int
 FileDataStore::removeItem( const string& group, const string& name)
 throw(VException&)
 {
-    try
-    {
-        VFileSystem::removeFile( fileName(group, name) );
-    }
-    catch (...)
-    {
-        throw;
-    }
+   if (!isItem(group, name)) {
+      return 0;
+   }
+   VFileSystem::removeFile( fileName(group, name) );
+   return 1;
 }
 
 
@@ -324,15 +282,7 @@ FileDataStore::isItem( const string& group, const string& name)
 throw(VException&)
 {
     bool ret;
-    try
-    {
-        ret = VFileSystem::fileExists( fileName(group, name) );
-    }
-    catch (...)
-    {
-        throw;
-    }
-
+    ret = VFileSystem::fileExists( fileName(group, name) );
     return ret;
 }
 
@@ -343,83 +293,57 @@ throw(VException&)
 {
     StringList list;
 
-    try
-    {
+    for ( int bin = 0; bin < numBins; bin++ ) {
+       StringList dirList( VFileSystem::readDir( dirName(group, bin) ));
+       
+       StringList::iterator i = dirList.begin();
+       while ( i != dirList.end() ) {
+          string s = *i;
+          i++;
 
-        for ( int bin = 0; bin < numBins; bin++ )
-        {
-            StringList dirList( VFileSystem::readDir( dirName(group, bin) ));
+          // filter out "hidden" items in the directory
+          static string cvs("CVS");
+          if ( s == cvs ) continue;
 
-            StringList::iterator i = dirList.begin();
-            while ( i != dirList.end() )
-            {
-                string s = *i;
-                i++;
-
-                // filter out "hidden" items in the directory
-                static string cvs("CVS");
-                if ( s == cvs ) continue;
-
-                // strip .xml off end
-                size_t location = s.rfind(".xml");
-                if (location != string::npos)
-                {
-                    string t = s.substr(0, location);
-                    list.push_back(t);
-                }
-                else
-                {
-                    list.push_back(s);
-                }
-            }
-        }
+          // strip .xml off end
+          size_t location = s.rfind(".xml");
+          if (location != string::npos) {
+             string t = s.substr(0, location);
+             list.push_back(t);
+          }
+          else {
+             list.push_back(s);
+          }
+       }
     }
-    catch (...)
-    {
-        throw;
-    }
-
     return list;
 }
 
 
-void
+int
 FileDataStore::addGroup( const string& group )
-throw(VException&)
-{
-    try
-    {
-
-        for ( int bin = 0; bin < numBins; bin++ )
-        {
-            VFileSystem::createDir( dirName(group, bin) );
-        }
-    }
-    catch (...)
-    {
-        throw;
-    }
-
+throw(VException&) {
+   if (isGroup(group)) {
+      return 0;
+   }
+   for ( int bin = 0; bin < numBins; bin++ ) {
+      VFileSystem::createDir( dirName(group, bin) );
+   }
+   return 1;
 }
 
 
-void
+int
 FileDataStore::removeGroup( const string& group)
 throw(VException&)
 {
-    try
-    {
-
-        for ( int bin = 0; bin < numBins; bin++ )
-        {
-            VFileSystem::removeDir( dirName(group, bin) );
-        }
-
-    }
-    catch (...)
-    {
-        throw;
-    }
+   if (!isGroup(group)) {
+      return 0;
+   }
+   for ( int bin = 0; bin < numBins; bin++ ) {
+      VFileSystem::removeDir( dirName(group, bin) );
+   }
+   return 1;
 }
 
 
@@ -429,38 +353,26 @@ throw(VException&)
 {
     bool ret;
 
-    try
-    {
-
-        ret = VFileSystem::dirExists( dirName(group, 0) );
+    ret = VFileSystem::dirExists( dirName(group, 0) );
 
 #ifndef NDEBUG
 
-	char err_buff[256];
+    char err_buff[256];
 
-        // check the groups exists in all bins
-        for ( int bin = 1; bin < numBins; bin++ )
-        {
-            bool v = VFileSystem::dirExists( dirName(group, bin) );
-            if ( v != ret )
-            {
-                sprintf (err_buff, "Error: Number of hash bins has changed: %s",
-                         strerror(errno) );
-                throw VIoException( err_buff,
-                                    __FILE__,
-                                    __LINE__,
-                                    errno );
-                // We have an invalid group directory structure
-            }
-
-        }
+    // check the groups exists in all bins
+    for ( int bin = 1; bin < numBins; bin++ ) {
+       bool v = VFileSystem::dirExists( dirName(group, bin) );
+       if ( v != ret ) {
+          sprintf (err_buff, "Error: Number of hash bins has changed: %s",
+                   strerror(errno) );
+          throw VIoException( err_buff,
+                              __FILE__,
+                              __LINE__,
+                              errno );
+          // We have an invalid group directory structure
+       }
+    }
 #endif
-    }
-    catch (...)
-    {
-        throw;
-    }
-
     return ret;
 }
 
@@ -468,46 +380,34 @@ throw(VException&)
 StringList
 FileDataStore::listGroups()
 {
-    StringList ret;
+   StringList ret;
+   
+   if (numBins == 0 ) {
+      // this is not implemented - left as an exersise to the reader ...
+      // it would only be needed to upgrade old system to new
+      assert(0);
+   }
 
-    if (numBins == 0 )
-    {
-        // this is not implemented - left as an exersise to the reader ...
-        // it would only be needed to upgrade old system to new
-        assert(0);
-    }
+   // loop over all the groups found in bin 0
+   StringList dirList( VFileSystem::readDir( rootName(0) ));
+   
+   StringList::iterator i = dirList.begin();
+   while ( i != dirList.end() ) {
+      string s = *i;
+      i++;
+      
+      // unflatten group names - replace # with /
+      for (unsigned int i = 0; i < s.length(); i++) {
+         if ( s[i] == '#' ) {
+            s[i] = '/';
+         }
+      }
 
-    try
-    {
-        // loop over all the groups found in bin 0
-        StringList dirList( VFileSystem::readDir( rootName(0) ));
-
-        StringList::iterator i = dirList.begin();
-        while ( i != dirList.end() )
-        {
-            string s = *i;
-            i++;
-
-            // unflatten group names - replace # with /
-            for (unsigned int i = 0; i < s.length(); i++)
-            {
-                if ( s[i] == '#' )
-                {
-                    s[i] = '/';
-                }
-            }
-
-            // filter out "hidden" items in the directory
-            static string cvs("CVS");
-            if ( s == cvs ) continue;
-
-            ret.push_back(s);
-        }
-    }
-    catch (...)
-    {
-        throw;
-    }
-
-    return ret;
+      // filter out "hidden" items in the directory
+      static string cvs("CVS");
+      if ( s == cvs ) continue;
+      
+      ret.push_back(s);
+   }
+   return ret;
 }

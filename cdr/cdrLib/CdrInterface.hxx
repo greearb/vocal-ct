@@ -53,7 +53,7 @@
 
 
 static const char* const CdrInterface_hxx_Version =
-    "$Id: CdrInterface.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrInterface.hxx,v 1.2 2004/06/07 08:32:19 greear Exp $";
 
 
 #include <string>
@@ -81,84 +81,91 @@ static const char* const CdrInterface_hxx_Version =
  **
  */
 
-class CdrInterface
-{
-    public:
+class CdrInterface {
+public:
 
-        /// Interface to get the Singleton CdrInterface instance
-        static CdrInterface& instance( const char *primaryHost = 0,
-                                       const int primaryPort = 0,
-                                       const char *backupHost = 0,
-                                       const int backupPort = 0 );
+   /// Interface to get the Singleton CdrInterface instance
+   static CdrInterface& instance( const char *primaryHost = 0,
+                                  const int primaryPort = 0,
+                                  const char *backupHost = 0,
+                                  const int backupPort = 0 );
 
-        /// Destructor, disconnect with the CDR server
-        virtual ~CdrInterface();
+   /// Destructor, disconnect with the CDR server
+   virtual ~CdrInterface();
 
-        /// Sends a call ring message to CDR server
-        void ringStarted( const string &from,
-                          const string &to,
-                          const string &callId ) throw (VCdrException&);
+   /// Sends a call ring message to CDR server
+   void ringStarted( const string &from,
+                     const string &to,
+                     const string &callId ) throw (VCdrException&);
+   
+   /// Sends a start call message to CDR server
+   void callStarted( const string &from,
+                     const string &to,
+                     const string &callId ) throw (VCdrException&);
 
-        /// Sends a start call message to CDR server
-        void callStarted( const string &from,
-                          const string &to,
-                          const string &callId ) throw (VCdrException&);
+   /// Sends an end call message to CDR server
+   void callEnded( const string &from,
+                   const string &to,
+                   const string &callId ) throw (VCdrException&);
 
-        /// Sends an end call message to CDR server
-        void callEnded( const string &from,
-                        const string &to,
-                        const string &callId ) throw (VCdrException&);
 
-        /// Check to see that the connection to the CDR server is up
-        bool isAlive() throw (VCdrException&);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+   
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        /// Connect to the CDR server
-        void initialize() throw (VCdrException&);
+   
+   /// Check to see that the connection to the CDR server is up
+   bool isAlive() throw (VCdrException&);
+   
+   /// Connect to the CDR server
+   void initialize() throw (VCdrException&);
 
-        ///
-        static void destroy();
+   ///
+   static void destroy();
 
-    private:
-        /**
-           Constructor intentionally made private so that it
-           cannot be instantiated directly.
-        **/
-        CdrInterface( const string &primaryHost,
-                      const int primaryPort,
-                      const string &backupHost,
-                      const int backupPort,
-                      const string &marshalIp );
+private:
+   /**
+      Constructor intentionally made private so that it
+      cannot be instantiated directly.
+   **/
+   CdrInterface( const string &primaryHost,
+                 const int primaryPort,
+                 const string &backupHost,
+                 const int backupPort,
+                 const string &marshalIp );
 
-        /// Get seconds and milliseconds since the epoch
-        void getTime( unsigned long &secs, unsigned int &millisecs );
+   /// Get seconds and milliseconds since the epoch
+   void getTime( unsigned long &secs, unsigned int &millisecs );
 
-        /// send data to Primary CDR Server
-        void sendToPrimary( const CdrClient &dat ) throw (VCdrException&);
+   /// send data to Primary CDR Server
+   void sendToPrimary( const CdrClient &dat ) throw (VCdrException&);
 
-        /// send data to Primary CDR Server
-        void sendToBackup( const CdrClient &dat ) throw (VCdrException&);
+   /// send data to Primary CDR Server
+   void sendToBackup( const CdrClient &dat ) throw (VCdrException&);
 
-        /// Connect to specified CDR server
-        TcpClientSocket *connect( const string &host,
+   /// Connect to specified CDR server
+   Sptr<TcpClientSocket> connect( const string &host,
                                   const int port );
 
-        /// Pointer to the singleton instance
-        static CdrInterface* m_instance;
+   /// Pointer to the singleton instance
+   static CdrInterface* m_instance;
 
-        /// Primary cdr server
-        TcpClientSocket* m_primaryCdr;
+   /// Primary cdr server
+   Sptr<TcpClientSocket> primaryCdr;
 
-        /// Backup cdr server
-        TcpClientSocket* m_backupCdr;
+   /// Backup cdr server
+   Sptr<TcpClientSocket> backupCdr;
 
-        ///
-        string m_primaryHost;          ///
-        int m_primaryPort;          ///
-        string m_backupHost;           ///
-        int m_backupPort;           ///
-        string m_marshalIp;            ///
-        unsigned long m_lastPrimaryAttempt;   ///
-        unsigned long m_lastBackupAttempt;    ///
+   ///
+   string m_primaryHost;          ///
+   int m_primaryPort;          ///
+   string m_backupHost;           ///
+   int m_backupPort;           ///
+   string m_marshalIp;            ///
+   unsigned long m_lastPrimaryAttempt;   ///
+   unsigned long m_lastBackupAttempt;    ///
 }
 ;
 #endif

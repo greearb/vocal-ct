@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.8 2004/06/03 07:28:15 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.9 2004/06/07 08:32:20 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -109,6 +109,7 @@ int NTcpStuff::writeData(const Data& d) {
    int rv = tcpConnection->queueSendData(d.c_str(), d.size());
    // Go ahead and try to flush the transport...it's non-blocking anyway.
    tcpConnection->write();
+   return rv;
 }
 
 

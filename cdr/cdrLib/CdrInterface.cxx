@@ -51,7 +51,7 @@
 
 
 static const char* const CdrInterface_cxx_Version =
-    "$Id: CdrInterface.cxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
+    "$Id: CdrInterface.cxx,v 1.3 2004/06/07 08:32:19 greear Exp $";
 
 
 #include <netdb.h>
@@ -79,31 +79,31 @@ CdrInterface::instance( const char *primaryHost,
                         const char *backupHost,
                         const int backupPort )
 {
-    if (!m_instance)
-    {
-        if ( primaryHost == 0 || primaryPort == 0 )
-            throw VCdrException("Primary Server hostname and port number not specified",
-                                __FILE__, __LINE__);
+    if (!m_instance) {
+       if ( primaryHost == 0 || primaryPort == 0 )
+          throw VCdrException("Primary Server hostname and port number not specified",
+                              __FILE__, __LINE__);
 
-        string bkupHost(UNDEFINED_CDR_HOST);
-        if ( backupHost == 0 || backupPort == 0 )
-            cpLog(LOG_ALERT, "Backup CdrServer host and port unknown");
-        else
-            bkupHost = backupHost;
+       string bkupHost(UNDEFINED_CDR_HOST);
+       if ( backupHost == 0 || backupPort == 0 ) {
+          cpLog(LOG_ALERT, "Backup CdrServer host and port unknown");
+       }
+       else {
+          bkupHost = backupHost;
+       }
+       char nasname[1024];
+       if ( gethostname(nasname, sizeof(nasname)) != 0 )
+          strcpy(nasname, "localhost");
 
-        char nasname[1024];
-        if ( gethostname(nasname, sizeof(nasname)) != 0 )
-            strcpy(nasname, "localhost");
+       NetworkAddress naddr(nasname);
 
-        NetworkAddress naddr(nasname);
+       m_instance = new CdrInterface(primaryHost,
+                                     primaryPort,
+                                     bkupHost,
+                                     backupPort,
+                                     naddr.getIpName().convertString());
 
-        m_instance = new CdrInterface(primaryHost,
-                                      primaryPort,
-                                      bkupHost,
-                                      backupPort,
-                                      naddr.getIpName().convertString());
-
-        m_instance->initialize();
+       m_instance->initialize();
     }
     return *m_instance;
 }
@@ -113,8 +113,6 @@ CdrInterface::CdrInterface( const string &primaryHost,
                             const string &backupHost,
                             const int backupPort,
                             const string &marshalIp ) :
-        m_primaryCdr(0),
-        m_backupCdr(0),
         m_primaryHost(primaryHost),
         m_primaryPort(primaryPort),
         m_backupHost(backupHost),
@@ -125,18 +123,8 @@ CdrInterface::CdrInterface( const string &primaryHost,
 {}
 
 
-CdrInterface::~CdrInterface()
-{
-    if ( m_primaryCdr )
-    {
-        delete m_primaryCdr;
-        m_primaryCdr = 0;
-    }
-    if ( m_backupCdr )
-    {
-        delete m_backupCdr;
-        m_backupCdr = 0;
-    }
+CdrInterface::~CdrInterface() {
+   // Nothing to do at this point
 }
 
 void
@@ -149,45 +137,38 @@ CdrInterface::destroy()
 void
 CdrInterface::initialize() throw (VCdrException&)
 {
-    // reinitializes the connection to primary CDR Server
-    if (m_primaryCdr != 0)
-    {
-        delete m_primaryCdr;
-        m_primaryCdr = 0;
-    }
+   // reinitializes the connection to primary CDR Server
+   if (primaryCdr != 0) {
+      primaryCdr = 0;
+   }
 
-    // reinitializes the connection to backup CDR Server
-    if (m_backupCdr != 0)
-    {
-        delete m_backupCdr;
-        m_backupCdr = 0;
-    }
+   // reinitializes the connection to backup CDR Server
+   if (backupCdr != 0) {
+      backupCdr = 0;
+   }
 
-    cpLog(LOG_INFO, "Server Host:Port %s:%d, Backup Host:Port %s:%d",
-          m_primaryHost.c_str(), m_primaryPort,
-          m_backupHost.c_str(), m_backupPort);
+   cpLog(LOG_INFO, "Server Host:Port %s:%d, Backup Host:Port %s:%d",
+         m_primaryHost.c_str(), m_primaryPort,
+         m_backupHost.c_str(), m_backupPort);
 
-    if ( !m_primaryHost.empty() && m_primaryHost != UNDEFINED_CDR_HOST )
-    {
-        m_primaryCdr = connect(m_primaryHost, m_primaryPort);
-    }
-    if ( !m_backupHost.empty() && m_backupHost != UNDEFINED_CDR_HOST )
-    {
-        m_backupCdr = connect(m_backupHost, m_backupPort);
-    }
+   if ( !m_primaryHost.empty() && m_primaryHost != UNDEFINED_CDR_HOST ) {
+      primaryCdr = connect(m_primaryHost, m_primaryPort);
+   }
 
-    if ( m_primaryCdr == 0 && m_backupCdr == 0 )
-    {
-        cpLog(LOG_ALERT,
-              "WARNING: Cannot connect to either primary or backup CDR Server");
-        throw VCdrException("Cannot connect to either primary or backup CDR Server",
-                            __FILE__, __LINE__);
-    }
+   if ( !m_backupHost.empty() && m_backupHost != UNDEFINED_CDR_HOST ) {
+      backupCdr = connect(m_backupHost, m_backupPort);
+   }
+
+   if ( primaryCdr == 0 && backupCdr == 0 ) {
+      cpLog(LOG_ALERT,
+            "WARNING: Cannot connect to either primary or backup CDR Server");
+      throw VCdrException("Cannot connect to either primary or backup CDR Server",
+                          __FILE__, __LINE__);
+   }
 }
 
 bool
-CdrInterface::isAlive() throw (VCdrException&)
-{
+CdrInterface::isAlive() throw (VCdrException&) {
     /*
         // TODO Need to find a way to check the current state of the connection
         try
@@ -195,18 +176,16 @@ CdrInterface::isAlive() throw (VCdrException&)
     	char tmpBuf[256];
     	int  readLeft;
      
-    	if(m_primaryCdr &&
-    	   m_primaryCdr->getConn().readn(tmpBuf,sizeof(tmpBuf),readLeft) < 0)
+    	if(primaryCdr &&
+    	   primaryCdr->getConn().readn(tmpBuf,sizeof(tmpBuf),readLeft) < 0)
     	{
-    	    delete m_primaryCdr;
-    	    m_primaryCdr = 0;
+    	    primaryCdr = 0;
     	}
      
-    	if(m_backupCdr &&
-    	   m_backupCdr->getConn().readn(tmpBuf,sizeof(tmpBuf),readLeft) < 0)
+    	if(backupCdr &&
+    	   backupCdr->getConn().readn(tmpBuf,sizeof(tmpBuf),readLeft) < 0)
     	{
-    	    delete m_backupCdr;
-    	    m_backupCdr = 0;
+    	    backupCdr = 0;
     	}
         }
         catch (VNetworkException &e)
@@ -222,61 +201,80 @@ CdrInterface::isAlive() throw (VCdrException&)
     unsigned int msecs;
     getTime(secs, msecs);
 
-    if ( m_primaryCdr == 0 )
-    {
-        if ( m_primaryHost != UNDEFINED_CDR_HOST && !m_primaryHost.empty() )
-        {
-            // Check connect every so often
-            if ( secs - m_lastPrimaryAttempt > CHECK_CONNECT_FREQ )
-            {
-                m_lastPrimaryAttempt = secs;
-                m_primaryCdr = connect(m_primaryHost, m_primaryPort);
-            }
-        }
+    if ( primaryCdr == 0 ) {
+       if ( m_primaryHost != UNDEFINED_CDR_HOST && !m_primaryHost.empty() ) {
+          // Check connect every so often
+          if ( secs - m_lastPrimaryAttempt > CHECK_CONNECT_FREQ ) {
+             m_lastPrimaryAttempt = secs;
+             primaryCdr = connect(m_primaryHost, m_primaryPort);
+          }
+       }
     }
 
-    if ( m_backupCdr == 0 )
-    {
-        if ( m_backupHost != UNDEFINED_CDR_HOST && !m_backupHost.empty() )
-        {
-            // Check connect every so often
-            if ( secs - m_lastBackupAttempt > CHECK_CONNECT_FREQ )
-            {
-                m_lastBackupAttempt = secs;
-                m_backupCdr = connect(m_backupHost, m_backupPort);
-            }
-        }
+    if ( backupCdr == 0 ) {
+       if ( m_backupHost != UNDEFINED_CDR_HOST && !m_backupHost.empty() ) {
+          // Check connect every so often
+          if ( secs - m_lastBackupAttempt > CHECK_CONNECT_FREQ ) {
+             m_lastBackupAttempt = secs;
+             backupCdr = connect(m_backupHost, m_backupPort);
+          }
+       }
     }
 
-    if ( m_primaryCdr == 0 && m_backupCdr == 0 )
-    {
-        cpLog(LOG_ALERT,
-              "WARNING: Both primary and alternate CDR Servers are unreachable");
-        return false;
+    if ( primaryCdr == 0 && backupCdr == 0 ) {
+       cpLog(LOG_ALERT,
+             "WARNING: Both primary and alternate CDR Servers are unreachable");
+       return false;
     }
     return true;
 }
 
-TcpClientSocket*
+int CdrInterface::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                         int& maxdesc, uint64& timeout, uint64 now) {
+   if (primaryCdr != 0) {
+      primaryCdr->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   if (backupCdr != 0) {
+      backupCdr->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   return 0;
+}
+
+
+void CdrInterface::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        uint64 now) {
+   if (primaryCdr != 0) {
+      primaryCdr->tick(input_fds, output_fds, exc_fds, now);
+      if (! primaryCdr->isLive()) {
+         primaryCdr = NULL; // Kill it, will re-open directly
+      }
+   }
+   if (backupCdr != 0) {
+      backupCdr->tick(input_fds, output_fds, exc_fds, now);
+      if (! backupCdr->isLive()) {
+         backupCdr = NULL; // Kill it, will re-open directly
+      }
+   }
+}
+
+
+Sptr<TcpClientSocket>
 CdrInterface::connect( const string &host,
                        const int port )
 {
-    TcpClientSocket *sock = 0;
-    try
-    {
-        string empty_str;
-        sock = new TcpClientSocket( host, port, empty_str, empty_str, true, false );
-        sock->connect();
-    }
-    catch (VNetworkException &e)
-    {
-        delete sock;
-        sock = 0;
-        cpLog(LOG_ALERT,
-              "WARNING: Cannot connect to CDR server %s:%d", host.c_str(), port);
-        cpLog(LOG_ALERT, e.getDescription().c_str());
-    }
-    return sock;
+   Sptr<TcpClientSocket> sock;
+   try {
+      string empty_str;
+      sock = new TcpClientSocket( host, port, empty_str, empty_str, true, false );
+      sock->connect();
+   }
+   catch (VNetworkException &e) {
+      sock = NULL;
+      cpLog(LOG_ALERT,
+            "WARNING: Cannot connect to CDR server %s:%d", host.c_str(), port);
+      cpLog(LOG_ALERT, e.getDescription().c_str());
+   }
+   return sock;
 }
 
 void
@@ -302,28 +300,23 @@ CdrInterface::ringStarted( const string &from,
 
     cpLog( LOG_DEBUG, "Call Ringing, call ID:%s", callId.c_str() );
 
-    try
-    {
+    try {
         sendToPrimary(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog(LOG_ALERT, e.getDescription().c_str());
         cpLog(LOG_ALERT, "Call not sent to Primary CDR Server");
     }
 
-    try
-    {
+    try {
         sendToBackup(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog(LOG_ALERT, e.getDescription().c_str());
         cpLog(LOG_ALERT, "Call not sent to Backup CDR Server");
     }
 
-    if (m_primaryCdr == 0 && m_backupCdr == 0)
-    {
+    if (primaryCdr == 0 && backupCdr == 0) {
         cpLog(LOG_ALERT,
               "WARNING:Cannot connect to any CDR Server, No calls will be billed");
         throw VCdrException("Not connected to any CDR Servers, call NOT billed",
@@ -354,28 +347,23 @@ CdrInterface::callStarted( const string &from,
 
     cpLog( LOG_DEBUG, "Call Started, call ID:%s", callId.c_str() );
 
-    try
-    {
+    try {
         sendToPrimary(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog(LOG_ALERT, e.getDescription().c_str());
         cpLog(LOG_ALERT, "Call not sent to Primary CDR Server");
     }
 
-    try
-    {
+    try {
         sendToBackup(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog(LOG_INFO, e.getDescription().c_str());
         cpLog(LOG_INFO, "Call not sent to Backup CDR Server");
     }
 
-    if ( m_primaryCdr == 0 && m_backupCdr == 0 )
-    {
+    if ( primaryCdr == 0 && backupCdr == 0 ) {
         cpLog(LOG_ALERT,
               "WARNING:Cannot connect to any CDR Server, No calls will be billed");
         throw VCdrException("Not connected to any CDR Servers, call NOT billed",
@@ -400,28 +388,23 @@ CdrInterface::callEnded( const string &from,
 
     cpLog(LOG_DEBUG, "Call Ended, call ID:%s", callId.c_str());
 
-    try
-    {
+    try {
         sendToPrimary(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog( LOG_ALERT, e.getDescription().c_str() );
         cpLog( LOG_ALERT, "Call not sent to Primary CDR Server" );
     }
 
-    try
-    {
+    try {
         sendToBackup(dat);
     }
-    catch (VCdrException &e)
-    {
+    catch (VCdrException &e) {
         cpLog( LOG_INFO, e.getDescription().c_str() );
         cpLog( LOG_INFO, "Call not sent to Backup CDR Server" );
     }
 
-    if ( m_primaryCdr == 0 && m_backupCdr == 0 )
-    {
+    if ( primaryCdr == 0 && backupCdr == 0 ) {
         cpLog( LOG_ALERT,
                "WARNING:There are no connections to any CDR Servers, No calls will be billed");
         throw VCdrException("Not connected to any CDR Servers, call NOT billed",
@@ -432,82 +415,50 @@ CdrInterface::callEnded( const string &from,
 void
 CdrInterface::sendToPrimary( const CdrClient &dat ) throw (VCdrException&)
 {
-    if ( m_primaryCdr == 0 )
-    {
-        if (m_primaryHost != UNDEFINED_CDR_HOST && !m_primaryHost.empty())
-        {
-            // Check connect every so often
-            unsigned long secs;
-            unsigned int msecs;
-            getTime(secs, msecs);
-            if ( secs - m_lastPrimaryAttempt > CHECK_CONNECT_FREQ )
-            {
-                m_lastPrimaryAttempt = secs;
-                m_primaryCdr = connect( m_primaryHost, m_primaryPort );
-                if (m_primaryCdr == 0)
-                    return ;
-            }
-        }
-        throw VCdrException("No connection exists", __FILE__, __LINE__);
-    }
+   if ( primaryCdr == 0 ) {
+      if (m_primaryHost != UNDEFINED_CDR_HOST && !m_primaryHost.empty()) {
+         // Check connect every so often
+         unsigned long secs;
+         unsigned int msecs;
+         getTime(secs, msecs);
+         if ( secs - m_lastPrimaryAttempt > CHECK_CONNECT_FREQ ) {
+            m_lastPrimaryAttempt = secs;
+            primaryCdr = connect( m_primaryHost, m_primaryPort );
+            if (primaryCdr == 0)
+               return ;
+         }
+      }
+      throw VCdrException("No connection exists", __FILE__, __LINE__);
+   }
 
-    CdrClient tmp(dat);
-    try
-    {
-        m_primaryCdr->getConn()->writeData(&tmp, sizeof(CdrClient));
-    }
-    catch (VNetworkException &e)
-    {
-        delete m_primaryCdr;
-        m_primaryCdr = 0;
-        cpLog(LOG_ALERT, e.getDescription().c_str());
-        throw VCdrException(
-            "WARNING: Error occured while trying to send message to Primary CDR Server",
-            __FILE__, __LINE__);
-    }
+   CdrClient tmp(dat);
+   primaryCdr->getConn()->queueSendData((const char*)(&tmp), sizeof(tmp));
 }
 
 void
-CdrInterface::sendToBackup( const CdrClient &dat ) throw (VCdrException&)
-{
-    if ( m_backupCdr == 0 )
-    {
-        if ( m_backupHost != UNDEFINED_CDR_HOST && !m_backupHost.empty() )
-        {
-            // Check connect every so often
-            unsigned long secs;
-            unsigned int msecs;
-            getTime(secs, msecs);
-            if (secs - m_lastBackupAttempt > CHECK_CONNECT_FREQ)
-            {
-                m_lastBackupAttempt = secs;
-                m_backupCdr = connect(m_backupHost, m_backupPort);
-                if (m_backupCdr == 0)
-                    return ;
-            }
-        }
-        throw VCdrException("No connection exists", __FILE__, __LINE__);
-    }
+CdrInterface::sendToBackup( const CdrClient &dat ) throw (VCdrException&) {
+   if ( backupCdr == 0 ) {
+      if ( m_backupHost != UNDEFINED_CDR_HOST && !m_backupHost.empty() ) {
+         // Check connect every so often
+         unsigned long secs;
+         unsigned int msecs;
+         getTime(secs, msecs);
+         if (secs - m_lastBackupAttempt > CHECK_CONNECT_FREQ) {
+            m_lastBackupAttempt = secs;
+            backupCdr = connect(m_backupHost, m_backupPort);
+            if (backupCdr == 0)
+               return ;
+         }
+      }
+      throw VCdrException("No connection exists", __FILE__, __LINE__);
+   }
 
-    CdrClient tmp(dat);
-    try
-    {
-       m_backupCdr->getConn()->writeData(&tmp, sizeof(CdrClient));
-    }
-    catch (VNetworkException &e)
-    {
-        delete m_backupCdr;
-        m_backupCdr = 0;
-        cpLog(LOG_ALERT, e.getDescription().c_str());
-        throw VCdrException(
-            "WARNING: Error occured while trying to send message to Backup CDR Server",
-            __FILE__, __LINE__);
-    }
+   CdrClient tmp(dat);
+   backupCdr->getConn()->queueSendData((const char*)(&tmp), sizeof(tmp));
 }
 
 void
-CdrInterface::getTime( unsigned long &secs, unsigned int &millisecs )
-{
+CdrInterface::getTime( unsigned long &secs, unsigned int &millisecs ) {
     struct timeval tval;
 
     // get the seconds and milliseconds for the day

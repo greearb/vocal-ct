@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.6 2004/06/06 08:32:37 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.7 2004/06/07 08:32:20 greear Exp $";
 
 #ifndef __vxworks
 
@@ -324,9 +324,13 @@ void TcpClientSocket::clear() {
 
 
 void TcpClientSocket::close() {
-    if (_closeCon && (_conn != 0) && (_conn->getConnId() > 2)) {
-        _conn->close();
-    }
+   // Flush any outstanding writes, if possible
+   if (_conn != 0) {
+      _conn->write();
+   }
+   if (_closeCon && (_conn != 0) && (_conn->getConnId() > 2)) {
+      _conn->close();
+   }
 }
 
 const char*
