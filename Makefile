@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2004/11/16 01:06:46 greear Exp $
+# $Id: Makefile,v 1.6 2004/11/16 01:57:49 greear Exp $
 
 
 BUILD = build
@@ -174,6 +174,9 @@ contrib_equiv:
 contrib_imap:
 	cd contrib; $(MAKE) imap
 
+contrib_xml:
+	cd contrib; $(MAKE) libxml
+
 snmp: proxy_agent
 	cd snmp; $(MAKE)
 
@@ -192,10 +195,13 @@ netMgnt:  snmpplusplus
 cdrlib:
 	cd cdr/cdrLib; $(MAKE)
 
-psutil:
+libxml:
+	cd contrib/
+
+psutil: contrib_xml util
 	cd provisioning/util; $(MAKE)
 
-pslib: contrib sdp2 proxy_base psutil
+pslib: sdp2 proxy_base psutil
 	cd provisioning/psLib; $(MAKE)
 
 dbmodules: contrib_xerces_c util
