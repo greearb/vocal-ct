@@ -53,7 +53,7 @@
 
 
 static const char* const GuiEventThread_hxx_Version = 
-    "$Id: GuiEventThread.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: GuiEventThread.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 
 
 #include <string>
@@ -70,16 +70,21 @@ namespace Vocal
 namespace UA
 {
 
-/** GuiEventThread is derived from ThreadIf. 
+/**
  *  The thread waits for a GuiEvent on a named pipe and dispatches 
  *  to the worker thread when received one.
  */
 class GuiEventThread: public BugCatcher {
 public:
-   /** Create the Gui thread given fifo to put the events into
+   /** Create the Gui thread.
     */
    GuiEventThread(int readFd) ;
 
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
    /** Virtual destructor
     */
@@ -95,10 +100,6 @@ private:
    /** Suppress copying
     */
    GuiEventThread(const GuiEventThread &);
-        
-        
-   /** Suppress copying
-    */
    const GuiEventThread & operator=(const GuiEventThread &);
 };
 

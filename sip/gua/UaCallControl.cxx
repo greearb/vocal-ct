@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -77,6 +77,8 @@ static const char* const UaCallControl_cxx_Version =
 #include "SipSubsNotifyEvent.hxx"
 #include "SipTextData.hxx"
 #include "RandomHex.hxx"
+#include "gua.hxx"
+
 
 #ifdef USE_MPEGLIB
 #include "VideoDevice.hxx"
@@ -100,12 +102,12 @@ UaCallControl::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)
    //Nothing to do here
 }
 
+
 bool 
 UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
 {
     cpLog(LOG_DEBUG, "UaCallControl::processEvent");
-    if(CallControl::processEvent(event))
-    {
+    if (CallControl::processEvent(event)) {
         cpLog(LOG_DEBUG, "Event handled by the base class");
 
 #if 0 
@@ -341,7 +343,7 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
         Sptr<SipCommand> sCommand;
         sCommand.dynamicCast(sipMsg);
         Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 180);
-        cAgent->getInvokee()->sendMsg(sMsg);
+        cAgent->getInvokee()->sendMsg(sMsg.getPtr());
         //UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
 
         if((UaFacade::instance().getMode() == CALL_MODE_ANNON) ||
@@ -440,170 +442,141 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
 }
 
 void
-UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent)
-{
-    cpLog(LOG_DEBUG, "Handling GUI event Key (%s), value:(%s)", gEvent->getKey().c_str(), gEvent->getValue().c_str());
-    switch (gEvent->getType())
-    {
-        case G_ACCEPT:
-        {
-            Sptr<CallAgent> cAgent = getActiveCall();
-            if(cAgent != 0)
-            {
-                cpLog(LOG_DEBUG, "Accept Call:");
-                cAgent->acceptCall();
-            }
-        }
-        break;
-        case G_STOP:
-        {
-            Sptr<CallAgent> cAgent = getActiveCall();
-            if(cAgent != 0)
-            {
-                cpLog(LOG_DEBUG, "Stopping Call:");
-                //BYE or CANCEL
-                cAgent->stopCall();
-            }
-            else
-            {
-                cpLog(LOG_ERR, "No active calls found to stop.");
-                UaFacade::instance().postMsg("ON_STOP_NO_CALLS_ACTIVE");
-            }
-        }
-        break;
-        case G_PURGE:
-        {
-            Sptr<CallAgent> cAgent = getActiveCall();
-            if(cAgent != 0)
-            {
-                cpLog(LOG_ERR, "PURGE:  Forcefully Stopping Call.");
-                //BYE or CANCEL
-                cAgent->stopCall();
-                cAgent->endCall(); //bigger stick
-            }
-            else
-            {
-                cpLog(LOG_ERR, "ERROR: No active calls found to purge.");
-                UaFacade::instance().postMsg("ON_PURGE_NO_CALLS_ACTIVE");
-            }
-        }
-        break;
-        case G_INVITE:
-        {
-            //UaFacade::instance().postMsg("TRYING ");
-            //Initiate an Invite to the remote party
-            string value = gEvent->getValue();
-            initiateInvite(value);
-        }
-        break;
-	case G_HOLD:
-        {
-            Sptr<CallAgent> cAgent = getActiveCall();
-            if(cAgent != 0)
-            {
-                cpLog(LOG_DEBUG, "Stopping Call:");
-                //BYE or CANCEL
-                cAgent->processHold();
-            }
-            else
-            {
-                cpLog(LOG_ERR, "No active calls found to hold.");
-            }
-        }
-	break;
-	case G_RESUME:
-        {
-            Sptr<CallAgent> cAgent = getActiveCall();
-            if(cAgent != 0)
-            {
-                cpLog(LOG_DEBUG, "Resuming Call:");
-                //BYE or CANCEL
-                cAgent->processResume();
-            }
-            else
-            {
-                cpLog(LOG_ERR, "No active calls found to resume.");
-            }
-        }
-	break;
-       case G_DOSUBSCRIBE:
-       {
-           UaConfiguration::instance().parseConfig();
-            if(UaFacade::instance().getRegistrationManager() != NULL)
-            {
-                UaFacade::instance().getRegistrationManager()->addRegistration(1);
-                UaFacade::instance().getRegistrationManager()->startRegistration();
-            }
-
-       }
-
-        case G_REGISTRATIONEXPIRED:
-	{
-            //Preferences changed, do the regsitration
-            //Parse the configuration data
-            UaConfiguration::instance().parseConfig();
-            if(UaFacade::instance().getRegistrationManager() != NULL)
-            {
-                UaFacade::instance().getRegistrationManager()->addRegistration(1);
-                UaFacade::instance().getRegistrationManager()->startRegistration();
-            }
-            
-        }
-	break;
-        case G_PREF:
-        {
-            //Preferences changed, do the regsitration
-            //Parse the configuration data
-            //Save the OLD value of SIP port, since SIP port can not
-            //be modified from the config file, however parseConfig
-            //will try to set it to the default. So set the port back to
-            //saved port
-            int sPort = atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());
-            UaConfiguration::instance().parseConfig();
-            //set the proxy server
-            string pxServer = UaConfiguration::instance().getValue(ProxyServerTag);
-            UaFacade::instance().getProxyAddr()->setHostName(pxServer);
-            string natIp = UaConfiguration::instance().getValue(NATAddressIPTag);
-            //set the NATIP address
-            UaFacade::instance().setNatHost(natIp);
-
-            UaConfiguration::instance().setValue(LocalSipPortTag, Data(sPort).c_str());
-            if(UaFacade::instance().getRegistrationManager() != 0)
-            {
-                UaFacade::instance().getRegistrationManager()->addRegistration();
-                UaFacade::instance().getRegistrationManager()->startRegistration();
-            }
-            
-        }
-        break;
-        case G_SHUTDOWN:
-        {
-           UaFacade::instance().shutdown(false);
-        }
-        break;
-        default:
-            cpLog(LOG_DEBUG, "TODO...");
-        break;
-    }
-}
+UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
+   cpLog(LOG_DEBUG, "Handling GUI event Key (%s), value:(%s)",
+         gEvent->getKey().c_str(), gEvent->getValue().c_str());
+   switch (gEvent->getType()) {
+   case G_ACCEPT: {
+      Sptr<CallAgent> cAgent = getActiveCall();
+      if (cAgent != 0) {
+         cpLog(LOG_DEBUG, "Accept Call:");
+         cAgent->acceptCall();
+      }
+      break;
+   }
+   case G_STOP: {
+      Sptr<CallAgent> cAgent = getActiveCall();
+      if (cAgent != 0) {
+         cpLog(LOG_DEBUG, "Stopping Call:");
+         //BYE or CANCEL
+         cAgent->stopCall();
+      }
+      else {
+         cpLog(LOG_ERR, "No active calls found to stop.");
+         UaFacade::instance().postMsg("ON_STOP_NO_CALLS_ACTIVE");
+      }
+      break;
+   }
+   case G_PURGE: {
+      Sptr<CallAgent> cAgent = getActiveCall();
+      if (cAgent != 0) {
+         cpLog(LOG_ERR, "PURGE:  Forcefully Stopping Call.");
+         //BYE or CANCEL
+         cAgent->stopCall();
+         cAgent->endCall(); //bigger stick
+      }
+      else {
+         cpLog(LOG_ERR, "ERROR: No active calls found to purge.");
+         UaFacade::instance().postMsg("ON_PURGE_NO_CALLS_ACTIVE");
+      }
+      break;
+   }
+   case G_INVITE: {
+      //UaFacade::instance().postMsg("TRYING ");
+      //Initiate an Invite to the remote party
+      string value = gEvent->getValue();
+      initiateInvite(value);
+      break;
+   }
+   case G_HOLD: {
+      Sptr<CallAgent> cAgent = getActiveCall();
+      if (cAgent != 0) {
+         cpLog(LOG_DEBUG, "Stopping Call:");
+         //BYE or CANCEL
+         cAgent->processHold();
+      }
+      else {
+         cpLog(LOG_ERR, "No active calls found to hold.");
+      }
+      break;
+   }
+   case G_RESUME: {
+      Sptr<CallAgent> cAgent = getActiveCall();
+      if (cAgent != 0) {
+         cpLog(LOG_DEBUG, "Resuming Call:");
+         //BYE or CANCEL
+         cAgent->processResume();
+      }
+      else {
+         cpLog(LOG_ERR, "No active calls found to resume.");
+      }
+      break;
+   }
+   case G_DOSUBSCRIBE: {
+      UaConfiguration::instance().parseConfig();
+      if (UaFacade::instance().getRegistrationManager() != NULL) {
+         UaFacade::instance().getRegistrationManager()->flushRegistrationList();
+         UaFacade::instance().getRegistrationManager()->addRegistration(1);
+      }
+      break;
+   }
+   case G_REGISTRATIONEXPIRED: {
+      //Preferences changed, do the regsitration
+      //Parse the configuration data
+      UaConfiguration::instance().parseConfig();
+      if (UaFacade::instance().getRegistrationManager() != NULL) {
+         UaFacade::instance().getRegistrationManager()->flushRegistrationList();
+         UaFacade::instance().getRegistrationManager()->addRegistration(1);
+      }
+      break;
+   }
+   case G_PREF: {
+      //Preferences changed, do the regsitration
+      //Parse the configuration data
+      //Save the OLD value of SIP port, since SIP port can not
+      //be modified from the config file, however parseConfig
+      //will try to set it to the default. So set the port back to
+      //saved port
+      int sPort = atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());
+      UaConfiguration::instance().parseConfig();
+      //set the proxy server
+      string pxServer = UaConfiguration::instance().getValue(ProxyServerTag);
+      UaFacade::instance().getProxyAddr()->setHostName(pxServer);
+      string natIp = UaConfiguration::instance().getValue(NATAddressIPTag);
+      //set the NATIP address
+      UaFacade::instance().setNatHost(natIp);
+      
+      UaConfiguration::instance().setValue(LocalSipPortTag, Data(sPort).c_str());
+      if (UaFacade::instance().getRegistrationManager() != 0) {
+         UaFacade::instance().getRegistrationManager()->flushRegistrationList();
+         UaFacade::instance().getRegistrationManager()->addRegistration(1);
+      }
+      break;
+   }
+   case G_SHUTDOWN: {
+      gua_running = false;
+      break;
+   }
+   default:
+      cpLog(LOG_DEBUG, "TODO...");
+      break;
+   }//switch
+}//handleGuiEvents
 
 
 UaCallControl& 
-UaCallControl::instance()
-{
-    if(myInstance == 0)
-    {
-        myInstance = new UaCallControl();
-    }
-    return *myInstance;
+UaCallControl::instance() {
+   if (myInstance == 0) {
+      myInstance = new UaCallControl();
+   }
+   return *myInstance;
 }
 
 void
-UaCallControl::destroy(void)
-{
-    cpLog(LOG_DEBUG, "UaCallControl::destroy");
-    delete UaCallControl::myInstance;
-    UaCallControl::myInstance = 0;
+UaCallControl::destroy(void) {
+   cpLog(LOG_DEBUG, "UaCallControl::destroy");
+   delete UaCallControl::myInstance;
+   UaCallControl::myInstance = 0;
 }
 
 void
@@ -702,7 +675,7 @@ UaCallControl::initiateInvite(const string& to)
        myUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
     }
     myUrl->setPort( UaConfiguration::instance().getValue(LocalSipPortTag) );
-    myContact.setUrl( myUrl );
+    myContact.setUrl( myUrl.getPtr() );
     msg->setNumContact( 0 );    // Clear old contact
     msg->setContact( myContact );
 
@@ -749,7 +722,7 @@ UaCallControl::initiateInvite(const string& to)
     int callId = myCallMap.size();
 
     //Create call-agent to handle the call from now on
-    Sptr<CallAgent> cAgent = new CallAgent(callId, msg, &(UaFacade::instance()),
+    Sptr<CallAgent> cAgent = new CallAgent(callId, msg.getPtr(), &(UaFacade::instance()),
                                            Vocal::UA::A_CLIENT);
 
     //Persist the agent for the duration of the call
@@ -760,7 +733,7 @@ UaCallControl::initiateInvite(const string& to)
 bool
 UaCallControl::busy(Sptr<SipCommand> sipMsg)
 {
-    Sptr<CallAgent> cAgent = getActiveCall(sipMsg);
+    Sptr<CallAgent> cAgent = getActiveCall(sipMsg.getPtr());
     if(cAgent != 0)
     {
         cpLog(LOG_DEBUG, "A call is already active");

@@ -49,7 +49,7 @@
  */
 
 static const char* const GuiEventThread_cxx_Version =
-    "$Id: GuiEventThread.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: GuiEventThread.cxx,v 1.2 2004/06/18 07:06:04 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -57,63 +57,45 @@ static const char* const GuiEventThread_cxx_Version =
 #include "UaBase.hxx"
 #include "GuiEventThread.hxx"
 #include "GuiEvent.hxx"
+#include "UaFacade.hxx"
+
 
 using namespace Vocal;
 using namespace Vocal::UA;
 
 
 
-GuiEventThread::GuiEventThread( Sptr < Fifo < Sptr < SipProxyEvent > > > inputFifo, int readFd)
-      : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, 64 * 1024 /*VTHREAD_STACK_SIZE_DEFAULT*/),
-        myFifo(inputFifo), 
-        myReadFd(readFd)
-{
-    assert( myFifo != 0 );
+GuiEventThread::GuiEventThread(int readFd)
+      : myReadFd(readFd) {
+   // Nothing to do
 };
 
+void GuiEventThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now) {
 
-
-void
-GuiEventThread::shutdown()
-{
-    cpLog(LOG_DEBUG, "GuiEventThread::shutdown");
-    ThreadIf::shutdown();
-
-    write(myReadFd, "X", 1);
+   // This could be much more elegant, like making sure we get a newline, etc.
+   if (FD_ISSET(myReadFd, input_fds)) {
+      char buf[256];
+      int readCnt;
+      cpLog(LOG_DEBUG, "Reading on %d", myReadFd);
+      if ((readCnt = read(myReadFd, buf, 256)) > 0) {
+         cpLog(LOG_DEBUG, "Read from GUI: [%s]", buf);
+         buf[readCnt] = 0;
+         //Translate the messages into a SipProxyEvent
+         Sptr<GuiEvent> gEvent = new GuiEvent(buf);
+         UaFacade::instance().queueEvent(gEvent.getPtr());
+         cpLog(LOG_DEBUG, "%s, %s",gEvent->getKey().c_str() , gEvent->getValue().c_str());
+      }
+      else {
+         cpLog(LOG_DEBUG, "Read %d bytes", readCnt);
+      }
+   }
 }
 
-
-void
-GuiEventThread::thread()
-{
-    cpLogSetLabelThread (VThread::selfId(), "GuiEventThread");
-
-
-    while ( true )
-    {
-        char buf[256];
-        int readCnt;
-        cpLog(LOG_DEBUG, "Reading on %d", myReadFd);
-        memset(buf, 0, 256);
-        if((readCnt = read(myReadFd, buf, 256)) > 0)
-        {
-            cpLog(LOG_DEBUG, "Read from GUI: [%s]", buf);
-            //Translate the messages into a SipProxyEvent
-            Sptr<GuiEvent> gEvent = new GuiEvent(buf);
-            myFifo->addDelayMs(gEvent, 0);
-            cpLog(LOG_DEBUG, "%s, %s",gEvent->getKey().c_str() , gEvent->getValue().c_str());
-        }
-        else
-        {
-            cpLog(LOG_DEBUG, "Read %d bytes", readCnt);
-        }
-
-        if ( isShutdown() == true )
-        {
-            cpLog(LOG_DEBUG, "Exiting GuiEvent thread...");
-            return;
-        }
-    }
-    cpLog(LOG_DEBUG, "Exiting GuiEvent thread...");
+int GuiEventThread::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now) {
+   FD_SET(myReadFd, input_fds);
+   maxdesc = max(maxdesc, myReadFd);
+   return 0;
 }
 

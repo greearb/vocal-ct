@@ -12,6 +12,8 @@
 #define INIT_DEBUG_MEM_USAGE /* NOP */
 #endif
 
+extern int gua_running;
+
 void debugMemUsage(const char* msg, const char* file, int line);
 
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -70,9 +70,7 @@ RegistrationManager::RegistrationManager( Sptr < SipTransceiver > sipstack )
 
     cpLog(LOG_DEBUG, "Starting Registration Mananger");
 
-    // TODO:  Start registration.
-
-    addRegistration();
+    addRegistration(0);
 }
 
 ///
@@ -122,6 +120,7 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
    }
 
    registration->setNextRegister(now + registration->getDelay());
+   return 0;
 }
 
 ///
@@ -145,7 +144,7 @@ RegistrationManager::findRegistration(const StatusMsg& statusMsg)
 
 ///
 void RegistrationManager::addRegistration(Sptr<Registration> item) {
-   registrationList.push_back(registration);
+   registrationList.push_back(item);
 }
 
 ///
@@ -184,7 +183,6 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
    else {
       // Register again in a day, ie basically wait forever.
       registration->setNextRegister(vgetCurMs() + (60 * 60 * 24 * 1000));
-      ret = true;
    }
    return true;
 }//handleRegistrationResponse
@@ -216,11 +214,11 @@ RegistrationManager::addRegistration(int check) {
    NetworkAddress rs(toAddress);
 
    // The first REGISTER message
-   Sptr<RegisterMsg> = new RegisterMsg(registerMsg(config.getMyLocalIp()));
+   Sptr<RegisterMsg> registerMsg = new RegisterMsg(config.getMyLocalIp());
 
    // Set Request line
    Data reqUrlString;
-   SipRequestLine& reqLine = registerMsg.getMutableRequestLine();
+   SipRequestLine& reqLine = registerMsg->getMutableRequestLine();
    if (NetworkConfig::instance().isDualStack() && 
        NetworkAddress::is_valid_ip6_addr(toAddress)) {
       reqUrlString = Data( string("sip:[") + toAddress + "]");
@@ -238,30 +236,30 @@ RegistrationManager::addRegistration(int check) {
    // Set From header
    string port = config.getValue(LocalSipPortTag);
     
-   SipFrom sipfrom = registerMsg.getFrom();
+   SipFrom sipfrom = registerMsg->getFrom();
    sipfrom.setDisplayName( config.getValue(DisplayNameTag) );
    sipfrom.setUser( config.getValue(UserNameTag) );
    sipfrom.setHost( config.getMyLocalIp() );
    sipfrom.setPort( port );
-   registerMsg.setFrom( sipfrom );
+   registerMsg->setFrom( sipfrom );
 
    // Set To header
    const Data regToUrlStr = reqUrlString;
    SipUrl regToUrl( regToUrlStr, config.getMyLocalIp() );
-   SipTo sipto = registerMsg.getTo();
+   SipTo sipto = registerMsg->getTo();
    sipto.setDisplayName( config.getValue(DisplayNameTag) );
    sipto.setUser( config.getValue(UserNameTag) );
    sipto.setHost( regToUrl.getHost() );
    sipto.setPortData( regToUrl.getPort() );
-   registerMsg.setTo( sipto );
+   registerMsg->setTo( sipto );
 
    // Set Via header
-   SipVia sipvia = registerMsg.getVia();
+   SipVia sipvia = registerMsg->getVia();
    sipvia.setPort(port);
    sipvia.setTransport(config.getValue(SipTransportTag));
 
-   registerMsg.removeVia();
-   registerMsg.setVia( sipvia );
+   registerMsg->removeVia();
+   registerMsg->setVia( sipvia );
 
    // Set Contact header
    Sptr< SipUrl > contactUrl = new SipUrl("", config.getMyLocalIp());
@@ -285,8 +283,8 @@ RegistrationManager::addRegistration(int check) {
    else {
       myContact.setNullContact();
    }
-   registerMsg.setNumContact( 0 );
-   registerMsg.setContact(myContact);
+   registerMsg->setNumContact( 0 );
+   registerMsg->setContact(myContact);
 
    // Set Expires header
    SipExpires sipExpires("", config.getMyLocalIp());
@@ -295,8 +293,8 @@ RegistrationManager::addRegistration(int check) {
    } else {
       sipExpires.setDelta(0);
    }
-   registerMsg.setExpires( sipExpires );
+   registerMsg->setExpires( sipExpires );
 
-   Sptr<Registration> registration = new Registration( registerMsg );
+   Sptr<Registration> registration = new Registration( registerMsg);
    addRegistration( registration );
 }

@@ -52,7 +52,7 @@
  */
 
 static const char* const Registration_hxx_Version =
-    "$Id: Registration.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: Registration.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 #include <Data.hxx>
 #include <RegisterMsg.hxx>
 #include <StatusMsg.hxx>
@@ -65,28 +65,30 @@ static const char* const Registration_hxx_Version =
 namespace Vocal
 {
 
-class Registration {
+class Registration : public BugCatcher {
 public:
    Registration(const string& local_ip); // local_ip cannot be ""
    Registration(const RegisterMsg& srcMsg);
    Registration(const Registration& src);
 
-   ~Registration();
+   virtual ~Registration();
 
-   RegisterMsg getNextRegistrationMsg();
-   RegisterMsg getNextRegistrationCancel();
-   RegisterMsg getRegistrationMsg() {
+   Sptr<RegisterMsg> getNextRegistrationMsg();
+   Sptr<RegisterMsg> getNextRegistrationCancel();
+   Sptr<RegisterMsg> getRegistrationMsg() {
       return registerMsg;
    };
 
    int updateRegistrationMsg(const StatusMsg& msg);
-   void setRegistrationMsg(const RegisterMsg& msg);
-   Registration& operator =(const Registration&);
+   void setRegistrationMsg(Sptr<RegisterMsg> msg);
    bool operator ==( Registration& src ) const;
    int getStatusCode() const {
       return status;
    };
    int getDelay();
+
+   uint64 getNextRegister() const { return nextRegisterMs; }
+   void setNextRegister(uint64 r) { nextRegisterMs = r; }
 
 private:
 
@@ -94,9 +96,11 @@ private:
 
    int status;
    unsigned int seqNum;
-   RegisterMsg registerMsg;
+   Sptr<RegisterMsg> registerMsg;
+   uint64 nextRegisterMs;
 
    Registration();
+   Registration& operator =(const Registration&);
 };
  
 }

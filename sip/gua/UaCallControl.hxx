@@ -53,7 +53,7 @@
 
 
 static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaCallControl.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -86,6 +86,8 @@ public:
    void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
    ///
    void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
+
+   void processEventQueue();
    
    ///
    bool processEvent(const Sptr<SipProxyEvent>& event);
@@ -111,6 +113,8 @@ private:
    
    ///
    UaCallControl() : CallControl() { };
+
+   list<Sptr<SipProxyEvent> > eventQueue;
    
    ///
    static UaCallControl* myInstance;

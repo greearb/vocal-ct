@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 
 
 #include <sys/types.h>
@@ -708,6 +708,7 @@ void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                     uint64 now) {
    mySipThread->tick(input_fds, output_fds, exc_fds, now);
    myRegistrationManager->tick(input_fds, output_fds, exc_fds, now);
+   myGuiEventThread->tick(input_fds, output_fds, exc_fds, now);
 #ifdef USE_LANFORGE
    myLFThread->tick(input_fds, output_fds, exc_fds, now);
 #endif
@@ -724,6 +725,7 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      int& maxdesc, uint64& timeout, uint64 now) {
    mySipThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    myRegistrationManager->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   myGuiEventThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #ifdef USE_LANFORGE
    myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #endif
@@ -731,4 +733,5 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    if (eventList.size()) {
       timeout = 0;
    }
+   return 0;
 }

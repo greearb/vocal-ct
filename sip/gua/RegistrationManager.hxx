@@ -52,7 +52,7 @@
  */
 
 static const char* const RegistrationManager_hxx_Version =
-    "$Id: RegistrationManager.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: RegistrationManager.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 #include <vector>
 #include <map>
 
@@ -78,6 +78,7 @@ public:
    virtual ~RegistrationManager();
 
    ///
+   void addRegistration(int check);
    void addRegistration(Sptr<Registration> item);
 
    //this function return false if the input StatusMsg is not
@@ -92,15 +93,14 @@ public:
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now);
 
+   Sptr<Registration> findRegistration(const StatusMsg& msg);
+   void flushRegistrationList();
+
+
 private:
    typedef vector < Sptr<Registration> > RegistrationList;
    RegistrationList registrationList;
    
-   Sptr<Registration> findRegistration(const StatusMsg& msg);
-   void flushRegistrationList();
-
-   void registrationMain();
-
    Sptr < SipTransceiver > sipStack;
 };
  

@@ -50,7 +50,7 @@
  */
 
 static const char* const Registration_cxx_Version =
-    "$Id: Registration.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Registration.cxx,v 1.2 2004/06/18 07:06:04 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -68,18 +68,20 @@ using namespace Vocal::UA;
 Registration::Registration(const string& local_ip)
         :
         status(0),
-        seqNum(0),
-        registerMsg(local_ip)
+        seqNum(0)
 {
+    registerMsg = new RegisterMsg(local_ip);
+    nextRegisterMs = 0;
 }
 
 
 Registration::Registration(const RegisterMsg& srcMsg)
         :
         status(0),
-        seqNum(0),
-        registerMsg(srcMsg)
+        seqNum(0)
 {
+    registerMsg = new RegisterMsg(srcMsg);
+    nextRegisterMs = 0;
 }
 
 
@@ -88,66 +90,58 @@ Registration::~Registration()
 }
 
 
-Registration::Registration(const Registration& src)
-    : registerMsg(src.registerMsg)
-{
+Registration::Registration(const Registration& src) {
+    registerMsg = new RegisterMsg(*src.registerMsg);
     status = src.status;
     seqNum = src.seqNum;
+    nextRegisterMs = 0;
 }
 
 
-RegisterMsg
-Registration::getNextRegistrationMsg()
-{
+Sptr<RegisterMsg>
+Registration::getNextRegistrationMsg() {
     seqNum++;
-    SipCSeq cseq = registerMsg.getCSeq();
+    SipCSeq cseq = registerMsg->getCSeq();
     cseq.setCSeq(seqNum);
-    registerMsg.setCSeq(cseq);
+    registerMsg->setCSeq(cseq);
     return registerMsg;
 }
 
 
-RegisterMsg
-Registration::getNextRegistrationCancel()
-{
+Sptr<RegisterMsg>
+Registration::getNextRegistrationCancel() {
     SipExpires expires("", registerMsg.getLocalIp());
 
     expires.setDelta(Data("0"));
-    registerMsg.setExpires(expires);
+    registerMsg->setExpires(expires);
 
-    //seqNum++;
-    SipCSeq cseq = registerMsg.getCSeq();
+    SipCSeq cseq = registerMsg->getCSeq();
     cseq.setCSeq(seqNum);
-    registerMsg.setCSeq(cseq);
+    registerMsg->setCSeq(cseq);
 
-    return registerMsg;
+    return new RegisterMsg(*registerMsg);
 }
 
 
 SipContact
-Registration::findMyContact(const StatusMsg& msg) const
-{
-    Sptr< BaseUrl > myContactUrl = registerMsg.getContact(0).getUrl();
+Registration::findMyContact(const StatusMsg& msg) const {
+    Sptr< BaseUrl > myContactUrl = registerMsg->getContact(0).getUrl();
 
 //    SipUrl myContactUrl = registerMsg.getContact(0).getUrl();
-    SipContact myContact("", registerMsg.getLocalIp());
+    SipContact myContact("", registerMsg->getLocalIp());
     int numContacts = msg.getNumContact();
-    for ( int i = 0; i < numContacts; i++)
-    {
-        if ( msg.getContact(i).getUrl()->areEqual(myContactUrl) )
-        {
+    for ( int i = 0; i < numContacts; i++) {
+        if ( msg.getContact(i).getUrl()->areEqual(myContactUrl) ) {
             myContact = msg.getContact(i);
             break;
         }
     }
-
     return myContact;
 }
 
 
 int
-Registration::updateRegistrationMsg(const StatusMsg& msg)
-{
+Registration::updateRegistrationMsg(const StatusMsg& msg) {
     const int DEFAULT_DELAY = 60000;   // 60 sec.
     int delay = 0;
 
@@ -156,38 +150,34 @@ Registration::updateRegistrationMsg(const StatusMsg& msg)
     //handling 200 status message
     //for now, just extract expires out of the message
     //may not be complete
-    if ( 200 == status )
-    {
+    if ( 200 == status ) {
         SipContact myContact = findMyContact(msg);
         Data expires = myContact.getExpires().getDelta();
 #if 0
         if ( expires == "" )
             expires = myContact.getExpires().getDate().get();
 #endif
-        if ( expires == "" )
-        {
+        if ( expires == "" ) {
             //normally we need to get Delta not Date, but
             //for now the parse is not working correctly
             //so we will use this work around for now and
             //fix it later.
             expires == msg.getExpires().getDelta();
 #if 0     
-       if ( expires == "" )
+            if ( expires == "" )
                 expires = msg.getExpires().getDate().get();
 #endif     
-        if ( expires != "" )
-            {
+            if ( expires != "" ) {
                 SipExpires sipexpires("", registerMsg.getLocalIp());
                 sipexpires.setDelta(expires);
                 registerMsg.setExpires(sipexpires);
             }
         }
 
-        if ( expires != "" )
-        {
-            SipExpires sipexpires("", registerMsg.getLocalIp());
+        if ( expires != "" ) {
+            SipExpires sipexpires("", registerMsg->getLocalIp());
             sipexpires.setDelta(expires);
-            registerMsg.setExpires(sipexpires);
+            registerMsg->setExpires(sipexpires);
         }
 
         delay = getDelay();
@@ -201,25 +191,22 @@ Registration::updateRegistrationMsg(const StatusMsg& msg)
     //for now, we simply use the first one in the list.  Eventually we
     //need to maintain a list of unsuccessfully contacted servers and make
     //sure not to contact them again in order to avoid the loop
-    if ( status >= 300 && status <= 500 )
-    {
+    if ( status >= 300 && status <= 500 ) {
         int numContact = msg.getNumContact();
 
-        if ( numContact > 0 )
-        {
+        if ( numContact > 0 ) {
             //later on, we need to pick the sipcontact that has not be
             //contacted before
             SipContact sipcontact = msg.getContact(0);
             // for now, we will just copy mos of the info in contact to
             // request line. Later, we will need to handle each of 3xx and
             // 4xx individually
-            SipRequestLine requestLine = registerMsg.getRequestLine();
+            SipRequestLine requestLine = registerMsg->getRequestLine();
             requestLine.setUrl(sipcontact.getUrl());
-            registerMsg.setRequestLine(requestLine);
+            registerMsg->setRequestLine(requestLine);
         }
 
-        if ( status != 401 && status != 407 )
-        {
+        if ( status != 401 && status != 407 ) {
             delay = DEFAULT_DELAY;
             cpLog( LOG_ERR, "Register failed, status: %d", status );
             cpLog( LOG_ERR, "Will try again in 60 seconds" );
@@ -228,34 +215,28 @@ Registration::updateRegistrationMsg(const StatusMsg& msg)
 
     // for 401 message, we need to extract the proxy authentication info and
     // add to the register message
-    if ( status == 401 || status == 407 )
-    {
+    if ( status == 401 || status == 407 ) {
         Data user = UaConfiguration::instance().getValue(UserNameTag);
         Data password = UaConfiguration::instance().getValue(PasswordTag);
 
-	if (!authenticateMessage(msg, registerMsg, user, password))
-	{
+	if (!authenticateMessage(msg, registerMsg, user, password)) {
 	    // i could not find auth information, so delay
             delay = DEFAULT_DELAY;
 	}
 
 	int cseq ( msg.getCSeq().getCSeqData().convertInt() );
-	{
-	    if( cseq > 1 )
-	    {
+        if ( cseq > 1 ) {
 
-		// This is not the first 401 that we received (we may
-		// have supplied a bad username or password). Set the
-		// default delay to allow the user time to figure it
-		// out.
+            // This is not the first 401 that we received (we may
+            // have supplied a bad username or password). Set the
+            // default delay to allow the user time to figure it
+            // out.
 
-		cpLog( 
-		    LOG_ERR, 
-		    "Authentication may have failed, check configuration info"
-		    );
-		delay = DEFAULT_DELAY;
-	    }
-	}
+            cpLog(LOG_ERR, 
+                  "Authentication may have failed, check configuration info"
+                );
+            delay = DEFAULT_DELAY;
+        }
 
         cpLog( LOG_WARNING, 
 	       "Will try Registration again with authentication information" );
@@ -267,51 +248,31 @@ Registration::updateRegistrationMsg(const StatusMsg& msg)
 
 
 void
-Registration::setRegistrationMsg(const RegisterMsg& msg)
+Registration::setRegistrationMsg(Sptr<RegisterMsg> msg)
 {
-    registerMsg = msg;
+    registerMsg = new RegisterMsg(*msg);
 
-    SipCSeq cseq = registerMsg.getCSeq();
+    SipCSeq cseq = registerMsg->getCSeq();
 
     //always use the latest seqNum
     cseq.setCSeq(seqNum);
-    registerMsg.setCSeq(cseq);
-}
-
-
-Registration&
-Registration::operator = (const Registration& src)
-{
-    status = src.status;
-    seqNum = src.seqNum;
-    timerId = src.timerId;
-    registerMsg = src.registerMsg;
-    return *this;
+    registerMsg->setCSeq(cseq);
 }
 
 
 bool
-Registration::operator == (Registration& right) const
-{
+Registration::operator == (Registration& right) const {
     // Cast away const until someone fixes RegisterMsg's equality
     // operator.
     //
     Registration &  left = const_cast<Registration &>(*this);
     
-    return ( left.registerMsg == right.registerMsg );
+    return ( *(left.registerMsg) == *(right.registerMsg) );
 }
 
 
 int
-Registration::getDelay()
-{
-    return 1000*registerMsg.getExpires().getDelta().convertInt();   
+Registration::getDelay() {
+    return 1000 * registerMsg->getExpires().getDelta().convertInt();   
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
