@@ -77,6 +77,28 @@ using namespace Vocal::UA;
 
 int gua_running = 1;
 
+void dumpInstanceCount(const char* msg) {
+   ostringstream oss;
+   oss << "dumpInstanceCount: " << msg << "  "
+       << "  IOBuffer::string_cnt: " << IOBuffer::string_cnt
+       << "  Data: " << Data::getInstanceCount()
+       << "  BasicAgent: " << BasicAgent::getInstanceCount()
+       << "  CallAgent: " << CallAgent::getInstanceCount()
+       << "  SipUdpConnection: " << SipUdpConnection::getInstanceCount()
+       << "  SipTransceiver: " << SipTransceiver::getInstanceCount()
+       << "  MediaSession: " << MediaSession::getInstanceCount()
+       << "  BugCatcher: " << BugCatcher::getInstanceCount()
+       << "  RtpEvent: " << RtpEvent::getInstanceCount()
+       << "  RtpPacket: " << RtpPacket::getInstanceCount()
+       << "  SipMsg: " << SipMsg::getInstanceCount()
+       << "  SipMsgContainer: " << SipMsgContainer::getInstanceCount()
+       << "  SipMsgPair: " << SipMsgPair::getInstanceCount()
+       << "  SipCallContainer: " << SipCallContainer::getInstanceCount()
+       << endl;
+
+   cpLog(LOG_ERR, oss.str().c_str());
+}
+
 int main(const int argc, const char**argv) {
    INIT_DEBUG_MEM_USAGE;
    DEBUG_MEM_USAGE("beginning of main");
@@ -130,6 +152,7 @@ int main(const int argc, const char**argv) {
       int maxdesc;
       uint64 now;
       struct timeval timeout_tv;
+      uint64 lastInstanceDump = 0;
 
       while (gua_running) {
          sleep_for = 60 * 1000;
@@ -141,6 +164,12 @@ int main(const int argc, const char**argv) {
          maxdesc = 0;
 
          now = vgetCurMs();
+
+         // Do some debugging.
+         if ((lastInstanceDump + (60 * 1000)) < now) {
+            lastInstanceDump = now;
+            dumpInstanceCount("tick");
+         }
 
          UaFacade::instance().setFds(&input_set, &output_set, &exc_set,
                                      maxdesc, sleep_for, now);
@@ -169,8 +198,10 @@ int main(const int argc, const char**argv) {
 
       }//while
 
+      dumpInstanceCount("end of while");
 #ifdef USE_LANFORGE
       VoipHelperMgr::destroy();
+      dumpInstanceCount("after VoipHelperMgr::destroy");
 #endif
       UaFacade::destroy();
 
@@ -192,6 +223,8 @@ int main(const int argc, const char**argv) {
    MediaController::destroy();
    CallDB::destroy();
    UaConfiguration::destroy();
+
+   dumpInstanceCount("destroyed all singletons");
 
    cpLog(LOG_ERR, "Exiting gua...\n");
    cerr << "Exiting gua..." << endl;
