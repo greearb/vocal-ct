@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.3 2004/12/07 19:55:13 greear Exp $
+# $Id: Makefile.tools,v 1.4 2004/12/09 01:28:58 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -31,6 +31,9 @@
 
 include $(ROOT)/build/Makefile.cc_config
 
+# Create an empty one if it does not exist
+#$(ROOT)/build/Makefile.cc_config:
+#	touch $@
 
 ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
 
