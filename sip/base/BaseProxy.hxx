@@ -1,5 +1,5 @@
-#ifndef SIP_THREAD_HXX
-#define SIP_THREAD_HXX
+#ifndef __BASE_PROXY_HXX
+#define __BASE_PROXY_HXX
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -52,93 +52,25 @@
  */
 
 
-static const char* const SipThread_hxx_Version = 
-    "$Id: SipThread.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
-
-
-#include "Sptr.hxx"
-#include <list>
-#include <BugCatcher.hxx>
-#include <misc.hxx>
-
-//#include "SipTransceiver.hxx"
-//#include "SipProxyEvent.hxx"
-//#include "SipMsg.hxx"
+#include "Data.hxx"
+#include "Operator.hxx"
+#include "SipTransceiver.hxx"
+#include "cpLog.h"
 
 namespace Vocal
 {
 
-   class SipTransceiver;
-   class SipProxyEvent;
-   class SipMsg;
-   class BaseProxy;
-
-/** Object SipThread
-<pre>
-<br> Usage of this Class </br>
-
-    SipThread is derived from ThreadIf.
-    The class acts as a message dispatcher between SIP stack
-    and application. It dispatches messages received from the SIP stack to
-    the application after translating into a suitable event.
-    SipThread blocks on sipstack receive.  On receiving a SipMsg it creates a
-    SipEvent. The SipEvent then gets posted to fifo which application gets
-    and processes.
-</pre>
- */
-class SipThread : public BugCatcher
-{
+class BaseProxy : public BugCatcher {
 public:
 
-   /** Create the sip thread given the sip transceiver and the fifo.
-    *  The incoming messages from the sip transceiver will be queued on 
-    *  the given fifo.
-    *  For Marshal and RS proxies, no CallLegHistory is required
-    */
-   SipThread( const Sptr < SipTransceiver > sipStack,
-              Sptr < BaseProxy > proxy,
-              bool callLegHistory=true);
+   BaseProxy() { }
+   virtual ~StatelessBasicProxy() { }
 
+   //
+   virtual void process(const Sptr < SipProxyEvent > event) const = 0;
 
-   /** Virtual destructor.
-    */
-   virtual ~SipThread();
-
-
-   /** Returns true if a loop is detected in the via list.
-    */
-   bool discardMessage(Sptr < SipMsg > & sipMsg) const;
-
-   
-   void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-             uint64 now);
-
-   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-              int& maxdesc, uint64& timeout, uint64 now);
-
-protected:
-
-   Sptr <BaseProxy> myProxy;
-
-   /** Source of incoming sip events.
-    */
-   Sptr < SipTransceiver > mySipStack;
-
-
-private:
-    
-   /** Suppress copying
-    */
-   SipThread(const SipThread &);
-        
-
-   /** Suppress copying
-    */
-   const SipThread * operator=(const SipThread &);
-
-   bool myCallLegHistory;
 };
  
 }
 
-#endif // SIP_THREAD_HXX
+#endif // STATELESS_HEART_LESS_PROXY_HXX

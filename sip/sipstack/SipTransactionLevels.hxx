@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipTransactionList.hxx"
@@ -184,55 +184,58 @@ struct SipTransLevel3Node
 };
 
 
-class SipMsgContainer : public BugCatcher
-{
+class SipMsgContainer : public BugCatcher {
 public:
-    struct m
-    {
-	/// refence to the message (for incoming messages)
-	Sptr<SipMsg> in;
-	/// reference to raw msg txt (for outgoing messages)
-	Data         out;
-        //Host
-        Sptr<NetworkAddress> netAddr;
-        //
-        int  type;
-        //
-        Data  transport;
-    } msg;
+   struct m {
+      // refence to the message (for incoming messages)
+      Sptr<SipMsg> in;
+      // reference to raw msg txt (for outgoing messages)
+      Data         out;
+      //Host
+      Sptr<NetworkAddress> netAddr;
+      //
+      int  type;
+      //
+      Data  transport;
+   } msg;
 
-    /// transport specific data
-    int retransCount;
-    bool collected;
+   /// constructed with default value for stateless mode
+   SipMsgContainer()
+         : msg(),
+           retransCount(1),
+           collected(false),
+           level3Ptr(0)
+      {}
 
-      /************ TO DO **************\
-       * either put a ref to self's container in list of prev level *
-       * or some thing to get the ref to self's container *
-       * (in level2 and level3 nodes) *
-       * modify transaction GC and sent res/req DBs *
-      \*********************************/
-    /// back reference to level3 node
-    SipTransLevel3Node *level3Ptr;
+   string toString() const;
 
-    /// constructed with default value for stateless mode
-    SipMsgContainer()
-        : msg(),
-          retransCount(1),
-          collected(false),
-          level3Ptr(0)
-	{}
+   void setRetransCount(int i) { retransCount = i; }
+   int getRetransCount() { return retransCount; }
 
-    string toString() const;
-};
+   SipTransLevel3Node * getLevel3Ptr() { return level3Ptr; }
+   void setLevel3Ptr(SipTransLevel3Node* n) { level3Ptr = n; }
+
+protected:
+   // transport specific data
+   int retransCount;
+   bool collected;
+   int prepareCount; /** How many times have we tried to send this
+                      * message.  Used by SipTcpStack at least.
+                      */
+
+   /************ TO DO **************\
+    * either put a ref to self's container in list of prev level *
+    * or some thing to get the ref to self's container *
+    * (in level2 and level3 nodes) *
+    * modify transaction GC and sent res/req DBs *
+    *********************************/
+   // back reference to level3 node
+   SipTransLevel3Node *level3Ptr;
+
+
+}; //class SipMsgContainer
 
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -53,7 +53,7 @@
 
 
 static const char* const SipEvent_hxx_Version = 
-    "$Id: SipEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+    "$Id: SipEvent.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 
 
@@ -83,120 +83,109 @@ class SipMsg;
 */
 class SipEvent : public SipProxyEvent
 {
-    public:
+public:
 
-        /** Convenience typedef.
-         */
-        typedef vector < Sptr < SipMsg > > CallLegVector;
-
-
-        /** Create the sip event given the associated fifo.
-         */
-        SipEvent( list < Sptr < SipProxyEvent > >* outputFifo );
+   /** Convenience typedef.
+    */
+   typedef vector < Sptr < SipMsg > > CallLegVector;
 
 
-        /** Virtual destructor.
-         */
-        virtual ~SipEvent();
+   /** Create the sip event.
+    */
+   SipEvent();
 
-        virtual bool isSipEvent() const { return true; }
+   /** Virtual destructor.
+    */
+   virtual ~SipEvent();
 
-        /** The name of the class.
-         */
-        virtual const char* const name() const
-        {
-            return "SipEvent";
-        }
+   virtual bool isSipEvent() const { return true; }
 
+   /** The name of the class.
+    */
+   virtual const char* const name() const {
+      return "SipEvent";
+   }
 
-        /** Set the sip message associated with this event. Updates the 
-         *  call leg.
-         */
-        void setSipMsg(const Sptr < SipMsg > sipMsg);
+   
+   /** Set the sip message associated with this event. Updates the 
+    *  call leg.
+    */
+   void setSipMsg(const Sptr < SipMsg > sipMsg);
 
-        ///
-        void setCallLeg();
+   //
+   void setCallLeg();
 
-
-        /** Returns the associated sip message.
-         */
-        const Sptr < SipMsg > getSipMsg() const;
-
-
-        /** Set the sip message queue associated with this event.
-         *  It also updates the sip message.
-         */
-        void setSipMsgQueue( SipMsgQueue* sipRcv );
+   /** Returns the associated sip message.
+    */
+   const Sptr < SipMsg > getSipMsg() const;
 
 
-        /** Get the sip message queue associated with this event.
-         */
-        const SipMsgQueue* getSipMsgQueue() const;
+   /** Set the sip message queue associated with this event.
+    *  It also updates the sip message.
+    *  A copy is made, so do not assume modifying sipRcv after
+    *  this call will change the SipEvent class in any way.
+    */
+   void setSipMsgQueue(const SipMsgQueue& sipRcv );
 
 
-        /** Calls setSipMsgQueue(). For backwards compatibility.
-         */
-        void setSipReceive( SipMsgQueue* sipRcv );
-        
-
-        /** Calls getSipMsgQueue(). For backwards compatibility.
-         */
-        const SipMsgQueue* getSipReceive() const;
+   /** Get the sip message queue associated with this event.
+    */
+   SipMsgQueue& getSipMsgQueue();
 
 
-        /** Returns the INVITE associated with the event, or 0 if none exists
-         */
-        const Sptr < InviteMsg > getInvite() const;
+   /** Returns the INVITE associated with the event, or 0 if none exists
+    */
+   const Sptr < InviteMsg > getInvite() const;
 
-        /** Returns the SIP request associated with the event, or 0 if none exists
-         */
-        const Sptr < SipCommand > getCommand() const;
+   /** Returns the SIP request associated with the event, or 0 if none exists
+    */
+   const Sptr < SipCommand > getCommand() const;
 
-        /** Takes a Command and returns the corresponding command which is to 
-         *  be cancelled, or 0 if none exists
-         */
-        const Sptr < SipCommand > 
-        getPendingCommand( Sptr < SipCommand > SipCommand ) const;
+   /** Takes a Command and returns the corresponding command which is to 
+    *  be cancelled, or 0 if none exists
+    */
+   const Sptr < SipCommand > 
+   getPendingCommand( Sptr < SipCommand > SipCommand ) const;
 
-        ///
-        Sptr < SipCallLeg > getSipCallLeg() const;
+   //
+   Sptr < SipCallLeg > getSipCallLeg() const;
 
-        const string& getLocalIp() const { return getSipCallLeg()->getLocalIp(); }
+   const string& getLocalIp() const { return getSipCallLeg()->getLocalIp(); }
 
-        /**
-         */
-        void removeCall();
+   /**
+    */
+   void removeCall();
 
-        virtual string toString() const;
-
-    private:
-
-
-        /** Sip message associated with this event.
-         */
-        Sptr < SipMsg > mySipMsg;
+   virtual string toString() const;
+   
+private:
 
 
-        /** Sip message queue associate with this event. May be updated
-         *  during the lifetime of an event.
-         */
-        SipMsgQueue* mySipMsgQueue;
+   /** Sip message associated with this event.
+    */
+   Sptr < SipMsg > mySipMsg;
 
 
-        /** Sip call leg associated with this event. May be updated during
-         *  this lifetime of an event.
-         */
-        Sptr < SipCallLeg > mySipCallLeg;
+   /** Sip message queue associate with this event. May be updated
+    *  during the lifetime of an event.
+    */
+   SipMsgQueue mySipMsgQueue;
+
+
+   /** Sip call leg associated with this event. May be updated during
+    *  this lifetime of an event.
+    */
+   Sptr < SipCallLeg > mySipCallLeg;
 
         
-        /** Suppress copying
-         */
-        SipEvent(const SipEvent &);
+   /** Suppress copying
+    */
+   SipEvent(const SipEvent &);
         
-
-        /** Suppress copying
-         */
-        const SipEvent & operator=(const SipEvent &);
+   
+   /** Suppress copying
+    */
+   const SipEvent & operator=(const SipEvent &);
 };
  
 }

@@ -50,7 +50,7 @@
 
 
 static const char* const SipEvent_cxx_Version =
-    "$Id: SipEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: SipEvent.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 
 #include "global.h"
@@ -65,10 +65,9 @@ static const char* const SipEvent_cxx_Version =
 
 using namespace Vocal;
 
-SipEvent::SipEvent( list < Sptr < SipProxyEvent > >* outputFifo )
-    :   SipProxyEvent(outputFifo),
+SipEvent::SipEvent()
+    :   SipProxyEvent(),
         mySipMsg(0),
-        mySipMsgQueue(0),
         mySipCallLeg(0)
 {
 }
@@ -99,61 +98,41 @@ SipEvent::getSipMsg() const
 
 
 void
-SipEvent::setSipMsgQueue(SipMsgQueue* sipRcv)
-{
-    assert( sipRcv != 0 );
-    // TODO:  This may leak memory and be wrong for other reasons.
-
+SipEvent::setSipMsgQueue(const SipMsgQueue& sipRcv) {
     mySipMsgQueue = sipRcv;
-
-    setSipMsg(sipRcv->back());
+    setSipMsg(mySipMsgQueue.back());
 }
 
-
-const SipMsgQueue* SipEvent::getSipMsgQueue() const {
-    return ( mySipMsgQueue );
-}
-
-
-void
-SipEvent::setSipReceive( SipMsgQueue* sipRcv )
-{
-    setSipMsgQueue(sipRcv);
-}
-
-
-const SipMsgQueue* SipEvent::getSipReceive() const {
-    return ( mySipMsgQueue );
+SipMsgQueue& SipEvent::getSipMsgQueue() {
+    return mySipMsgQueue;
 }
 
 
 const Sptr < InviteMsg >
 SipEvent::getInvite() const {
-    // iterate through all msgs associated with this event looking
-    // for an INVITE, and return it if found
-    Sptr < SipMsg > sipMsg;
+   // iterate through all msgs associated with this event looking
+   // for an INVITE, and return it if found
+   Sptr < SipMsg > sipMsg;
 
-    cpLog( LOG_DEBUG, "Search transaction for previous INVITE" );
-    if ( mySipMsgQueue != 0 ) {
-        SipMsgQueue::iterator i;
-        for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
-            sipMsg = *i;
-            if ( sipMsg == 0 ) {
-                // reach empty sip msg without finding INVITE, return 0
-                cpLog( LOG_DEBUG, "no INVITE found, returning 0" );
-                return 0;
-            }
+   cpLog( LOG_DEBUG, "Search transaction for previous INVITE" );
+   SipMsgQueue::iterator i;
+   for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
+      sipMsg = *i;
+      if ( sipMsg == 0 ) {
+         // reach empty sip msg without finding INVITE, return 0
+         cpLog( LOG_DEBUG, "no INVITE found, returning 0" );
+         return 0;
+      }
 
-            if ( sipMsg->getType() == SIP_INVITE ) {
-               Sptr < InviteMsg > invite((InviteMsg*)(sipMsg.getPtr()));
-               cpLog( LOG_DEBUG, "Found INVITE:" );
-               cpLog( LOG_DEBUG, "%s", invite->encode().logData() );
-               return invite;
-            }
-            cpLog( LOG_DEBUG, "Not an INVITE:" );
-            cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
-        }
-    }
+      if ( sipMsg->getType() == SIP_INVITE ) {
+         Sptr < InviteMsg > invite((InviteMsg*)(sipMsg.getPtr()));
+         cpLog( LOG_DEBUG, "Found INVITE:" );
+         cpLog( LOG_DEBUG, "%s", invite->encode().logData() );
+         return invite;
+      }
+      cpLog( LOG_DEBUG, "Not an INVITE:" );
+      cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
+   }
 
     // no Invite found
     cpLog( LOG_DEBUG, "no INVITE found, returning 0" );
@@ -162,34 +141,31 @@ SipEvent::getInvite() const {
 
 
 const Sptr < SipCommand >
-SipEvent::getCommand() const
-{
+SipEvent::getCommand() const {
     // iterate through all msgs associated with this event looking
     // for a command, and return it if found
     Sptr < SipMsg > sipMsg;
 
     cpLog( LOG_DEBUG, "Search transaction for previous command" );
-    if ( mySipMsgQueue != 0 ) {
-        SipMsgQueue::iterator i;
-        for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
-            sipMsg = *i;
-            if ( sipMsg == 0 ) {
-                // reach empty sip msg without finding INVITE, return 0
-                cpLog( LOG_DEBUG, "no command found, returning 0" );
-                return 0;
-            }
+    SipMsgQueue::iterator i;
+    for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
+       sipMsg = *i;
+       if ( sipMsg == 0 ) {
+          // reach empty sip msg without finding INVITE, return 0
+          cpLog( LOG_DEBUG, "no command found, returning 0" );
+          return 0;
+       }
 
-	    Sptr < SipCommand > command((SipCommand*)(sipMsg.getPtr()));
-            if ( command != 0 ) {
-                cpLog( LOG_DEBUG, "Found command sent to %s:%d",
-		                  command->getSendAddress().getIpName().c_str(),
-		                  command->getSendAddress().getPort() );
-                cpLog( LOG_DEBUG, "%s", command->encode().logData() );
-                return command;
-            }
-            cpLog( LOG_DEBUG, "Not an INVITE:" );
-            cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
-        }
+       Sptr < SipCommand > command((SipCommand*)(sipMsg.getPtr()));
+       if ( command != 0 ) {
+          cpLog( LOG_DEBUG, "Found command sent to %s:%d",
+                 command->getSendAddress().getIpName().c_str(),
+                 command->getSendAddress().getPort() );
+          cpLog( LOG_DEBUG, "%s", command->encode().logData() );
+          return command;
+       }
+       cpLog( LOG_DEBUG, "Not an INVITE:" );
+       cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
     }
 
     // no command found

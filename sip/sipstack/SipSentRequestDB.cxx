@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -93,48 +93,42 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
 
     Sptr<SipCommand> command((SipCommand*)(msg.getPtr()));
 
-    if ( command != 0 )
-    {
+    if ( command != 0 ) {
         Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
-        if(dest != 0)
-        {
+        if(dest != 0) {
             cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
             retVal->msg.transport = dest->getTransportParam();
         }
     } 
 
-    if(msg->getType() != SIP_ACK)
-      retVal->retransCount = MAX_RETRANS_COUNT;
+    if (msg->getType() != SIP_ACK) {
+        retVal->setRetransCount(MAX_RETRANS_COUNT);
+    }
 
     SipTransLevel1Node * topNode = getTopNode(id,msg);
     SipTransactionList<SipTransLevel3Node *>::SipTransListNode *nodePtr =
 	topNode->findOrInsert(id)->val->findOrInsert(id);
 
-    if(nodePtr->val->msgs.request)
-    {
+    if (nodePtr->val->msgs.request) {
 	cpLog(LOG_ERR,"two identical requests from application...");
 	cpLog(DEBUG_NEW_STACK,"Old...\n%s\n\nNew...\n%s",
 	      nodePtr->val->msgs.request->msg.out.logData(),
 	      retVal->msg.out.logData());
     }
-    else
-    {
+    else {
 	// insert the request into data base
 	nodePtr->val->msgs.request = retVal;
-	retVal->level3Ptr = nodePtr->val;
+	retVal->setLevel3Ptr(nodePtr->val);
 
 	// if this is a CANCEL then cancel all the active retranses...
-	if(msg->getType() == SIP_CANCEL)
-	{
+	if (msg->getType() == SIP_CANCEL) {
 	    SipTransLevel2Node * level2Node = topNode->find(id)->val;
 	    
 	    SipTransactionList<SipTransLevel3Node *>::SipTransListNode *curr =
 		level2Node->level3.getLast();
-	    while(curr)
-	    {
+	    while (curr) {
 		// we don't want to cancel the yet to be sent CANCEL
-		if(curr != nodePtr)
-		{
+		if(curr != nodePtr) {
 		    cpLog(DEBUG_NEW_STACK,"Canceling request %s",
 			  curr->val->msgs.request->msg.out.logData());
 		    cancel(curr->val->msgs.request);
@@ -151,12 +145,12 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
 }
 
 
+// TODO:  Looks like a good place for smart pointers!!!
 SipMsgQueue*
 SipSentRequestDB::processRecv(SipMsgContainer* msgContainer)
 {
     // the only receive in THIS db can be of the responses
-    StatusMsg * response = dynamic_cast<StatusMsg*>(
-	msgContainer->msg.in.getPtr());
+    StatusMsg * response = dynamic_cast<StatusMsg*>(msgContainer->msg.in.getPtr());
     assert(response);
 
     SipMsgQueue * retVal = 0;
@@ -272,7 +266,7 @@ SipSentRequestDB::processRecv(SipMsgContainer* msgContainer)
                            msgContainer->msg.netAddr =  
                                curr->val->msgs.request->msg.netAddr;
 			   
-			   msgContainer->retransCount = FILTER_RETRANS_COUNT;
+			   msgContainer->setRetransCount(FILTER_RETRANS_COUNT);
 			   
 			   break;
 		       }
@@ -293,18 +287,17 @@ SipSentRequestDB::processRecv(SipMsgContainer* msgContainer)
                    // the response
 		   msgContainer->msg.in = 0;
                    msgContainer->msg.out = "";
-		   msgContainer->retransCount = 0;
+		   msgContainer->setRetransCount(0);
 	       }
 	    }
 	    else
 	    {
                 cpLog(LOG_DEBUG_STACK, "msgs.response is false.\n");
 		level3Node->val->msgs.response = msgContainer;
-		level3Node->val->msgs.response->level3Ptr = level3Node->val;
+		level3Node->val->msgs.response->setLevel3Ptr(level3Node->val);
 		
 		retVal = new SipMsgQueue;
-		if(level3Node->val->msgs.request)
-                {
+		if (level3Node->val->msgs.request) {
 		    retVal->push_back(level3Node->val->msgs.request->msg.in);
                     level3Node->val->msgs.request->msg.in = 0;
                 }

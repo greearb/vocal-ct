@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionGC_hxx_version =
-    "$Id: SipTransactionGC.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransactionGC.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 
 #include "SipTransactionLevels.hxx"
@@ -88,11 +88,11 @@ class SipTransactionGC
 	bool operator==(const SipTransactionGC&);
 
     protected:
-	void trash(SipMsgContainer* item);
+	void trashSMC(Sptr<SipMsgContainer> item);
 	bool doneFlag;
 
     public:
-	void collect(SipMsgContainer* item, int delay=0);
+	void collect(Sptr<SipMsgContainer> item, int delay=0);
 
     private:
 	struct GCType;

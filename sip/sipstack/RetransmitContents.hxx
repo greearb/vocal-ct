@@ -52,16 +52,10 @@
  */
 
 
-
-static const char* const RetransmitContents_hxx_Version
-= "$Id: RetransmitContents.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
-
 #include "Sptr.hxx"
 #include "symbols.hxx"
 #include "SipMsg.hxx"
-
+#include <misc.hxx>
 #include "SipTransactionLevels.hxx"
 
 namespace Vocal
@@ -69,45 +63,50 @@ namespace Vocal
 
 class RetransmitContents: public BugCatcher {
     public:
-  ///
-  RetransmitContents();
+        ///
+        RetransmitContents();
+        
+        ///TimetoGo is 0 by default
+        RetransmitContents(Sptr<SipMsgContainer> msg, int count);
+        ///    
+        virtual ~RetransmitContents();
+        ///     
+        RetransmitContents(const RetransmitContents& src );
 
-  ///TimetoGo is 0 by default
-  RetransmitContents(SipMsgContainer* msg, int count);
-  ///    
-  ~RetransmitContents();
-  ///     
-  RetransmitContents(const RetransmitContents& src );
-  ///
-  RetransmitContents& operator =(const RetransmitContents& src);
-  ///
-  void setCount(const int i);
-  ///
-  int getCount() const;
-  ///
-  void setMsg(SipMsgContainer* );
-  ///
-  SipMsgContainer* getMsg() const;
-  ///
-  int getTimeToGo() const;
-  ///
-  void setTimeToGo(const int newtimeToGo);
+        ///
+        void setCount(const int i);
+        ///
+        int getCount() const;
+        ///
+        void setMsg(Sptr<SipMsgContainer> msg );
+        ///
+        Sptr<SipMsgContainer> getMsg() const;
+        ///
+        const uint64& getNextTx() const;
+        ///
+        void setNextTx(uint64& next_tx);
 
-  string toString() const;
-  
-private:
-  
-  SipMsgContainer* sipMsg;
-  int retransmitt;
-  int timeToGo;
+        int getLastWaitPeriod() { return wait_period; }
+        void setWaitPeriod(int t) { wait_period = t; }
+        
+        string toString() const;
+        
+    private:
+        
+        Sptr<SipMsgContainer> sipMsg;
+        int retransmitt;
+        uint64 nextTx;
+        int wait_period;
 };
- 
+
+struct RetransContentsComparitor {
+        bool operator()(Sptr<RetransmitContents> a, Sptr<RetransmitContents> b) {
+            return (a->getNextTx() < b->getNextTx());
+        }
+};
+
+extern RetransContentsComparitor retransContentsComparitor;
+    
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

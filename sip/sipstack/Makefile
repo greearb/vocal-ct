@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/05/04 07:31:14 greear Exp $
+# $Id: Makefile,v 1.3 2004/05/27 04:32:18 greear Exp $
 
 BUILD = ../../build
 
@@ -126,7 +126,6 @@ SRC = \
     SipTransceiver.cxx\
     SipTransferTo.cxx\
     SipUdpConnection.cxx\
-    SipUdp_impl.cxx\
     SipUnknownContentData.cxx\
     SipUnsupported.cxx\
     SipUriSupportedEntry.cxx\

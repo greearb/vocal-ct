@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-    "$Id: SipTcpConnection.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: SipTcpConnection.cxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -75,6 +75,7 @@ static const char* const SipTcpConnection_cxx_Version =
 #include "support.hxx"
 #include "symbols.hxx"
 
+
 using namespace Vocal;
 
 //Note: If client or server needs to keep a persistent TCP connection for
@@ -83,7 +84,7 @@ using namespace Vocal;
 #define USE_PERSISTENT_TCP 1
 
 
-Sptr < Connection >
+Sptr < NTcpStuff >
 NTcpConnInfo::getStatusMsgConn(Sptr < SipMsg > msg)
 {
     //form the trans id.
@@ -93,15 +94,14 @@ NTcpConnInfo::getStatusMsgConn(Sptr < SipMsg > msg)
     cpLog(LOG_DEBUG, "NTcpConnInfo - IDMap size:%d", idMap.size());
     i = idMap.find(newId);
 
-    if (i != idMap.end())
-    {
+    if (i != idMap.end()) {
         // found it, do something
-        return i->second->tcpConnection;
+        return i->second;
     }
-    else
-    {
+    else {
         cpLog(LOG_WARNING,
-              "could not find TCP connection for status msg (%s) reply", msg->encode().logData());
+              "could not find TCP connection for status msg (%s) reply",
+              msg->encode().logData());
         return 0;
     }
 }
@@ -137,9 +137,10 @@ NTcpConnInfo::setStatusMsgConn(Sptr < SipMsg > msg, int fd)
 
 
 
-NTcpConnInfo::NTcpConnInfo()
+NTcpConnInfo::NTcpConnInfo(SipTcpConnection* tc)
    : nullData(TransNull)
 {
+    sip_conn = tc;
 }
 
 
@@ -245,22 +246,63 @@ NTcpConnInfo::getConnInfo(int fd)
     return(getCurrent(fd));
 }
 
-
-int
-NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
-{
-    if (!tcpfd)
-    {
-        return -1;
+void NTcpConnInfo::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        uint64 now) {
+    int rv;
+    map < int, Sptr < NTcpStuff > > ::iterator i = myMap.begin();
+    while (i != myMap.end()) {
+        int mapfd = i->first;
+        if (FD_ISSET(mapfd, input_fds)) {
+            cpLog(LOG_DEBUG_STACK, "reading tcp data on %d", mapfd);
+            rv = tcpReadOrAccept(mapfd, sip_conn->getTcpStack());
+            if (rv > 0) {
+                sip_conn->processMsgsIfReady(i->second);
+            }
+        }
+        ++i;
     }
+}//tick
+
+
+int NTcpConnInfo::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                         int& maxdesc, uint64& timeout, uint64 now) {
+
+    map < int, Sptr < NTcpStuff > > ::iterator i;
+    i = myMap.begin();
+    while (i != myMap.end()) {
+        int mapfd = i->first;
+	if (mapfd <= 0)
+            continue;
+
+        Sptr<NTcpStuff> conn = i->second;
+
+        FD_SET(mapfd, *input_fds); // always check for reads
+        FD_SET(mapfd, *exc_fds);   // always check for exceptions
+
+        if (conn->needsToWrite()) {
+            FD_SET(mapfd, *output_fds); // Check for writes too
+        }
+
+        if (mapfd > maxdesc) {
+            maxdesc = mapfd;
+        }
+        ++i;
+    }
+    return 0;
+}
+
+
+
+
+
+int NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket& tcpStack) {
 
     Sptr < Connection > newconn = 0;
     Sptr <NTcpStuff> connInfo = 0;
 
     cpLog(LOG_DEBUG_STACK, "Received tcp msg on fd: %d", tcpfd);
 
-    if (tcpfd == tcpStack->getServerConn()->getConnId())
-    {
+    if (tcpfd == tcpStack->getServerConn()->getConnId()) {
         //this has happened on the default server socket.
         //create a new connection and accept on it.
         newconn = new Connection(tcpStack->getServerConn()->isBlocking());
@@ -268,19 +310,17 @@ NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
         int clientId = 0;
 
         // catch exception thrown when we run out of fds
-        try
-        {
+        try {
             clientId = tcpStack->accept(*newconn);
         }
-        catch (VNetworkException &)
-        {
+        catch (VNetworkException &) {
             return -1;
         }
         
         cpLog(LOG_DEBUG_STACK,"*****  New Connection = %s *****\n", 
               newconn->getDescription().c_str());
 
-        // set the sender ip   
+        // set the sender ip
         string ipName = newconn->getIp();
 
         //cache this in the tcpMap.
@@ -293,91 +333,51 @@ NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
         tcpfd = newconn->getConnId();
         connInfo = getConnInfo(tcpfd);
         assert(connInfo != 0);
-
-        //overwrite the conn object.
     }
-    else
-    {
+    else {
         connInfo = getConnInfo(tcpfd);
-        assert(connInfo != 0);
         newconn = connInfo->tcpConnection;   //it already has the
                                              //correct connection.
     }
 
-    int numBytes;
+    int numBytes = 0;
 
-    if (newconn != 0)
-    {
-        char buf [1025];
-        buf[0] = '\0';
-
+    if (newconn != 0) {
         // read off some data, possibly break
         Data& myBuf = connInfo->tcpBuf;
 
-        numBytes = newconn->readn(buf, 1024);
+        numBytes = newconn->readn(connInfo->rcvBuf, MAX_SIP_TCP_RCV_BUF);
 
-        if (numBytes <= 0)
-        {
-            // probably should close here!
+        if (numBytes < 0) {
             cpLog(LOG_DEBUG_STACK, "closing fd");
             delConn(tcpfd);
             return -1;
         }
-
-        buf[numBytes] = '\0';
-
-        cpLog(LOG_DEBUG_STACK, "appending data: ");
-        cpLog(LOG_DEBUG_STACK, "::::::::::" );
-        cpLog(LOG_DEBUG_STACK, "%s", buf);
-        cpLog(LOG_DEBUG_STACK, "::::::::::");
-
-        myBuf += buf;
-        cpLog(LOG_DEBUG_STACK, "has read data, will check");
-        cpLog(LOG_DEBUG_STACK, "%s ", myBuf.logData());
-    }
-    return tcpfd;
-}
-
-
-int
-NTcpConnInfo::setTCPFds(fd_set* fdSet)
-{
-    map < TcpFd, Sptr < NTcpStuff > > ::iterator i;
-    int maxfd = -1;
-
-    i = myMap.begin();
-
-    while (i != myMap.end())
-    {
-        int mapfd = i->first;
-	if(mapfd <= 0) continue;
-
-        FD_SET(mapfd, fdSet);
-
-        if (mapfd > maxfd)
-        {
-            maxfd = mapfd;
+        if (numBytes == 0) {
+            // Nothing to read, will try again next time.
+            return 0;
         }
-        ++i;
-    }
 
-    // special for connected but unaccepted connections
-    return maxfd;
+        connInfo->rcvBuf[numBytes] = '\0';
+
+        cpLog(LOG_DEBUG_STACK, "appending data: ::::::::::%s::::::::::",
+              connInfo->rcvBuf);
+
+        myBuf += rcvBuf;
+        cpLog(LOG_DEBUG_STACK, "has read data, will check: %s",
+              myBuf.c_str());
+    }
+    return numBytes;
 }
 
 
-SipTcpConnection_impl_::SipTcpConnection_impl_(list < Sptr<SipMsgContainer> >* fifo,
-                                               const string& local_ip,
-                                               const string& _local_dev_to_bind_to,
-                                               int port, bool blocking)
-        :
-        mytcpStack(local_ip, _local_dev_to_bind_to, port, blocking),
-        sendFifo(),
-        recFifo(fifo),
-        shutdownNow(false),
-        local_ip_to_bind_to(local_ip),
-        local_dev_to_bind_to(_local_dev_to_bind_to)
-{
+SipTcpConnection::SipTcpConnection(const string& local_ip,
+                                   const string& _local_dev_to_bind_to,
+                                   int port, bool blocking)
+    : mytcpStack(local_ip, _local_dev_to_bind_to, port, blocking),
+      tcpConnInfo(this),
+      local_ip_to_bind_to(local_ip),
+      local_dev_to_bind_to(_local_dev_to_bind_to) {
 
     // put the tcpStack into the tcpConnInfo map
 
@@ -390,17 +390,12 @@ SipTcpConnection_impl_::SipTcpConnection_impl_(list < Sptr<SipMsgContainer> >* f
 }
 
 
-SipTcpConnection_impl_::~SipTcpConnection_impl_()
-{
-    // also need to wait on the appropriate threads after they've been killed
-
-    // wake the sender with an appropriate message
-
-    shutdownNow = true;
+SipTcpConnection::~SipTcpConnection() {
+    // Nothing to do
 }
 
 
-const string SipTcpConnection_impl_::getLocalIp() const {
+const string SipTcpConnection::getLocalIp() const {
     string rv = mytcpStack.getSpecifiedLocalIp();
     if (rv.size()) {
         return rv;
@@ -411,129 +406,67 @@ const string SipTcpConnection_impl_::getLocalIp() const {
 }
 
 
+Sptr<SipMsgContainer>
+SipTcpConnection::getNextMessage() {
+    // First, see if we can pull something off of the fifo
+    if (rcvFifo.size()) {
+        Sptr<SipMsgContainer> rv = rcvFifo.front();
+        rcvFifo.pop_front();
+        return rv;
+    }
+    else {
+        // Maybe can read from the Udp Stack
+        return receiveMessage();
+    }
+}
 
-
-void
-SipTcpConnection_impl_::send(SipMsgContainer* msg, const Data& host,
-                             const Data& port)
-{
-
+int SipTcpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
+                           const Data& port) {
     Data nhost;
     int nport=0;
 
-    if(host.length())
-    {
+    if (host.length()) {
         nhost = host;
         nport = port.convertInt();
     }
-    else
-    {
+    else {
         Sptr<SipCommand> command((SipCommand*)(msg->msg.in.getPtr()));
-        if(command.getPtr() != 0) {
+        if (command.getPtr() != 0) {
             Sptr<SipUrl> sipDest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
-            if(sipDest != 0) {
+            if (sipDest != 0) {
                 nhost = sipDest->getMaddrParam();
-                if(!nhost.length()) nhost = sipDest->getHost();
+                if (!nhost.length())
+                    nhost = sipDest->getHost();
                 nport = sipDest->getPort().convertInt();
                 cpLog( LOG_DEBUG_STACK,
                        "got host from request line: %s:%d",
                        nhost.logData(), nport);
-                if ( nport == 0 )
-                {
+                if ( nport == 0 ) {
                     nport = SIP_PORT;
                     cpLog( LOG_DEBUG_STACK, "Changed port to %d", nport);
                 }
             }
         }
     }
-    if(nhost.length()) {
+
+    if (nhost.length()) {
         try {
             msg->msg.netAddr = new NetworkAddress(nhost.convertString(),
-                                              nport); 
+                                                  nport); 
         }
-        catch(NetworkAddress::UnresolvedException& e)
-        {
+        catch(NetworkAddress::UnresolvedException& e) {
             cpLog(LOG_ERR, "Destination (%s) is not reachable, reason:%s.",
                   nhost.logData(), e.getDescription().c_str());
+            return -1;
         }
     }
-    // TODO: sendFifo.add(msg);
-}
-
-
-#warning "Implement non-threaded SipTcpConnection implementation."
-#if 0
-void*
-SipTcpConnection_impl_::sendMain()
-{
-    while (1)
-    {
-        SipMsgContainer* sipMsg = sendFifo.getNext();
-
-        if ( !shutdownNow )
-        {
-            int type = sipMsg->msg.type;
-            // If connection is persistent, try connecting atleast these times
-            for(int i = 0; i < 3; i++)
-            {
-                try 
-                {
-                    prepareEvent(sipMsg);
-                    break;
-                }
-                catch(VNetworkException& e)
-                {
-                    cpLog(LOG_ERR, "Network error, reason %s", e.getDescription().c_str());
-                    if(sipMsg->msg.in->nextHopIsAProxy())
-                    {
-                       continue;
-                    }
-                    else
-                    {
-                        //TODO send error to application ??
-                        break;
-                    }
-                }
-            }
-	    /// also inform the cleanup
-	    if(type != SIP_INVITE)
-            {
-                SipTransactionGC::instance()->
-                    collect(sipMsg, MESSAGE_CLEANUP_DELAY);
-            }
-        }
-        else
-        {
-            return 0;
-        }
-    }
+    sendQ.push(msg);
     return 0;
 }
-
-void*
-SipTcpConnection_impl_::processMain()
-{
-    while (1)
-    {
-        int fdToRead = processFifo.getNext();
-
-        if ( !shutdownNow )
-        {
-            processMsgsIfReady(fdToRead);
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    return 0;
-}
-#endif
 
 
 Sptr < Connection >
-SipTcpConnection_impl_::createRequestTransaction(Sptr < SipCommand > command)
-{
+SipTcpConnection::createRequestTransaction(Sptr < SipCommand > command) {
     //come here only if this is a command.
     assert (command != 0);
     Sptr<SipUrl> dest = command->postProcessRouteAndGetNextHop();
@@ -544,8 +477,7 @@ SipTcpConnection_impl_::createRequestTransaction(Sptr < SipCommand > command)
     int port = dest->getPort().convertInt();
     cpLog( LOG_DEBUG_STACK,"Using destination: %s:%d", host.logData(), port);
     
-    if ( port == 0 )
-    {
+    if ( port == 0 ) {
         port = SIP_PORT;
         cpLog( LOG_DEBUG_STACK, "Changed port to %d", port);
     }
@@ -576,25 +508,20 @@ SipTcpConnection_impl_::createRequestTransaction(Sptr < SipCommand > command)
 
 
 Sptr < Connection >
-SipTcpConnection_impl_::createOrGetPersistentConnection(
-    NetworkAddress nwaddr)
-{
+SipTcpConnection::createOrGetPersistentConnection(NetworkAddress nwaddr) {
     //come here only if this is a command.
     //	NetworkAddress nwaddr(host.getData(lo), port);
     string ipName = nwaddr.getIpName().convertString();
     char buf[56];
     sprintf(buf, "%s:%d", ipName.c_str(), nwaddr.getPort());
     
-    if(myDestinationMap.count(buf))
-    {
+    if (myDestinationMap.count(buf)) {
         //Found an existing connection
         cpLog( LOG_DEBUG_STACK, "Found existing connection for %s", buf );
-        if(myDestinationMap[buf]->isLive())
-        {
+        if(myDestinationMap[buf]->isLive()) {
             return myDestinationMap[buf];
         }
-        else
-        {
+        else {
                //close the connection , remove it from the map that
             //would re-establish it
             cpLog(LOG_ERR, "Stale connection from (%s), re-connecting..", 
@@ -617,8 +544,7 @@ SipTcpConnection_impl_::createOrGetPersistentConnection(
         tcpConnInfo.setConnNSenderIp(connection->getConnId(), connection, buf);
         return connection;
     }
-    catch (VNetworkException& exception)
-    {
+    catch (VNetworkException& exception) {
         cpLog(LOG_ERR, exception.getDescription().c_str());
         myDestinationMap.erase(buf);
         return 0;
@@ -627,20 +553,12 @@ SipTcpConnection_impl_::createOrGetPersistentConnection(
 
 
 
-void
-SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
+int
+SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
 {
-    Sptr < Connection > conn;
-    LocalScopeAllocator lo;
+    Sptr < NTcpStuff > conn;
 
     // create or use the current TCP details as appropriate
-    //If for a duplicate request a previous response is being 
-    //sent, there in no information on transport to send to.
-    if(sipMsg->msg.in == 0) 
-    {
-        cpLog( LOG_DEBUG_STACK, "retransmission of the message :%s being ignored", sipMsg->msg.out.logData() );
-        return; 
-    }
 
     int type = sipMsg->msg.in->getType();
 
@@ -656,54 +574,53 @@ SipTcpConnection_impl_::prepareEvent(SipMsgContainer* sipMsg)
 
         if (sipMsg->msg.netAddr == 0){
             cpLog(LOG_WARNING, "TCP Send is NULL");
-            return;
+            return -EINVAL;
         }
 
         // this is a request
+        Sptr<Connection> c
 #ifdef USE_PERSISTENT_TCP
-        conn = createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
+        c = createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
 #else
-        if(sipCommand->nextHopIsAProxy())
-        {
-	  
-////            conn = createOrGetPersistentConnection(sipCommand);
-            conn = createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
+        if (sipCommand->nextHopIsAProxy()) {
+            c = createOrGetPersistentConnection(*(sipMsg->msg.netAddr));
         }
-        else
-        {
-             conn = createRequestTransaction(sipMsg);
+        else {
+            c = createRequestTransaction(sipMsg);
         }
 #endif
+        tcpConnInfo.createConnection(c);
+        conn = getConnInfo(c->getConnId());
     }
     else {
         // this is an error
         cpLog(LOG_ERR, "API violation: attempt to send null message");
-        return;
+        assert(0);
     }
 
     // at this point, you need to transmit
     if (conn != 0) {
         sipMsg->msg.out =  sipMsg->msg.in->encode();
-        string dataString = sipMsg->msg.out.getData(lo);
+        string dataString = sipMsg->msg.out.c_str();
         cpLog(LOG_INFO, "sending TCP SIP msg:\n\n-> %s\n\n%s",
               conn->getDescription().c_str(), dataString.c_str());
         cpLog(LOG_DEBUG_STACK, "TCP fd: %d", conn->getConnId());
 
+        // If this fails, we are out of buffer space..  the conn class will
+        // try as hard as possible, so just ignore errors at this point.
         conn->writeData(dataString);
 
 #ifdef USE_PERSISTENT_TCP
         assert(type == SIP_STATUS);
         Sptr<StatusMsg> statusMsg((StatusMsg*)(sipMsg->msg.in.getPtr()));
-        if((statusMsg != 0) && (statusMsg->getStatusLine().getStatusCode() >= 200))
-        {
+        if ((statusMsg != 0) && (statusMsg->getStatusLine().getStatusCode() >= 200)) {
             //Transaction is over, remove the entry from the ID map
             SipTransactionId id(*statusMsg);
             tcpConnInfo.delIdMapEntry(id);
         }
 #else
-        if((type == SIP_ACK) && !(sipMsg->msg.in->nextHopIsAProxy()))
-        {
-            tcpConnInfo.myCleanupList.push_back(conn->getConnId());
+        if ((type == SIP_ACK) && !(sipMsg->msg.in->nextHopIsAProxy())) {
+            tcpConnInfo.myCleanupList.push_back(conn->tcpConnection->getConnId());
         }
 #endif
     }
@@ -733,10 +650,9 @@ get_next_line(const string& str, string::size_type* old_pos)
 int
 getContentLength(const string& str)
 {
-    LocalScopeAllocator lo;
     // given that this string is a content-length then do something
-    static string contentLengthStr = str2lower(CONTENT_LENGTH.getData(lo));
-    static string contentLengthStr2 = str2lower(CONTENT_LENGTH_SHORT.getData(lo));
+    static string contentLengthStr = str2lower(CONTENT_LENGTH.c_str());
+    static string contentLengthStr2 = str2lower(CONTENT_LENGTH_SHORT.c_str());
    
     int pos = 0; 
     unsigned len = str.length();
@@ -776,25 +692,13 @@ isBlankLine(const string& str)
     // message, only a line which has ONLY the CRLF.  we also accept
     // lines w/ LF only for robustness.
 
-    if((str == "\r") || (str == ""))
-    {
+    if ((str == "\n\r") || (str == "\n") ||
+        (str == "\r") || (str == "")) {
         return true;
     }
-    else
-    {
+    else {
         return false;
     }
-
-#if 0
-    if (str.find_first_not_of(" \t\r\n") == string::npos)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-#endif
 }
 
 
@@ -870,26 +774,17 @@ Vocal::isFullMsg(const string& str)
 
 
 void
-SipTcpConnection_impl_::processMsgsIfReady(int fd)
-{
+SipTcpConnection::processMsgsIfReady(Sptr<NTcpStuff> connInfo) {
     Data data;
     string ipName;
 
-    // read off some data, possibly break
-    Sptr<NTcpStuff> connInfo = tcpConnInfo.getConnInfo(fd);
-    if(connInfo == 0)
-    {
-        // Too late , connection is closed already
-        return;
-    }
-    LocalScopeAllocator lo;
+    // TODO:  Probably can get rid of some of these coppies of data.
     Data& myBufD = connInfo->tcpBuf;
-    ipName = connInfo->sender_ip.getData(lo);
-    string myBuf = myBufD.getData(lo);
+    ipName = connInfo->sender_ip.c_str();
+    string myBuf = myBufD.c_str();
     int bufLen = isFullMsg(myBuf);
     cpLog(LOG_DEBUG_STACK, "Raw Msg read: [%s]" , myBuf.c_str());
-    while (bufLen != -1)
-    {
+    while (bufLen != -1) {
         string msgBuf = myBuf.substr(0, bufLen);
         string remainingBuf =
             myBuf.substr(bufLen, myBuf.length() - bufLen);
@@ -897,25 +792,23 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
 
         data = Data(msgBuf);
 
-        SipMsgContainer* sipMsg = new SipMsgContainer;
-
+        Sptr<SipMsgContainer> sipMsg = new SipMsgContainer();
 
 	sipMsg->msg.out = data;
         sipMsg->msg.in = SipMsg::decode( data, getLocalIp());
 
-        if (sipMsg->msg.in != 0)
-        {
+        if (sipMsg->msg.in != 0) {
             //store the receivedIPName.
             cpLog(LOG_DEBUG_STACK, "*** getSenderIP = %s***", ipName.c_str());
             sipMsg->msg.in->setReceivedIPName( ipName );
-            cpLog(LOG_INFO, "Received UDP Message :\n\n<- HOST[%s]\n\n%s",ipName.c_str(),  data.logData());
+            cpLog(LOG_INFO, "Received UDP Message :\n\n<- HOST[%s]\n\n%s",
+                  ipName.c_str(),  data.logData());
 
             if ((sipMsg->msg.in->getType() != SIP_STATUS) &&
                 (sipMsg->msg.in->getType() != SIP_ACK)) {
                 // save in the map
                 tcpConnInfo.setStatusMsgConn(sipMsg->msg.in, fd);
-                if(sipMsg->msg.in->getType() == SIP_REGISTER)
-                {
+                if (sipMsg->msg.in->getType() == SIP_REGISTER) {
                    //If request is a REGISTER message, map the contact
                    //host port with TCP socket, so that future
                    //requests to the contact would follow the same
@@ -923,10 +816,10 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
                    Data rData = connInfo->tcpConnection->getDescription();
                    cpLog( LOG_DEBUG_STACK, "Received from %s", rData.logData() );
                    int numContacts = sipMsg->msg.in->getNumContact();
-                   if( numContacts ) {
+                   if ( numContacts ) {
                        const SipContact& contact = sipMsg->msg.in->getContact( numContacts-1 );
                        Sptr<SipUrl> sUrl((SipUrl*)(contact.getUrl().getPtr()));
-                       if( sUrl != 0 ) {
+                       if ( sUrl != 0 ) {
                            Data tmp = sUrl->getHost();
                            tmp += ":";
                            tmp += sUrl->getPort();
@@ -956,10 +849,7 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
                 }
             }
             
-            //TODO: recFifo->add(sipMsg);
-        }
-	else {
-	    delete sipMsg;
+            rcvFifo.push_back(sipMsg);
         }
         myBuf = myBufD.getData(lo);
         bufLen = isFullMsg(myBuf);
@@ -967,97 +857,48 @@ SipTcpConnection_impl_::processMsgsIfReady(int fd)
 }
 
 
-void
-SipTcpConnection_impl_::readOnFdSet(fd_set* fdSet, TcpServerSocket* tcpStack) {
-    int tcpreadfd = -1;
-    list<int> fdList;
+int SipTcpConnection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                             int& maxdesc, uint64& timeout, uint64 now) {
+    tcpConnInfo.setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 
-    map < TcpFd, Sptr < NTcpStuff > > ::iterator i = tcpConnInfo.myMap.begin();
-    while (i != tcpConnInfo.myMap.end()) {
-        int mapfd = i->first;
+}
 
-        if (FD_ISSET(mapfd, fdSet)) {
-            FD_CLR(mapfd, fdSet);
-            cpLog(LOG_DEBUG_STACK, "reading tcp data on %d", mapfd);
-            tcpreadfd =  tcpConnInfo.tcpReadOrAccept(mapfd, tcpStack);
-            if (tcpreadfd > 0) {
-#warning "Port this to non-threaded model."
-                //processFifo.add(tcpreadfd);
-            }
+void SipTcpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                            uint64 now) {
+    tcpConnInfo.tick(input_fds, output_fds, exc_fds, now);
+
+    while (sendQ.size()) {
+        Sptr<SipMsgContainer> sipMsg = sendQ.top();
+
+        int type = sipMsg->msg.type;
+
+        if ((sipMsg->msg.in == 0) || (sipMsg->getPrepareCount() > 10)) {
+            // Give up
+            cpLog(LOG_ERR, "Network error, giving up on sipMsg: %s\n",
+                  sipMsg->toString().c_str());
+            sendQ.pop();
+            retval++; //Made some progress
+            continue;
         }
-        ++i;
-    }
-}
 
-
-void* 
-SipTcpConnection_impl_::receiveMain()
-{
-    fd_set netFD;
-
-    while (1)
-    {
-        FD_ZERO (&netFD);
-        int maxfd = tcpConnInfo.setTCPFds( &netFD );
-
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 10000;
-        int selret = select(maxfd + 1, &netFD, 0, 0, &timeout);
-
-        if (selret > 0)
-        {
-            readOnFdSet(&netFD, &mytcpStack);
+        if (prepareEvent(sipMsg) < 0) {
+            // Something is un-fixably broken.  Toss this guy.
+            sendQ.pop();
         }
-	else if (selret < 0)
-        {
-            // do something
-            if ( errno != EINTR )
-            {
-	        // this should be an error
-                cpLog(LOG_ALERT, "select() failed, reason: %s, %d", 
-                      strerror(errno), errno);
-            }
+        else {
+            // Successfully sent it
+            retval++; // Made progress
+            sendQ.pop();
         }
-	else if (selret == 0)
-        {
-            if (shutdownNow)
-            {
-                return 0;
-            }
+
+        // also inform the cleanup
+        if (type != SIP_INVITE) {
+            SipTransactionGC::instance()->collect(sipMsg, MESSAGE_CLEANUP_DELAY);
         }
-    }
-    return 0;
+    }//while
+    return retval;
 }
 
 
-SipTcpConnection::SipTcpConnection( list < Sptr<SipMsgContainer> >* fifo,
-                                    const string& local_ip,
-                                    const string& local_dev_to_bind_to,
-                                    int port, bool blocking)
-{
-    impl_ = new SipTcpConnection_impl_(fifo, local_ip, local_dev_to_bind_to,
-                                       port, blocking);
+
 }
-
-
-SipTcpConnection::~SipTcpConnection()
-{
-    delete impl_;
-}
-
-
-void
-SipTcpConnection::send(SipMsgContainer* msg, const Data& host,
-                             const Data& port)
-{
-    impl_->send(msg, host, port);
-}
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

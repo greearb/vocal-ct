@@ -50,7 +50,7 @@
 
 
 static const char* const StatelessBasicProxy_cxx_Version =
-    "$Id: StatelessBasicProxy.cxx,v 1.3 2004/05/25 06:24:09 greear Exp $";
+    "$Id: StatelessBasicProxy.cxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 
 #include "CommandLine.hxx"
@@ -71,8 +71,6 @@ StatelessBasicProxy::StatelessBasicProxy( int hashTableSize,
                                           bool nat,
                                           SipAppContext aContext) {
 
-   myCallProcessingQueue = new list < Sptr < SipProxyEvent > >;
-
    //  Filter option controls which transceiver object is created for the
    //  sip stack.
 
@@ -80,15 +78,17 @@ StatelessBasicProxy::StatelessBasicProxy( int hashTableSize,
    // was making no difference.
    mySipStack = new SipTransceiver(hashTableSize, local_ip,
                                    local_dev_to_bind_to,
-                                   applName, defaultSipPort, nat, aContext);
+                                   applName, defaultSipPort, nat, aContext,
+                                   false);
    
-   mySipThread = new SipThread(mySipStack, myCallProcessingQueue, false);    
+   mySipThread = new SipThread(mySipStack, &myCallProcessingQueue, false);    
 
    if (CommandLine::instance()->getInt("HEARTBEAT")) {
       cpLog(LOG_INFO, "Initializing heartbeat mechanism");
       myHeartbeatThread = new HeartbeatThread(local_ip, local_dev_to_bind_to,
+                                              &(ServerContainer::instance()),
                                               defaultSipPort,
-                                              ServerContainer::instance());
+                                              HB_RX|HB_TX|HB_HOUSEKEEPING);
    }
 }
 
@@ -100,7 +100,7 @@ StatelessBasicProxy::~StatelessBasicProxy()
 int StatelessBasicProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                                 int& maxdesc, uint64& timeout, uint64 now) {
    mySipThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
-   // TODO:  Worker thread???
+
    if (myHeartbeatThread != NULL) {
       myHeartbeatThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }
@@ -114,24 +114,21 @@ void StatelessBasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* ex
    }
 }
 
+
 void
-StatelessBasicProxy::process(const Sptr < SipProxyEvent > event) const
-{
-    assert ( event != 0 );
+StatelessBasicProxy::process(const Sptr < SipProxyEvent > event) const {
+   assert ( event != 0 );
 
-    cpLog( LOG_DEBUG, "StatelessBasicProxy::process event...\n");
+   cpLog( LOG_DEBUG, "StatelessBasicProxy::process event...\n");
 
-    for (   vector<Sptr <Operator> >::const_iterator iter = myOperators.begin(); 
-            iter != myOperators.end(); 
-            iter++ 
-        )
-    {
-	Sptr < State > newState = (*iter)->process(event);
+   for (   vector<Sptr <Operator> >::const_iterator iter = myOperators.begin(); 
+           iter != myOperators.end(); 
+           iter++) {
+      Sptr < State > newState = (*iter)->process(event);
 
-	if( newState == PROXY_DONE_WITH_EVENT )
-	{
-	    break;
-	}
-    }
+      if ( newState == PROXY_DONE_WITH_EVENT ) {
+         break;
+      }
+   }
 }
 

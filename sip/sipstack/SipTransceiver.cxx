@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -145,7 +145,6 @@ SipTransceiver::SipTransceiver( int hashTableHint,
 				SipAppContext aContext,
                                 bool blocking)
     :
-    recvdMsgsFifo(),
     udpConnection(0),
     tcpConnection(0),
     sentRequestDB(hashTableHint, local_ip),
@@ -160,8 +159,7 @@ SipTransceiver::SipTransceiver( int hashTableHint,
     cpLog( LOG_DEBUG_STACK, "SipStack listening on port %d ", siplistenPort );
     cpLog( LOG_DEBUG_STACK, "SipStack context %s ", (myAppContext == APP_CONTEXT_PROXY) ? "Proxy" : "Non-Proxy" );
 
-    udpConnection = new SipUdpConnection( &recvdMsgsFifo, local_ip,
-                                          local_dev_to_bind_to, siplistenPort );
+    udpConnection = new SipUdpConnection(local_ip, local_dev_to_bind_to, siplistenPort );
     //debugMemUsage("Constructed SipUdpConnection", "gua_mem.txt");
 
     if ( udpConnection == 0 ) {
@@ -171,9 +169,8 @@ SipTransceiver::SipTransceiver( int hashTableHint,
         cpLog(LOG_INFO, "SipTransceiver:  Created UDP connection...\n");
     }
 
-    tcpConnection = new SipTcpConnection( &recvdMsgsFifo, local_ip,
-                                          local_dev_to_bind_to, siplistenPort,
-                                          blocking);
+    tcpConnection = new SipTcpConnection(local_ip, local_dev_to_bind_to,
+                                         siplistenPort, blocking);
     //debugMemUsage("Constructed SipTcpConnection", "gua_mem.txt");
     if ( tcpConnection == 0 ) {
         cpLog(LOG_ERR, "SipTransceiver::unable to instantiate TCP connections");
@@ -366,136 +363,97 @@ SipTransceiver::send(SipMsgContainer *sipMsg, const Data& host,
     }
 }
 
-#warning "Port to non-threaded model."
-#if 0  
-Sptr < SipMsgQueue > SipTransceiver::receive(int timeOut)
-{
-    Sptr < SipMsgQueue > msgQPtr = 0;
-    return msgQPtr;
+Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
+    Sptr < SipMsgQueue > msgQPtr;
 
-    timeval start, now;
-  
-    if ( timeOut >= 0 )
-    {
-	gettimeofday(&start, 0);
+    // Check UDP fist, and if nothing there, check the Tcp stack.
+    Sptr <SipMsgContainer> msgPtr = udpConnection->getNextMsg();
+    if ( msgPtr.getPtr() == 0) {
+        msgPtr = tcpConnection->getNextMsg();
+        if (msgPtr.getPtr() == 0) {
+            return msgPtr; // Nothing available
+        }
     }
-  
-    while (msgQPtr == 0)
-    {
-	int timePassed = 0;
-	if ( timeOut >= 0 )
-        {
-	    gettimeofday(&now, 0);
-	  
-	    timePassed = ( now.tv_sec - start.tv_sec ) * 1000
-		+ ( now.tv_usec - start.tv_usec ) / 1000;
-	  
-	    if (timePassed >= timeOut)
-            {
-		//cpLog(LOG_DEBUG_STACK, "timeout value exceeded");
-		return 0;
-            }
-	}
-	recvdMsgsFifo.block(timeOut-timePassed);
-      
-	if ( !recvdMsgsFifo.messageAvailable() )
-	{
-	    continue;
-	}
-      
-      
-	Sptr <SipMsgContainer> msgPtr = recvdMsgsFifo.getNext();
-	if ( msgPtr.getPtr() == 0)
-	{
-	    assert(0);
-//            cpLog(LOG_CRIT, "received NULL");
-	    continue;
-	}
 
-	/********************** TO DO ****************************
-	 * not doing 'coz need to bring some stuff from udp impl
-	 * to here, so will do after 500 cps
-         * msgPtr->msg.in = SipMsg::decode(msgPtr->msg.out);
-	 *********************************************************/
+    /********************** TO DO ****************************
+     * not doing 'coz need to bring some stuff from udp impl
+     * to here, so will do after 500 cps
+     * msgPtr->msg.in = SipMsg::decode(msgPtr->msg.out);
+     *********************************************************/
 
-	/*****************************************************************
-	 * how does this affect the transactions, i.e. it is only being
-	 * done on received messages, so should this be before or after
-	 * going thru the data base (i.e. is it visible to transactionDB)?
-	 *****************************************************************/
+    /*****************************************************************
+     * how does this affect the transactions, i.e. it is only being
+     * done on received messages, so should this be before or after
+     * going thru the data base (i.e. is it visible to transactionDB)?
+     *****************************************************************/
 
-	/*********** decided to remove it from the stack ******************/
-        cpLog(LOG_DEBUG, "SipTransceiver: Received: %s, natOn: %d",
-              msgPtr->msg.in->briefString().c_str(), natOn);
-        if ( natOn == true) {
-            //changes for taking care of the NAT traversals
-            SipVia natVia = msgPtr->msg.in->getVia(0);
-            LocalScopeAllocator lo; 
-            //cpLog (LOG_DEBUG, "natVia = %s", natVia.encode().logData());
-            string addr1 = natVia.getHost().getData(lo);
-            string addr2 = msgPtr->msg.in->getReceivedIPName().getData(lo);
+    /*********** decided to remove it from the stack ******************/
+    cpLog(LOG_DEBUG, "SipTransceiver: Received: %s, natOn: %d",
+          msgPtr->msg.in->briefString().c_str(), natOn);
+    if ( natOn == true) {
+        //changes for taking care of the NAT traversals
+        SipVia natVia = msgPtr->msg.in->getVia(0);
+        LocalScopeAllocator lo; 
+        //cpLog (LOG_DEBUG, "natVia = %s", natVia.encode().logData());
+        string addr1 = natVia.getHost().getData(lo);
+        string addr2 = msgPtr->msg.in->getReceivedIPName().getData(lo);
 
-            //addr2 can be empty if stack had generated the message like 408
-            if(addr2 != "") {
-                NetworkAddress netaddr1(addr1);
-                NetworkAddress netaddr2(addr2);
+        //addr2 can be empty if stack had generated the message like 408
+        if(addr2 != "") {
+            NetworkAddress netaddr1(addr1);
+            NetworkAddress netaddr2(addr2);
                 
-                if ( netaddr1.getIpName() != netaddr2.getIpName() || (addr1 == "")) {
-                    natVia.setReceivedhost(msgPtr->msg.in->getReceivedIPName());
-                    natVia.setReceivedport(msgPtr->msg.in->getReceivedIPPort());
-                    //remove the first item from the via list
-                    msgPtr->msg.in->removeVia(0);
-                    //insert natvia in the vector via list
-                    msgPtr->msg.in->setVia(natVia, 0);
-                }
+            if ( netaddr1.getIpName() != netaddr2.getIpName() || (addr1 == "")) {
+                natVia.setReceivedhost(msgPtr->msg.in->getReceivedIPName());
+                natVia.setReceivedport(msgPtr->msg.in->getReceivedIPPort());
+                //remove the first item from the via list
+                msgPtr->msg.in->removeVia(0);
+                //insert natvia in the vector via list
+                msgPtr->msg.in->setVia(natVia, 0);
             }
-	}
-	//---NAT
-/*	*********************************************************************/
+        }
+    }
+    //---NAT
+    /**********************************************************************/
 	
       
-        cpLog(LOG_DEBUG, "SipTransceiver Received, after NAT handling: %s",
-              msgPtr->msg.in->briefString().c_str());
-	cpLog(LOG_DEBUG_STACK, "SipTransceiver: msg->out is; %s",msgPtr->msg.out.logData());
+    cpLog(LOG_DEBUG, "SipTransceiver Received, after NAT handling: %s",
+          msgPtr->msg.in->briefString().c_str());
+    cpLog(LOG_DEBUG_STACK, "SipTransceiver: msg->out is; %s",msgPtr->msg.out.logData());
       
-	SipMsgQueue *msgQ = 0;
-	Sptr<SipMsg> sipPtr = msgPtr->msg.in;
+    SipMsgQueue *msgQ = 0;
+    Sptr<SipMsg> sipPtr = msgPtr->msg.in;
 
-	if(msgPtr->msg.in->getType() == SIP_STATUS) {
-	    msgQ = sentRequestDB.processRecv(msgPtr);
-            cpLog(LOG_DEBUG_STACK, "SipTransceiver: was SIP_STATUS, msgQ: %x", msgQ);
-        }
-	else {
-	    msgQ = sentResponseDB.processRecv(msgPtr);
-            cpLog(LOG_DEBUG_STACK, "SipTransceiver: not SIP_STATUS, msgQ: %x\n", msgQ);
-        }
-      
-	if(msgQ)
-	{
-	    msgQPtr = msgQ;
-	  
-	    //need to have snmpDetails for this.
-	    if (sipAgent != 0)
-	    {
-		updateSnmpData(sipPtr, INS);
-	    }
-	}
-	else if(msgPtr->msg.in != 0)
-	{
-	    send(msgPtr);
-	}
-	else if(msgPtr->msg.out.length())
-	{
-	    send(msgPtr);
-	}
-	else
-	{
-	    delete msgPtr;
-	}
+    if(msgPtr->msg.in->getType() == SIP_STATUS) {
+        msgQ = sentRequestDB.processRecv(msgPtr);
+        cpLog(LOG_DEBUG_STACK, "SipTransceiver: was SIP_STATUS, msgQ: %x", msgQ);
     }
+    else {
+        msgQ = sentResponseDB.processRecv(msgPtr);
+        cpLog(LOG_DEBUG_STACK, "SipTransceiver: not SIP_STATUS, msgQ: %x\n", msgQ);
+    }
+      
+    if(msgQ) {
+        msgQPtr = msgQ;
+        
+        //need to have snmpDetails for this.
+        if (sipAgent != 0) {
+            updateSnmpData(sipPtr, INS);
+        }
+    }
+    else if(msgPtr->msg.in != 0) {
+        send(msgPtr);
+    }
+    else if(msgPtr->msg.out.length()) {
+        send(msgPtr);
+    }
+    else {
+        delete msgPtr;
+    }
+
     return msgQPtr;
 }
-#endif
+
 
 void
 SipTransceiver::reTransOff()

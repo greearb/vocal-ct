@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 
 
@@ -60,10 +60,14 @@ static const char* const SipUdpConnection_hxx_Version =
 #include "SipMsg.hxx"
 #include "SipTransactionId.hxx"
 #include "TransceiverSymbols.hxx"
-
+#include <misc.hxx>
 #include "SipTransactionLevels.hxx"
 #include <list>
+#include <queue>
+#include <UdpStack.hxx>
+#include "RetransmitContents.hxx"
 
+#define MAX_UDP_RCV_BUF 65536
 
 namespace Vocal
 {
@@ -72,55 +76,74 @@ class SipUdp_impl;
 class SipMsgContainer;
 
 ///
-class SipUdpConnection: public BugCatcher
-{
+class SipUdpConnection: public BugCatcher {
     public:
         /**
          * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
          */
-        SipUdpConnection(list < Sptr <SipMsgContainer> > *fifo,
-                         const string& local_ip,
+        SipUdpConnection(const string& local_ip,
                          const string& local_dev_to_bind_to,
                          int port = SIP_PORT);
-        ///
+        
         virtual ~SipUdpConnection();
-        ///
-        void send(SipMsgContainer* msg, const Data& host="",
-                       const Data& port="5060");
+        
+        void send(Sptr<SipMsgContainer> msg, const Data& host,
+                  const Data& port);
 
-        /// ???????
-        //void  receive();
-        ///
+        int udpSend(Sptr<SipMsgContainer> msg);
+
+        // Returns the configured IP, if it is not "", otherwise, returns
+        // default system IP address.
+        const string getLocalIp() const;
+
         static void reTransOn();
-        ///
+        
         static void reTransOff();
-        ///
-  static void setRetransTime(int initial = retransmitTimeInitial , int max = retransmitTimeMax /* default values from TransceiverSymbols.hxx */);
-        ///
+        
+        static void setRetransTime(int initial = retransmitTimeInitial,
+                                   int max = retransmitTimeMax /* default values from TransceiverSymbols.hxx */);
+        
         void setRandomLosePercent(int percent);
-        ///
+        
         void printSize() const;
-        ///
+        
         Data getDetails() const;
 
+        
+        int receiveMain();
+        // May pull from incomming fifo
+        Sptr<SipMsgContainer> getNextMessage();
+
+        int sendMain(uint64& now);
+        
+        void getHostPort(Sptr<SipMsg> sipMessage, Data& host, int& port);
+
+
         static int getInstanceCount() { return atomic_read(&_cnt); }
+
+    protected:
+        // Read from socket.
+        Sptr<SipMsgContainer> receiveMessage();
 
     private:
         ///
         SipUdpConnection();
         SipUdpConnection(const SipUdpConnection& src);
         SipUdpConnection& operator = (const SipUdpConnection& src) const;
-        SipUdp_impl* impl_;
+
+        static bool Udpretransmitoff;
+        static int  Udpretransmitimeinitial;
+        static int Udpretransmittimemax;
+        int randomLosePercent;
+
+        UdpStack udpStack;
+        priority_queue <Sptr <RetransmitContents> > sendQ;
+        list <Sptr <SipMsgContainer> > rcvFifo;
+        char rcvBuf[MAX_UDP_RCV_BUF];
 
         static atomic_t _cnt;
 };
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

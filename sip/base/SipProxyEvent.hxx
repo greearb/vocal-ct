@@ -52,7 +52,7 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -96,9 +96,6 @@ class SipProxyEvent: public BugCatcher
       ///
       SipProxyEvent();
 
-      /// Create given an associated fifo.
-      SipProxyEvent(list < Sptr < SipProxyEvent > >* fifo);
-
       ///
       virtual ~SipProxyEvent();
 
@@ -122,9 +119,8 @@ class SipProxyEvent: public BugCatcher
       void removeCallInfo();
 
       /** Accessor to the fifo associate with this event.
-       *  May be zero if not set.
        */
-      list < Sptr < SipProxyEvent > >* getFifo() const { return myFifo; }
+      list < Sptr < SipProxyEvent > >& getFifo() const { return myFifo; }
 
       /** Accessor to the call container for this event. 
        *  May be zero if not set.
@@ -148,7 +144,7 @@ class SipProxyEvent: public BugCatcher
 
    protected:
       /// The fifo associated with this event.
-      list < Sptr < SipProxyEvent > >* myFifo;
+      list < Sptr < SipProxyEvent > > myFifo;
 
       /// The call info associated with this event.
       Sptr < CallInfo > myCallInfo;

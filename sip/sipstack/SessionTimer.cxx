@@ -49,7 +49,7 @@
  */
 
 static const char* const SessionTimer_cxx_version =
-    "$Id: SessionTimer.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SessionTimer.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 #include "global.h"
 #include "SessionTimer.hxx"
@@ -193,8 +193,7 @@ void* SessionTimer::processThreadWrapper(void *p)
     while(1)
     {
         Sptr<VSessionData> sData = self->mSessionDataFifo.getNext();
-        if(self->mShutdown)
-        {
+        if(self->mShutdown) {
             break;
         }
         VTime tm;

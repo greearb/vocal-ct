@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
 
 
 #include <string>
@@ -92,8 +92,7 @@ typedef enum
    SipTransceiver is the main class for users the SIP stack.  It is the object
    which the caller uses to send and receive SIP messages.
 */
-class SipTransceiver: public BugCatcher
-{
+class SipTransceiver: public BugCatcher {
     public:
 	/**
          * hashTableSizeHint is what we'll use for the initial number of hash table
@@ -132,9 +131,9 @@ class SipTransceiver: public BugCatcher
 
 	/**
 	 ** Return a deque of SipMsgs, basically containing the msg chain.
-	 ** A timeOut out of -1 means infinite timeout.
+         *  Will not block (will return NULL if cannot read anything)
 	 */
-	//TODO: virtual Sptr < SipMsgQueue > receive(int timeOutMs = -1);
+	virtual Sptr < SipMsgQueue > receiveNB();
 
 	///
 	static void reTransOff();
@@ -148,7 +147,7 @@ class SipTransceiver: public BugCatcher
 				   int max = retransmitTimeMax 
 				   /* Default values in TranscevierSymbols.hxx*/ );
 
-	/// ?????????
+	/// Used for debugging
 	void setRandomLosePercent(int percent);
 
         const string getLocalIp() const { return localIp; }
@@ -181,11 +180,6 @@ class SipTransceiver: public BugCatcher
 	/* ---------------------------------------------------------------
            these will have to be shared iff there has to be thread pooling 
            --------------------------------------------------------------- */
-
-	// we'll do the decoding of sip msgs in the sip thread's context
-	// (encoding is in worker's context when it calls send)
-	// for the time being this will be in udp, but later move it here
-	list < Sptr < SipMsgContainer> > recvdMsgsFifo;
 
 	Sptr < SipUdpConnection > udpConnection;
 

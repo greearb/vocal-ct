@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionGC_cxx_version =
-    "$Id: SipTransactionGC.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransactionGC.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
@@ -113,19 +113,18 @@ SipTransactionGC::~SipTransactionGC()
 
 
 void
-SipTransactionGC::collect(SipMsgContainer* item, int delay /*default value*/)
+SipTransactionGC::collect(Sptr<SipMsgContainer> item, int delay /*default value*/)
 {
-    if((item == 0) || item->collected) return;;
+    if ((item.getPtr() == 0) || item->collected)
+        return;;
 
     BinsNodeType * curr = bins.getFirst();
-    while(curr)
-    {
-	if(curr->val->myDelay == delay)
+    while (curr) {
+	if (curr->val->myDelay == delay)
 	    break;
 	curr = bins.getNext(curr);
     }
-    if(!curr)
-    {
+    if (!curr) {
 	GCType * newBin = new GCType(delay);
 	curr = bins.insert(newBin);
     }
@@ -178,42 +177,34 @@ SipTransactionGC::thread()
 
 
 void
-SipTransactionGC::trash(SipMsgContainer* item)
-{
+SipTransactionGC::trashSMC(Sptr<SipMsgContainer> item) {
 
     SipTransLevel1Node * refTopNode = 0;
 
-    /// check if it has a transaction associated
-    /// (otherwise it could have been a filter retrans etc.)
-    if(item->level3Ptr)
-    {
+    // check if it has a transaction associated
+    // (otherwise it could have been a filter retrans etc.)
+    if (item->level3Ptr) {
      	refTopNode = item->level3Ptr->level2Ptr->topNode;
 	
-	if(item->level3Ptr->msgs.request == item)
+	if (item->level3Ptr->msgs.request == item)
 	    item->level3Ptr->msgs.request = 0;
-	else if(item->level3Ptr->msgs.response == item)
+	else if (item->level3Ptr->msgs.response == item)
 	    item->level3Ptr->msgs.response = 0;
-	else
-	{
+	else {
 	    cpLog(LOG_ERR,"Dangling item:[%s]", item->msg.out.c_str());
 	}
 	
-	if(item->level3Ptr->msgs.response ==
-	   item->level3Ptr->msgs.request)
-	{
+	if (item->level3Ptr->msgs.response == item->level3Ptr->msgs.request) {
 	    SipTransLevel3Node* level3Node = item->level3Ptr;
 	    level3Node->level2Ptr->level3.erase(level3Node->myPtr);
 	    
-	    if(level3Node->level2Ptr->level3.getFirst()==0)
-	    {
+	    if (level3Node->level2Ptr->level3.getFirst() == 0) {
 		SipTransLevel2Node *level2Node = level3Node->level2Ptr;
 		level2Node->topNode->level2.erase(level2Node->myPtr);
 		
-		if(level2Node->topNode->level2.getFirst()==0)
-		{
+		if (level2Node->topNode->level2.getFirst() == 0) {
 		    /// hence, now recheck if REALLY want to delete
-		    if(level2Node->topNode->level2.getFirst()==0)
-		    {
+		    if (level2Node->topNode->level2.getFirst() == 0) {
 			level2Node->topNode->bucketNode->myTable->erase(
 			    level2Node->topNode->bucketNode);
 			delete level2Node->topNode;
@@ -231,14 +222,5 @@ SipTransactionGC::trash(SipMsgContainer* item)
 	}
     }
     cpLog(DEBUG_NEW_STACK,"trashing item:[%s]",item->msg.out.c_str());
-    delete item;
-    
-}
+}//trashSMC
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

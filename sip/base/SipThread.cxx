@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: SipThread.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
 
 
 #include "global.h"
@@ -66,12 +66,11 @@ using namespace Vocal;
 
 
 SipThread::SipThread( const Sptr < SipTransceiver > sipStack, 
-                      list < Sptr < SipProxyEvent > >* outputFifo ,
+                      Sptr<BaseProxy> proxy,
                       bool callLegHistory)
-      : mySipStack(sipStack), myOutputFifo(outputFifo), myCallLegHistory(callLegHistory)
+      : myProxy(proxy), mySipStack(sipStack), myCallLegHistory(callLegHistory)
 {
     assert ( mySipStack != 0 );
-    assert ( myOutputFifo != 0 );
 }
 
 
@@ -83,96 +82,65 @@ SipThread::~SipThread()
 
 
 bool
-SipThread::discardMessage( Sptr < SipMsg > &sipMsg) const
-{
-    int numberOfVia = sipMsg->getNumVia();
+SipThread::discardMessage( Sptr < SipMsg > &sipMsg) const {
+   int numberOfVia = sipMsg->getNumVia();
 
-    // check required only if > 2 via's in msg
-    //
-    if ( numberOfVia <= 2 )
-    {
-        return false;
-    }
+   // check required only if > 2 via's in msg
+   //
+   if ( numberOfVia <= 2 ) {
+      return false;
+   }
 
-    string my_local_ip = mySipStack->getLocalIp();
-    if (my_local_ip.size() == 0) {
-       my_local_ip = theSystem.gethostAddress(); //OK
-    }
+   string my_local_ip = mySipStack->getLocalIp();
+   if (my_local_ip.size() == 0) {
+      my_local_ip = theSystem.gethostAddress(); //OK
+   }
 
-    SipVia mySipVia("", my_local_ip);
-    mySipVia.setHost(my_local_ip);
+   SipVia mySipVia("", my_local_ip);
+   mySipVia.setHost(my_local_ip);
+   
+   for ( int i=0, loopCount = 0; i < numberOfVia; i++ ) {
+      const SipVia& recvSipVia = sipMsg->getVia(i);
+      
+      if ( recvSipVia == mySipVia ) {
+         loopCount++;
+         
+         if ( loopCount > 2 ) {
+            cpLog(LOG_DEBUG, "Discarding Msg, loop > %d. %s", 
+                  loopCount, recvSipVia.encode().logData());
+            
+            return ( true );
+         }
+      }
+   }
 
-    for ( int i=0, loopCount = 0; i < numberOfVia; i++ )
-    {
-        const SipVia& recvSipVia = sipMsg->getVia(i);
-
-        if ( recvSipVia == mySipVia )
-        {
-            loopCount++;
-
-            if ( loopCount > 2 )
-            {
-                cpLog(LOG_DEBUG, "Discarding Msg, loop > %d. %s", 
-		      loopCount, recvSipVia.encode().logData());
-
-                return ( true );
-            }
-        }
-    }
-
-    return ( false );
+   return false;
 }
 
+void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now) {
+   Sptr < SipMsgQueue > sipRcv(mySipStack->receiveNB(0));
+ 
+   if ( sipRcv != 0 ) {
+      Sptr < SipMsg > sipMsg = sipRcv->back();
+      if ( sipMsg != 0 ) {
+         Sptr < SipEvent > nextEvent = new SipEvent();
 
-#warning "Port to non-threaded model"
-#if 0
-void
-SipThread::thread()
-{
-    cpLogSetLabelThread (VThread::selfId(), "bcSip");
+         if ( nextEvent != 0 ) {
+            nextEvent->setSipReceive(sipRcv);
+            nextEvent->setSipStack(mySipStack);
 
-    while ( true )
-    {
-        try
-        {
-            assert ( mySipStack != 0 );
-            assert ( myOutputFifo != 0 );
+            if (myCallLegHistory)
+               nextEvent->setCallLeg();
 
-            Sptr < SipMsgQueue > sipRcv( mySipStack->receive(1000) );
+            myProxy->process(nextEvent);
+         }
+      }
+   }
+}//tick
 
-            if ( sipRcv != 0 )
-            {
-                Sptr < SipMsg > sipMsg = sipRcv->back();
 
-                if ( sipMsg != 0 )
-                {
-                    Sptr < SipEvent > nextEvent = new SipEvent(myOutputFifo);
-
-                    if ( nextEvent != 0 )
-                    {
-                        nextEvent->setSipReceive(sipRcv);
-                        nextEvent->setSipStack(mySipStack);
-                        if(myCallLegHistory) nextEvent->setCallLeg();
-
-                        myOutputFifo->add(nextEvent);
-                    }
-                }
-            }
-        }
-
-        catch ( VException& v)
-        {
-            cpLog( LOG_DEBUG, "VException from SIP  stack %s", v.getDescription().c_str() );
-        }
-        catch ( ... )
-        {
-            cpLog( LOG_DEBUG, "Exception from SIP stack" );
-        }
-
-        if ( isShutdown() == true )
-        {
-            return;
-        }
-    }
+int SipThread::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now) {
+   mySipStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 }
-#endif

@@ -50,7 +50,7 @@
  */
 
 static const char* const RetransmitContents_cxx_Version =
-    "$Id: RetransmitContents.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: RetransmitContents.cxx,v 1.2 2004/05/27 04:32:18 greear Exp $";
 
 #include "global.h"
 #include "RetransmitContents.hxx"
@@ -58,17 +58,20 @@ static const char* const RetransmitContents_cxx_Version =
 
 using namespace Vocal;
 
+
 RetransmitContents::RetransmitContents()
-        : sipMsg(0),
-        retransmitt(0),
-        timeToGo(0)
+    : sipMsg(0),
+      retransmitt(0),
+      nextTx(0),
+      wait_period(0)
 {}
 
 
-RetransmitContents::RetransmitContents(SipMsgContainer* msg, int count)
-        : sipMsg(msg),
-        retransmitt(count),
-        timeToGo(0)
+RetransmitContents::RetransmitContents(Sptr<SipMsgContainer> msg, int count)
+    : sipMsg(msg),
+      retransmitt(count),
+      nextTx(0),
+      wait_period(0)
 {
 }
 
@@ -78,69 +81,38 @@ RetransmitContents::~RetransmitContents()
 
 string RetransmitContents::toString() const {
     ostringstream oss;
-    if (sipMsg) {
+    if (sipMsg.getPtr()) {
         oss << "sipMsg: " << sipMsg->toString() << endl;
     }
     else {
         oss << "sipMsg is NULL\n";
     }
-    oss << " retransmit: " << retransmitt << " timeToGo: " << timeToGo
-        << endl;
+    oss << " retransmit: " << retransmitt << " nextTx: " << nextTx
+        << " wait_period: " << wait_period << endl;
     return oss.str();
 }
 
 
 RetransmitContents::RetransmitContents(const RetransmitContents& src )
-        : sipMsg(src.sipMsg),
-        retransmitt(src.retransmitt),
-        timeToGo(src.timeToGo)
+    : sipMsg(src.sipMsg),
+      retransmitt(src.retransmitt),
+      nextTx(src.nextTx),
+      wait_period(src.wait_period)
 {}
-RetransmitContents&
-RetransmitContents::operator=( const RetransmitContents& src )
-{
-    if ( &src != this )
-    {
-        sipMsg = src.sipMsg;
-        retransmitt = src.retransmitt;
-        timeToGo = src.timeToGo;
-    }
-    return *this;
-}
 
-void RetransmitContents::setMsg(SipMsgContainer* msg)
-{
+void RetransmitContents::setMsg(Sptr<SipMsgContainer> msg) {
     sipMsg = msg;
 }
 
-SipMsgContainer* RetransmitContents::getMsg() const
-{
+Sptr<SipMsgContainer> RetransmitContents::getMsg() const {
     return sipMsg;
 }
 
 
-void RetransmitContents::setCount(const int i)
-{
+void RetransmitContents::setCount(const int i) {
     retransmitt = i;
 }
 
-int RetransmitContents::getCount() const
-{
+int RetransmitContents::getCount() const {
     return retransmitt;
 }
-
-
-int RetransmitContents::getTimeToGo() const
-{
-    return timeToGo;
-}
-
-void RetransmitContents::setTimeToGo(const int newtimeToGo)
-{
-    timeToGo = newtimeToGo;
-}
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
