@@ -1,4 +1,4 @@
-# $Id: Makefile.pkg,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile.pkg,v 1.2 2004/05/05 06:37:32 greear Exp $
 
 # The license applies to all software incorporated in the "Vovida
 # Open Communication Application Library" except for those portions
@@ -259,7 +259,6 @@ UTIL_INCLUDEDIRS :=     $(ROOT)/util $(ROOT)/util/threads $(ROOT)/util/logging \
                         $(ROOT)/util/behavior $(ROOT)/util/io \
                         $(ROOT)/util/services $(ROOT)/util/transport \
                         $(ROOT)/util/config $(ROOT)/util/dnssrv \
-                        $(ROOT)/util/deprecated \
 			$(ROOT)/util/adt
 UTIL_LIBDIRS := $(ROOT)/util/obj.$(TARGET_NAME)
 UTIL_LIBNAME := vutil

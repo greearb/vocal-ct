@@ -52,7 +52,7 @@
  */
 
 static const char* const SipMsgVersion 
-= "$Id: SipMsg.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+= "$Id: SipMsg.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 #include "Data.hxx"
 #include "NetworkAddress.h"
@@ -145,6 +145,7 @@ class SipMsg: public BugCatcher
         const string& getClassName() const { return className; }
         virtual bool isSipCommand() const = 0;
         virtual bool isStatusMsg() const = 0;
+        virtual bool isCancelMsg() const = 0;
 
 	///	
 	SipMsg& operator=(const SipMsg& newSipMsg);

@@ -53,7 +53,7 @@
 
 
 static const char* const SipEvent_hxx_Version = 
-    "$Id: SipEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: SipEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 
@@ -99,6 +99,7 @@ class SipEvent : public SipProxyEvent
          */
         virtual ~SipEvent();
 
+        virtual bool isSipEvent() const { return true; }
 
         /** The name of the class.
          */

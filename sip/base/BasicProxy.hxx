@@ -53,12 +53,10 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
-#include "HeartbeatTxThread.hxx"
-#include "HeartbeatRxThread.hxx"
-#include "HouseKeepingThread.hxx"
+#include "HeartbeatThread.hxx"
 #include "HeartLessProxy.hxx"
 
 namespace Vocal
@@ -93,58 +91,53 @@ namespace Vocal
 */
 class BasicProxy: public HeartLessProxy
 {
-    public:
+public:
 
 
-       /** Explained in the Usage of the Class
-        * hashTableSize is initial bucket count for underlying hash table(s).
-        * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-        */
-        BasicProxy(const Sptr < Builder >   builder, 
-                   int hashTableSize,
-                   const string&            local_ip,
-                   const string&            local_dev_to_bind_to,
-		   unsigned short           defaultSipPort = 5060,
-		   Data                     applName = "unknown",
-		   bool                     filteron = true, 
-                   bool                     nat = false,
-                   SipAppContext            aContext = APP_CONTEXT_GENERIC);
+   /** Explained in the Usage of the Class
+    * hashTableSize is initial bucket count for underlying hash table(s).
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   BasicProxy(const Sptr < Builder >   builder, 
+              int hashTableSize,
+              const string&            local_ip,
+              const string&            local_dev_to_bind_to,
+              unsigned short           defaultSipPort = 5060,
+              Data                     applName = "unknown",
+              bool                     filteron = true, 
+              bool                     nat = false,
+              SipAppContext            aContext = APP_CONTEXT_GENERIC);
+   
+   
+   /** Virtual destructor
+    */
+   virtual ~BasicProxy();
+   
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+protected:
 
 
-        /** Virtual destructor
-         */
-        virtual ~BasicProxy();
-
-
-    protected:
-
-
-        /** Pointer to heartbeat tx thread object
-         */
-        Sptr < HeartbeatTxThread >  myHeartbeatTxThread;
-
-
-        /** Pointer to heartbeat rx thread object
-         */
-        Sptr < HeartbeatRxThread >  myHeartbeatRxThread;
-
-
-        /** Pointer to heartbeat housekeeping thread object
-         */
-        Sptr < HouseKeepingThread > myHouseKeepingThread;
-
-
-    private:
-
-
-        /** Suppress copying
-         */
-        BasicProxy( const BasicProxy &);
-        BasicProxy();
-
-        /** Suppress copying
-         */
-        const BasicProxy & operator=(const BasicProxy &);
+   /** Pointer to heartbeat tx thread object
+    */
+   HeartbeatThread*  myHeartbeatThread;
+   
+   
+private:
+   
+   
+   /** Suppress copying
+    */
+   BasicProxy( const BasicProxy &);
+   BasicProxy();
+   
+   /** Suppress copying
+    */
+   const BasicProxy & operator=(const BasicProxy &);
 };
  
 }

@@ -55,7 +55,7 @@
 
 
 static const char* const UnknownExtensionMsgVersion
-= "$Id: UnknownExtensionMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: UnknownExtensionMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "SipCommand.hxx"
 #include "BaseUrl.hxx"
@@ -99,6 +99,11 @@ class UnknownExtensionMsg : public SipCommand
 //        virtual Data encode() const;  // get details and create Message, and return.
         ///
         virtual Method getType() const;
+        
+        virtual ~UnknownExtensionMsg() { }
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
 
     private:
         void setUnknownExtensionMsgDetails(Sptr <BaseUrl> url,

@@ -52,7 +52,7 @@
  */
 
 static const char* const TransferMsg_hxx_Version =
-    "$Id: TransferMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: TransferMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "SipCommand.hxx"
@@ -81,7 +81,7 @@ class TransferMsg : public SipCommand
         ///
         TransferMsg(const TransferMsg&, enum TransferMsgForward);
 
-        
+        virtual ~TransferMsg() { }
 
         ///
         //called by the sipMsg decode.
@@ -94,6 +94,10 @@ class TransferMsg : public SipCommand
         ///
 //        virtual Data encode() const;  // get details and create Message, and return.
         ///
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
+
         virtual Method getType() const;
     private:
         void setTransferDetails(const SipMsg&, int type, Sptr <BaseUrl> url);

@@ -52,7 +52,7 @@
  */
 
 static const char* const BaseUrl_hxx_Version =
-    "$Id: BaseUrl.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: BaseUrl.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
     
 #include "global.h"
 #include "Data.hxx"
@@ -83,6 +83,9 @@ class BaseUrl: public BugCatcher
 	BaseUrl();
 	///
 	virtual ~BaseUrl();
+
+        virtual bool isSipUrl() const = 0;
+
 	//parser functions
 	static Sptr<BaseUrl> decode(const Data& data, const string& local_ip);
 	///

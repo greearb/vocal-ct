@@ -52,7 +52,7 @@
  */
 
 static const char* const UnknownUrl_hxx_Version =
-    "$Id: UnknownUrl.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: UnknownUrl.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "BaseUrl.hxx"
 #include "BaseUser.hxx"
@@ -76,6 +76,9 @@ class UnknownUrl : public BaseUrl
     
 	///
 	~UnknownUrl();
+
+        // Help up-cast safely.
+        virtual bool isSipUrl() const { return false; }
 
         ///
         const UnknownUrl& operator=(const UnknownUrl& url);

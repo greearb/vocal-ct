@@ -52,7 +52,7 @@
  */
 
 static const char* const PresUrl_hxx_Version =
-    "$Id: PresUrl.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: PresUrl.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "ImpBaseUrl.hxx"
 
@@ -70,6 +70,11 @@ class PresUrl : public ImpBaseUrl
 	///
 	PresUrl(const PresUrl& );
     
+        // Help up-cast safely.
+        virtual bool isSipUrl() const { return false; }
+
+        virtual ~PresUrl() { }
+
         ///
         Sptr<BaseUrl> duplicate() const ;
 	///

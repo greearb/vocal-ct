@@ -52,7 +52,7 @@
  */
 
 static const char* const NullUrl_hxx_Version =
-    "$Id: NullUrl.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: NullUrl.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "BaseUrl.hxx"
 #include "BaseUser.hxx"
@@ -68,7 +68,10 @@ class NullUrl : public BaseUrl
 	NullUrl();
     
 	///
-	~NullUrl();
+	virtual ~NullUrl();
+
+        // Help up-cast safely.
+        virtual bool isSipUrl() const { return false; }
 
 	///
 	virtual Data encode() const;

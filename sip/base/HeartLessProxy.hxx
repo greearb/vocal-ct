@@ -52,11 +52,13 @@
  */
 
 
-static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "CallContainer.hxx"
 #include "SipTransceiver.hxx"
+#include <misc.hxx>
+
 
 namespace Vocal
 {
@@ -91,67 +93,75 @@ class Builder;
 */
 class HeartLessProxy
 {
-    public:
+public:
 
 
-        /** Create one with default values Explained in Usage of Class section
-         * HashTableSize is number of buckets in underlying hash table(s).
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-         HeartLessProxy(const Sptr < Builder >   builder,
-                        int hashTableSize,
-                        const string&            local_ip,
-                        const string&            local_dev_to_bind_to,
-                        unsigned short          defaultSipPort = 5060,
-                        Data                    applName = "unknown", 
-                        bool                    filteron = true, 
-                        bool                    nat = false,
-                        SipAppContext           aContext=APP_CONTEXT_GENERIC);
+   /** Create one with default values Explained in Usage of Class section
+    * HashTableSize is number of buckets in underlying hash table(s).
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   HeartLessProxy(const Sptr < Builder >   builder,
+                  int hashTableSize,
+                  const string&            local_ip,
+                  const string&            local_dev_to_bind_to,
+                  unsigned short          defaultSipPort = 5060,
+                  Data                    applName = "unknown", 
+                  bool                    filteron = true, 
+                  bool                    nat = false,
+                  SipAppContext           aContext=APP_CONTEXT_GENERIC);
 
 
-        /** Virtual destructor
-         */
-        virtual ~HeartLessProxy();
+   /** Virtual destructor
+    */
+   virtual ~HeartLessProxy();
+
+   // Child classes need to implement these.
+   // TODO:  Verify children successfully over-ride.
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now) { return 0; }
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now) { }
 
 
-    protected:
+protected:
 
 
-        /** Call container associated with the builder.
-         */
-        Sptr < CallContainer >  myCallContainer;
+   /** Call container associated with the builder.
+    */
+   Sptr < CallContainer >  myCallContainer;
 
 
-        /** Builder supplied on construction.
-         */
-        Sptr < Builder >        myBuilder;
+   /** Builder supplied on construction.
+    */
+   Sptr < Builder >        myBuilder;
 
 
-        /** Shared call processing queue between the sip thread and the
-         *  worker thread. The sip thread writes to the queue and the
-         *  sip thread reads from the queue.
-         */
-        list < Sptr < SipProxyEvent > >* myCallProcessingQueue;
+   /** Shared call processing queue between the sip thread and the
+    *  worker thread. The sip thread writes to the queue and the
+    *  sip thread reads from the queue.
+    */
+   list < Sptr < SipProxyEvent > >* myCallProcessingQueue;
 
 
-        /** Sip transceiver that receives the incoming sip message, and
-         *  that is used to send outgoing sip messages. The sip thread
-         *  uses the sip transceiver to read incoming sip messages.
-         */
-        Sptr < SipTransceiver > mySipStack;
+   /** Sip transceiver that receives the incoming sip message, and
+    *  that is used to send outgoing sip messages. The sip thread
+    *  uses the sip transceiver to read incoming sip messages.
+    */
+   Sptr < SipTransceiver > mySipStack;
 
 
-    private:
+private:
 
 
-        /** Suppress copying
-         */
-        HeartLessProxy(const HeartLessProxy &);
-        HeartLessProxy();
+   /** Suppress copying
+    */
+   HeartLessProxy(const HeartLessProxy &);
+   HeartLessProxy();
 
-        /** Suppress copying
-         */
-        const HeartLessProxy & operator=(const HeartLessProxy &);
+   /** Suppress copying
+    */
+   const HeartLessProxy & operator=(const HeartLessProxy &);
 };
  
 }

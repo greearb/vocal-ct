@@ -52,7 +52,7 @@
  */
 
 static const char* const AckMsgVersion = 
-"$Id: AckMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+"$Id: AckMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "SipCommand.hxx"
 
@@ -119,6 +119,9 @@ class AckMsg : public SipCommand
 
         ///
         virtual ~AckMsg();
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
 
         ///
         Method getType() const;

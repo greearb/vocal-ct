@@ -52,7 +52,7 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -140,9 +140,9 @@ class SipProxyEvent: public BugCatcher
       // The name of the extending class.
       virtual const char* const name() const = 0;
 
-   // To help with casting...
-   virtual bool isTimerEvent() = 0;
-   virtual bool isSipEvent() = 0;
+      // To help with casting...
+      virtual bool isTimerEvent() const { return false; }
+      virtual bool isSipEvent() const { return false; }
 
       virtual string toString();
 

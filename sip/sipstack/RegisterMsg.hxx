@@ -54,7 +54,7 @@
 #include "SipCommand.hxx"
 
 static const char* const RegisterMsgVersion
-= "$Id: RegisterMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: RegisterMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 namespace Vocal
 {
@@ -140,6 +140,10 @@ class RegisterMsg : public SipCommand
 
         ///
         RegisterMsg& operator =(const RegisterMsg&);
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
+
         ///
         virtual Method getType() const;
 

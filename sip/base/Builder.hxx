@@ -53,7 +53,7 @@
 
 
 static const char* const Builder_hxx_Version = 
-"$Id: Builder.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+"$Id: Builder.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -112,77 +112,77 @@ class Feature;
 */
 class Builder: public BugCatcher
 {
-   public:
+public:
 
 
-      /** Normal constructor initializes myCallContainer.
-       */
-      Builder();
+   /** Normal constructor initializes myCallContainer.
+    */
+   Builder();
 
 
-      /** Virtual destructor
-       */
-      virtual ~Builder();
+   /** Virtual destructor
+    */
+   virtual ~Builder();
 
 
-      /** First checks if the event is of SipEvent type. If so,
-       *  it gets the CallInfo from the CallContainer and sets it in the
-       *  SipEvent. It then passes the event to the Feature container
-       *  process methods. After processing, it removes the call from 
-       *  the CallContainer.
-       */
-      virtual void process( const Sptr < SipProxyEvent > event );
+   /** First checks if the event is of SipEvent type. If so,
+    *  it gets the CallInfo from the CallContainer and sets it in the
+    *  SipEvent. It then passes the event to the Feature container
+    *  process methods. After processing, it removes the call from 
+    *  the CallContainer.
+    */
+   virtual void process( const Sptr < SipProxyEvent > event );
 
 
-      /** Set the builder's callContainer
-       */
-      void setCallContainer(const Sptr < CallContainer > callContainer);
-
-      void setSipStack(const Sptr < SipTransceiver > sipStack);
+   /** Set the builder's callContainer
+    */
+   void setCallContainer(const Sptr < CallContainer > callContainer);
+   
+   void setSipStack(const Sptr < SipTransceiver > sipStack);
       
 
-   protected:
+protected:
 
 
-      /** Method adds a feature to the container
-       *  @param feature pointer to the feature to add
-       *  @return void
-       */
-      void addFeature( const Sptr < Feature > feature );
+   /** Method adds a feature to the container
+    *  @param feature pointer to the feature to add
+    *  @return void
+    */
+   void addFeature( const Sptr < Feature > feature );
 
 
-      /** typedef list of Feature Sptr's
-       */
-      typedef list < Sptr < Feature > > FeatureContainer;
+   /** typedef list of Feature Sptr's
+    */
+   typedef list < Sptr < Feature > > FeatureContainer;
 
 
-      /** FeatureContainer iterator. Yes, it's named poorly.
-       */
-      typedef FeatureContainer::iterator FeatureIter;
+   /** FeatureContainer iterator. Yes, it's named poorly.
+    */
+   typedef FeatureContainer::iterator FeatureIter;
         
 
-      /** Feature container object
-       */
-      FeatureContainer myFeatures;
+   /** Feature container object
+    */
+   FeatureContainer myFeatures;
 
 
-      /** Pointer to the proxy CallContainer
-       */
-      Sptr < CallContainer > myCallContainer;
+   /** Pointer to the proxy CallContainer
+    */
+   Sptr < CallContainer > myCallContainer;
 
-      ///
-      Sptr < SipTransceiver > mySipStack;
+   ///
+   Sptr < SipTransceiver > mySipStack;
+   
+private:
 
-   private:
 
-
-      /** Suppress copying
-       */
-      Builder(const Builder &);
-
-      /** Suppress copying
-       */
-      const Builder& operator=(const Builder &);
+   /** Suppress copying
+    */
+   Builder(const Builder &);
+   
+   /** Suppress copying
+    */
+   const Builder& operator=(const Builder &);
 };
  
 }

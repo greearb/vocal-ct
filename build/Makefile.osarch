@@ -1,4 +1,4 @@
-# $Id: Makefile.osarch,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile.osarch,v 1.2 2004/05/05 06:37:32 greear Exp $
 
 ######################################################################
 
@@ -18,8 +18,6 @@
 
 ifeq ($(OSTYPE),FreeBSD)
 
-    CXXFLAGS += -D_REENTRANT -D_THREAD_SAFE
-    CFLAGS += -D_REENTRANT -D_THREAD_SAFE
     USE_LIBGETOPT = 1
     USE_R_WRAPPER = 1
 
@@ -36,8 +34,8 @@ endif
 
 ifeq ($(OSTYPE),Linux)
 
-    CXXFLAGS += -D_REENTRANT
-    CFLAGS   += -D_REENTRANT
+    CXXFLAGS +=
+    CFLAGS   +=
 
     ifeq ($(VOCAL_USE_SYSTEM_LIBS),true)
         VOCAL_USE_SYSTEM_IMAP := false
@@ -52,8 +50,8 @@ endif
 
 ifeq ($(OSTYPE),QNX)
 
-    CXXFLAGS += -D_REENTRANT
-    CFLAGS   += -D_REENTRANT
+    CXXFLAGS +=
+    CFLAGS   +=
     LDLIBS_LAST   += -lsocket -lstdc++ 
     VOCAL_USE_OPENSSL = false
 endif
@@ -70,8 +68,8 @@ ifeq ($(OSTYPE),SunOS)
 
     ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
 
-        CXXFLAGS += -D_REENTRANT
-        CFLAGS   += -D_REENTRANT
+        CXXFLAGS +=
+        CFLAGS   +=
         LDLIBS_LAST_PURE   += -lnsl -lsocket -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lgcc -lm
         LDLIBS_LAST   += -R/usr/local/lib -lnsl -lsocket
         MKSHLIB_LIBS += -lnsl -lsocket
@@ -84,9 +82,9 @@ ifeq ($(OSTYPE),SunOS)
 
     else
 
-        CXXFLAGS += -D_REENTRANT -mt -D_RWSTD_MULTI_THREAD -dalign -xarch=v8plus
-        CFLAGS   += -D_REENTRANT -xarch=v8plus
-        LDFLAGS  +=  -DTHREAD=MULTI -mt  -dalign -xarch=v8plus -L/opt/SUNWspro/WS6/lib/rw7 -L/opt/SUNWspro/WS6/lib/ -L/usr/local/ssl/lib/ 
+        CXXFLAGS += -dalign -xarch=v8plus
+        CFLAGS   += -xarch=v8plus
+        LDFLAGS  += -dalign -xarch=v8plus -L/opt/SUNWspro/WS6/lib/rw7 -L/opt/SUNWspro/WS6/lib/ -L/usr/local/ssl/lib/ 
         LDLIBS_LAST_PURE   += -lnsl -lsocket -lm
         LDLIBS_LAST   += -lrwtool -liostream -lnsl -lsocket -lCstd
 
@@ -124,10 +122,8 @@ endif
 
 ifeq ($(OSTYPE),cygwin)
     USE_LIBGETOPT = 1
-    CFLAGS += -I$(ROOT)/contrib/win32/mingw/include \
-              -I$(ROOT)/contrib/win32/pthreads
-    CXXFLAGS += -I$(ROOT)/contrib/win32/mingw/include \
-                -I$(ROOT)/contrib/win32/pthreads
+    CFLAGS += -I$(ROOT)/contrib/win32/mingw/include
+    CXXFLAGS += -I$(ROOT)/contrib/win32/mingw/include
 endif
 
 
@@ -145,8 +141,8 @@ endif
 # set up general compilation options
 
 LDFLAGS  += 
-CXXFLAGS += -DUSE_PTHREADS
-CFLAGS   += -DUSE_PTHREADS
+CXXFLAGS += 
+CFLAGS   += 
 LDLIBS   +=
 INCDIRS  += $(BUILD)
 

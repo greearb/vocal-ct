@@ -52,7 +52,7 @@
  */
 
 static const char* const SipCommand_hxx_Version
-= "$Id: SipCommand.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+= "$Id: SipCommand.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 #include <vector>
 #include "SipMsg.hxx"
@@ -110,6 +110,8 @@ class SipCommand : public SipMsg
         // Help with up-casting.
         virtual bool isSipCommand() const { return true; }
         virtual bool isStatusMsg() const { return false; }
+        virtual bool isInviteMsg() const { return false; }
+        virtual bool isByeMsg() const { return false; }
 
         ///
         bool operator ==(const SipCommand& src) const;

@@ -52,7 +52,7 @@
  */
 
 static const char* const NotifyMsg_hxx_Version =
-    "$Id: NotifyMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: NotifyMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include "SipCommand.hxx"
 #include "SipSubsNotifyEvent.hxx"
@@ -120,6 +120,10 @@ class NotifyMsg : public SipCommand
         virtual ~NotifyMsg();
         ///called to get the type of message.
         virtual Method getType() const;
+
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
 
         /// the status line of the wrapped message
         SipStatusLine getReferredStatusLine() const;

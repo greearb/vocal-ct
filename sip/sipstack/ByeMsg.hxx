@@ -54,7 +54,7 @@
 #include "SipCommand.hxx"
 
 static const char* const ByeMsgVersion
-= "$Id: ByeMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: ByeMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 namespace Vocal
 {
@@ -166,6 +166,11 @@ class ByeMsg : public SipCommand
 
         ///
         virtual ~ByeMsg();
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
+        virtual bool isByeMsg() const { return true; }
+
         ///
         virtual Method getType() const;
     private:

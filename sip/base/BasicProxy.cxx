@@ -50,7 +50,7 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "global.h"
@@ -59,6 +59,8 @@ static const char* const BasicProxy_cxx_Version =
 #include "CommandLine.hxx"
 #include "SipThread.hxx"
 #include "Builder.hxx"
+#include "HeartbeatParms.hxx"
+
 
 using namespace Vocal;
 
@@ -78,19 +80,43 @@ BasicProxy::BasicProxy(
                        applName, filteron, nat, aContext)
 {
 
-    if(CommandLine::instance()->getInt("HEARTBEAT"))
-    {
+    if (CommandLine::instance()->getInt("HEARTBEAT")) {
         cpLog(LOG_INFO, "Initializing heartbeat mechanism");
-        myHeartbeatTxThread = new HeartbeatTxThread(local_ip, local_dev_to_bind_to, defaultSipPort);
-        myHeartbeatRxThread = new HeartbeatRxThread(local_ip, local_dev_to_bind_to, ServerContainer::instance());
-        myHouseKeepingThread = new HouseKeepingThread(ServerContainer::instance());
-        assert( myHeartbeatTxThread != 0 );
-        assert( myHeartbeatRxThread != 0 );
-        assert( myHouseKeepingThread != 0 );
+        myHeartbeatThread = new HeartbeatThread(local_ip, local_dev_to_bind_to,
+                                                &(ServerContainer::instance()),
+                                                defaultSipPort);
     }
 }
 
 
+void BasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      uint64 now) {
+   if (myHeartbeatThread) {
+      myHeartbeatThread->tick(input_fds, output_fds, exc_fds, now);
+   }
+
+   // Let the base class have it's say.
+   HeartLessProxy::tick(input_fds, output_fds, exc_fds, now);
+}
+
+
+int BasicProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now) {
+   if (myHeartbeatThread) {
+      myHeartbeatThread->setFds(input_fds, output_fds, exc_fds,
+                                maxdesc, timeout, now);
+   }
+
+   // Let the base class have it's say.
+   HeartLessProxy::setFds(input_fds, output_fds, exc_fds,
+                                   maxdesc, timeout, now);
+   return 0;
+}
+
 BasicProxy::~BasicProxy()
 {
+   if (myHeartbeatThread) {
+      delete myHeartbeatThread;
+      myHeartbeatThread = NULL;
+   }
 }

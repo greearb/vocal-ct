@@ -53,7 +53,7 @@
 
 
 static const char* const TimerEvent_hxx_Version = 
-    "$Id: TimerEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: TimerEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 
 #include "SipProxyEvent.hxx"
@@ -85,6 +85,7 @@ class TimerEvent : public SipProxyEvent
          */
         virtual ~TimerEvent();
 
+        virtual bool isTimerEvent() const { return true; }
 
         /** Post the given event to the associated fifo to expire in
          *  timerMs milliseconds.

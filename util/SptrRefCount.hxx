@@ -52,9 +52,10 @@
  */
 
 static const char* const Sptr_RefCount_hxx_Version =
-    "$Id: SptrRefCount.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SptrRefCount.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
 
 #include <assert.h>
+#include <stdlib.h> // Get NULL defined :P
 #include "debug.h"
 
 
@@ -230,6 +231,54 @@ public:
       decrement();
    }
 
+   /** dynamicCast works similarly to the actual dynamic_cast()
+    * operator.
+    <P>
+    <B>EXAMPLE</B>
+    
+    <PRE>
+    class A {
+    ...
+    };
+    class B : public A {
+    ...
+    };
+    class C {
+    ...
+    };
+    ...
+    int main()
+    {
+    Sptr< A > a;
+    Sptr< B > b;
+    Sptr< C > c;
+    
+    a = new B;
+    
+    b.dynamicCast(a);
+    // now, b points to the same thing as a
+    
+    c.dynamicCast(a);
+    // now, c is the NULL pointer.
+    }
+    </PRE>
+   */
+   template < class T2 > Sptr& dynamicCast(const Sptr < T2 > & x) {
+      if (ptr == x.getPtr())
+         return *this;
+      decrement();
+      if (T* p = dynamic_cast < T* > (x.getPtr())) {
+         ptr = p;
+         increment();
+      }
+      else {
+         /* Dynamic cast failed */
+         ptr = NULL;
+      }
+
+      return *this;
+   }
+
    // dereference operator
    T& operator*() const {
       assert(ptr);
@@ -251,7 +300,7 @@ public:
     * of the base type.
     */
    template < class T2 >
-   Sptr& operator=(const Sptr < T2 > & x) {
+   Sptr& operator=(Sptr < T2 > & x) {
       if (ptr == x.getPtr())
          return * this;
       decrement();

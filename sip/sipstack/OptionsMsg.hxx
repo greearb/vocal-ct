@@ -55,7 +55,7 @@
 #include "SipCommand.hxx"
 
 static const char* const OptionsMsgVersion
-= "$Id: OptionsMsg.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+= "$Id: OptionsMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 namespace Vocal
 {
@@ -95,6 +95,10 @@ class OptionsMsg : public SipCommand
 
         ///
         OptionsMsg(const OptionsMsg&, enum OptionsMsgForward);
+
+
+        // Help up-cast safely.
+        virtual bool isCancelMsg() const { return false; }
 
         ///
 //        virtual Data encode() const;  // get details and create Message, and return.
