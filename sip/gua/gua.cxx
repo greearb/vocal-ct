@@ -57,10 +57,19 @@
 #include "gua.hxx"
 #include <sstream>
 
+// To allow us to clean up in a definate manner (helps with memory leak debugging)
+#include "controlState/ControlStateFactory.hxx"
+#include <NetworkConfig.hxx>
+#include <UaStateFactory.hxx>
+#include <UaCallControl.hxx>
+#include <MediaController.hxx>
+#include <CallDB.hxx>
+
 #include <SipUdpConnection.hxx>
 
 #ifdef USE_LANFORGE
 #include "LF/LFVoipHelper.hxx"
+#include "LF/LFVoipManager.hxx"
 #endif
 
 using namespace Vocal;
@@ -68,8 +77,7 @@ using namespace Vocal::UA;
 
 int gua_running = 1;
 
-int
-main(const int argc, const char**argv) {
+int main(const int argc, const char**argv) {
    INIT_DEBUG_MEM_USAGE;
    DEBUG_MEM_USAGE("beginning of main");
 
@@ -159,9 +167,12 @@ main(const int argc, const char**argv) {
          // Either we timed out, or a file descriptor is readable.
          UaFacade::instance().tick(&input_set, &output_set, &exc_set, now);
 
-    }//while
+      }//while
 
-
+#ifdef USE_LANFORGE
+      VoipHelperMgr::destroy();
+#endif
+      UaFacade::destroy();
 
     }
     catch(VException& e) {
@@ -170,6 +181,17 @@ main(const int argc, const char**argv) {
        cerr << "Caught exception, termination application. Reason ";
        cerr << e.getDescription().c_str() << endl;
     }
+
+   // Delete all of the singletons we can find to help valgrind find valid
+   // memory leaks.
+   SipParserMode::destroy();
+   ControlStateFactory::destroy();
+   NetworkConfig::destroy();
+   UaStateFactory::destroy();
+   UaCallControl::destroy();
+   MediaController::destroy();
+   CallDB::destroy();
+   UaConfiguration::destroy();
 
    cpLog(LOG_ERR, "Exiting gua...\n");
    cerr << "Exiting gua..." << endl;

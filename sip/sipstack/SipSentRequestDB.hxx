@@ -52,32 +52,30 @@
  */
 
 static const char* const SipSentRequestDB_hxx_version =
-    "$Id: SipSentRequestDB.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipSentRequestDB.hxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
 
 #include "SipTransactionDB.hxx"
 
 namespace Vocal
 {
     
-class SipSentRequestDB : public SipTransactionDB
-{
+class SipSentRequestDB : public SipTransactionDB {
 public:
-    // local_ip cannot be "" here, must be the local IP we are bound to locally
-    // or 'hostaddress' if we are not specifically bound.
-    SipSentRequestDB(const string& _local_ip);
-    virtual ~SipSentRequestDB();
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipSentRequestDB(const string& _local_ip);
+   virtual ~SipSentRequestDB();
 
 private:
-    SipSentRequestDB();
-    SipSentRequestDB(const SipSentRequestDB&);
-    SipSentRequestDB& operator= (const SipSentRequestDB&);
-    bool operator==(const SipSentRequestDB&);
+   SipSentRequestDB();
+   SipSentRequestDB(const SipSentRequestDB&);
+   SipSentRequestDB& operator= (const SipSentRequestDB&);
+   bool operator==(const SipSentRequestDB&);
 
 public:
-    virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg);
-
-    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer);
-
+   virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg);
+   
+   virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer);
 };
  
 } // namespace Vocal

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MediaController.hxx,v 1.5 2004/11/05 07:25:05 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -87,6 +87,8 @@ class MediaController
 public:
    ///Interface to access the Singelton object.
    static MediaController& instance();
+
+   static void destroy();
 
    /**Interface to initialize the Controller. The interface should be called
     *by the application only once to create and intialize the Controller object.

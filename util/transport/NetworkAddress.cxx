@@ -50,7 +50,7 @@
 
 
 static const char* const NetworkAddress_cxx_Version =
-"$Id: NetworkAddress.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
+"$Id: NetworkAddress.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
 
 #include <string>
 #if defined(__FreeBSD__) || defined (__APPLE__)
@@ -507,14 +507,13 @@ NetworkAddress::initIpAddress() const {
    ipAddressSet = true;
 }
 
-NetworkAddress::NetworkAddress( const NetworkAddress& x)
-{
-    aPort = x.aPort;
-    ipAddress = x.getIpName();
-    ipAddressSet = false;
-    hostName = x.hostName;
-    sockAddrSet = false;
-    initIpAddress();
+NetworkAddress::NetworkAddress( const NetworkAddress& x) {
+   aPort = x.aPort;
+   ipAddress = x.getIpName();
+   ipAddressSet = false;
+   hostName = x.hostName;
+   sockAddrSet = false;
+   initIpAddress();
 }
 
 

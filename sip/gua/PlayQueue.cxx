@@ -49,7 +49,7 @@
  */
 
 static const char* const PlayQueue_cxx_Version =
-    "$Id: PlayQueue.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: PlayQueue.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "PlayQueue.h"
@@ -146,10 +146,8 @@ int PlayQueue::reStart() {
 }
 
 
-int PlayQueue::getData(void *buffer, int size)
-{
-    if ( !m_bActive ) 
-    {
+int PlayQueue::getData(void *buffer, int size) {
+    if ( !m_bActive ) {
 	//cpLog(LOG_DEBUG, "tried to get data when not playing");
 	return true;
     }
@@ -167,13 +165,8 @@ int PlayQueue::getData(void *buffer, int size)
         s2ulaw_array(shorts, rc, (unsigned char*)(cbuf));
     }
 
-    if ( rc != units_to_read )
-    {
+    if ( rc != units_to_read ) {
 	cpLog(LOG_DEBUG, "finished reading sound file");
-        if ( cbuf[rc] == 0 )
-	{
-	    cbuf[rc] = 0x7F;
-	}
         memset(cbuf + rc, 0x7F, size - rc);
         ::sf_close(m_iFd);
         m_iFd = 0;

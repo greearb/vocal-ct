@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MediaController.cxx,v 1.6 2004/11/05 07:25:05 greear Exp $";
 
 
 #include "MediaController.hxx"
@@ -73,6 +73,11 @@ MediaController&
 MediaController::instance() {
    assert(myInstance != 0);
    return *myInstance;
+}
+
+void MediaController::destroy() {
+   delete myInstance;
+   myInstance = NULL;
 }
 
 void MediaController::initialize(const string& local_ip,

@@ -52,7 +52,7 @@
  */
 
 static const char* const sipHeaderVersion =
-"$Id: SipHeader.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+"$Id: SipHeader.hxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
 
 #include "Data.hxx"
 #include "Sptr.hxx"
@@ -188,55 +188,51 @@ Data headerTypeEncode(const SipHeaderType header);
 
 
 /// Base class for all SIP headers
-class SipHeader: public BugCatcher
-{
-    public:
-        static  void    init();
-        /// virtual destructor
-        virtual ~SipHeader() {};
-        /// encode function returns the encoded form of the header
-        virtual Data encode() const = 0;
-        /// factory for constructing sip headers given the type
-        static SipHeader* decodeHeader( SipHeaderType type, const Data& value,
-                                        const string& local_ip);
-        /// virtual method for copying sip headers of any type without knowing which type
-        virtual Sptr<SipHeader> duplicate() const = 0;
-        /// compare two headers of (possibly) the same class
-        virtual bool compareSipHeader(SipHeader* msg) const = 0;
+class SipHeader: public BugCatcher {
+public:
+   static  void    init();
+   /// virtual destructor
+   virtual ~SipHeader() { _cnt--; };
+   /// encode function returns the encoded form of the header
+   virtual Data encode() const = 0;
+   /// factory for constructing sip headers given the type
+   static SipHeader* decodeHeader( SipHeaderType type, const Data& value,
+                                   const string& local_ip);
+   static int getInstanceCount() { return _cnt; }
 
-        ///
-        bool isEmpty() const { return emptyFlg; };
+   /// virtual method for copying sip headers of any type without knowing which type
+   virtual Sptr<SipHeader> duplicate() const = 0;
+   /// compare two headers of (possibly) the same class
+   virtual bool compareSipHeader(SipHeader* msg) const = 0;
 
-        const string& getLocalIp() const { return local_ip; }
+   ///
+   bool isEmpty() const { return emptyFlg; };
 
-    protected:
-        // local_ip cannot be "" here, must be the local IP we are bound to locally
-        // or 'hostaddress' if we are not specifically bound.
-        SipHeader(const string& _local_ip) {
-            emptyFlg= true;
-            local_ip = _local_ip;
-        }
-        // local_ip cannot be "" here, must be the local IP we are bound to locally
-        // or 'hostaddress' if we are not specifically bound.
-        SipHeader(const Data& val, const string& _local_ip) {
-            emptyFlg= false;
-            local_ip = _local_ip;
-        }
-        bool emptyFlg;
+   const string& getLocalIp() const { return local_ip; }
 
-        string local_ip;
+protected:
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipHeader(const string& _local_ip) {
+      emptyFlg= true;
+      local_ip = _local_ip;
+      _cnt++;
+   }
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipHeader(const Data& val, const string& _local_ip) {
+      emptyFlg= false;
+      local_ip = _local_ip;
+      _cnt++;
+   }
+   bool emptyFlg;
 
-    private:
-        SipHeader(); //Not Implemented
+   string local_ip;
+
+private:
+   static unsigned int _cnt;
+   SipHeader(); //Not Implemented
 };
    
 } // namespace Vocal
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.8 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -87,7 +87,7 @@ using namespace Vocal;
 #endif
 
 
-atomic_t SipTransceiver::_cnt;
+unsigned int SipTransceiver::_cnt;
 
 
 SipAppContext SipTransceiver::myAppContext = APP_CONTEXT_GENERIC;
@@ -158,14 +158,17 @@ SipTransceiver::SipTransceiver(const string& local_ip,
 
     myLocalNamePort = nameport;
 
+    lastPurge = 0;
+
     //cpLog(LOG_ERR, "SipTransceiver:  Done with constructor.\n");
     //debugMemUsage("Done with SipTransceiver", "gua_mem.txt");
-    atomic_inc(&_cnt);
+    _cnt++;
 }
 
 
 SipTransceiver::~SipTransceiver() {
-    atomic_dec(&_cnt);
+   assertNotDeleted();
+   _cnt--;
 }
 
 
@@ -295,6 +298,14 @@ void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
    }
    if (sipAgent != 0) {
       sipAgent->tick(input_fds, output_fds, exc_fds, now);
+   }
+
+   // See if we should purge any old calls?
+   if (lastPurge + 5000 < now) {
+      // Been a while, lets see if we should purge any.
+      sentRequestDB.purgeOldCalls(now);
+      sentResponseDB.purgeOldCalls(now);
+      lastPurge = now;
    }
 }
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipParserMode_cxx_Version =
-    "$Id: SipParserMode.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipParserMode.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipParserMode.hxx"
@@ -59,8 +59,7 @@ using namespace Vocal;
 
 SipParserMode * SipParserMode::instance_ = 0;
 
-SipParserMode::SipParserMode()
-{
+SipParserMode::SipParserMode() {
     sipParserMode_ = true;
 #if 0
     if (getenv("SIP_PARSER_STRICT_MODE"))
@@ -73,9 +72,3 @@ SipParserMode::SipParserMode()
     }
 #endif
 }
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

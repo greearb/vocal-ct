@@ -49,7 +49,7 @@
  */
 
 static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaConfiguration.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -68,13 +68,15 @@ using namespace Vocal::UA;
 UaConfiguration* UaConfiguration::uaConfiguration = 0;
 
 
-UaConfiguration&
-UaConfiguration::instance()
-{
+UaConfiguration& UaConfiguration::instance() {
     assert( uaConfiguration != 0 );
     return *uaConfiguration;
 }
 
+void UaConfiguration::destroy() {
+    delete uaConfiguration;
+    uaConfiguration = NULL;
+}
 
 // this needs to match up with the enum in UaConfiguration.hxx 
 static const char* UaConfigurationTagString [] =
@@ -304,11 +306,3 @@ UaConfiguration::getVmServers() const
 {
    return myVmServers;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

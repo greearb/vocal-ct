@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.9 2004/11/04 07:51:18 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.10 2004/11/05 07:25:06 greear Exp $";
 
 
 #include <sys/types.h>
@@ -117,23 +117,24 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 
-UaFacade* UaFacade::myInstance = 0;
+Sptr<UaFacade> UaFacade::myInstance;
 
-void
-UaFacade::destroy()
-{
-   if (myInstance) {
+void UaFacade::destroy() {
+   if (myInstance.getPtr()) {
       UaCallControl::destroy();
       cpLog(LOG_DEBUG, "UaFacade::destroy()");
 
-      delete myInstance;
-      myInstance = 0;
+      // There exist circular links...this should break them gracefully.
+      myInstance->mySipThread = NULL;
+      myInstance->mySipStack = NULL;
+      myInstance->myRegistrationManager = NULL;
+
+      myInstance = NULL;
    }
 }
 
-UaFacade&
-UaFacade::instance() {
-    return *myInstance;
+UaFacade& UaFacade::instance() {
+   return *(myInstance.getPtr());
 }
 
 void

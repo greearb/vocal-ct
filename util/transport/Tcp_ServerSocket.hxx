@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -90,8 +90,7 @@ class TcpServerSocket;
 
 */
 
-class TcpServerSocket: public BugCatcher
-{
+class TcpServerSocket: public BugCatcher {
 public:
 
    /**

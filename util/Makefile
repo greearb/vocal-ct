@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/06/09 07:19:35 greear Exp $
+# $Id: Makefile,v 1.5 2004/11/05 07:25:06 greear Exp $
 
 BUILD = ../build
 
@@ -41,6 +41,7 @@ CODE_SUBDIRS =  logging crypto statistics snmp signals io \
 
 SRC += \
 	misc.cxx \
+	BugCatcher.cxx \
 	Data2.cxx \
 	RandomHex.cxx \
 	Sptr.cxx \

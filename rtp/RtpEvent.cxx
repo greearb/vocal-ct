@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpEvent_cxx_Version =
-    "$Id: RtpEvent.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpEvent.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 
 #include "global.h"
@@ -59,20 +59,21 @@ static const char* const RtpEvent_cxx_Version =
 #include "RtpEvent.hxx"
 #include "RtpPacket.hxx"
 
+unsigned int RtpEvent::_cnt = 0;
 
-RtpEvent::RtpEvent()
-{
-    _DTMFInterface = 0;
-    _DTMFType = rtpPayloadDTMF_RFC2833;
-    _keyEvent = KeyEventNULL;
-    _DTMFEvent = DTMFEventNULL;
-    return ;
+RtpEvent::RtpEvent() {
+   _DTMFInterface = 0;
+   _DTMFType = rtpPayloadDTMF_RFC2833;
+   _keyEvent = KeyEventNULL;
+   _DTMFEvent = DTMFEventNULL;
+   _cnt++;
+   return ;
 }
 
 
-RtpEvent::~RtpEvent()
-{
-    return ;
+RtpEvent::~RtpEvent() {
+   _cnt--;
+   return ;
 }
 
 

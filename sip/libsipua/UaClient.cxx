@@ -50,7 +50,7 @@
 
 
 static const char* const UaClient_cxx_Version =
-    "$Id: UaClient.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UaClient.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include "ByeMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -61,48 +61,45 @@ static const char* const UaClient_cxx_Version =
 using namespace Vocal::UA;
 
 
-Sptr<SipMsg>
-UaClient::sendBye()
-{
-    cpLog(LOG_DEBUG, "UaClient::sendBye");
-    //Create BYE of the 200
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(myResponseMsg);
-    assert(statusMsg != 0);
+Sptr<SipMsg> UaClient::sendBye() {
+   cpLog(LOG_DEBUG, "UaClient::sendBye");
+   //Create BYE of the 200
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(myResponseMsg);
+   assert(statusMsg != 0);
 
-    Sptr<ByeMsg> byeMsg = new ByeMsg(*statusMsg, getMyLocalIp());
-    if(myRouteList.size())
-    {
-        byeMsg->setRouteList(myRouteList);
-        //
-        SipRoute siproute = byeMsg->getRoute(0);
-        byeMsg->removeRoute(0);
- 
-        SipRequestLine& reqLine = byeMsg->getMutableRequestLine();
-        reqLine.setUrl( siproute.getUrl() );
-    }
-    //Clear VIA and set B2b as first via
-    byeMsg->flushViaList();
-    SipVia via("", getMyLocalIp());
+   Sptr<ByeMsg> byeMsg = new ByeMsg(*statusMsg, getMyLocalIp());
+   if (myRouteList.size()) {
+      byeMsg->setRouteList(myRouteList);
+      //
+      SipRoute siproute = byeMsg->getRoute(0);
+      byeMsg->removeRoute(0);
+      
+      SipRequestLine& reqLine = byeMsg->getMutableRequestLine();
+      reqLine.setUrl( siproute.getUrl() );
+   }
+   //Clear VIA and set B2b as first via
+   byeMsg->flushViaList();
+   SipVia via("", getMyLocalIp());
+   
+   via.setHost(getMyLocalIp());
+   via.setPort(getMySipPort());
+   byeMsg->setVia(via);
+   
+   cpLog(LOG_DEBUG, "UaClient::sendBye, local_ip: %s, port: %d\n",
+         getMyLocalIp().c_str(), getMySipPort());
 
-    via.setHost(getMyLocalIp());
-    via.setPort(getMySipPort());
-    byeMsg->setVia(via);
-
-    cpLog(LOG_DEBUG, "UaClient::sendBye, local_ip: %s, port: %d\n",
-          getMyLocalIp().c_str(), getMySipPort());
-
-    //unsigned int cseq = myLocalCSeq.getNextCSeq();
-    cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
-    myLocalCSeq.incrCSeq();
-    unsigned int cseq = myLocalCSeq.getCSeq();
-    SipCSeq sipCSeq = byeMsg->getCSeq();
-    sipCSeq.setCSeq( cseq );
-    byeMsg->setCSeq( sipCSeq );
-    myStack->sendAsync(byeMsg.getPtr());
-    cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
-
-    cpLog(LOG_DEBUG, "ByeMsg: %s\n", byeMsg->toString().c_str());
-
-    return byeMsg.getPtr();
+   //unsigned int cseq = myLocalCSeq.getNextCSeq();
+   cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
+   myLocalCSeq.incrCSeq();
+   unsigned int cseq = myLocalCSeq.getCSeq();
+   SipCSeq sipCSeq = byeMsg->getCSeq();
+   sipCSeq.setCSeq( cseq );
+   byeMsg->setCSeq( sipCSeq );
+   myStack->sendAsync(byeMsg.getPtr());
+   cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
+   
+   cpLog(LOG_DEBUG, "ByeMsg: %s\n", byeMsg->toString().c_str());
+   
+   return byeMsg.getPtr();
 }

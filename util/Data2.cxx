@@ -19,7 +19,7 @@ atomic_t Data::_total_buf;
 Data::Data() 
    : mLength(0), 
      mBuf(0),
-     mCapacity(127)
+     mCapacity(63)
 {
    atomic_inc(&_cnt);
    atomic_add(&_total_buf, mCapacity+1);
@@ -752,32 +752,26 @@ Data::match(const char* match,
    int matchLength = strlen(match);
 
    int replacePos = find(match);
-   if (replacePos == Data::npos)
-   {
+   if (replacePos == Data::npos) {
       return NOT_FOUND;
    }
 
-   if (retModifiedData != 0)
-   {
+   if (retModifiedData != 0) {
       *retModifiedData = Data(mBuf, replacePos);
-      if (retModifiedData->length() != 0)
-      {
+      if (retModifiedData->length() != 0) {
          retVal = FOUND;
       }
    }
 
-   if (replace)
-   {
-      if (mLength - replacePos - matchLength + replaceWith.length() <= mCapacity)
-      {
-         memcpy(mBuf + replaceWith.length(), 
-                mBuf + replacePos + matchLength,
-                mLength - replacePos - matchLength + 1);
-         memcpy(mBuf, replaceWith.mBuf, replaceWith.length());
+   if (replace) {
+      if (mLength - replacePos - matchLength + replaceWith.length() <= mCapacity) {
+         memmove(mBuf + replaceWith.length(), 
+                 mBuf + replacePos + matchLength,
+                 mLength - replacePos - matchLength + 1);
+         memmove(mBuf, replaceWith.mBuf, replaceWith.length());
          mLength = mLength - replacePos - matchLength + replaceWith.length();
       }
-      else
-      {
+      else {
          // apparently we never need to grow on replace
          assert(0);
       }
@@ -785,68 +779,57 @@ Data::match(const char* match,
    return retVal;
 }
 
-bool isIn(char c, const char* match)
-{
+bool isIn(char c, const char* match) {
    char p;
-   while((p = *match++))
-   {
-      if (p == c)
-      {
+   while((p = *match++)) {
+      if (p == c) {
          return true;
       }
    }
-    
    return false;
 }
 
 Data 
-Data::parse(const char* match, bool* matchFail )
-{
+Data::parse(const char* match, bool* matchFail ) {
    assert(match);
    
    int start = 0;
    bool foundAny = false;
 
    // find start
-   while (!foundAny && (start < mLength))
-   {
+   while (!foundAny && (start < mLength)) {
       foundAny = isIn(mBuf[start++], match);
    }
 
    // find end
-   if (foundAny)
-   {
+   if (foundAny) {
       int end = --start;
-      while (end < mLength &&
-             isIn(mBuf[end], match))
-      {
-	end++;
+      while (end < mLength && isIn(mBuf[end], match)) {
+         end++;
       }
       //      end--;
 
       Data result(mBuf, start);
 
-      memcpy(mBuf, mBuf + end, mLength - end + 1);
+      memmove(mBuf, mBuf + end, mLength - end + 1);
       mLength = mLength - end;
       mBuf[mLength] = '\0';
 
       assert(mLength >= 0);
-      if (matchFail)
-      {
+      if (matchFail) {
          *matchFail = false;
       }
       return result;
    }
-   else
-   {
-      if (matchFail)
-      {
+   else {
+      if (matchFail) {
          *matchFail = true;
       }
       Data result;//(0, true);
       return result;
    }
-}
+}//parse
+
 
 Data 
 Data::parseOutsideQuotes(const char* match, 
@@ -861,27 +844,22 @@ Data::parseOutsideQuotes(const char* match,
 
    bool foundAny = false;
 
-   while (!foundAny && (pos < mLength))
-   {
+   while (!foundAny && (pos < mLength)) {
       char p = mBuf[pos];
 
-      switch (p)
-      {
+      switch (p) {
          case '"':
-            if (!inAngleBrackets && useQuote)
-            {
+            if (!inAngleBrackets && useQuote) {
                inDoubleQuotes = !inDoubleQuotes;
             }
             break;
          case '<':
-            if (!inDoubleQuotes && useAngle)
-            {
+            if (!inDoubleQuotes && useAngle) {
                inAngleBrackets = true;
             }
             break;
          case '>':
-            if (!inDoubleQuotes && useAngle)
-            {
+            if (!inDoubleQuotes && useAngle) {
                inAngleBrackets = false;
             }
             break;
@@ -889,8 +867,7 @@ Data::parseOutsideQuotes(const char* match,
             break;
       }
 
-      if (!inDoubleQuotes && !inAngleBrackets && isIn(p, match))
-      {
+      if (!inDoubleQuotes && !inAngleBrackets && isIn(p, match)) {
          foundAny = true;
       }
       pos++;
@@ -905,23 +882,19 @@ Data::parseOutsideQuotes(const char* match,
       pos2++;
    }
 
-   if (foundAny)
-   {
+   if (foundAny) {
       Data result(mBuf, pos-1);
 
-      memcpy(mBuf, mBuf + pos2, mLength - pos2 + 1);
+      memmove(mBuf, mBuf + pos2, mLength - pos2 + 1);
       mLength -= pos2;
 
-      if (matchFail)
-      {
+      if (matchFail) {
          *matchFail = false;
       }
       return result;
    }
-   else
-   {
-      if (matchFail)
-      {
+   else {
+      if (matchFail) {
          *matchFail = true;
       }
       Data result;
@@ -930,38 +903,31 @@ Data::parseOutsideQuotes(const char* match,
 }
 
 Data 
-Data::matchChar(const char* match, char* matchedChar )
-{
+Data::matchChar(const char* match, char* matchedChar ) {
    int pos = 0;
 
    bool foundAny = false;
 
-   while (!foundAny && (pos < mLength))
-   {
+   while (!foundAny && (pos < mLength)) {
       char p = mBuf[pos];
-      if( isIn(p, match))
-      {
+      if( isIn(p, match)) {
          foundAny = true;
-         if (matchedChar)
-         {
+         if (matchedChar) {
             *matchedChar = p;
          }
       }
       pos++;
    }
 
-   if (foundAny)
-   {
+   if (foundAny) {
       Data result(mBuf, pos-1);
-      memcpy(mBuf, mBuf+pos, mLength-pos+1);
+      memmove(mBuf, mBuf+pos, mLength-pos+1);
       mLength -= pos;
       return result;
    }
-   else
-   {
+   else {
       Data result;
-      if (matchedChar)
-      {
+      if (matchedChar) {
          *matchedChar = '\0';
       }
       return result;
@@ -1007,28 +973,23 @@ Data::getLine(bool* matchFail )
 
    int pos2 = pos;
 
-   if(state == HAS_CRLF)
-   {
+   if (state == HAS_CRLF) {
       pos--;
    }
 
-   if (foundAny)
-   {
+   if (foundAny) {
       Data result(mBuf, pos-1);
        
-      memcpy(mBuf, mBuf+pos2, mLength-pos2+1);
+      memmove(mBuf, mBuf+pos2, mLength-pos2+1);
       mLength -= pos2;
 
-      if (matchFail)
-      {
+      if (matchFail) {
          *matchFail = false;
       }
       return result;
    }
-   else
-   {
-      if (matchFail)
-      {
+   else {
+      if (matchFail) {
          *matchFail = true;
       }
       Data result;
@@ -1181,29 +1142,23 @@ Data::find(const char* match, int start) const
 }
 
 Data&
-Data::removeSpaces()
-{
+Data::removeSpaces() {
    int firstChar = 0;
- 
-   while ((firstChar < mLength) && 
-          mBuf[firstChar] == ' ')
-   {
+   
+   while ((firstChar < mLength) && mBuf[firstChar] == ' ') {
       firstChar++;
    }
- 
+   
    int lastChar = mLength-1;
-   while ((lastChar > 0) && (mBuf[lastChar] == ' '))
-   {
+   while ((lastChar > 0) && (mBuf[lastChar] == ' ')) {
       lastChar--;
    }
    
-   if (firstChar > lastChar)
-   {
+   if (firstChar > lastChar) {
       erase();
    }          
-   else
-   {
-      memcpy(mBuf, mBuf+firstChar, lastChar-firstChar+1);
+   else {
+      memmove(mBuf, mBuf+firstChar, lastChar-firstChar+1);
       mLength = lastChar-firstChar+1;
       mBuf[mLength] = 0;
    }
@@ -1215,21 +1170,17 @@ Data::removeSpaces()
 // whitespace and replaces the CRLF with two spaces (' '). This should allow the
 // parser to continue since lines will no longer be folded 
 Data&
-Data::removeLWS()
-{
+Data::removeLWS() {
    char* p = mBuf;
    char* end = mBuf + mLength - 2;
-   while (p != 0 && p < end)
-   {
+   while (p != 0 && p < end) {
       // look for CRLF + ' ' or '\t' since this indicates line folding
       // will not go past end, since && will short circuit when == 0
-      if (*p == '\r' && *(p+1) == '\n' && (*(p+2) == ' ' || (*(p+2) == '\t')))
-      {
+      if (*p == '\r' && *(p+1) == '\n' && (*(p+2) == ' ' || (*(p+2) == '\t'))) {
          *p++ = ' '; // replace \r with ' '
          *p++ = ' ';// replace \n with ' '
       }
-      else
-      {
+      else {
          p++;
       }
    }
@@ -1277,10 +1228,10 @@ Data::replace(int startPos, int endPos, const char* replaceStr, int replaceLengt
 
    resize(startPos + replaceLength + (mLength - endPos));
 
-   memcpy(mBuf + startPos + replaceLength, 
-          mBuf + endPos, mLength-endPos + 1);
+   memmove(mBuf + startPos + replaceLength, 
+           mBuf + endPos, mLength-endPos + 1);
    
-   memcpy(mBuf + startPos, replaceStr, replaceLength);
+   memmove(mBuf + startPos, replaceStr, replaceLength);
    mLength = startPos + replaceLength + (mLength - endPos);
    return *this;
 }

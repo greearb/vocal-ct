@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.10 2004/11/04 07:51:18 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.11 2004/11/05 07:25:06 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -530,10 +530,10 @@ UaCallControl& UaCallControl::instance() {
    return *myInstance;
 }
 
-void UaCallControl::destroy(void) {
+void UaCallControl::destroy() {
    cpLog(LOG_DEBUG, "UaCallControl::destroy");
-   delete UaCallControl::myInstance;
-   UaCallControl::myInstance = 0;
+   delete myInstance;
+   myInstance = 0;
 }
 
 void UaCallControl::initiateInvite(const string& to) {

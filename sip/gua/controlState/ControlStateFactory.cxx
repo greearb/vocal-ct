@@ -51,7 +51,7 @@
 
 
 static const char* const ControlStateFactory_cxx_Version = 
-"$Id: ControlStateFactory.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+"$Id: ControlStateFactory.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include "ControlStateFactory.hxx"
 #include "StateTrying.hxx"
@@ -78,12 +78,9 @@ ControlStateFactory::instance()
     return *myInstance;
 }
 
-void
-ControlStateFactory::destroy()
-{
-    delete ControlStateFactory::myInstance;
-    ControlStateFactory::myInstance = 0;
-    
+void ControlStateFactory::destroy() {
+   delete myInstance;
+   myInstance = 0;
 }
 
 ControlState* 

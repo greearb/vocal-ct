@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.7 2004/06/15 06:20:35 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.8 2004/11/05 07:25:06 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -408,13 +408,11 @@ UdpStack::doServer ( int minPort,
     */
 
     // this is a server
-    if ( (minPort == -1) && (maxPort == -1) )
-    {
+    if ( (minPort == -1) && (maxPort == -1) ) {
         minPort = 1024;
         maxPort = 65534;
     }
-    if ( maxPort == -1 )
-    {
+    if ( maxPort == -1 ) {
         maxPort = minPort;
     }
 
@@ -448,118 +446,113 @@ UdpStack::doServer ( int minPort,
 
     // here it assigns the port, the local port
     // & bind the addr(INADDR_ANY|lip + port) to the socket
-    for (int localPort = minPort; localPort <= maxPort; localPort++ )
-    {
-	char currport[6];
-	sprintf(currport, "%u", localPort);
-        cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
-	int error = getaddrinfo(lip, currport, &hints, &sa);
-	if (error) {
-		perror(gai_strerror(error));
-                continue;
-	}
+    for (int localPort = minPort; localPort <= maxPort; localPort++ ) {
+       char currport[6];
+       sprintf(currport, "%u", localPort);
+       cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
+       int error = getaddrinfo(lip, currport, &hints, &sa);
+       if (error) {
+          perror(gai_strerror(error));
+          continue;
+       }
 
-        // 16/1/04 fpi		  
-        // tbr
-        // todo
-        // Win32 WorkAround
-        // Note: I think this code is not useful,
-        // binding to a specific ip binds on the device
-        // that has the ip assigned
-
-        // It's useful in some cases on Linux, at least.
+       // 16/1/04 fpi		  
+       // tbr
+       // todo
+       // Win32 WorkAround
+       // Note: I think this code is not useful,
+       // binding to a specific ip binds on the device
+       // that has the ip assigned
+       
+       // It's useful in some cases on Linux, at least.
 #ifdef __linux__
-        if (localDev.size()) {
-           // Bind to specific device.
-           char dv[15 + 1];
-           strncpy(dv, localDev.c_str(), 15);
-           if (setsockopt(data->socketFd, SOL_SOCKET, SO_BINDTODEVICE,
-                          dv, 15 + 1)) {
-              cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                    dv, strerror(errno));
-           }
-        }
+       if (localDev.size()) {
+          // Bind to specific device.
+          char dv[15 + 1];
+          strncpy(dv, localDev.c_str(), 15);
+          if (setsockopt(data->socketFd, SOL_SOCKET, SO_BINDTODEVICE,
+                         dv, 15 + 1)) {
+             cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                   dv, strerror(errno));
+          }
+       }
 #endif
 
 
-        cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%s desiredLocalIp: %s",
-              data->socketFd, currport, desiredLocalIp.c_str());
+       cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%s desiredLocalIp: %s",
+             data->socketFd, currport, desiredLocalIp.c_str());
 
 
-        if (bind(data->socketFd, sa->ai_addr, sa->ai_addrlen) != 0)
-        {
-	    // failed, so keep trying
+       if (bind(data->socketFd, sa->ai_addr, sa->ai_addrlen) != 0) {
+          // failed, so keep trying
 
 #if !defined(WIN32)
-            err = errno;
-            if ( err == EADDRINUSE )
-            {
-                freeaddrinfo(sa);
-                continue;  // this port is in use - try the next one
-            }
+          err = errno;
+          if ( err == EADDRINUSE ) {
+             freeaddrinfo(sa);
+             continue;  // this port is in use - try the next one
+          }
 #else
-	    // 25/11/03 fpi
-	    // WorkAround Win32
-	    // uncomment code
-	    /* Fix suggested by Anandprasanna Gaitonde, 
-	       prasanna@controlnet.co.in */
-            err = WSAGetLastError();
-            if ( err == WSAEADDRINUSE )
-	    {
-                freeaddrinfo(sa);
-                continue;  // this port is in use - try the next one
-            }
+          // 25/11/03 fpi
+          // WorkAround Win32
+          // uncomment code
+          /* Fix suggested by Anandprasanna Gaitonde, 
+             prasanna@controlnet.co.in */
+          err = WSAGetLastError();
+          if ( err == WSAEADDRINUSE ) {
+             freeaddrinfo(sa);
+             continue;  // this port is in use - try the next one
+          }
 				
 #endif
 
-	    // some other error
+          // some other error
 
-	    err = errno;
-            strstream errMsg;
-            errMsg << "UdpStack<" << getLclName() 
-		   << ">::UdpStack error during socket bind: ";
-            errMsg << strerror(err);
-            errMsg << char(0);
-	    bError = true;
-            cpLog(LOG_ERR, "%s",  errMsg.str());
-        }
-        else {
-	    // successful binding occured
+          err = errno;
+          strstream errMsg;
+          errMsg << "UdpStack<" << getLclName() 
+                 << ">::UdpStack error during socket bind: ";
+          errMsg << strerror(err);
+          errMsg << char(0);
+          bError = true;
+          cpLog(LOG_ERR, "%s",  errMsg.str());
+       }
+       else {
+          // successful binding occured
 
-            // NOTE to self: netinet/in.h defines in_addr, 
-	    // second arg of inet_ntop
+          // NOTE to self: netinet/in.h defines in_addr, 
+          // second arg of inet_ntop
 
-            char tmp_addr[80];
-            struct sockaddr_in* sin = (struct sockaddr_in*)(sa->ai_addr);
-            inet_ntop(sa->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
-            tmp_addr[79] = 0;
-            curLocalIp = tmp_addr;
+          char tmp_addr[80];
+          struct sockaddr_in* sin = (struct sockaddr_in*)(sa->ai_addr);
+          inet_ntop(sa->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
+          tmp_addr[79] = 0;
+          curLocalIp = tmp_addr;
 
-            boundLocal = true;
-            portOk = true;
-            memcpy(data->localAddr, sa->ai_addr, sa->ai_addrlen);
-	    bError = false;
-            if (sa->ai_family == AF_INET6) {
-                cpLog(LOG_DEBUG, "(IPv6) Udp bound to fd = %d, port = %d, local_ip: %s",
-                      data->socketFd, localPort, curLocalIp.c_str());
-                //Set the sockoption so that we get get source IP
-                //when running on the same host
-                int on=1;
-
-		// 25/11/03 fpi
-		// WorkAround Win32
-		// ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
-		setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
-            }
-            else
-            {
-                cpLog(LOG_DEBUG, "(IPv4) Udp bound to fd = %d, port = %d, local_ip: %s",
-                      data->socketFd, localPort, curLocalIp.c_str());
-            }
-        }
-        freeaddrinfo(sa);
-	if (portOk)
-           break;
+          boundLocal = true;
+          portOk = true;
+          memcpy(data->localAddr, sa->ai_addr, sa->ai_addrlen);
+          bError = false;
+          if (sa->ai_family == AF_INET6) {
+             cpLog(LOG_DEBUG, "(IPv6) Udp bound to fd = %d, port = %d, local_ip: %s",
+                   data->socketFd, localPort, curLocalIp.c_str());
+             //Set the sockoption so that we get get source IP
+             //when running on the same host
+             int on=1;
+             
+             // 25/11/03 fpi
+             // WorkAround Win32
+             // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
+             setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
+          }
+          else {
+             cpLog(LOG_DEBUG, "(IPv4) Udp bound to fd = %d, port = %d, local_ip: %s",
+                   data->socketFd, localPort, curLocalIp.c_str());
+          }
+       }
+       freeaddrinfo(sa);
+       if (portOk)
+          break;
     }
 
     if (bError)

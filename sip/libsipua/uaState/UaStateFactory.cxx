@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFactory_cxx_Version = 
-"$Id: UaStateFactory.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+"$Id: UaStateFactory.cxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -74,19 +74,16 @@ UaStateFactory* UaStateFactory::myInstance = 0;
 
 
 UaStateFactory& 
-UaStateFactory::instance()
-{
-   if(myInstance == 0) {
+UaStateFactory::instance() {
+   if (myInstance == 0) {
       myInstance = new UaStateFactory();
    }
    return *myInstance;
 }
 
-void
-UaStateFactory::destroy()
-{
-    delete UaStateFactory::myInstance;
-    UaStateFactory::myInstance = 0;
+void UaStateFactory::destroy() {
+   delete myInstance;
+   myInstance = 0;
 }
 
 Sptr<UaState>

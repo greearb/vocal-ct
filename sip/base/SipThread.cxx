@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.7 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipThread.cxx,v 1.8 2004/11/05 07:25:06 greear Exp $";
 
 
 #include "global.h"
@@ -76,8 +76,8 @@ SipThread::SipThread( const Sptr < SipTransceiver > sipStack,
 
 
 
-SipThread::~SipThread()
-{
+SipThread::~SipThread() {
+   
 }
 
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.2 2004/06/19 00:51:07 greear Exp $";
+    "$Id: UaConfiguration.hxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include <string>
 #include <list>
@@ -117,13 +117,14 @@ typedef enum
 /**
  *  SIP User Agent configuration
  */
-class UaConfiguration
-{
+class UaConfiguration {
     public:
         ///
         static UaConfiguration& instance();
         ///
         static void instance( const string cfgFile );
+        static void destroy();
+
         ///
         static void parseCfgFileCallBack( char* tag, char* type, char* value );
         ///
@@ -169,12 +170,5 @@ class UaConfiguration
 }
 
 }
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

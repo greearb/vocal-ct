@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.7 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -74,7 +74,7 @@ string SipTransactionDB::toString() {
 
 
 Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
-   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> >::iterator i = table.find(id.getLevel1());
+   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.find(id.getLevel2());
    if (i != table.end()) {
       return i->second;
    }
@@ -82,6 +82,27 @@ Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId
 }
 
 void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
-   string k(m->getTransactionId().getLevel1().c_str());
+   string k(m->getTransactionId().getLevel2().c_str());
    table[k] = m;
 }
+
+void SipTransactionDB::purgeOldCalls(uint64 now) {
+   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.begin();
+   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator tmpi;
+   while(i != table.end()) {
+      uint64 p = i->second->getPurgeTimer();
+      string key = i->second->getTransactionId().getLevel2().c_str();
+      if (p && (p < now)) {
+         tmpi = i;
+         i++;
+         //TODO:  Make sure this does not invalidate iterator i.
+         table.erase(tmpi);
+         cpLog(LOG_DEBUG, "Purged call: %s from transaction DB, size: %i\n",
+               key.c_str(), table.size());
+      }
+      else {
+         i++;
+      }
+   }
+}//purgeOldCalls
+

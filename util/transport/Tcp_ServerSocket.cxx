@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
 #ifndef __vxworks
 
 
@@ -84,49 +84,46 @@ TcpServerSocket::TcpServerSocket(const string& _local_ip,
                                  int servPort, bool blocking)
    throw (VNetworkException&)
 {
-    _serverConn = new Connection(blocking);
-    local_ip = _local_ip;
-    listenOn(local_ip, local_dev_to_bind_to, servPort);
+   _serverConn = new Connection(blocking);
+   local_ip = _local_ip;
+   listenOn(local_ip, local_dev_to_bind_to, servPort);
 }
 
 void
 TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bind_to,
                           int servPort) throw (VNetworkException&)
 {
-    struct addrinfo hints, *res, *sRes;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_flags = AI_PASSIVE;
-    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-    hints.ai_socktype = SOCK_STREAM;
-    char serv[56], err;
-    sprintf(serv, "%u", servPort);
-    const char* lip = NULL;
-    if (local_ip.size()) {
-       lip = local_ip.c_str();
-    }
+   struct addrinfo hints, *res, *sRes;
+   memset(&hints, 0, sizeof(hints));
+   hints.ai_flags = AI_PASSIVE;
+   hints.ai_family = NetworkConfig::instance().getAddrFamily();
+   hints.ai_socktype = SOCK_STREAM;
+   char serv[56], err;
+   sprintf(serv, "%u", servPort);
+   const char* lip = NULL;
+   if (local_ip.size()) {
+      lip = local_ip.c_str();
+   }
 
-    if((err= getaddrinfo(lip, serv, &hints, &res)) != 0)
-    {
-        char buf[256];
-        sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
-        cpLog(LOG_ERR, buf);
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
+   if ((err= getaddrinfo(lip, serv, &hints, &res)) != 0) {
+      char buf[256];
+      sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
+      cpLog(LOG_ERR, buf);
+      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   }
 
-    sRes = res;
-    do
-    {
-        _serverConn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-         if (_serverConn->_connId < 0) {
-             continue;
-         }
-         int on = 1;
+   sRes = res;
+   do {
+      _serverConn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+      if (_serverConn->_connId < 0) {
+         continue;
+      }
+      int on = 1;
 #ifndef WIN32
-         if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR,
-                      reinterpret_cast<sockbuf_t *>(&on), sizeof ( on )) ) {
-             // this is an error -- can't set it
-             cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
-         }
+      if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR, &on, sizeof ( on )) ) {
+         // this is an error -- can't set it
+         cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
+      }
 #endif
 
 

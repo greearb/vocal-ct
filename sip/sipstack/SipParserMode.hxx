@@ -51,31 +51,31 @@
  */
 
 static const char* const SipParserMode_hxx_Version =
-    "$Id: SipParserMode.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipParserMode.hxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 #include "Data.hxx"
 
 namespace Vocal
 {
 
 
-class SipParserMode
-{
+class SipParserMode {
     public:
-        static bool sipParserMode()
-        {
-            if (!instance_)
-            {
+        static bool sipParserMode() {
+            if (!instance_) {
                 instance_ = new SipParserMode;
             }
             return instance_->sipParserMode_;
         }
-        static SipParserMode& instance() 
-        {
-            if (!instance_)
-            {
+        static SipParserMode& instance() {
+            if (!instance_) {
                 instance_ = new SipParserMode;
             }
             return *instance_;
+        }
+
+        static void destroy() {
+            delete instance_;
+            instance_ = NULL;
         }
 
         void setStrictMode(bool val) { sipParserMode_ = val; };
@@ -88,11 +88,4 @@ class SipParserMode
 };
 
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

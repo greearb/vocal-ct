@@ -52,7 +52,7 @@
  */
 
 static const char* const NetworkConfig_hxx_Version =
-"$Id: NetworkConfig.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+"$Id: NetworkConfig.hxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include <netdb.h>
 #include <iostream>
@@ -69,31 +69,31 @@ static const char* const NetworkConfig_hxx_Version =
  *  In case of dual stack, chooses IPv6 as default address family, 
  *  that can be  over-witten by calling setAddrFamily()
  */
-class NetworkConfig
-{
-   public:
-      ///Sets the address family to be PF_INET or PF_INET6
-      void setAddrFamily(int addrFamily) { myAddrFamily = addrFamily; };            
-      ///Returns the IP address family supported
-      const int getAddrFamily() const { return myAddrFamily; };
-
-      ///
-      static NetworkConfig& instance();
-
-      ///Returns true, if the host supports both IPv4 and IPv6
-      bool isDualStack() const { return dualStack; };
-
-   private:
-      ///
-      NetworkConfig();
-      ///
-      int init();
-      ///
-      int myAddrFamily;
-      ///
-      bool dualStack;
-      ///
-      static NetworkConfig* myInstance;
+class NetworkConfig {
+public:
+   ///Sets the address family to be PF_INET or PF_INET6
+   void setAddrFamily(int addrFamily) { myAddrFamily = addrFamily; };            
+   ///Returns the IP address family supported
+   const int getAddrFamily() const { return myAddrFamily; };
+   
+   ///
+   static NetworkConfig& instance();
+   static void destroy();
+   
+   ///Returns true, if the host supports both IPv4 and IPv6
+   bool isDualStack() const { return dualStack; };
+   
+private:
+   ///
+   NetworkConfig();
+   ///
+   int init();
+   ///
+   int myAddrFamily;
+   ///
+   bool dualStack;
+   ///
+   static NetworkConfig* myInstance;
 };
 
 // NETWORKCONFIG_HXX_

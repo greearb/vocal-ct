@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.8 2004/09/30 23:17:43 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
 
 
 #include <string>
@@ -118,11 +118,11 @@ public:
     */
    virtual void sendAsync(Sptr<SipCommand> sipMessage);
 
-   ///Interface so that we do not have to copy message again in stack
+   // Interface so that we do not have to copy message again in stack
    void sendAsync(Sptr<SipCommand> sipMessage, const Data& host/*=""*/,
                   const Data& port /*=""*/);
    
-   ///Interface so that we do not have to copy message again in stack
+   // Interface so that we do not have to copy message again in stack
    virtual void sendReply(Sptr<StatusMsg> sipMessage);
 
    /**
@@ -168,7 +168,7 @@ public:
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now);
 
-   static int getInstanceCount() { return atomic_read(&_cnt); }
+   static int getInstanceCount() { return _cnt; }
    
 private:
    ///
@@ -202,7 +202,9 @@ private:
    
    string localIp;
 
-   static atomic_t _cnt;
+   uint64 lastPurge;
+
+   static unsigned int _cnt;
 };
 
 } // namespace Vocal

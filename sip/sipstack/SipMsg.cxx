@@ -49,7 +49,7 @@
  */
 
 static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
+    "$Id: SipMsg.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -99,6 +99,7 @@ static const char* const SipMsg_cxx_Version =
 
 using namespace Vocal;
 
+unsigned int SipMsg::_cnt = 0;
     
 SipParserException::SipParserException( 
                               const string& msg,
@@ -128,11 +129,12 @@ SipMsg::SipMsg(const string& _local_ip, const char* class_name)
     myMimeList(_local_ip),
     myNextHopIsAProxy(false)
 {
+    _cnt++;
 }
 
 
-SipMsg::~SipMsg()
-{
+SipMsg::~SipMsg() {
+    _cnt--;
 }
 
 
@@ -185,6 +187,7 @@ SipMsg::SipMsg(const SipMsg& src)
     myMimeList(src.myMimeList),
     myNextHopIsAProxy(src.myNextHopIsAProxy)
 { 
+    _cnt++;
 }
 
 

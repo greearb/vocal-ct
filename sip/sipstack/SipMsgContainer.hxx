@@ -71,10 +71,18 @@ static const char * const NOVAL = "";
 
 class SipMsgPair : public BugCatcher {
 public:
-    /// the request
-    Sptr<SipMsgContainer> request;
-    /// and the response
-    Sptr<SipMsgContainer> response;
+   SipMsgPair() { _cnt++; }
+   virtual ~SipMsgPair() { _cnt--; }
+
+   /// the request
+   Sptr<SipMsgContainer> request;
+   /// and the response
+   Sptr<SipMsgContainer> response;
+
+   static int getInstanceCount() { return _cnt; }
+
+private:
+   static unsigned int _cnt;
 };
 
 
@@ -84,6 +92,7 @@ class SipMsgContainer : public BugCatcher {
 public:
    // constructed with default value for stateless mode
    SipMsgContainer(const SipTransactionId& id);
+   virtual ~SipMsgContainer() { _cnt--; }
 
    void cleanup();
 
@@ -128,6 +137,8 @@ public:
    int getLastWaitPeriod() { return wait_period; }
    void setWaitPeriod(int t) { wait_period = t; }
 
+   static int getInstanceCount() { return _cnt; }
+
 protected:
    // refence to the message (for incoming messages)
    Sptr<SipMsg> in;
@@ -152,6 +163,11 @@ protected:
    Sptr<SipMsgContainer> sipMsg;
    uint64 nextTx;
    int wait_period;
+private:
+   static unsigned int _cnt;
+
+   SipMsgContainer();
+   SipMsgContainer(const SipMsgContainer& rhs);
 }; //class SipMsgContainer
 
 
@@ -169,7 +185,7 @@ public:
 
    SipCallContainer(const SipTransactionId& call_id);
 
-   virtual ~SipCallContainer() { }
+   virtual ~SipCallContainer() { _cnt--; }
 
    void addMsgPair(Sptr<SipMsgPair> m);
 
@@ -189,12 +205,18 @@ public:
 
    const SipTransactionId& getTransactionId() { return id; }
 
+   static int getInstanceCount() { return _cnt; }
+
+   void setPurgeTimer(uint64 t) { purgeAt = t; }
+   uint64 getPurgeTimer() const { return purgeAt; }
+
 protected:
    list<Sptr<SipMsgPair> > msgs;
    SipTransactionId id;
 
    int curSeqNum; //Sequence number of last SIP message received.
    bool setSeq; // Has it been set yet?
+   uint64 purgeAt; // Purge call if this time is non zero and is in the past
 
 private:
    // Not implemented
@@ -202,6 +224,7 @@ private:
    SipCallContainer(const SipCallContainer& rhs);
    SipCallContainer& operator=(const SipCallContainer& rhs);
 
+   static unsigned int _cnt;
 };//SipCallContainer
  
 } // namespace Vocal

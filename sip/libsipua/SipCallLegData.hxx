@@ -53,7 +53,7 @@
 
 
 static const char* const SipCallLegData_hxx_Version =
-    "$Id: SipCallLegData.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipCallLegData.hxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include <vector>
@@ -127,34 +127,6 @@ public:
    ///
    SipCallLegData( const Sptr<SipMsg>& reqMsg );
    
-#if 0
-   ///
-   SipCallLegData( const SipCallLegData& src ) {
-      copyObj(src);
-   }
-
-   /// 
-   const SipCallLegData& operator =( const SipCallLegData& src ) {
-      if(this != &src) {
-         copyObj(src);
-      }
-      return *this;
-   }
-
-   ///
-   void copyObj(const SipCallLegData& src) {
-      mySipCallLeg = src.mySipCallLeg;
-      myLocalSdpData = src.myLocalSdpData;
-      myRemoteSdpData = src.myRemoteSdpData;
-      myRequestMsg = src.myRequestMsg;
-      myContactVector.erase(myContactVector.begin(), myContactVector.end());
-      for(ContactVector::const_iterator itr = src.myContactVector.begin(); 
-          itr != src.myContactVector.end(); itr++) {
-         myContactVector.push_back(*itr);
-      }
-   }
-#endif
-
    /**Insert an element in vector, insert in the begining 
     * if begining == true.
     */

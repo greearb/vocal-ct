@@ -54,7 +54,7 @@
 
 
 static const char* const ControlStateFactory_hxx_Version = 
-"$Id: ControlStateFactory.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+"$Id: ControlStateFactory.hxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include <map>
 #include "CInvalidStateException.hxx"
@@ -81,37 +81,37 @@ typedef enum {
     ControlStateFactory represent the factory class to hold all the controller state objects. 
 */
 class ControlStateFactory {
-    public:
-         ///
-         typedef map<CStateType, ControlState* > ControlStateMap;
-         ///
-         typedef map<pthread_t, ControlStateMap > ThreadBasedControlStateMap;
+public:
+   ///
+   typedef map<CStateType, ControlState* > ControlStateMap;
+   ///
+   typedef map<pthread_t, ControlStateMap > ThreadBasedControlStateMap;
          
-         ///
-         static ControlStateFactory& instance();
+   ///
+   static ControlStateFactory& instance();
 
-         ///
-         virtual string className() { return "ControlStateFactory"; }
+   ///
+   virtual string className() { return "ControlStateFactory"; }
 
 
-         ///
-         ControlState* getState(CStateType);
+   ///
+   ControlState* getState(CStateType);
+   
+   ///
+   static void destroy();
 
-         ///
-         static void destroy();
+protected:
+   ///
+   ControlStateFactory() { };
+   
+   ///Destructor
+   virtual ~ControlStateFactory();
+   
+   ///
+   static ControlStateFactory* myInstance;
 
-    protected:
-         ///
-         ControlStateFactory() { };
-
-         ///Destructor
-         virtual ~ControlStateFactory();
-
-         ///
-         static ControlStateFactory* myInstance;
-
-         ///
-         ThreadBasedControlStateMap  myControlStateMap;
+   ///
+   ThreadBasedControlStateMap  myControlStateMap;
 };
 
 }

@@ -53,7 +53,7 @@
 
 
 static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.6 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaCallControl.hxx,v 1.7 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -83,7 +83,7 @@ public:
       Frees the memory associated with singelton instance.
       gets register to atexit() function at the time of creation.
    */
-   static void destroy(void);
+   static void destroy();
 
    ///
    bool processEvent(Sptr<SipProxyEvent> event);

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpPacket_cxx_Version =
-    "$Id: RtpPacket.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpPacket.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 
 #include "global.h"
@@ -92,14 +92,15 @@ static const char* const RtpPacket_cxx_Version =
 RtpStatsCallbacks* rtpStatsCallbacks = NULL;
 #endif
 
+unsigned int RtpPacket::_cnt = 0;
 
 /* ----------------------------------------------------------------- */
 /* --- RtpPacket Constructor --------------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpPacket::RtpPacket (int newpayloadSize, int _npadSize, int _csrc_count)
-{
+RtpPacket::RtpPacket (int newpayloadSize, int _npadSize, int _csrc_count) {
    header = NULL;
+   _cnt++;
 
    // check given paramters
    assert (_csrc_count >= 0);
@@ -162,9 +163,9 @@ void RtpPacket::clear() {
 
 
 // clones the rtp header
-RtpPacket::RtpPacket (RtpPacket* clone, int newpayloadSize)
-{
+RtpPacket::RtpPacket (RtpPacket* clone, int newpayloadSize) {
     header = NULL;
+    _cnt++;
 
     // create memory allocation
     packetAlloc = sizeof(RtpHeader) - sizeof(RtpSrc)
@@ -201,9 +202,8 @@ RtpPacket::RtpPacket (RtpPacket* clone, int newpayloadSize)
 }
 
 
-RtpPacket::~RtpPacket ()
-{
-   // Nothing to do at this time
+RtpPacket::~RtpPacket () {
+   _cnt--;
 }
 
 
@@ -212,11 +212,10 @@ RtpPacket::~RtpPacket ()
 
 
 /*     payload          */
-char* RtpPacket::getPayloadLoc ()
-{
-    assert (header);
-    return (packetData + sizeof(RtpHeader) - sizeof(RtpSrc)
-            + (header->count)*sizeof(RtpSrc));
+char* RtpPacket::getPayloadLoc () {
+   assert (header);
+   return (packetData + sizeof(RtpHeader) - sizeof(RtpSrc)
+           + (header->count)*sizeof(RtpSrc));
 }
 
 int RtpPacket::getPayloadSize () const

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.8 2004/11/04 07:51:18 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -72,55 +72,59 @@ SipSentRequestDB::~SipSentRequestDB()
 }
 
 
-Sptr<SipMsgContainer>
-SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
-    // the only send in THIS db can be of the requests
-    assert(dynamic_cast<SipCommand*>(msg.getPtr()));
+Sptr<SipMsgContainer> SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
+   // the only send in THIS db can be of the requests
+   assert(dynamic_cast<SipCommand*>(msg.getPtr()));
 
-    SipTransactionId id(*msg);
-    Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
-    retVal->setMsgIn(msg);
+   SipTransactionId id(*msg);
+   Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
+   retVal->setMsgIn(msg);
 
-    Sptr<SipCommand> command((SipCommand*)(msg.getPtr()));
+   Sptr<SipCommand> command((SipCommand*)(msg.getPtr()));
+   
+   if ( command != 0 ) {
+      Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
+      if (dest != 0) {
+         cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
+         retVal->setTransport(dest->getTransportParam().c_str());
+      }
+   }
 
-    if ( command != 0 ) {
-        Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
-        if (dest != 0) {
-            cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
-            retVal->setTransport(dest->getTransportParam().c_str());
-        }
-    }
+   if (msg->getType() != SIP_ACK) {
+      retVal->setRetransmitMax(MAX_RETRANS_COUNT);
+   }
 
-    if (msg->getType() != SIP_ACK) {
-        retVal->setRetransmitMax(MAX_RETRANS_COUNT);
-    }
+   Sptr<SipCallContainer> call = getCallContainer(id);
+   Sptr<SipMsgPair> mold;
+   if ((call != 0) && ((mold = call->findMsgPair(id)) != 0)
+       && (mold->request != 0)) {
+      cpLog(LOG_ERR,"two identical requests from application...");
+      cpLog(DEBUG_NEW_STACK,"Old...\n%s\n\nNew...\n%s",
+            mold->request->toString().c_str(), msg->toString().c_str());
+   }
+   else {
+      if (call == 0) {
+         // Create us a new call container
+         call = new SipCallContainer(id);
+         addCallContainer(call);
+      }
 
-    Sptr<SipCallContainer> call = getCallContainer(id);
-    Sptr<SipMsgPair> mold;
-    if ((call != 0) && ((mold = call->findMsgPair(id)) != 0)
-        && (mold->request != 0)) {
-	cpLog(LOG_ERR,"two identical requests from application...");
-	cpLog(DEBUG_NEW_STACK,"Old...\n%s\n\nNew...\n%s",
-	      mold->request->toString().c_str(), msg->toString().c_str());
-    }
-    else {
-        if (call == 0) {
-            // Create us a new call container
-            call = new SipCallContainer(id);
-            addCallContainer(call);
-        }
+      // if this is a CANCEL then cancel all the active retranses...
+      if (msg->getType() == SIP_CANCEL) {
+         call->stopAllRetrans();
+         call->setPurgeTimer(vgetCurMs() + (10 * 1000)); // Purge this call in 10 seconds 
+      } 
 
-	// if this is a CANCEL then cancel all the active retranses...
-	if (msg->getType() == SIP_CANCEL) {
-           call->stopAllRetrans();
-	}
-
-        Sptr<SipMsgPair> mp = new SipMsgPair();
-        mp->request = retVal;
-	// insert the request into data base
-        call->addMsgPair(mp);
-    }
-    return retVal;
+      if (msg->getType() == SIP_BYE) {
+         call->setPurgeTimer(vgetCurMs() + (10 * 1000)); // Purge this call in 10 seconds
+      }
+     
+      Sptr<SipMsgPair> mp = new SipMsgPair();
+      mp->request = retVal;
+      // insert the request into data base
+      call->addMsgPair(mp);
+   }
+   return retVal;
 }//processSend
 
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.6 2004/10/29 19:47:53 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.7 2004/11/05 07:25:05 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -150,6 +150,12 @@ void MRtpSession::readNetwork(fd_set* fds) {
     rtpStack->readNetwork(fds);
 }//readNetwork
 
+MRtpSession::~MRtpSession() {
+    delete myRemoteAddress;
+    delete rtpStack;
+    delete myLocalAddress;
+    delete myDTMFInterface;
+}
 
 void MRtpSession::retrieveRtpSample() {
     rtp_rx_packet.clear();
@@ -387,11 +393,3 @@ MRtpSession::setMode(VSdpMode mode)
         break;
     }
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

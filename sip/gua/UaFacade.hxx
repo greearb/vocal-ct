@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.5 2004/06/21 19:33:20 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.6 2004/11/05 07:25:06 greear Exp $";
 
 
 #include "global.h"
@@ -114,7 +114,7 @@ public:
       Frees the memory associated with singelton instance.
       gets register to atexit() function at the time of creation.
    */
-   static void destroy(void);
+   static void destroy();
 
    /** Virtual destructor
     */
@@ -182,7 +182,7 @@ private:
             bool filteron, bool nat);
 
    ///
-   static UaFacade* myInstance;
+   static Sptr<UaFacade> myInstance;
    ///
    Sptr<SipThread> mySipThread;
 

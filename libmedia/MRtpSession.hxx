@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.6 2004/11/05 07:25:05 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -97,11 +97,7 @@ public:
                Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                u_int32_t ssrc);
 
-   virtual ~MRtpSession() {
-      delete myRemoteAddress;
-      delete rtpStack;
-      delete myLocalAddress;
-   }
+   virtual ~MRtpSession();
 
    ///
    string className() { return "MRtpSession"; }  

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpPacket_hxx_Version =
-    "$Id: RtpPacket.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpPacket.hxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include "rtpTypes.h"
 #include  <assert.h>
@@ -204,8 +204,11 @@ public:
    void setIsMissing(bool b) { is_logically_missing = b; }
    void setIsSilenceFill(bool b) { is_silence_fill = b; }
 
+   static int getInstanceCount() { return _cnt; }
+
 private:
 
+   static unsigned int _cnt;
    /// flags
    bool sequenceSet;
    bool timestampSet;

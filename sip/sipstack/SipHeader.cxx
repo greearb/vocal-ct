@@ -49,7 +49,7 @@
  */
 
 static const char* const sipHeaderCxxVersion =
-    "$Id: SipHeader.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipHeader.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipHeader.hxx"
@@ -111,6 +111,7 @@ static const char* const sipHeaderCxxVersion =
 
 using namespace Vocal;
 
+unsigned int SipHeader::_cnt = 0;
 
 // We're going to maintain two tables, one for easy maintenance
 // and one for use. The first table, of SipHeaderTableEntry, is

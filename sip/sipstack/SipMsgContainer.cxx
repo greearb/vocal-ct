@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipMsgContainer.cxx,v 1.2 2004/11/04 07:51:18 greear Exp $";
+    "$Id: SipMsgContainer.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipMsgContainer.hxx"
@@ -57,11 +57,15 @@ static const char* const SipTransactionLevels_cxx_version =
 
 using namespace Vocal;
 
+unsigned int SipMsgContainer::_cnt = 0;
+unsigned int SipMsgPair::_cnt = 0;
+unsigned int SipCallContainer::_cnt = 0;
 
 SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
       : trans_id(id) {
    clear();
    trans_id = id;
+   _cnt++;
 }
 
 void SipMsgContainer::setMsgIn(Sptr<SipMsg> inm) {
@@ -131,6 +135,8 @@ SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
       : id(call_id) {
    setSeq = false;
    curSeqNum = 0;
+   _cnt++;
+   purgeAt = 0;
 }
 
 
