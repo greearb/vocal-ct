@@ -49,10 +49,10 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipTransactionLevels.cxx,v 1.5 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipMsgContainer.cxx,v 1.1 2004/09/30 23:17:43 greear Exp $";
 
 #include "global.h"
-#include "SipTransactionLevels.hxx"
+#include "SipMsgContainer.hxx"
 #include <sstream>
 
 using namespace Vocal;

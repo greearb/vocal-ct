@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.9 2004/06/07 08:32:20 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.10 2004/09/30 23:17:43 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -63,7 +63,6 @@ static const char* const SipTcpConnection_cxx_Version =
 #include "SipContact.hxx"
 #include "SipTcpConnection.hxx"
 #include "SipTransactionId.hxx"
-#include "SipTransactionLevels.hxx"
 #include "SipVia.hxx"
 #include "SystemInfo.hxx"
 #include "StatusMsg.hxx"

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.7 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.8 2004/09/30 23:17:43 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -300,6 +300,8 @@ void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
 
 int SipTransceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                            int& maxdesc, uint64& timeout, uint64 now) {
+   //cpLog(LOG_DEBUG_STACK, "SipTransceiver::setFds, udpConnection: %p\n",
+   //      udpConnection.getPtr());
    if (udpConnection != 0) {
       udpConnection->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }

@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.8 2004/09/30 23:17:43 greear Exp $";
 
 
 #include <string>
@@ -67,7 +67,6 @@ static const char* const SipTransceiver_hxx_Version
 #include "SipTransactionDB.hxx"
 #include "SipSentRequestDB.hxx"
 #include "SipSentResponseDB.hxx"
-#include "SipTransactionLevels.hxx"
 #include "SipTransactionId.hxx"
 
 #include "SipSnmpDetails.hxx"

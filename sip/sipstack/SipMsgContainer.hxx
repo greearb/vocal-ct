@@ -1,5 +1,5 @@
-#ifndef _Sip_Transaction_Levels__hxx
-#define _Sip_Transaction_Levels__hxx
+#ifndef _Sip_MSG_CONTAINER_HXX
+#define _Sip_MSG_CONTAINER_HXX
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
@@ -78,6 +76,8 @@ public:
     /// and the response
     Sptr<SipMsgContainer> response;
 };
+
+
 
 
 class SipMsgContainer : public BugCatcher {
@@ -219,3 +219,4 @@ private:
 } // namespace Vocal
 
 #endif
+

@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.6 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipThread.cxx,v 1.7 2004/09/30 23:17:43 greear Exp $";
 
 
 #include "global.h"
@@ -149,6 +149,7 @@ void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 int SipThread::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now) {
+   //cpLog(LOG_DEBUG_STACK, "SipThread::setFds\n");
    mySipStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    return 0;
 }

@@ -52,10 +52,10 @@
  */
 
 static const char* const SipTransactionDB_hxx_version =
-    "$Id: SipTransactionDB.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipTransactionDB.hxx,v 1.5 2004/09/30 23:17:43 greear Exp $";
 
 #include "SipTransactionId.hxx"
-#include "SipTransactionLevels.hxx"
+#include "SipMsgContainer.hxx"
 #include "SipMsgQueue.hxx"
 
 namespace Vocal

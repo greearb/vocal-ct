@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.7 2004/09/30 23:17:43 greear Exp $";
 
 
 
@@ -61,7 +61,7 @@ static const char* const SipUdpConnection_hxx_Version =
 #include "SipTransactionId.hxx"
 #include "TransceiverSymbols.hxx"
 #include <misc.hxx>
-#include "SipTransactionLevels.hxx"
+#include "SipMsgContainer.hxx"
 #include <list>
 #include <queue>
 #include <UdpStack.hxx>

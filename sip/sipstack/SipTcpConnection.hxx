@@ -52,13 +52,13 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.8 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.9 2004/09/30 23:17:43 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
 #include "TransceiverSymbols.hxx"
 
-#include "SipTransactionLevels.hxx"
+#include "SipMsgContainer.hxx"
 #include <Tcp_ServerSocket.hxx>
 #include <list>
 #include <queue>

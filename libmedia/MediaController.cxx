@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MediaController.cxx,v 1.4 2004/09/30 23:17:43 greear Exp $";
 
 
 #include "MediaController.hxx"
@@ -187,8 +187,11 @@ MediaController::~MediaController()
 
 void MediaController::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                            uint64 now) {
-   cpLog(LOG_DEBUG_STACK, "MediaController tick, session size: %d\n",
-         myMediaSessionMap.size());
+   if (myMediaSessionMap.size()) {
+      // No need to spam the logs when nothing happening.
+      cpLog(LOG_DEBUG_STACK, "MediaController tick, session size: %d\n",
+            myMediaSessionMap.size());
+   }
    map<int, Sptr<MediaSession> >::iterator i;
    for (i = myMediaSessionMap.begin(); i != myMediaSessionMap.end(); i++) {
       i->second->tick(input_fds, output_fds, exc_fds, now);

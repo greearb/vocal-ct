@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.9 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.10 2004/09/30 23:17:43 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -114,9 +114,11 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
                             uint64 now) {
 
    if (udpStack.checkIfSet(input_fds)) {
+      cpLog(LOG_DEBUG_STACK, "input FD is set!\n");
       Sptr<SipMsgContainer> m = receiveMessage();
       if (m != 0) {
          // The SipThread class will slurp this with receiveNB later...
+         cpLog(LOG_DEBUG_STACK, "received Message, pushing onto rcvFifo\n");
          rcvFifo.push_back(m);
       }
    }
@@ -135,7 +137,8 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
       Sptr<SipMsgContainer> sipMsg = sendQ.top();
       sendQ.pop(); // We may re-add it later
 
-      assert(sipMsg != 0);
+      cpLog(LOG_DEBUG_STACK, "popped msg from sendQ: %s\n", sipMsg->toString().c_str());
+
       if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
 
          //get host, and port, and send it off.
@@ -260,7 +263,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
 
 int SipUdpConnection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                              int& maxdesc, uint64& timeout, uint64 now) {
-
+   //cpLog(LOG_DEBUG_STACK, "adding FD to input set.\n");
    udpStack.addToFdSet(input_fds);
    if (sendQ.size()) {
       uint64 ntx = sendQ.top()->getNextTx();
@@ -381,7 +384,7 @@ int SipUdpConnection::udpSend(Sptr<SipMsgContainer> sipMsg) {
     Sptr<NetworkAddress> nAddr = sipMsg->getNetworkAddr();
     int ret_status = udpStack.doTransmitTo(sipMsg->getEncodedMsg().c_str(),
                                            lngth, nAddr.getPtr());
-    cpLog(LOG_INFO, "Sent UDP Message :\n\n-> HOST[%s] PORT[%d] sz: %d  rv: %d\n\n%s",
+    cpLog(LOG_INFO, "Sent UDP Message: HOST[%s] PORT[%d] sz: %d  rv: %d\n%s",
           nAddr->getIpName().c_str(), nAddr->getPort(), lngth, ret_status,
           sipMsg->getEncodedMsg().c_str());
     

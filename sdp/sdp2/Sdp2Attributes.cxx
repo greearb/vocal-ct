@@ -49,7 +49,7 @@
  */
 
 static const char* const SdpAttributes_cxx_Version =
-    "$Id: Sdp2Attributes.cxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
+    "$Id: Sdp2Attributes.cxx,v 1.2 2004/09/30 23:17:43 greear Exp $";
 
 
 #include "global.h"
@@ -393,29 +393,27 @@ SdpRtpMapAttribute::getEncodingParms ()
 
 ///
 void
-SdpRtpMapAttribute::encode (ostrstream& s)
-{
-    cpLog (LOG_DEBUG_STACK, "a=rtpmap:%d %s/%d",
-           payloadType,
-           encodingName.c_str(),
-           clockrate);
+SdpRtpMapAttribute::encode (ostrstream& s) {
+   //cpLog (LOG_DEBUG_STACK, "a=rtpmap:%d %s/%d",
+   //        payloadType,
+   //        encodingName.c_str(),
+   //        clockrate);
+   
+   s << "a=rtpmap:" << payloadType << ' '
+     << encodingName << '/' << clockrate;
 
-    s << "a=rtpmap:" << payloadType
-    << ' '
-    << encodingName
-    << '/'
-    << clockrate;
-    if (encodingParms >= 1)    // Number of channels for audio streams
-    {                          //   This parameter may be omitted if it is "/1".
-                               //   The constructor of this class omits it (set to 0) if it 
-                               //     it is not set explicitly.
-                               //   If the original line omits it, encodingParms will have
-                               //     the default value 0 after decoding.
-        cpLog (LOG_DEBUG_STACK, "/%d", encodingParms);
-        s << '/' << encodingParms;
-    }
-    s << "\r\n";
-}    // SdpRtpMapAttribute::encode
+   if (encodingParms >= 1) {   /** Number of channels for audio streams
+                                *   This parameter may be omitted if it is "/1".
+                                *   The constructor of this class omits it (set to 0) if it 
+                                *     it is not set explicitly.
+                                *   If the original line omits it, encodingParms will have
+                                *     the default value 0 after decoding.
+                                */
+      //cpLog (LOG_DEBUG_STACK, "/%d", encodingParms);
+      s << '/' << encodingParms;
+   }
+   s << "\r\n";
+}// SdpRtpMapAttribute::encode
 
 
 /********************** Value Attribute Class Methods *******************/
