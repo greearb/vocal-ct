@@ -52,7 +52,7 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -90,78 +90,70 @@ class CallInfo;
 
 </pre>
 */
-class SipProxyEvent: public BugCatcher
-{
-   public:
-      ///
-      SipProxyEvent();
 
-      ///
-      virtual ~SipProxyEvent();
+class SipProxyEvent: public BugCatcher {
+public:
+   ///
+   SipProxyEvent();
 
-      /** Post the given event to the fifo associated with this event.
-       *  This only really makes sense if this event is newEvent.
-       */
-      virtual void postEvent(const Sptr < SipProxyEvent > newEvent);
+   ///
+   virtual ~SipProxyEvent();
 
-      /// Post the given event to the given fifo.
-      virtual void postEvent( const Sptr < SipProxyEvent > newEvent, 
-                              list < Sptr < SipProxyEvent > >* newFifo) const;
+   /** Post the given event to the fifo associated with this event.
+    *  This only really makes sense if this event is newEvent.
+    */
+   virtual void postEvent(const Sptr < SipProxyEvent > newEvent);
 
-      /// Set the call info and the call container associated with this event.
-      void setCallInfo(const Sptr < CallInfo > callInfo, 
-                       const Sptr < CallContainer > container );
+   /// Set the call info and the call container associated with this event.
+   void setCallInfo(const Sptr < CallInfo > callInfo, 
+                    const Sptr < CallContainer > container );
 
-      /// Access the associated call info. May be zero if not set.
-      Sptr < CallInfo > getCallInfo() const;
+   /// Access the associated call info. May be zero if not set.
+   Sptr < CallInfo > getCallInfo() const;
 
-      /// Remove the call info and call container associated with this event.
-      void removeCallInfo();
+   /// Remove the call info and call container associated with this event.
+   void removeCallInfo();
 
-      /** Accessor to the fifo associate with this event.
-       */
-      list < Sptr < SipProxyEvent > >& getFifo() const { return myFifo; }
+   /** Accessor to the call container for this event. 
+    *  May be zero if not set.
+    */
+   Sptr < CallContainer > getCallContainer() const;
 
-      /** Accessor to the call container for this event. 
-       *  May be zero if not set.
-       */
-      Sptr < CallContainer > getCallContainer() const;
+   ///
+   void setSipStack( const Sptr < SipTransceiver > sipStack );
 
-      ///
-      void setSipStack( const Sptr < SipTransceiver > sipStack );
+   ///
+   const Sptr < SipTransceiver > getSipStack();
 
-      ///
-      const Sptr < SipTransceiver > getSipStack();
+   // The name of the extending class.
+   virtual const char* const name() const = 0;
 
-      // The name of the extending class.
-      virtual const char* const name() const = 0;
+   // To help with casting...
+   virtual bool isTimerEvent() const { return false; }
+   virtual bool isSipEvent() const { return false; }
 
-      // To help with casting...
-      virtual bool isTimerEvent() const { return false; }
-      virtual bool isSipEvent() const { return false; }
+   virtual string toString();
 
-      virtual string toString();
+protected:
+   /// The fifo associated with this event.
+   list < Sptr < SipProxyEvent > > myFifo;
 
-   protected:
-      /// The fifo associated with this event.
-      list < Sptr < SipProxyEvent > > myFifo;
+   /// The call info associated with this event.
+   Sptr < CallInfo > myCallInfo;
 
-      /// The call info associated with this event.
-      Sptr < CallInfo > myCallInfo;
+   /// The call container associated with this event.
+   Sptr < CallContainer > myCallContainer;
 
-      /// The call container associated with this event.
-      Sptr < CallContainer > myCallContainer;
+   /// Sip stack associated with this event.
+   Sptr < SipTransceiver > mySipStack;
 
-      /// Sip stack associated with this event.
-      Sptr < SipTransceiver > mySipStack;
+private:
 
-   private:
-
-      // Suppress copying
-      SipProxyEvent(const SipProxyEvent &);
+   // Suppress copying
+   SipProxyEvent(const SipProxyEvent &);
         
-      // Suppress copying
-      const SipProxyEvent & operator=(const SipProxyEvent &);
+   // Suppress copying
+   const SipProxyEvent & operator=(const SipProxyEvent &);
 };
  
 }

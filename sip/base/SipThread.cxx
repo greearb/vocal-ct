@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipThread.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -61,6 +61,7 @@ static const char* const SipThread_cxx_Version =
 #include "SipMsg.hxx"
 #include "SipTransceiver.hxx"
 #include "SystemInfo.hxx"
+#include "BaseProxy.hxx"
 
 using namespace Vocal;
 
@@ -119,28 +120,35 @@ SipThread::discardMessage( Sptr < SipMsg > &sipMsg) const {
 
 void SipThread::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      uint64 now) {
-   Sptr < SipMsgQueue > sipRcv(mySipStack->receiveNB(0));
+
+   // Allow it to do it's writes and reads
+   mySipStack->tick(input_fds, output_fds, exc_fds, now);
+
+   Sptr < SipMsgQueue > sipRcv(mySipStack->receiveNB());
  
    if ( sipRcv != 0 ) {
-      Sptr < SipMsg > sipMsg = sipRcv->back();
+      Sptr < SipMsg > sipMsg = sipRcv->lst.back();
       if ( sipMsg != 0 ) {
          Sptr < SipEvent > nextEvent = new SipEvent();
 
-         if ( nextEvent != 0 ) {
-            nextEvent->setSipReceive(sipRcv);
-            nextEvent->setSipStack(mySipStack);
+         nextEvent->setSipMsgQueue(sipRcv);
 
-            if (myCallLegHistory)
-               nextEvent->setCallLeg();
-
-            myProxy->process(nextEvent);
+         if (myCallLegHistory) {
+            nextEvent->setCallLeg();
          }
+
+         myProxy->process(nextEvent);
       }
    }
+
+   // It may have more to write at this point
+   mySipStack->tick(input_fds, output_fds, exc_fds, now);
+
 }//tick
 
 
 int SipThread::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now) {
    mySipStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   return 0;
 }

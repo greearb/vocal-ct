@@ -50,7 +50,7 @@
 
 
 static const char* const HeartLessProxy_cxx_Version =
-    "$Id: HeartLessProxy.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: HeartLessProxy.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -63,7 +63,6 @@ using namespace Vocal;
 
 HeartLessProxy::HeartLessProxy( 
     const Sptr < Builder >  builder,
-    int hashTableSize,
     const string&           local_ip,
     const string&           local_dev_to_bind_to,
     unsigned short          defaultSipPort,
@@ -73,38 +72,44 @@ HeartLessProxy::HeartLessProxy(
     SipAppContext           aContext
 )
 {
-    myCallContainer = new CallContainer;
+    myCallContainer = new CallContainer();
 
     myBuilder = builder;
     myBuilder->setCallContainer(myCallContainer);
     
-    myCallProcessingQueue = new list < Sptr < SipProxyEvent > >;
-
-
     //  Filter option controls which transceiver object is created for the
     //  sip stack.
-    // NOTE:  The filter transceiver is just a typedef to SipTransceiver...
     // Create non-blocking sipstack.
-    mySipStack = new SipTransceiver(hashTableSize, local_ip,
+    mySipStack = new SipTransceiver(local_ip,
                                     local_dev_to_bind_to, applName,
                                     defaultSipPort, nat, aContext, false);
 
     myBuilder->setSipStack(mySipStack);
 
     assert( myCallContainer != 0 );
-    assert( myCallProcessingQueue != 0 );
     assert( myBuilder != 0 );
     assert( mySipStack != 0 );
 }
 
 
-HeartLessProxy::~HeartLessProxy()
-{
-   delete myCallProcessingQueue;
-   myCallProcessingQueue = NULL;
+HeartLessProxy::~HeartLessProxy() {
+   // Nothing to do at this point.
 }
 
 
 
+int HeartLessProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now) {
+   if (mySipStack != 0) {
+      mySipStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   return 0;
+}
 
 
+void HeartLessProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now) {
+   if (mySipStack != 0) {
+      mySipStack->tick(input_fds, output_fds, exc_fds, now);
+   }
+}

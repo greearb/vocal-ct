@@ -49,11 +49,14 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
 #include "SystemInfo.hxx"
+#include "SipCommand.hxx"
+#include "StatusMsg.hxx"
+#include "SipVia.hxx"
 
 
 using namespace Vocal;
@@ -76,8 +79,7 @@ SipUdpConnection::SipUdpConnection(const string& local_ip,
                                    const string& local_dev_to_bind_to,
                                    int port)
     : randomLosePercent(0),
-      udpStack(local_ip, local_dev_to_bind_to, NULL, port ),
-      sendQ(retransContentsComparitor) {
+      udpStack(local_ip, local_dev_to_bind_to, NULL, port ) {
 
     udpStack.setModeBlocking(false);
 
@@ -98,6 +100,18 @@ const string SipUdpConnection::getLocalIp() const {
     }
 }
 
+// May pull from incomming fifo
+Sptr<SipMsgContainer> SipUdpConnection::getNextMessage() {
+   // First, see if we can pull something off of the fifo
+   if (rcvFifo.size()) {
+      Sptr<SipMsgContainer> rv = rcvFifo.front();
+      rcvFifo.pop_front();
+      return rv;
+   }
+   return NULL;
+}
+
+
 void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                             uint64 now) {
 
@@ -110,13 +124,11 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
          break;
       }
 
-      Sptr<RetransmitContents> retransmit = sendQ.top();
+      Sptr<SipMsgContainer> sipMsg = sendQ.top();
       sendQ.pop(); // We may re-add it later
 
-      Sptr<SipMsgContainer> sipMsg = retransmit->getMsg();
       assert(sipMsg != 0);
-      if (sipMsg->getRetransCount() > 0) {
-         cpLog(LOG_DEBUG_STACK, "retransmission count = %d", sipMsg->getRetransCount());
+      if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
 
          //get host, and port, and send it off.
          if (!randomLosePercent || 
@@ -146,7 +158,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
                   // messages if we are failing this because of waiting on ARP,
                   // for instance.
                   sendQ.push(sipMsg);
-                  goto out;
+                  return;
                default:
                   cpLog(LOG_INFO, "UDP send ERROR: %s", strerror(-ret_status));
                   ret_status = 400;
@@ -157,7 +169,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
                if (ret_status == 0) {
                   // Try again later
                   sendQ.push(sipMsg);
-                  goto out;
+                  return;
                }
                // Rest of the code wants 0 == success, doesn't care how much
                // written.
@@ -171,15 +183,16 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
                   // Strange, looks like we build an error response message
                   // here and put it in the stack as if it was received by
                   // the network!
-                  Sptr<SipMsg> mmsg = SipMsg::decode(sipMsg->msg.out,
+                  Sptr<SipMsg> mmsg = SipMsg::decode(sipMsg->getEncodedMsg().c_str(),
                                                      getLocalIp());
                   Sptr<SipCommand> commandMsg;
                   commandMsg.dynamicCast(mmsg);
-                  Sptr<SipMsgContainer> retVal = new SipMsgContainer();
+                  SipTransactionId id(*(commandMsg));
+                  Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
                      
                   retVal->setMsgIn(new StatusMsg((*commandMsg),
                                                  ret_status));
-                  recFifo.push_back(retVal);
+                  rcvFifo.push_back(retVal);
                }
             }
          }
@@ -187,40 +200,41 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
             cpLog(LOG_INFO, "XXX random lose: message not sent!");
          }
             
-         retransmit->decrementRetransCount();
+         sipMsg->incRetransSoFar();
             
          if ((Udpretransmitoff) || (ret_status == 0)) {
-            retransmit->setRetransCount(0);
+            sipMsg->setRetransmitMax(0);
          }
             
          //increment the time to send out.               
-         if (retransmit->getRetransCount() > 0) {
-            int wait_period = retransmit->getWaitPeriod();
+         if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
+            int wait_period = sipMsg->getLastWaitPeriod();
             if (wait_period == 0) {
-               retransmit->setWaitPeriod(retransmitTimeInitial);
+               sipMsg->setWaitPeriod(retransmitTimeInitial);
             }
             else if (wait_period < retransmitTimeMax) {
-               retransmit->setWaitPeriod(wait_period * 2);
+               sipMsg->setWaitPeriod(wait_period * 2);
             }
-            retransmit->setNextTx(now + retransmit->getWaitPeriod());
+            sipMsg->setNextTx(now + sipMsg->getLastWaitPeriod());
                
             //add into Fifo.
-            sendQ.push(retransmit);
+            sendQ.push(sipMsg);
          }
          else {
             if (ret_status != 0) {
                // No more retransmits, and status was a failure
                // send 408 if a command, other than an ACK.
-               if ((sipMsg->msg.type != SIP_ACK) &&  
-                  (sipMsg->msg.type != SIP_STATUS)) {
+               if ((sipMsg->getMsgIn()->getType() != SIP_ACK) &&  
+                  (sipMsg->getMsgIn()->getType() != SIP_STATUS)) {
                   cpLog(LOG_DEBUG_STACK, "The SipMeaasge is \n%s\n",
                         sipMsg->getEncodedMsg().c_str());
                   Sptr<SipMsg> mmsg = SipMsg::decode(sipMsg->getEncodedMsg(),
                                                      getLocalIp());
                   Sptr<SipCommand> commandMsg;
                   commandMsg.dynamicCast(mmsg);
-                  Sptr<SipMsgContainer> statusMsg = new SipMsgContainer();
-                  statusMsg->msg.in = new StatusMsg((*commandMsg), ret_status);
+                  SipTransactionId id(*(commandMsg));
+                  Sptr<SipMsgContainer> statusMsg = new SipMsgContainer(id);
+                  statusMsg->setMsgIn(new StatusMsg((*commandMsg), ret_status));
                   rcvFifo.push_back(statusMsg);
                }
             }
@@ -270,20 +284,21 @@ SipUdpConnection::receiveMessage() {
       // TODO:  Propagate error up the stacks??
    }
    else {
-      buf[len] = '\0';
+      rcvBuf[len] = '\0';
         
       /******************************************************
        * will need to move this stuff into the stack later
        */
         
-      Sptr<SipMsg> sm = SipMsg::decode(buf, getLocalIp());
+      Sptr<SipMsg> sm = SipMsg::decode(rcvBuf, getLocalIp());
       if (sm != 0) {
-         sipMsg = new SipMsgContainer();
+         SipTransactionId id(*sm);
+         sipMsg = new SipMsgContainer(id);
          
          sm->setReceivedIPName( sender.getIpName() );
          sm->setReceivedIPPort( Data(sender.getPort()) );
          cpLog(LOG_INFO, "Received UDP Message:\n\n<- HOST[%s] PORT[%d]\n\n%s",
-               sender.getIpName().c_str(), sender.getPort(), buf);
+               sender.getIpName().c_str(), sender.getPort(), rcvBuf);
          
          sipMsg->setMsgIn(sm);
       }
@@ -291,7 +306,7 @@ SipUdpConnection::receiveMessage() {
          // this message failed to decode
          cpLog(LOG_DEBUG, 
                "SipUdp_impl::receiveMain, ERROR: received message did not decode\n%s",
-               buf);
+               rcvBuf);
       }
    }
    return sipMsg;
@@ -302,10 +317,10 @@ SipUdpConnection::receiveMessage() {
 int
 SipUdpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
                        const Data& port) {
-    Sptr<RetransmitContents> retransDetails = new RetransmitContents(msg, 0);
 
     cpLog(LOG_DEBUG_STACK, "Destination (%s:%s), out.length: %i\n",
-                            host.logData(), port.logData(), msg->getEncodedMsg().size());
+                            host.logData(), port.logData(),
+          msg->getEncodedMsg().size());
 
     if (!msg->getEncodedMsg().size()) {
         Data nhost;
@@ -317,7 +332,7 @@ SipUdpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
             nport = port.convertInt();
 	}
 	else {
-            getHostPort(msg->getMsgIn(), &nhost, &nport);
+            getHostPort(msg->getMsgIn(), nhost, nport);
         }
 
         msg->cacheEncode();
@@ -335,19 +350,15 @@ SipUdpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
     }
 
     //if this has to be retransmitted.
-    if (msg->getRetransCount() > 1) {
-	//////// will have to go after moving retrans count etc to stack!!!
-	msg->setRetransCount(sipmaxRetrans); //TODO:  Looks like a hack
-	///////////////////////////////////////////////////////////////////
-    }
+    msg->setRetransSoFar(0);
 
     cpLog(LOG_DEBUG_STACK,
           "*** Msg is for transmission:\n%s\n dest host: %s  port: %s",
-          retransDetails->toString().c_str(), host.c_str(), port.c_str());
+          msg->toString().c_str(), host.c_str(), port.c_str());
 
     assert(msg->getNetworkAddr()->getPort() >= 0);
 
-    sendQ.push(retransDetails);
+    sendQ.push(msg);
     return 0;
 }
 
@@ -355,17 +366,19 @@ SipUdpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
 // Returns number of bytes written.  On error, returns -errno.
 // Helper method called by 'tick'
 int SipUdpConnection::udpSend(Sptr<SipMsgContainer> sipMsg) {
-    assert(sipMsg);
+    assert(sipMsg != 0);
     sipMsg->assertNotDeleted();
 
     int lngth = sipMsg->getEncodedMsg().size();
     assert(lngth);
-        
+
+    Sptr<NetworkAddress> nAddr = sipMsg->getNetworkAddr();
     cpLog(LOG_INFO, "Sending UDP Message :\n\n-> HOST[%s] PORT[%d]\n\n%s",
           nAddr->getIpName().c_str(), nAddr->getPort(),
           sipMsg->getEncodedMsg().c_str());
     
-    int ret_status = udpStack.transmitTo(sipMsg->getEncodedMsg().c_str(), lngth, nAddr);
+    int ret_status = udpStack.transmitTo(sipMsg->getEncodedMsg().c_str(),
+                                         lngth, nAddr.getPtr());
     return ret_status;
 }//udpSend
 
@@ -449,8 +462,8 @@ void SipUdpConnection::setRandomLosePercent(int percent) {
 
 
 void SipUdpConnection::printSize() const {
-    cpLog(LOG_INFO, "recFifo: %d, sendFifo: %d",
-	  recFifo->size(), sendFifo.size());
+    cpLog(LOG_INFO, "rcvFifo: %d, sendFifo: %d",
+	  rcvFifo.size(), sendQ.size());
 }
 
 
@@ -459,7 +472,7 @@ Data SipUdpConnection::getDetails() const
     char buf[256];
     snprintf(buf, 255, "receive fifo: %d    send fifo: %d"
              "\npkts received: %d   pkts sent: %d",
-             recFifo->size(), sendFifo.size(),
+             rcvFifo.size(), sendQ.size(),
              udpStack.getPacketsReceived(),
              udpStack.getPacketsTransmitted());
     return buf;

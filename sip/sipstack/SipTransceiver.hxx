@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.6 2004/06/02 20:23:10 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
 
 
 #include <string>
@@ -127,7 +127,7 @@ public:
    virtual void sendReply(Sptr<StatusMsg> sipMessage);
 
    /**
-    ** Return a deque of SipMsgs, basically containing the msg chain.
+    ** Return a queue of SipMsgs, basically containing the msg chain.
     *  Will not block (will return NULL if cannot read anything)
     */
    virtual Sptr < SipMsgQueue > receiveNB();
@@ -151,10 +151,8 @@ public:
    ///
    void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
 
-#if 0
    ///
-   SipTransactionDB::CallLegVector getCallLegMsgs(Sptr < SipMsg > sipmsg);
-#endif
+   Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
 
    ///
    void printSize();
@@ -165,6 +163,12 @@ public:
    ///
    Data getLocalNamePort() const;
 
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
    static int getInstanceCount() { return atomic_read(&_cnt); }
    
 private:
@@ -174,11 +178,6 @@ private:
    ///
    SipTransceiver& operator =(const SipTransceiver& src);
   
-
-   /* ---------------------------------------------------------------
-      these will have to be shared iff there has to be thread pooling 
-      --------------------------------------------------------------- */
-   
    Sptr < SipUdpConnection > udpConnection;
 
    Sptr < SipTcpConnection > tcpConnection;
@@ -207,38 +206,6 @@ private:
    static atomic_t _cnt;
 };
 
-#if 0
-class TransactionDBStatus: public BugCatcher {
-public:
-   TransactionDBStatus(SipTransactionDB& x, Data label )
-         :myItem(x),
-          myLabel(label + ": ") {
-   }
-
-private:
-   SipTransactionDB& myItem;
-   Data myLabel;
-};
-
-
-class SipUdpStatus : public BugCatcher {
-public:
-   SipUdpStatus(SipUdpConnection& x, int port)
-         :myItem(x),
-          myLabel() {
-      char buf[256];
-      sprintf(buf, "UDP Stack (port %d): ", port);
-      myLabel = buf;
-   }
-   Data status() {
-      return myLabel + myItem.getDetails();
-   }
-private:
-   SipUdpConnection& myItem;
-   Data myLabel;
-};
-#endif
- 
 } // namespace Vocal
 
 #endif

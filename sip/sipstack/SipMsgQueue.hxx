@@ -52,7 +52,7 @@
  */
 
 static const char* const SipMsgQueue_hxx_Version =
-    "$Id: SipMsgQueue.hxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipMsgQueue.hxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
 
 #include "Sptr.hxx"
 #include <deque>
@@ -63,16 +63,16 @@ static const char* const SipMsgQueue_hxx_Version =
 namespace Vocal
 {
 
-    // Need a wrapper around the stl container so we can use smart pointers.
-    class SipMsgQueue : public BugCatcher {
-        public:
-            list<Sptr<SipMsg> > lst;
+// Need a wrapper around the stl container so we can use smart pointers.
+class SipMsgQueue : public BugCatcher {
+public:
+   list<Sptr<SipMsg> > lst;
+   
+   virtual ~SipMsgQueue() { }
+   
+   void push_front(Sptr<SipMsg> s) { lst.push_front(s); }
+   void push_back(Sptr<SipMsg> s) { lst.push_back(s); }
+};
 
-            virtual ~SipMsgQueue() { }
-
-            void push_front(Sptr<SipMsg> s) { lst.push_front(s); }
-            void push_back(Sptr<SipMsg> s) { lst.push_back(s); }
-    };
-    
 } // namespace Vocal
 #endif

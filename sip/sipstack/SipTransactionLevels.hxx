@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.6 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
@@ -89,9 +89,6 @@ public:
 
    string toString() const;
 
-   void setRetransSoFar(int i) { retransSoFar = i; }
-   int getRetransSoFar() { return retransSoFar; }
-
    uint64 getGcAt() { return shouldGcAt; }
    void setGcAt(uint64 v) { shouldGcAt = v; }
 
@@ -121,9 +118,12 @@ public:
    // From the RetransmitContents class originally.
    void setRetransmitMax(int i) { retransCount = i; }
    int getRetransmitMax() const { return retransCount; }
+   void setRetransSoFar(int i) { retransSoFar = i; }
+   int getRetransSoFar() { return retransSoFar; }
+   int incRetransSoFar() { retransSoFar++; return retransSoFar; }
 
    const uint64& getNextTx() const { return nextTx; }
-   void setNextTx(uint64& next_tx) { nextTx = next_tx; }
+   void setNextTx(uint64 next_tx) { nextTx = next_tx; }
 
    int getLastWaitPeriod() { return wait_period; }
    void setWaitPeriod(int t) { wait_period = t; }
@@ -158,9 +158,9 @@ protected:
 // We want the lower time to be first in the heap, used to sort
 // the transmit heap.
 struct SipMsgContainerComparitor {
-        bool operator()(Sptr<SipMsgContainer> a, Sptr<SipMsgContainer> b) {
-            return (b->getNextTx() < a->getNextTx());
-        }
+   bool operator()(Sptr<SipMsgContainer> a, Sptr<SipMsgContainer> b) {
+      return (b->getNextTx() < a->getNextTx());
+   }
 };
 
 

@@ -50,7 +50,7 @@
 
 
 static const char* const TimerEvent_cxx_Version =
-    "$Id: TimerEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: TimerEvent.cxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -60,8 +60,8 @@ static const char* const TimerEvent_cxx_Version =
 using namespace Vocal;
 
 
-TimerEvent::TimerEvent(list < Sptr < SipProxyEvent > >* outputFifo)
-    :   SipProxyEvent(outputFifo)
+TimerEvent::TimerEvent()
+      :   SipProxyEvent()
 {
 }
 
@@ -97,21 +97,4 @@ TimerEvent::removeCall()
     assert( call != 0 );
 
     myCallContainer->removeCall(call);
-}
-
-
-void
-TimerEvent::setSipStack(const Sptr < SipTransceiver > sipStack)
-{
-    assert( sipStack != 0 );
-
-    mySipStack = sipStack;
-}
-
-
-
-Sptr < SipTransceiver >
-TimerEvent::getSipStack() const
-{
-    return ( mySipStack );
 }

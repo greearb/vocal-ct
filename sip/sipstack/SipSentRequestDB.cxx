@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -92,7 +92,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
     } 
 
     if (msg->getType() != SIP_ACK) {
-        retVal->setRetransCount(MAX_RETRANS_COUNT);
+        retVal->setRetransmitMax(MAX_RETRANS_COUNT);
     }
 
     Sptr<SipCallContainer> call = getCallContainer(id);
@@ -126,63 +126,64 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
 
 Sptr<SipMsgQueue>
 SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
-    // the only receive in THIS db can be of the responses
-    Sptr<StatusMsg > response;
-    response.dynamicCast(msgContainer->getMsgIn());
-    assert(response != 0);
+   // the only receive in THIS db can be of the responses
+   Sptr<StatusMsg > response;
+   response.dynamicCast(msgContainer->getMsgIn());
+   assert(response != 0);
 
-    Sptr<SipMsgQueue> retVal;
+   Sptr<SipMsgQueue> retVal;
 
-    SipTransactionId id(*(msgContainer->getMsgIn()));
+   SipTransactionId id(*(msgContainer->getMsgIn()));
 
-    Sptr<SipCallContainer> call = getCallContainer(id);
-    if (call == 0) {
-        // there's no transaction for this response message
-        cpLog(LOG_DEBUG_STACK,"No transaction for %s",
-              msgContainer->getMsgIn()->toString().c_str());
-    }
-    else {
-        Sptr<SipMsgPair> msgPair = call->findMsgPair(id);
-        if (msgPair == 0) {
-            // Response to something we didn't send??
-            cpLog(LOG_ERR, "ERROR:  Could not find request for response: %s\n",
-                  response->toString().c_str());
-        }
-        else {
-            if (msgPair->request != 0) {
-                msgPair->request->setRetransCount(0); // Cancel it's retransmission
+   Sptr<SipCallContainer> call = getCallContainer(id);
+   if (call == 0) {
+      // there's no transaction for this response message
+      cpLog(LOG_DEBUG_STACK,"No transaction for %s",
+            msgContainer->getMsgIn()->toString().c_str());
+   }
+   else {
+      Sptr<SipMsgPair> msgPair = call->findMsgPair(id);
+      if (msgPair == 0) {
+         // Response to something we didn't send??
+         cpLog(LOG_ERR, "ERROR:  Could not find request for response: %s\n",
+               response->toString().c_str());
+      }
+      else {
+         if (msgPair->request != 0) {
+            // Cancel it's retransmission
+            msgPair->request->setRetransmitMax(0);
+         }
+
+         // If appContext is a proxy and a 200 or any provisional
+         // response of INVITE do not filter it and give it to proxy
+         int statusCode = response->getStatusLine().getStatusCode();
+         if ((statusCode < 200)  ||
+             ((SipTransceiver::myAppContext == APP_CONTEXT_PROXY) && 
+              (statusCode == 200) &&
+              (response->getCSeq().getMethod() == INVITE_METHOD))) {
+            // simply forward this response up to application
+            retVal = new SipMsgQueue();
+            retVal->push_back(msgContainer->getMsgIn());
+         }
+         else if (response->getStatusLine().getStatusCode() >= 200) {
+            // if it is a final response, then process the transaction
+            // there's a transaction, hence check for filtering
+            if (msgPair->response != 0) {
+               // Already had a response!
+               cpLog(LOG_ERR, "WARNING:  Received duplicate response, initial: %s\nnew: %s\n",
+                     msgPair->response->toString().c_str(),
+                     response->toString().c_str());
+               // Ignore this later response
             }
-
-            // If appContext is a proxy and a 200 or any provisional
-            // response of INVITE do not filter it and give it to proxy
-            int statusCode = response->getStatusLine().getStatusCode();
-            if ((statusCode < 200)  ||
-                ((SipTransceiver::myAppContext == APP_CONTEXT_PROXY) && 
-                 (statusCode == 200) &&
-                 (response->getCSeq().getMethod() == INVITE_METHOD))) {
-                // simply forward this response up to application
-                retVal = new SipMsgQueue();
-                retVal->push_back(msgContainer->getMsgIn());
-            }
-            else if (response->getStatusLine().getStatusCode() >= 200) {
-                // if it is a final response, then process the transaction
-                // there's a transaction, hence check for filtering
-                if (msgPair->response != 0) {
-                    // Already had a response!
-                    cpLog(LOG_ERR, "WARNING:  Received duplicate response, initial: %s\nnew: %s\n",
-                          msgPair->response->toString().c_str(),
-                          response->toString().c_str());
-                    // Ignore this later response
-                }
-                else {
-                    msgPair->response = msgContainer;
+            else {
+               msgPair->response = msgContainer;
                     
-                    retVal = new SipMsgQueue();
-                    retVal->push_back(msgPair->request->getMsgIn()); //TODO:  Why?
-                    retVal->push_back(msgContainer->getMsgIn());                    
-                }
+               retVal = new SipMsgQueue();
+               retVal->push_back(msgPair->request->getMsgIn()); //TODO:  Why?
+               retVal->push_back(msgContainer->getMsgIn());                    
             }
-        }
-    }
-    return retVal;
+         }
+      }
+   }
+   return retVal;
 }

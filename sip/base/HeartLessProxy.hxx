@@ -52,7 +52,7 @@
  */
 
 
-static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+static const char* const HeartLessProxy_hxx_Version = "$Id: HeartLessProxy.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "CallContainer.hxx"
@@ -66,42 +66,13 @@ namespace Vocal
 class Builder;
 
 
-/** Object  HeartLessProxy
-<pre>
-<br> Usage of this Class </br>
-
-    This class creates a  call container, callprocessing fifo, sipstack,
-    worker and sip threads. HeartLessProxy::run method starts the worker
-    and sip threads. A builder object and SIP port number is given on
-    instantiation.
-
-    Create the proxy given the builder, the sip port (which defaults
-    to 5060), the application name (which defaults to unknown).
-    The boolean filteron indicates whether to createg a filtering sip
-    transceiver or not (defaults to true). The boolean nat indicates
-    whether the sip transceiver should be created to handle network
-    address translation (defaults to false).
-
-    HeartLessProxy(const Sptr < Builder >   builder,
-                        unsigned short          defaultSipPort = 5060,
-                        Data                    applName = "unknown",
-                        bool                    filteron = true,
-                        bool                    nat = false,
-                        SipAppContext           aContext=APP_CONTEXT_GENERIC);
-
-</pre>
-*/
-class HeartLessProxy
-{
+class HeartLessProxy : public BugCatcher {
 public:
 
-
    /** Create one with default values Explained in Usage of Class section
-    * HashTableSize is number of buckets in underlying hash table(s).
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
    HeartLessProxy(const Sptr < Builder >   builder,
-                  int hashTableSize,
                   const string&            local_ip,
                   const string&            local_dev_to_bind_to,
                   unsigned short          defaultSipPort = 5060,
@@ -116,12 +87,12 @@ public:
    virtual ~HeartLessProxy();
 
    // Child classes need to implement these.
-   // TODO:  Verify children successfully over-ride.
+   // TODO:  Verify children successfully over-ride as needed
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                      int& maxdesc, uint64& timeout, uint64 now) { return 0; }
+                      int& maxdesc, uint64& timeout, uint64 now);
 
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                     uint64 now) { }
+                     uint64 now);
 
 
 protected:
@@ -135,13 +106,6 @@ protected:
    /** Builder supplied on construction.
     */
    Sptr < Builder >        myBuilder;
-
-
-   /** Shared call processing queue between the sip thread and the
-    *  worker thread. The sip thread writes to the queue and the
-    *  sip thread reads from the queue.
-    */
-   list < Sptr < SipProxyEvent > >* myCallProcessingQueue;
 
 
    /** Sip transceiver that receives the incoming sip message, and

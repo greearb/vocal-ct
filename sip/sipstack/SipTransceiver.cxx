@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -88,9 +88,6 @@ using namespace Vocal;
 
 
 atomic_t SipTransceiver::_cnt;
-
-#warning "Port to non-blocking IO model."
-// TODO:  Ensure non-blocking IO is handled everywhere...
 
 
 SipAppContext SipTransceiver::myAppContext = APP_CONTEXT_GENERIC;
@@ -287,14 +284,51 @@ void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
 }//send
 
 
+// NOTE:  To receive messages, also call receiveNB
+void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                          uint64 now) {
+   if (udpConnection != 0) {
+      udpConnection->tick(input_fds, output_fds, exc_fds, now);
+   }
+   if (tcpConnection != 0) {
+      tcpConnection->tick(input_fds, output_fds, exc_fds, now);
+   }
+   if (sipAgent != 0) {
+      sipAgent->tick(input_fds, output_fds, exc_fds, now);
+   }
+
+}
+
+int SipTransceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           int& maxdesc, uint64& timeout, uint64 now) {
+   if (udpConnection != 0) {
+      udpConnection->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   if (tcpConnection != 0) {
+      tcpConnection->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   if (sipAgent != 0) {
+      sipAgent->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
+   return 0;
+}
+
+
 Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
    // Check UDP fist, and if nothing there, check the Tcp stack.
-   Sptr <SipMsgContainer> msgPtr = udpConnection->getNextMessage();
+   Sptr <SipMsgContainer> msgPtr;
+
+   if (udpConnection != 0) {
+      msgPtr = udpConnection->getNextMessage();
+   }
    if ( msgPtr.getPtr() == 0) {
-      msgPtr = tcpConnection->getNextMessage();
-      if (msgPtr.getPtr() == 0) {
-         return NULL; // Nothing available
+      if (tcpConnection != 0) {
+         msgPtr = tcpConnection->getNextMessage();
       }
+   }
+
+   if (msgPtr.getPtr() == 0) {
+      return NULL; // Nothing available
    }
 
    Sptr<SipMsg> sipPtr = msgPtr->getMsgIn();
@@ -396,14 +430,10 @@ void SipTransceiver::setRandomLosePercent(int percent) {
    }
 }
 
-// TODO:  WTF does this do?
-#if 0
-SipTransactionDB::CallLegVector
-SipTransceiver::getCallLegMsgs(Sptr < SipMsg > sipmsg) {
-   //// will it always be on SentRequest???
-   return (sentRequestDB.getCallLegMsgs(sipmsg));
+Sptr<SipCallContainer>
+SipTransceiver::getCallContainer(const SipTransactionId& id) {
+   return sentRequestDB.getCallContainer(id);
 }
-#endif
 
 void
 SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType) {

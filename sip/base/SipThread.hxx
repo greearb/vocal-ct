@@ -53,7 +53,7 @@
 
 
 static const char* const SipThread_hxx_Version = 
-    "$Id: SipThread.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipThread.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -110,11 +110,11 @@ public:
    bool discardMessage(Sptr < SipMsg > & sipMsg) const;
 
    
-   void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-             uint64 now);
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-              int& maxdesc, uint64& timeout, uint64 now);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
 protected:
 

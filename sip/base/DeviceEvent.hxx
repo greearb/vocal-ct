@@ -52,7 +52,7 @@
  */
 
 static const char* const DeviceEvent_hxx_Version = 
-    "$Id: DeviceEvent.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: DeviceEvent.hxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -94,30 +94,26 @@ typedef enum
 
 </pre>
 */
-class DeviceEvent : public SipProxyEvent
-{
-    public:
+class DeviceEvent : public SipProxyEvent {
+public:
 
-        /** Create a device event given the associated fifo.
-         */
-        DeviceEvent(list < Sptr < SipProxyEvent > >* outputFifo );
+   DeviceEvent();
 
 
-        /** Virtual destructor
-         */
-        virtual ~DeviceEvent();
+   /** Virtual destructor
+    */
+   virtual ~DeviceEvent();
 
 
-        /** Name of this class.
-         */
-        virtual const char* const name() const
-	{
-            return "DeviceEvent";
-        }
+   /** Name of this class.
+    */
+   virtual const char* const name() const {
+      return "DeviceEvent";
+   }
 
-        DeviceEventType type;
-        int             id;
-	Data            item;    
+   DeviceEventType type;
+   int             id;
+   Data            item;    
 };
  
 }

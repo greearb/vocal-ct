@@ -50,7 +50,7 @@
 
 
 static const char* const SipEvent_cxx_Version =
-    "$Id: SipEvent.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipEvent.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -96,14 +96,13 @@ SipEvent::getSipMsg() const
 }
 
 
-
 void
-SipEvent::setSipMsgQueue(const SipMsgQueue& sipRcv) {
+SipEvent::setSipMsgQueue(Sptr<SipMsgQueue> sipRcv) {
     mySipMsgQueue = sipRcv;
-    setSipMsg(mySipMsgQueue.back());
+    setSipMsg(mySipMsgQueue->lst.back());
 }
 
-SipMsgQueue& SipEvent::getSipMsgQueue() {
+Sptr<SipMsgQueue> SipEvent::getSipMsgQueue() {
     return mySipMsgQueue;
 }
 
@@ -115,8 +114,8 @@ SipEvent::getInvite() const {
    Sptr < SipMsg > sipMsg;
 
    cpLog( LOG_DEBUG, "Search transaction for previous INVITE" );
-   SipMsgQueue::iterator i;
-   for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
+   list<Sptr<SipMsg> >::iterator i;
+   for (i = mySipMsgQueue->lst.begin(); i != mySipMsgQueue->lst.end(); ++i) {
       sipMsg = *i;
       if ( sipMsg == 0 ) {
          // reach empty sip msg without finding INVITE, return 0
@@ -139,100 +138,95 @@ SipEvent::getInvite() const {
     return 0;
 }
 
-
 const Sptr < SipCommand >
 SipEvent::getCommand() const {
-    // iterate through all msgs associated with this event looking
-    // for a command, and return it if found
-    Sptr < SipMsg > sipMsg;
+   // iterate through all msgs associated with this event looking
+   // for a command, and return it if found
+   Sptr < SipMsg > sipMsg;
 
-    cpLog( LOG_DEBUG, "Search transaction for previous command" );
-    SipMsgQueue::iterator i;
-    for (i = mySipMsgQueue->begin(); i != mySipMsgQueue->end(); ++i) {
-       sipMsg = *i;
-       if ( sipMsg == 0 ) {
-          // reach empty sip msg without finding INVITE, return 0
-          cpLog( LOG_DEBUG, "no command found, returning 0" );
-          return 0;
-       }
+   cpLog( LOG_DEBUG, "Search transaction for previous command" );
+   list<Sptr<SipMsg> >::iterator i;
+   for (i = mySipMsgQueue->lst.begin(); i != mySipMsgQueue->lst.end(); ++i) {
+      sipMsg = *i;
+      if ( sipMsg == 0 ) {
+         // reach empty sip msg without finding INVITE, return 0
+         cpLog( LOG_DEBUG, "no command found, returning 0" );
+         return 0;
+      }
+      
+      Sptr < SipCommand > command;
+      command.dynamicCast(sipMsg);
+      if ( command != 0 ) {
+         cpLog( LOG_DEBUG, "Found command sent to %s:%d",
+                command->getSendAddress().getIpName().c_str(),
+                command->getSendAddress().getPort() );
+         cpLog( LOG_DEBUG, "%s", command->encode().logData() );
+         return command;
+      }
+      cpLog( LOG_DEBUG, "Not a COMMAND:\n%s", sipMsg->encode().c_str() );
+   }
 
-       Sptr < SipCommand > command((SipCommand*)(sipMsg.getPtr()));
-       if ( command != 0 ) {
-          cpLog( LOG_DEBUG, "Found command sent to %s:%d",
-                 command->getSendAddress().getIpName().c_str(),
-                 command->getSendAddress().getPort() );
-          cpLog( LOG_DEBUG, "%s", command->encode().logData() );
-          return command;
-       }
-       cpLog( LOG_DEBUG, "Not an INVITE:" );
-       cpLog( LOG_DEBUG, "%s", sipMsg->encode().logData() );
-    }
-
-    // no command found
-    cpLog( LOG_DEBUG, "no command found, returning 0" );
-    return 0;
+   // no command found
+   cpLog( LOG_DEBUG, "no command found, returning 0" );
+   return 0;
 }
 
 
 const Sptr < SipCommand >
-SipEvent::getPendingCommand( Sptr < SipCommand > sipCommand ) const
-{
-    // allocate vector to store previous msgs with same call leg
-    CallLegVector callLegMsgs( mySipStack->getCallLegMsgs( sipCommand.getPtr() ) );
+SipEvent::getPendingCommand( Sptr < SipCommand > sipCommand ) const {
+   // allocate vector to store previous msgs with same call leg
+   SipTransactionId id(*sipCommand);
+   Sptr<SipCallContainer> call = mySipStack->getCallContainer(id);
 
-    // create iterator to search for matching commandw
-    vector < Sptr < SipMsg > > ::iterator iter( callLegMsgs.begin() );
+   if (call == 0) {
+      return NULL;
+   }
 
-    // search through previous msgs, and return matching command if found;
-    // otherwise return 0
-    cpLog( LOG_INFO, "Check each matching command" );
-    Sptr < SipCommand > pendingCommand;
+   // create iterator to search for matching command
+   list<Sptr<SipMsgPair> >::iterator iter(call->getMsgList().begin());
 
-    while ( iter != callLegMsgs.end() )
-    {
-        cpLog( LOG_INFO, "Check this command" );
+   // search through previous msgs, and return matching command if found;
+   // otherwise return 0
+   cpLog( LOG_INFO, "Check each matching command" );
+   Sptr < SipCommand > pendingCommand;
 
-        if ( *iter == 0 ) {
-            cpLog( LOG_ERR, "This command is empty" );
-        }
-        else if ((*iter).getPtr() == 0) {
-            cpLog( LOG_ERR, "This command is not a SIP command" );
-        }
-        else {
-            pendingCommand = ((SipCommand*)((*iter).getPtr()));
-            // first Via of Command must match second Via of pending command
-            if ( ( pendingCommand->getNumVia() >= 2 ) &&
-                    ( sipCommand->getNumVia() >= 1 ) ) {
-                if ( pendingCommand->getVia( 1 ) ==
-                        sipCommand->getVia( 0 ) ) {
-                    cpLog( LOG_DEBUG, "matching command found" );
-                    return pendingCommand;
-                }
-                cpLog( LOG_DEBUG, "found command, but Via's don't match" );
+   while ( iter != call->getMsgList().end()) {
+      cpLog( LOG_INFO, "Check this command" );
+      Sptr<SipMsgPair> mp = *iter;
+      if ((mp->request == 0) || (mp->request->getMsgIn() == 0)) {
+         // No command here
+      }
+      else {
+         pendingCommand.dynamicCast(mp->request->getMsgIn());
+         // first Via of Command must match second Via of pending command
+         if ( ( pendingCommand->getNumVia() >= 2 ) &&
+              ( sipCommand->getNumVia() >= 1 ) ) {
+            if ( pendingCommand->getVia( 1 ) ==
+                 sipCommand->getVia( 0 ) ) {
+               cpLog( LOG_DEBUG, "matching command found" );
+               return pendingCommand;
             }
-        }
-
-        ++iter;
-    }
-
-    // no match found, return 0
-    cpLog( LOG_ERR, "no matching command" );
-    return 0;
-}
+            cpLog( LOG_DEBUG, "found command, but Via's don't match" );
+         }
+      }
+      
+      ++iter;
+   }
+   
+   // no match found, return 0
+   cpLog( LOG_ERR, "no matching command" );
+   return 0;
+}//getPendingCommand
 
 
 Sptr < SipCallLeg >
-SipEvent::getSipCallLeg() const
-{
-    assert( mySipCallLeg != 0 );
-
-    return ( mySipCallLeg );
+SipEvent::getSipCallLeg() const {
+   return ( mySipCallLeg );
 }
 
 
 void
-SipEvent::removeCall( )
-{
+SipEvent::removeCall( ) {
     assert( myCallInfo != 0 );
     assert( myCallContainer != 0 );
     assert( mySipCallLeg != 0 );

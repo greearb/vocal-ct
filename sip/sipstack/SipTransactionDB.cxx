@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -85,47 +85,3 @@ void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
    string k(m->getTransactionId().getLevel1().c_str());
    table[k] = m;
 }
-
-#warning "WTF is this supposed to do???"
-#if 0
-SipTransactionDB::CallLegVector
-SipTransactionDB::getCallLegMsgs(Sptr<SipMsg>& sipMsg)
-{
-   CallLegVector retVal;
-   SipTransactionId id(*sipMsg);
-
-   SipTransLevel1Node * topNode = getTopNode(id,sipMsg);
-   if(topNode)
-      {
-         SipTransactionList<SipTransLevel2Node*>::SipTransListNode*
-            level2Node = topNode->level2.getFirst();
-         while(level2Node)
-            {
-               SipTransactionList<SipTransLevel3Node*>::SipTransListNode 
-                  *level3Node = level2Node->val->level3.getFirst();
-               while(level3Node)
-                  {
-                     if(level3Node->val->msgs.request)
-                        {
-                           Data toBeEatenData 
-                              = level3Node->val->msgs.request->msg.out;
-                           SipMsg* sipMsg = SipMsg::decode(toBeEatenData, local_ip);
-                           sipMsg->setSendAddress(*(level3Node->val->msgs.request->msg.netAddr));
-                           retVal.push_back(sipMsg);
-                           //retVal.push_back(SipMsg::decode(toBeEatenData));
-                        }
-                     if(level3Node->val->msgs.response)
-                        {
-                           Data toBeEatenData 
-                              = level3Node->val->msgs.response->msg.out;
-                           retVal.push_back(SipMsg::decode(toBeEatenData, local_ip));
-                        }
-                     level3Node = level2Node->val->level3.getNext(level3Node);
-                  }
-               level2Node = topNode->level2.getNext(level2Node);
-            }
-      }
-
-   return retVal;
-}
-#endif

@@ -49,13 +49,16 @@
  */
 
 static const char* const SipProxyEvent_cxx_Version =
-    "$Id: SipProxyEvent.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipProxyEvent.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
 #include "SipProxyEvent.hxx"
 #include "CallContainer.hxx"
 #include "SipTransceiver.hxx"
+
+
+#warning "I wonder if this class is really needed..."
 
 
 using namespace Vocal;
@@ -84,21 +87,9 @@ void
 SipProxyEvent::postEvent(const Sptr < SipProxyEvent > newEvent)
 {
     assert( newEvent != 0 );
-    myFifo->push_back(newEvent);
+    myFifo.push_back(newEvent);
 }
 
-
-
-void
-SipProxyEvent::postEvent( 
-    const Sptr < SipProxyEvent > newEvent,
-    list < Sptr < SipProxyEvent > >* newFifo ) const
-{
-    assert( newEvent != 0 );
-    assert( newFifo != 0 );
-
-    // TODO:  newFifo->add(newEvent);
-}
 
 
 void

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.7 2004/06/02 20:23:10 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.8 2004/06/03 07:28:15 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -99,6 +99,18 @@ bool NTcpStuff::needsToWrite() {
    }
    return false;
 }
+
+
+// This will consume all of d as long as we are within the limits
+// of the amount of data we will buffer.  If the socket is not immediately
+// writable, it will be buffered in this class, so calling code can be sure
+// that if the message is accepted, it will be transmitted if at all possible.
+int NTcpStuff::writeData(const Data& d) {
+   int rv = tcpConnection->queueSendData(d.c_str(), d.size());
+   // Go ahead and try to flush the transport...it's non-blocking anyway.
+   tcpConnection->write();
+}
+
 
 Sptr < NTcpStuff >
 NTcpConnInfo::getStatusMsgConn(Sptr < SipMsg > msg) {
@@ -454,6 +466,7 @@ SipTcpConnection::getNextMessage() {
       rcvFifo.pop_front();
       return rv;
    }
+   return NULL;
 }
 
 int SipTcpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionDB_hxx_version =
-    "$Id: SipTransactionDB.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionDB.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipTransactionLevels.hxx"
@@ -95,15 +95,6 @@ public:
     * container will both be 0) 
     */
    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer) = 0;
-
-#if 0
-   /**
-    * this will return all the messages corresponding to the call leg of
-    * the sip message in argument
-    */
-   typedef vector<Sptr <SipMsg> > CallLegVector;
-   virtual CallLegVector getCallLegMsgs(Sptr <SipMsg>& sipMsg);
-#endif
 
    string toString();
 

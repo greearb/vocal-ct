@@ -53,7 +53,7 @@
 
 
 static const char* const TimerEvent_hxx_Version = 
-    "$Id: TimerEvent.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+    "$Id: TimerEvent.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "SipProxyEvent.hxx"
@@ -73,72 +73,54 @@ namespace Vocal
 */
 class TimerEvent : public SipProxyEvent
 {
-    public:
+public:
 
 
-        /** Create a timer event given the associate fifo.
-         */
-        TimerEvent(list < Sptr < SipProxyEvent > >* outputFifo);
+   /** Create a timer event.
+    */
+   TimerEvent();
 
 
-        /** Virtual destructor
-         */
-        virtual ~TimerEvent();
+   /** Virtual destructor
+    */
+   virtual ~TimerEvent();
 
-        virtual bool isTimerEvent() const { return true; }
+   virtual bool isTimerEvent() const { return true; }
 
-        /** Post the given event to the associated fifo to expire in
-         *  timerMs milliseconds.
-         */
-        void startTimer(Sptr < SipProxyEvent > newEvent, const int timerMs);
-
-
-        /** Cancel this previously started timer.
-         */
-        void cancelTimer();
+   /** Post the given event to the associated fifo to expire in
+    *  timerMs milliseconds.
+    */
+   void startTimer(Sptr < SipProxyEvent > newEvent, const int timerMs);
 
 
-        /** Remove the call associated with the call info from the
-         *  call container.
-         */
-        void removeCall();
+   /** Cancel this previously started timer.
+    */
+   void cancelTimer();
 
 
-        /** Name of this class.
-         */
-        virtual const char* const name() const
-        {
-            return ( "TimerEvent" );
-        }
+   /** Remove the call associated with the call info from the
+    *  call container.
+    */
+   void removeCall();
 
 
-        /** Associate a sip stack with this event.
-         */
-        void setSipStack(const Sptr < SipTransceiver > sipStack);
+   /** Name of this class.
+    */
+   virtual const char* const name() const {
+      return ( "TimerEvent" );
+   }
 
 
-        /** Accessor to the associated sip stack. 
-         *  May be 0 if a sip stack hasn't been associate with this event.
-         */
-        Sptr < SipTransceiver > getSipStack() const;
+private:
 
-
-    private:
-
-
-        /** Sip transceiver associate with this event.
-         */
-        Sptr < SipTransceiver > mySipStack;
+   /** Suppress copying
+    */
+   TimerEvent(const TimerEvent &);
         
 
-        /** Suppress copying
-         */
-        TimerEvent(const TimerEvent &);
-        
-
-        /** Suppress copying
-         */
-        const TimerEvent & operator=(const TimerEvent &);
+   /** Suppress copying
+    */
+   const TimerEvent & operator=(const TimerEvent &);
 };
  
 }

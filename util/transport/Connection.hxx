@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
+    "$Id: Connection.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -96,6 +96,9 @@ class TcpServerSocket;
 class TcpClientSocket;
 
 typedef struct sockaddr SA;
+
+// TODO:  This could go elsewhere, as is does not directly relate to this class.
+#define MAXLINE 256
 
 
 class Connection: public BugCatcher {
@@ -242,6 +245,9 @@ public:
 
    // Queue it for send.  It will be written as soon as possible.
    virtual int queueSendData(const char* data, int len);
+   virtual int queueSendData(const string& d) {
+      return queueSendData(d.c_str(), d.size());
+   }
 
    // Clear out our buffers, does not attempt to flush.
    virtual void clear();

@@ -50,7 +50,7 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.4 2004/05/06 05:41:05 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -66,7 +66,6 @@ using namespace Vocal;
 
 BasicProxy::BasicProxy( 
     const Sptr < Builder >  builder,
-    int hashTableSize,
     const string&           local_ip,
     const string&           local_dev_to_bind_to,
     unsigned short          defaultSipPort,
@@ -75,7 +74,7 @@ BasicProxy::BasicProxy(
     bool                    nat ,
     SipAppContext           aContext
 ) 
-    :   HeartLessProxy(builder, hashTableSize, local_ip,
+    :   HeartLessProxy(builder, local_ip,
                        local_dev_to_bind_to, defaultSipPort,
                        applName, filteron, nat, aContext)
 {

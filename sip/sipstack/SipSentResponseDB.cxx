@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentResponseDB_cxx_version =
-    "$Id: SipSentResponseDB.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipSentResponseDB.cxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
@@ -109,7 +109,7 @@ SipSentResponseDB::processSend(const Sptr<SipMsg>& msg) {
                     if ((response->getType() == SIP_INVITE) &&
                         (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
                         cpLog( LOG_DEBUG_STACK, "Set UA INVITE final response retransmission" );
-                        retVal->setRetransCount(MAX_RETRANS_COUNT);
+                        retVal->setRetransmitMax(MAX_RETRANS_COUNT);
                     }
                 }
 	    }
@@ -164,7 +164,7 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
 
                 // Just assign the new message in place.
                 mp->response = msgContainer;
-		msgContainer->setRetransCount(FILTER_RETRANS_COUNT);
+		msgContainer->setRetransmitMax(FILTER_RETRANS_COUNT);
 	    }
 	    else {
 		/// we didn't find a matching response but since the request
@@ -212,7 +212,7 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
                             msgContainer->setMsgIn(sm);
                             msgContainer->setTransport(statusMsg->getVia(0).getTransport().c_str());
 
-                            msgContainer->setRetransCount(1);
+                            msgContainer->setRetransmitMax(1);
                      
                             processSend(statusMsg.getPtr());
                             return 0;
@@ -249,7 +249,7 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
                     }
 		    if (mp->response != 0) {
 			retVal->push_back(mp->response->getMsgIn());
-                        mp->response->setRetransCount(0); // Cancel retrans of response
+                        mp->response->setRetransmitMax(0); // Cancel retrans of response
                         // also cancel the retrans of response
                         cpLog(DEBUG_NEW_STACK,"Stopping retrans of response[%s]",
                               mp->response->toString().c_str());

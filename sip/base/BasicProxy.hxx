@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.4 2004/05/06 05:41:05 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "HeartbeatThread.hxx"
@@ -95,11 +95,9 @@ public:
 
 
    /** Explained in the Usage of the Class
-    * hashTableSize is initial bucket count for underlying hash table(s).
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
    BasicProxy(const Sptr < Builder >   builder, 
-              int hashTableSize,
               const string&            local_ip,
               const string&            local_dev_to_bind_to,
               unsigned short           defaultSipPort = 5060,

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.7 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.8 2004/06/03 07:28:15 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
@@ -63,7 +63,6 @@ static const char* const SipTcpConnection_hxx_Version =
 #include <list>
 #include <queue>
 #include <misc.hxx>
-#include "RetransmitContents.hxx"
 
 namespace Vocal
 {
@@ -73,45 +72,45 @@ namespace Vocal
 class SipMsgContainer;
 
 class NTcpStuff: public BugCatcher {
-    public:
-        ///
-        NTcpStuff() : tcpConnection(0) { }
+public:
+   ///
+   NTcpStuff() : tcpConnection(0) { }
 
-        ///
-        virtual ~NTcpStuff() { }
+   ///
+   virtual ~NTcpStuff() { }
 
-        ///
-        bool operator==(const  NTcpStuff& other) {
-            return (tcpConnection->getConnId() ==
-                    other.tcpConnection->getConnId());
-        }
+   ///
+   bool operator==(const  NTcpStuff& other) {
+      return (tcpConnection->getConnId() ==
+              other.tcpConnection->getConnId());
+   }
 
-        bool needsToWrite();
+   bool needsToWrite();
 
-        // This will consume all of d as long as we are within the limits
-        // of the amount of data we will buffer.  If the socket is not immediately
-        // writable, it will be buffered in this class, so calling code can be sure
-        // that if the message is accepted, it will be transmitted if at all possible.
-        int writeData(const Data& d);
-
-        Sptr<Connection> getConnection() { return tcpConnection; }
-        void setConnection(Sptr<Connection> c) { tcpConnection = c; }
-        void setPeerPort(int pp) { peer_port = pp; }
-        void setPeerIp(const char* pip) { peer_ip = pip; }
-        void setPeerIp(const string& pip) { peer_ip = pip; }
-        const string& getPeerIp() { return peer_ip; }
-
-        bool isLive() { return tcpConnection->isLive(); }
-
-        int tryWrite(fd_set* output_fds);
-
-    protected:
-        //  Connection holds all the needed send and receive buffers.
-        Sptr < Connection > tcpConnection;
-
-        // For receiving.
-        string peer_ip;
-        int peer_port;
+   // This will consume all of d as long as we are within the limits
+   // of the amount of data we will buffer.  If the socket is not immediately
+   // writable, it will be buffered in this class, so calling code can be sure
+   // that if the message is accepted, it will be transmitted if at all possible.
+   int writeData(const Data& d);
+   
+   Sptr<Connection> getConnection() { return tcpConnection; }
+   void setConnection(Sptr<Connection> c) { tcpConnection = c; }
+   void setPeerPort(int pp) { peer_port = pp; }
+   void setPeerIp(const char* pip) { peer_ip = pip; }
+   void setPeerIp(const string& pip) { peer_ip = pip; }
+   const string& getPeerIp() { return peer_ip; }
+   
+   bool isLive() { return tcpConnection->isLive(); }
+   
+   int tryWrite(fd_set* output_fds);
+   
+protected:
+   //  Connection holds all the needed send and receive buffers.
+   Sptr < Connection > tcpConnection;
+   
+   // For receiving.
+   string peer_ip;
+   int peer_port;
 };
 
 

@@ -53,7 +53,7 @@
 
 
 static const char* const SipEvent_hxx_Version = 
-    "$Id: SipEvent.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipEvent.hxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
 
 
 
@@ -119,19 +119,14 @@ public:
     */
    const Sptr < SipMsg > getSipMsg() const;
 
-
    /** Set the sip message queue associated with this event.
     *  It also updates the sip message.
-    *  A copy is made, so do not assume modifying sipRcv after
-    *  this call will change the SipEvent class in any way.
     */
-   void setSipMsgQueue(const SipMsgQueue& sipRcv );
-
+   void setSipMsgQueue(Sptr<SipMsgQueue> sipRcv );
 
    /** Get the sip message queue associated with this event.
     */
-   SipMsgQueue& getSipMsgQueue();
-
+   Sptr<SipMsgQueue> getSipMsgQueue();
 
    /** Returns the INVITE associated with the event, or 0 if none exists
     */
@@ -169,7 +164,7 @@ private:
    /** Sip message queue associate with this event. May be updated
     *  during the lifetime of an event.
     */
-   SipMsgQueue mySipMsgQueue;
+   Sptr<SipMsgQueue> mySipMsgQueue;
 
 
    /** Sip call leg associated with this event. May be updated during
@@ -177,7 +172,6 @@ private:
     */
    Sptr < SipCallLeg > mySipCallLeg;
 
-        
    /** Suppress copying
     */
    SipEvent(const SipEvent &);

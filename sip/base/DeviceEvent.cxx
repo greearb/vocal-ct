@@ -49,7 +49,7 @@
  */
 
 static const char* const DeviceEvent_cxx_Version =
-    "$Id: DeviceEvent.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: DeviceEvent.cxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
 
 
 #include "global.h"
@@ -58,10 +58,9 @@ static const char* const DeviceEvent_cxx_Version =
 
 using namespace Vocal;
 
-DeviceEvent::DeviceEvent(list < Sptr < SipProxyEvent > >* outputFifo)
-    :   SipProxyEvent(outputFifo)
+DeviceEvent::DeviceEvent()
+    :   SipProxyEvent()
 {
-    assert( myFifo != 0 );
 }
 
 

@@ -56,6 +56,8 @@
 #include "Operator.hxx"
 #include "SipTransceiver.hxx"
 #include "cpLog.h"
+#include "SipEvent.hxx"
+
 
 namespace Vocal
 {
@@ -64,10 +66,10 @@ class BaseProxy : public BugCatcher {
 public:
 
    BaseProxy() { }
-   virtual ~StatelessBasicProxy() { }
+   virtual ~BaseProxy() { }
 
    //
-   virtual void process(const Sptr < SipProxyEvent > event) const = 0;
+   virtual void process(const Sptr < SipEvent > event) const = 0;
 
 };
  

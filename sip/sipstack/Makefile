@@ -1,13 +1,13 @@
-# $Id: Makefile,v 1.5 2004/06/02 20:23:10 greear Exp $
+# $Id: Makefile,v 1.6 2004/06/03 07:28:15 greear Exp $
 
 BUILD = ../../build
 
 include $(BUILD)/Makefile.pre
 
-PACKAGES += SDP2 UTIL PTHREAD LIBXML
+PACKAGES += SDP2 UTIL LIBXML
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil -lsdp2
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lsdp2
 
 TARGET_LIBRARY = libsip
 

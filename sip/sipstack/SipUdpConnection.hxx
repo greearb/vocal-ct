@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.6 2004/06/03 07:28:15 greear Exp $";
 
 
 
@@ -65,7 +65,6 @@ static const char* const SipUdpConnection_hxx_Version =
 #include <list>
 #include <queue>
 #include <UdpStack.hxx>
-#include "RetransmitContents.hxx"
 
 #define MAX_UDP_RCV_BUF 65536
 
@@ -87,8 +86,8 @@ public:
    
    virtual ~SipUdpConnection();
    
-   void send(Sptr<SipMsgContainer> msg, const Data& host,
-             const Data& port);
+   int send(Sptr<SipMsgContainer> msg, const Data& host,
+            const Data& port);
    
    int udpSend(Sptr<SipMsgContainer> msg);
 
@@ -146,9 +145,10 @@ private:
    char rcvBuf[MAX_UDP_RCV_BUF];
    
    UdpStack udpStack;
-   priority_queue <Sptr <RetransmitContents>,
+   priority_queue <Sptr <SipMsgContainer>,
                    vector< Sptr<SipMsgContainer> >,
-                   RetransContentsComparitor > sendQ;
+                   SipMsgContainerComparitor > sendQ;
+   list < Sptr <SipMsgContainer> > rcvFifo;
    
    static atomic_t _cnt;
 };
