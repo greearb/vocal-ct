@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.6 2004/06/20 22:28:00 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.7 2004/06/21 19:33:20 greear Exp $";
 
 
 #include <sys/types.h>
@@ -223,7 +223,7 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
 
       string cfg_force_ipv6 = UaConfiguration::instance().getValue(ForceIPv6Tag);
 
-      if(cfg_force_ipv6 == "true") {
+      if (cfg_force_ipv6 == "true") {
 	  // change the network configuration by force
 	  NetworkConfig::instance().setAddrFamily(PF_INET6);
       }
@@ -633,6 +633,11 @@ void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 #ifdef USE_LANFORGE
    myLFThread->tick(input_fds, output_fds, exc_fds, now);
 #endif
+   
+   MediaDeviceMap::iterator i;
+   for (i = myMediaDeviceMap.begin(); i != myMediaDeviceMap.end(); i++) {
+      i->second->tick(input_fds, output_fds, exc_fds, now);
+   }
 
    // Queue incomming events, handle them all in the tick() method.
    while (eventQueue.size()) {
@@ -653,6 +658,11 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 #ifdef USE_LANFORGE
    myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 #endif
+
+   MediaDeviceMap::iterator i;
+   for (i = myMediaDeviceMap.begin(); i != myMediaDeviceMap.end(); i++) {
+      i->second->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   }
 
    if (eventQueue.size()) {
       uint64 ntx = eventQueue.top()->getRunTimer();

@@ -51,7 +51,7 @@
  *
  */
 static const char* const NullDeviceVersion =
-    "$Id: NullDevice.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: NullDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
 
 #include "MediaDevice.hxx"
 #include <iostream>
@@ -81,7 +81,12 @@ public:
    void processAudio() { };
  
    ///Returns 0 if successfully started
-   int start(VCodecType codec_type) { cerr << "Connected" << endl; return 0; }
+   int start(VCodecType codec_type) {
+      nextTime = vgetCurMs();
+      cerr << "Connected" << endl;
+      return 0;
+   }
+
    ///Returns 0 if successfully stopped
    int stop() { MediaDevice::stop(); cerr << "Disconnected" << endl; return 0; };
    ///Returns 0 if successfully suspended
@@ -94,6 +99,30 @@ public:
                  Sptr<CodecAdaptor> codec, bool silence_pkt) {
       //vusleep(20000);
    };
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now) {
+      if (now <= nextTime) {
+         // Do nothing, but do it 50 times a second!
+         nextTime += 20;
+      }
+   }
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now) {
+      if (nextTime > now) {
+         timeout = min(nextTime - now, timeout);
+      }
+      else {
+         timeout = 0;
+      }
+      return 0;
+   }
+
+
+private:
+   uint64 nextTime;
+
 };
  
 }

@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.5 2004/06/21 19:33:20 greear Exp $";
 
 
 #include "global.h"
@@ -201,7 +201,7 @@ private:
                   vector< Sptr<SipProxyEvent> >,
                   SipProxyEventComparitor> eventQueue;
 
-   ///
+   // Last thing we created/returned.  Is contained in the myMediaDeviceMap
    Sptr<MediaDevice> myMediaDevice;
 
    ///

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: MediaDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
 
 #include <stdio.h>
 #include "Sptr.hxx"
@@ -72,90 +72,84 @@ class MediaSession;
 
 /** Defines interface to plugin a Media device implementation into libmedia.
  */
-class MediaDevice : public Adaptor
-{
-   public:
-      ///
-      void setBusy(bool val) { busy = val; };
+class MediaDevice : public Adaptor {
+public:
+   ///
+   void setBusy(bool val) { busy = val; };
+   
+   ///Assign device to a MediaSession identified by sessionId
+   void assignedTo(int sessionId) { mySessionId = sessionId; };
+   
+   ///Returns true, if device is allocated to a session
+   bool isBusy() const { return busy; };
 
-      ///Assign device to a MediaSession identified by sessionId
-      void assignedTo(int sessionId) { mySessionId = sessionId; };
+   ///Returns the MediaSession Id, device is associated with
+   int getSessionId() const { return mySessionId; };
 
-      ///Returns true, if device is allocated to a session
-      bool isBusy() const { return busy; };
+   /// Virtual destructor
+   virtual ~MediaDevice();
 
-      ///Returns the MediaSession Id, device is associated with
-      int getSessionId() const { return mySessionId; };
+   ///
+   string className() { return "MediaDevice"; }
 
-      /// Virtual destructor
-      virtual ~MediaDevice();
+   ///
+   string description() { 
+      char buf[56];
+      snprintf(buf, 55, "%d,%d", myDeviceType, myMediaType); 
+      return buf;
+   }
 
-      ///
-      string className() { return "MediaDevice"; }
+   /**@name Virtual Interfaces
+    * Following interfaces needs to be defined by the derived
+    * device implementation.
+    */
+   //@{
 
-      ///
-      string description() 
-      { 
-          char buf[56];
-          sprintf(buf, "%d,%d", myDeviceType, myMediaType); 
-          return buf;
-      }
+   /**Called by the device itself when input data is ready to be shipped
+    * @param data - input data bytes
+    * @param length - Length of data in bytes
+    * @param type - Codec type used to encode data
+    * @param silence_pkt - The packet is silence, generated locally, probably because
+    *        we never received the real packet.
+    * @param codec - Some codecs need state, so pass this codec, which can decode
+    *        the raw, if possible.  If null, a codec will be found, but it will
+    *        not necessarily have the right state.  Speex currently needs this
+    *        functionality.
+    */
+   virtual void processRaw(char* data, int length, VCodecType type,
+                           Sptr<CodecAdaptor> codec, bool silence_pkt);
 
-      /**@name Virtual Interfaces
-        * Following interfaces needs to be defined by the derived
-        * device implementation.
-        */
-      //@{
+   //Returns 0 if successfully started
+   // Specify the codec to use.
+   virtual int start(VCodecType codec_type);
 
-      /**Called by the device itself when input data is ready to be shipped
-       * @param data - input data bytes
-       * @param length - Length of data in bytes
-       * @param type - Codec type used to encode data
-       * @param silence_pkt - The packet is silence, generated locally, probably because
-       *        we never received the real packet.
-       * @param codec - Some codecs need state, so pass this codec, which can decode
-       *        the raw, if possible.  If null, a codec will be found, but it will
-       *        not necessarily have the right state.  Speex currently needs this
-       *        functionality.
-       */
-      virtual void processRaw(char* data, int length, VCodecType type,
-                              Sptr<CodecAdaptor> codec, bool silence_pkt);
+   ///Returns 0 if successfully stopped
+   virtual int stop();
+   ///Returns 0 if successfull
+   virtual int suspend() = 0;
+   ///Returns 0 if successfull
+   virtual int resume() = 0;
 
-      virtual void processAudio() = 0;
 
-      //Returns 0 if successfully started
-      // Specify the codec to use.
-      virtual int start(VCodecType codec_type);
+protected:
+   MediaDevice(VDeviceType dType, VMediaType mType) 
+         : Adaptor(dType, mType), busy(false) , mySessionId (-1),
+           mySession(0) {
+   };
 
-      ///Returns 0 if successfully stopped
-      virtual int stop();
-      ///Returns 0 if successfully started
-      virtual int suspend() = 0;
-      ///Returns 0 if successfully stopped
-      virtual int resume() = 0;
+   ///
+   bool busy;
 
-    protected:
-      MediaDevice(VDeviceType dType, VMediaType mType) 
-        : Adaptor(dType, mType), busy(false) , mySessionId (-1),
-          mySession(0)
-      {
-      };
+   ///
+   int mySessionId;
 
-      ///
-      bool busy;
-      ///
-      int mySessionId;
+   /** Suppress copying
+    */
+   MediaDevice(const MediaDevice &);
+   const MediaDevice & operator=(const MediaDevice &);
 
-      /** Suppress copying
-      */
-      MediaDevice(const MediaDevice &);
-        
-      /** Suppress copying
-      */
-      const MediaDevice & operator=(const MediaDevice &);
-
-      ///
-      Sptr<MediaSession> mySession;
+   ///
+   Sptr<MediaSession> mySession;
 };
 
 }

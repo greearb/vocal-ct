@@ -51,7 +51,7 @@
  *
  */
 static const char* const LinAudioDeviceVersion =
-    "$Id: LinAudioDevice.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: LinAudioDevice.hxx,v 1.2 2004/06/21 19:33:20 greear Exp $";
 
 #include "Rtp.hxx"
 #include "SoundCard.hxx"
@@ -79,8 +79,7 @@ namespace UA
  * Implements a Sound card device on Linux
  */
 
-class LinAudioDevice : public MediaDevice
-{
+class LinAudioDevice : public MediaDevice {
     public:
         ///
         LinAudioDevice( const char* deviceName);
@@ -109,12 +108,17 @@ class LinAudioDevice : public MediaDevice
         int resume();
         
 
-        ///process data from audio device
-        void processAudio();
-
         ///Play data to the soundcard device
         void sinkData(char* data, int length, VCodecType type,
                       Sptr<CodecAdaptor> codec, bool silence_pkt);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+
 
 #ifdef USE_WINRTP
         int RenderAudioSamples(std::vector<std::pair<AudioSample*, AudioSource* > > &data);
@@ -132,6 +136,9 @@ class LinAudioDevice : public MediaDevice
         ///
 	void processOutgoingAudio();
 
+        ///process data from audio device
+        void processAudio();
+
         //
         bool audioActive;
 
@@ -145,13 +152,5 @@ class LinAudioDevice : public MediaDevice
  
 }
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

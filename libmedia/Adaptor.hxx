@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -62,6 +62,7 @@ static const char* const Adaptor_hxx_Version =
 #include "CodecAdaptor.hxx"
 #include "Def.hxx"
 #include <BugCatcher.hxx>
+#include <misc.hxx>
 
 
 namespace Vocal
@@ -75,73 +76,76 @@ namespace UA
     implementation must derive from this interface in order to plug into the 
     Media Framework.
  */
-class Adaptor : public BugCatcher
-{
-    public:
-      /// Virtual destructor
-      virtual ~Adaptor() 
-      { 
+class Adaptor : public BugCatcher {
+public:
+   /// Virtual destructor
+   virtual ~Adaptor() { };
+
+   ///
+   VDeviceType getDeviceType() const { return myDeviceType; };
+   ///
+   VMediaType getMediaType() const { return myMediaType; };
+   
+   ///
+   Sptr<CodecAdaptor> getCodec() { return myCodec; };
+   
+   //The rate at which the Adaptor is expecting data, default is 20ms
+   // Units are miliseconds.
+   int getDataRate() const { return myDataRate; };
+
+   ///
+   virtual string className() { return "Adaptor"; }
+   ///
+   virtual string description() {  return "Adaptor"; };
+
+   /** Consume the data
+    * @param silence_pkt - The packet is silence, generated locally, probably because
+    *        we never received the real packet.
+    * @param codec - Some codecs need state, so pass this codec, which can decode
+    *        the raw, if possible.  If null, a codec will be found, but it will
+    *        not necessarily have the right state.  Speex currently needs this
+    *        functionality.
+    * 
+    */
+   virtual void sinkData(char* data, int length, VCodecType type,
+                         Sptr<CodecAdaptor> codec, bool silence_pkt) = 0;
+
+
+   // Do work, maybe can read or write now, check the file descriptors.
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now) = 0;
+
+   // Set max timeout and/or set file descriptors we are interested in.
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now) = 0;
+
+
+
+protected:
+   /**Constructor to create a Adaptor, the priority indicate
+    * the pref when multiple codecs can be used, a 0 priority means
+    * equal preferrence
+    */
+   Adaptor(VDeviceType dType, VMediaType mType)
+         : myDeviceType(dType), myMediaType(mType), myDataRate(20)
+      {
       };
 
-      ///
-      VDeviceType getDeviceType() const { return myDeviceType; };
-      ///
-      VMediaType getMediaType() const { return myMediaType; };
+   ///
+   VDeviceType myDeviceType; 
+   ///
+   VMediaType  myMediaType;
+   
+   ///
+   Sptr<CodecAdaptor> myCodec;
+   ///
+   int   myDataRate;
 
-      ///
-      Sptr<CodecAdaptor> getCodec() { return myCodec; };
+   /** Suppress copying
+    */
+   Adaptor(const Adaptor &);
+   const Adaptor & operator=(const Adaptor &);
 
-      //The rate at which the Adaptor is expecting data, default is 20ms
-      // Units are miliseconds.
-      int getDataRate() const { return myDataRate; };
-
-      ///
-      virtual string className() { return "Adaptor"; }
-      ///
-      virtual string description() {  return "Adaptor"; };
-      ///
-      virtual void shutdown() { };
-
-
-      /** Consume the data
-       * @param silence_pkt - The packet is silence, generated locally, probably because
-       *        we never received the real packet.
-       * @param codec - Some codecs need state, so pass this codec, which can decode
-       *        the raw, if possible.  If null, a codec will be found, but it will
-       *        not necessarily have the right state.  Speex currently needs this
-       *        functionality.
-       * 
-       */
-      virtual void sinkData(char* data, int length, VCodecType type,
-                            Sptr<CodecAdaptor> codec, bool silence_pkt) = 0;
-
-    protected:
-      /**Constructor to create a Adaptor, the priority indicate
-       * the pref when multiple codecs can be used, a 0 priority means
-       * equal preferrence
-       */
-      Adaptor(VDeviceType dType, VMediaType mType)
-            : myDeviceType(dType), myMediaType(mType), myDataRate(20)
-      { 
-      };
-
-      /** Suppress copying
-      */
-      Adaptor(const Adaptor &);
-        
-      /** Suppress copying
-      */
-      const Adaptor & operator=(const Adaptor &);
-
-      ///
-      VDeviceType myDeviceType; 
-      ///
-      VMediaType  myMediaType;
-
-      ///
-      Sptr<CodecAdaptor> myCodec;
-      ///
-      int   myDataRate;
 };
 
 }

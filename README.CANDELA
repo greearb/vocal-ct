@@ -8,6 +8,11 @@
 
   make
 
+To enable a more optimized build with LANforge and g729 support,
+try this configure instead.
+  ./configure --with-shared-libs --with-lanforge  --with-compile-type=gopt \
+              --with-optimize-level=2 --with-voiceage
+
 # If you are not just using peer-to-peer call, and thus need a proxy,
 # continue on.  Otherwise, you do not need to deal with any of the
 # database stuff.

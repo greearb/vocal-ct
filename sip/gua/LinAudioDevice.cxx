@@ -90,21 +90,14 @@ LinAudioDevice::~LinAudioDevice()
 } // end LinAudioDevice::~LinAudioDevice()
 
 
-void
-LinAudioDevice::processOutgoingAudio()
-{
-    //static unsigned int proc_cnt = 0;
-    //if ((proc_cnt++ % 1000) == 0) {
-    //    cerr << time(NULL) << ": Called " << __PRETTY_FUNCTION__ << " 1000 times...\n";
-    //}
+void LinAudioDevice::processOutgoingAudio() {
 
     int cc;
     
     int pld_size = myCodec->getSampleSize();
 
     cc = mySoundCard.read( dataBuffer, myCodec->getSampleSize());
-    if ((cc > 0)) 
-    {
+    if ((cc > 0)) {
         if (cc >= pld_size) {
             //Send raw packet to Controller
             cpLog(LOG_DEBUG_STACK, "LinAudioDevice::processOutgoingAudio");
@@ -115,8 +108,7 @@ LinAudioDevice::processOutgoingAudio()
             // before it can do something with it...
         }
     }
-    else
-    {
+    else {
         cpLog(LOG_DEBUG, "ERROR: failed to read data from sound card");
         if (mySoundCard.getFd() < 0) {
             cpLog(LOG_ERR, "ERROR:  Soundcard fd is negative, making audio inactive...\n");
@@ -125,51 +117,30 @@ LinAudioDevice::processOutgoingAudio()
     }
 }
 
-#warning "This should be a 'tick' call instead."
-void
-LinAudioDevice::processAudio()
-{
-    // The read will magically block..this select is not needed
-    // as far as I can tell.
-    // TODO:  Maybe should protectect against blocking forever???. --Ben
 
-    /*
-    int myFD = mySoundCard.getFd();
+void LinAudioDevice::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                                uint64 now) {
+   if (audioActive) {
+       if (mySoundCard.getFd() < 0) {
+           cpLog(LOG_ERR, "ERROR:  Soundacard's FD < 0, stopping!\n");
+           stop();
+       }
+       else {
+           if (FD_ISSET(mySoundCard.getFd(), input_fds)) {
+               processOutgoingAudio();
+           }
+       }
+   }
+}
 
-    fd_set netFD;
-    FD_ZERO (&netFD);
-    if (myFD >= 0) {
-        FD_SET(myFD, &netFD);
+int LinAudioDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                                 int& maxdesc, uint64& timeout, uint64 now) {
+    int fd = mySoundCard.getFd();
+    if (fd > 0) {
+        FD_SET(fd, input_fds);
+        maxdesc = max(fd, maxdesc);
     }
-
-    int maxfd = myFD;
-
-    if (maxfd == -1)
-    {
-        return;
-    }
-
-    struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
-    int selret = select(maxfd + 1, &netFD, 0, 0, &timeout);
-
-    if(selret > 0)
-    {
-    */
-
-    // The read will block as needed, so no need to select here...
-    if (!audioActive) {
-        return;
-    }
-    else {
-        processOutgoingAudio();
-    }
-
-    //}
-
-    return;
+    return 0;
 }
 
 
@@ -261,12 +232,3 @@ LinAudioDevice::resume()
     audioActive = true;
     return(mySoundCard.reopen());
 }
-
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

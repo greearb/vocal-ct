@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.4 2004/06/21 19:33:20 greear Exp $";
 
 
 
@@ -101,41 +101,50 @@ FileMediaDevice::~FileMediaDevice(void)
 
 
 
+// Do work, maybe can read or write now, check the file descriptors.
+void FileMediaDevice::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                           uint64 now) {
+   if (audioActive) {
+      if (now <= nextTime) {
+         nextTime += networkPktSize;
+         processAudio();
+      }
+   }
+}
+
+// Set max timeout and/or set file descriptors we are interested in.
+int FileMediaDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                            int& maxdesc, uint64& timeout, uint64 now) {
+   if (nextTime > now) {
+      timeout = min(nextTime - now, timeout);
+   }
+   else {
+      timeout = 0;
+   }
+   return 0;
+}
+
+
 //***************************************************************************
 // FileMediaDevice::processRTP
 // description:  main processing loop for RTP
 //***************************************************************************
 
 void
-FileMediaDevice::processAudio ()
-{
-    if ( !audioActive )
-    {
-        return ;
-    }
-    int wait = networkPktSize - (getTimeOfDay() - nextTime);
-
-    if ( wait > 0 ) 
-    {
-       //vusleep(wait*1000);
-    }
-
-    nextTime += networkPktSize;
-
-    //TODO:  This looks wierd, and at the least it could bust the stack with such
-    // a large buffer.
-    char buffer[10240];
-    memset(buffer, 0xFE, networkPktSize*8);
-    if ( !player.getData(buffer, networkPktSize*8) )
-    {
-         Sptr < UaHardwareEvent > signal = 
-                 new UaHardwareEvent( myId );
-         signal->type = HardwareAudioType;
-         signal->request.type = AudioStop;
-         UaFacade::instance().queueEvent(signal.getPtr());
-    }
-    Sptr<CodecAdaptor> nll;
-    processRaw((char*)buffer, networkPktSize*8, G711U, nll, false);
+FileMediaDevice::processAudio () {
+   //TODO:  This looks wierd, and at the least it could bust the stack with such
+   // a large buffer.
+   char buffer[10240];
+   memset(buffer, 0xFE, networkPktSize*8);
+   if ( !player.getData(buffer, networkPktSize*8) ) {
+      Sptr < UaHardwareEvent > signal = 
+         new UaHardwareEvent( myId );
+      signal->type = HardwareAudioType;
+      signal->request.type = AudioStop;
+      UaFacade::instance().queueEvent(signal.getPtr());
+   }
+   Sptr<CodecAdaptor> nll;
+   processRaw((char*)buffer, networkPktSize*8, G711U, nll, false);
 }
 
 //***************************************************************************
@@ -146,40 +155,37 @@ FileMediaDevice::processAudio ()
 //***************************************************************************
 
 int
-FileMediaDevice::start(VCodecType codec_type)
-{
-    if ( audioActive )
-    {
-        cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
-        return 0;
-    }
+FileMediaDevice::start(VCodecType codec_type) {
+   if ( audioActive ) {
+      cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
+      return 0;
+   }
 
-    MediaDevice::start(codec_type);
+   MediaDevice::start(codec_type);
 
-    audioActive = true;
-    // mark audio as active
-    cpLog(LOG_DEBUG, "setting audio active");
+   audioActive = true;
+   // mark audio as active
+   cpLog(LOG_DEBUG, "setting audio active");
 
-    // allocate RTP packet spaces
-    networkPktSize = atoi(UaConfiguration::instance().getValue(NetworkRtpRateTag).c_str());
+   // allocate RTP packet spaces
+   networkPktSize = atoi(UaConfiguration::instance().getValue(NetworkRtpRateTag).c_str());
 
-    nextTime = getTimeOfDay();
-    hasPlayed = false;
-    string aName(WaveFilePath);
-    aName += myFileToPlay;
-    player.add(aName);
-    if(!player.start())
-    {
-        cpLog(LOG_ERR, "Failed to start playing of sound file");
-        Sptr < UaHardwareEvent > signal =
-                     new UaHardwareEvent( myId );
-        signal->type = HardwareAudioType;
-        signal->request.type = AudioStop;
-        UaFacade::instance().queueEvent( signal.getPtr() );
-    };
+   nextTime = vgetCurMs();
+   hasPlayed = false;
+   string aName(WaveFilePath);
+   aName += myFileToPlay;
+   player.add(aName);
+   if (!player.start()) {
+      cpLog(LOG_ERR, "Failed to start playing of sound file");
+      Sptr < UaHardwareEvent > signal =
+         new UaHardwareEvent( myId );
+      signal->type = HardwareAudioType;
+      signal->request.type = AudioStop;
+      UaFacade::instance().queueEvent( signal.getPtr() );
+   };
 
-    return 0;
-} 
+   return 0;
+}
 
 //***************************************************************************
 // FileMediaDevice::audioStop
@@ -189,24 +195,22 @@ FileMediaDevice::start(VCodecType codec_type)
 //               rtp packets.
 //***************************************************************************
 
-int
-FileMediaDevice::stop (void)
-{
-    if (!audioActive) {
-        cpLog(LOG_DEBUG, "stop: No audio active, ignored the request");
-        return 1;
-    }
+int FileMediaDevice::stop() {
+   if (!audioActive) {
+      cpLog(LOG_DEBUG, "stop: No audio active, ignored the request");
+      return 1;
+   }
 
-    MediaDevice::stop();
+   MediaDevice::stop();
 
-    // mark audio as deactivated.
-    cpLog(LOG_DEBUG, "Audio Stop received.");
-    audioActive = false;
+   // mark audio as deactivated.
+   cpLog(LOG_DEBUG, "Audio Stop received.");
+   audioActive = false;
 
-    player.stop();
+   player.stop();
 
-    cpLog(LOG_DEBUG,"End of session");  
-    return 0;
+   cpLog(LOG_DEBUG,"End of session");  
+   return 0;
 } 
 
 
@@ -223,14 +227,4 @@ FileMediaDevice::sinkData(char* data, int length, VCodecType type,
     }
 
     // TODO:  Implement something here!!
-}
-
-VmTime
-FileMediaDevice::getTimeOfDay()
-{
-    VmTime tm;
-    struct tms t;
-
-    tm = times(&t) * 10;
-    return tm;
 }

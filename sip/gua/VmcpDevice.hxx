@@ -51,7 +51,7 @@
  *
  */
 static const char* const VmcpDevice_hxx_Version =
-    "$Id: VmcpDevice.hxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
+    "$Id: VmcpDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
 
 //#include "Vmcp.h"
 #include "PlayQueue.h"
@@ -76,86 +76,90 @@ namespace UA
  * It is used to play/record messages controlled by the VmServer.
  * It also handles the DTMF digits.
  */
-class VmcpDevice: public MediaDevice
-{
-    public:
-        ///
-        VmcpDevice(int id);
+class VmcpDevice: public MediaDevice {
+public:
+   ///
+   VmcpDevice(int id);
 
-        ///
-        virtual ~VmcpDevice(void);
+   ///
+   virtual ~VmcpDevice(void);
 
-        ///Called by the base class audio thread to play/record messages
-        void processAudio ();
+   /** process all events received from VmServer. returns 0 if successful,
+    *  otherwise returns an errorcode.
+    */
+   int process (fd_set* fd);
 
-        /** add VmServer connection socket to the fd set
-         * returns 0 if successful, errorcode otherwise
-         */
-        int addToFdSet (fd_set* fd);
+   /** start the device for audio processing
+    * returns 0 if successful, errorcode otherwise
+    */
+   int start (VCodecType codec_type);
 
-        /** process all events received from VmServer. returns 0 if successful,
-         *  otherwise returns an errorcode.
-         */
-        int process (fd_set* fd);
+   /** stops the device
+    * returns 0 if successful, errorcode otherwise
+    */
+   int stop (void);
 
-        /** start the device for audio processing
-         * returns 0 if successful, errorcode otherwise
-         */
-        int start (VCodecType codec_type);
+   ///Set the call-info for the call received
+   void provideCallInfo(Data sCallerId, 
+                        Data sCalleeId, Data sForwardReason);
 
-        /** stops the device
-         * returns 0 if successful, errorcode otherwise
-         */
-        int stop (void);
+   ///Sinks the received data to the recorder
+   void sinkData(char* data, int length, VCodecType type,
+                 Sptr<CodecAdaptor> codec, bool silence_pkt);
 
-        ///Set the call-info for the call received
-        void provideCallInfo(Data sCallerId, 
-                             Data sCalleeId, Data sForwardReason);
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        ///Sinks the received data to the recorder
-        void sinkData(char* data, int length, VCodecType type,
-                      Sptr<CodecAdaptor> codec, bool silence_pkt);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-        ///Main processing thread to process events from VmServer
-        void vmThread();
 
-    private:
-        int  resume() { return 0; }
-        int  suspend() { return 0; }
-        ///
-        int connectToVmServer();
-        ///
-        void reportEvent( DeviceEventType eventType );
+private:
+   int  resume() { return 0; }
+   int  suspend() { return 0; }
 
-        bool hasPlayed; 
+   ///Play/record messages
+   void processAudio ();
 
-        // VoiceMail Control Protocol stack
-        Vmcp* myVmStack;
+   /** add VmServer connection socket to the fd set
+    * returns 0 if successful, errorcode otherwise
+    */
+   int addToFdSet (fd_set* fd, int& maxdesc);
 
-        int myId;
+   ///
+   int connectToVmServer();
+   ///
+   void reportEvent( DeviceEventType eventType );
 
-        bool audioActive;
-        bool hookStateOffhook;
-        bool serverAvailable;
+   bool hasPlayed; 
 
-        struct timeval prevRtpPacketTime;
-        Data CallerId;
-        Data CalleeId;
-        Data ForwardReason;
-        int NumberOfForwards;
-        int fwdFlag;
+   // VoiceMail Control Protocol stack
+   Vmcp* myVmStack;
 
-        // Vmcp socket
-	int ss; 	
+   int myId;
 
-        ///Player
-        PlayQueue player;
-        ///recorder
-        Recorder recorder;
+   bool audioActive;
+   bool hookStateOffhook;
+   bool serverAvailable;
 
-        VmTime nextTime;
-        VmTime nextRecTime;
-        int networkPktSize;
+   struct timeval prevRtpPacketTime;
+   Data CallerId;
+   Data CalleeId;
+   Data ForwardReason;
+   int NumberOfForwards;
+   int fwdFlag;
+
+   // Vmcp socket
+   int ss; 	
+
+   ///Player
+   PlayQueue player;
+   ///recorder
+   Recorder recorder;
+
+   uint64 nextTime;
+   uint64 nextRecTime;
+   uint64 networkPktSize;
 };
  
 }

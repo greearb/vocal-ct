@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.5 2004/06/21 19:33:20 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -90,19 +90,6 @@ using namespace UA;
 UaCallControl* UaCallControl::myInstance = 0;
 
 #define NUM_TAG_RANDOMNESS 4
-
-#if 0
-void 
-UaCallControl::receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg)
-{
-}
-
-void 
-UaCallControl::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)
-{
-   //Nothing to do here
-}
-#endif
 
 bool 
 UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
@@ -405,7 +392,6 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
         return true;
     }
 
-#if 1
     Sptr<DeviceEvent> dEvent;
     dEvent.dynamicCast(event);
     if(dEvent != 0)
@@ -436,7 +422,6 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
         }
         return true;
     }
-#endif
 
     return true;
 }
@@ -745,48 +730,40 @@ UaCallControl::busy(Sptr<SipCommand> sipMsg)
 }
 
 Sptr<CallAgent>
-UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg)
-{
-    cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
-    if(myCallMap.size())
-    {
-        cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
-        //Get the call from the call-map
-        for(CallMap::iterator itr = myCallMap.begin();
-             itr != myCallMap.end(); itr++)
-        {
+UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg) {
+   cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
+   if (myCallMap.size()) {
+      cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
+      //Get the call from the call-map
+      for (CallMap::iterator itr = myCallMap.begin();
+          itr != myCallMap.end(); itr++) {
             
-            Sptr<CallAgent> cAgent=0;
-            cAgent.dynamicCast((*itr).second);
-            if(cAgent->isActive())
-            {
-                CallControlMode cMode = UaFacade::instance().getMode(); 
-                if((sipMsg != 0) && 
-                  (( cMode == CALL_MODE_ANNON) ||
-                   ( cMode == CALL_MODE_VMAIL) || 
-		   ( cMode == CALL_MODE_SPEECH)
-		      ))
-                {
-                    //Get the callId 
-                    SipTransactionId id(*sipMsg);
-                    SipTransactionId id2(*(cAgent->getInvokee()->getRequest()));
-                    if(id == id2)
-                    {
-                        //Same request coming again
-                        //do Nothing
-                        return 0;
-                    }
-                    else
-                    {
-                        cAgent = 0;
-                        continue;
-                    }
-                }
-                return cAgent;
+         Sptr<CallAgent> cAgent;
+         cAgent.dynamicCast((*itr).second);
+         if (cAgent->isActive()) {
+            CallControlMode cMode = UaFacade::instance().getMode(); 
+            if ((sipMsg != 0) && 
+                (( cMode == CALL_MODE_ANNON) ||
+                 ( cMode == CALL_MODE_VMAIL) || 
+                 ( cMode == CALL_MODE_SPEECH))) {
+               //Get the callId 
+               SipTransactionId id(*sipMsg);
+               SipTransactionId id2(*(cAgent->getInvokee()->getRequest()));
+               if (id == id2) {
+                  //Same request coming again
+                  //do Nothing
+                  return 0;
+               }
+               else {
+                  cAgent = 0;
+                  continue;
+               }
             }
-        }
-    }    
-    return 0;
+            return cAgent;
+         }
+      }
+   }
+   return 0;
 }
 
 Sptr<BaseUrl>

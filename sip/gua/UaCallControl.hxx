@@ -53,7 +53,7 @@
 
 
 static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.4 2004/06/20 07:09:38 greear Exp $";
+    "$Id: UaCallControl.hxx,v 1.5 2004/06/21 19:33:20 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -84,13 +84,6 @@ public:
       gets register to atexit() function at the time of creation.
    */
    static void destroy(void);
-
-#if 0   
-   ///
-   void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
-   ///
-   void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
-#endif
 
    ///
    bool processEvent(Sptr<SipProxyEvent> event);

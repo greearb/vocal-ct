@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
 
 
 
@@ -102,98 +102,58 @@ VmcpDevice::VmcpDevice(int id)
 //***************************************************************************
 
 
-VmcpDevice::~VmcpDevice(void)
-{
-    cpLog(LOG_DEBUG, "VmcpDevice::~VmcpDevice(void)");
-    if (ss) {
-        myVmStack->sendClose();
-        close(ss);   
-    }
-    delete myVmStack;
+VmcpDevice::~VmcpDevice() {
+   cpLog(LOG_DEBUG, "VmcpDevice::~VmcpDevice(void)");
+   if (ss) {
+      myVmStack->sendClose();
+      close(ss);   
+   }
+   delete myVmStack;
 } // end VmcpDevice::~VmcpDevice()
 
 
-#warning "Port to non-blocking, non-threaded model."
-void
-VmcpDevice::vmThread ()
-{
-    // process forever on behalf of VmcpDevice hardware
-    fd_set readfds;
-    struct timeval tv;
-    int retval;
-    int maxFd = 128;  
+void VmcpDevice::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      uint64 now) {
+   process(input_fds);
 
-    if(ss <= 0) 
-    {
-       //vusleep(50000);
-        return;
-    }
-    // reset file descriptor
-    FD_ZERO(&readfds);
-    addToFdSet(&readfds);
-
-    // block on select for asyncronous events, but poll to process
-    // audio and signal requests from endpoints in message queue
-    tv.tv_sec = 1;
-    tv.tv_usec = 0;
-
-    if ((retval = select(maxFd, &readfds, 0, 0, &tv)) < 0)
-    {
-        cpLog(LOG_ERR, "select() returned with an error" );
-    }
-    else
-    {
-        if (process(&readfds) < 0)
-        {
-            cpLog(LOG_ERR, "hardware encountered an error");
-        }
-    }
-
+   if ((!audioActive) || !hookStateOffhook || hasPlayed) {
+      // Do nothing at this time
+   }
+   else {
+      if (now <= nextTime) {
+         nextTime += networkPktSize;
+         processAudio();
+      }
+   }
 }
 
-void
-VmcpDevice::processAudio ()
-{
-    if ( (!audioActive) || (!hookStateOffhook) || hasPlayed )
-    {
-       //vusleep(50000);
-       return ;
-    }
+int VmcpDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       int& maxdesc, uint64& timeout, uint64 now) {
+   addToFdSet(input_fds, maxdesc);
+   if (nextTime > now) {
+      timeout = min(nextTime - now, timeout);
+   }
+   else {
+      timeout = 0;
+   }
+}
 
-    int wait = networkPktSize - (vm_gettimeofday() - nextTime);
- 
-    if ( wait > 0 )
-    {
-       //vusleep(wait*1000);
-    }
- 
-    nextTime += networkPktSize;
- 
-    //Since we wakeup, see if any of the device state has changed
-    if ( (!audioActive) || (!hookStateOffhook) || hasPlayed )
-    {
-        return ;
-    }
 
-    char buffer[1024];
-    memset(buffer, 0xFE, networkPktSize*8);
-    if ( !player.getData(buffer, networkPktSize*8) )
-    {
-       if(player.isListEmpty())
-       {
+void VmcpDevice::processAudio () {
+   char buffer[1024];
+   memset(buffer, 0xFE, networkPktSize*8);
+   if ( !player.getData(buffer, networkPktSize*8) ) {
+      if (player.isListEmpty()) {
          cpLog(LOG_DEBUG, "Done playing");
          myVmStack->playStopped();
          hasPlayed = true;
-       }
-    }
+      }
+   }
 
-    if(!hasPlayed)
-    {
-        processRaw((char*)buffer, networkPktSize*8, G711U, NULL, false);
-    }
+   if (!hasPlayed) {
+      processRaw((char*)buffer, networkPktSize*8, G711U, NULL, false);
+   }
 }
-
-
 
 
 //***************************************************************************
@@ -204,163 +164,145 @@ VmcpDevice::processAudio ()
 //***************************************************************************
 
 int
-VmcpDevice::process (fd_set* fd)
-{ 
-    if ( (hookStateOffhook == true) && (ss > 0 ))
-    {
-        if (FD_ISSET(ss, fd))
-        {
-            int Msg;
-	    Msg=myVmStack->getMsg();
+VmcpDevice::process (fd_set* fd) { 
+   if ( (hookStateOffhook == true) && (ss > 0 )) {
+      if (FD_ISSET(ss, fd)) {
+         int Msg;
+         Msg=myVmStack->getMsg();
 
-            if ( Msg < 1 )  
-            {
-                reportEvent(DeviceEventHookDown);
-                hookStateOffhook = false;
-		close(ss);
-                ss = -1;
-                return 0;
+         if ( Msg < 1 ) {
+            reportEvent(DeviceEventHookDown);
+            hookStateOffhook = false;
+            close(ss);
+            ss = -1;
+            return 0;
+         }
+         switch (Msg) {
+         case Vmcp::Close: {
+            cpLog(LOG_DEBUG,"VMCP:Close");
+            reportEvent(DeviceEventHookDown);
+            hookStateOffhook = false;
+            //myVmStack->sendClose();
+            close(ss);
+            ss = -1;
+            break;
+         }
+         case Vmcp::PlayFile:
+            cpLog(LOG_DEBUG,"VMCP:Playing file %s",myVmStack->getPlayFileName().c_str());
+            player.add(myVmStack->getPlayFileName());
+            break;
+
+         case Vmcp::StartPlay:
+            cpLog(LOG_DEBUG,"VMCP:Start player");
+            if ( !player.start() ) {
+               myVmStack->playStopped();
             }
-            switch (Msg)
-            {
-		case Vmcp::Close:
-		{
-                    cpLog(LOG_DEBUG,"VMCP:Close");
-                    reportEvent(DeviceEventHookDown);
-                    hookStateOffhook = false;
-		    ///myVmStack->sendClose();
-		    close(ss);
-                    ss = -1;
-		}
-		break;
-		case Vmcp::PlayFile:
-                    cpLog(LOG_DEBUG,"VMCP:Playing file %s",myVmStack->getPlayFileName().c_str());
-                    player.add(myVmStack->getPlayFileName());
-                    break;
-
-                case Vmcp::StartPlay:
-                    cpLog(LOG_DEBUG,"VMCP:Start player");
-                    if( !player.start() )
-		    {
-			myVmStack->playStopped();
-		    }
-		    else
-		    {
-		        hasPlayed = false;
-		        nextTime = vm_gettimeofday();
-		    }
-                    break;
-
-                case Vmcp::RecordFile:
-                    cpLog(LOG_DEBUG,"VMCP:RecordFile");
-                    recorder.open(myVmStack->getRecordFileName());
-                    break;
-
-                case Vmcp::StartRecord:
-                    cpLog(LOG_DEBUG,"VMCP:StartRecord");
-                    recorder.start();
-		    nextRecTime = vm_gettimeofday();
-                    break;
-
-                case Vmcp::StopRecord:
-                    cpLog(LOG_DEBUG,"VMCP:StopRecord");
-                    recorder.close();
-                    break;
-
-                case Vmcp::StopPlay:
-                    cpLog(LOG_DEBUG,"VMCP:StopPlayer");
-                    player.stop();
-		    if(player.isListEmpty())
-		    {
-		        hasPlayed = true;
-		    }
-                    break;     
-                case Vmcp::Ack:
-                    cpLog(LOG_DEBUG,"VMCP:Ack");
-	            break;	
-		default:
-                    cpLog(LOG_DEBUG_STACK,"VMCP:Unknown command");
-		    break;               
+            else {
+               hasPlayed = false;
+               nextTime = vgetCurMs();
             }
+            break;
 
-        }
-    }
-    return 0;
+         case Vmcp::RecordFile:
+            cpLog(LOG_DEBUG,"VMCP:RecordFile");
+            recorder.open(myVmStack->getRecordFileName());
+            break;
+
+         case Vmcp::StartRecord:
+            cpLog(LOG_DEBUG,"VMCP:StartRecord");
+            recorder.start();
+            nextRecTime = vgetCurMs();
+            break;
+
+         case Vmcp::StopRecord:
+            cpLog(LOG_DEBUG,"VMCP:StopRecord");
+            recorder.close();
+            break;
+
+         case Vmcp::StopPlay:
+            cpLog(LOG_DEBUG,"VMCP:StopPlayer");
+            player.stop();
+            if (player.isListEmpty()) {
+               hasPlayed = true;
+            }
+            break;     
+         case Vmcp::Ack:
+            cpLog(LOG_DEBUG,"VMCP:Ack");
+            break;	
+         default:
+            cpLog(LOG_DEBUG_STACK,"VMCP:Unknown command");
+            break;               
+         }//switch
+      }
+   }
+   return 0;
 } // end VmcpDevice::process()
 
-int
-VmcpDevice::addToFdSet (fd_set* fd)
-{
-    if( hookStateOffhook && (ss > 0 ))
-    {
-	// set the VM controller to active
-        FD_SET(ss,fd);     
-    }
+int VmcpDevice::addToFdSet (fd_set* fd, int& maxdesc) {
+   if ( hookStateOffhook && (ss > 0 )) {
+      // set the VM controller to active
+      FD_SET(ss, fd);
+      maxdesc = max(ss, maxdesc);
+   }
 
-    return 0;
+   return 0;
 } // end VmcpDevice::addToFdSet()
 
 
 int
-VmcpDevice::start(VCodecType codec_type)
-{
-    if ( audioActive )
-    {
-        cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
-        return 0;
-    }
+VmcpDevice::start(VCodecType codec_type) {
+   if ( audioActive ) {
+      cpLog(LOG_ERR, "Audio channel is already active. Ignoring");
+      return 0;
+   }
 
-    MediaDevice::start(codec_type);
+   MediaDevice::start(codec_type);
+   
+   //Connect to the VM server
+   if ( connectToVmServer() < 0) {
+      cpLog(LOG_ERR, "failed to connect to the VmServers");
+      return 0;
+   };
 
-    //Connect to the VM server
-    if( connectToVmServer() < 0)
-    {
-        cpLog(LOG_ERR, "failed to connect to the VmServers");
-        return 0;
-    };
+   // allocate RTP packet spaces
+   networkPktSize = atoi(UaConfiguration::instance().getValue(NetworkRtpRateTag).c_str());
 
-    // allocate RTP packet spaces
-    networkPktSize = atoi(UaConfiguration::instance().getValue(NetworkRtpRateTag).c_str());
+   // mark audio as active
+   cpLog(LOG_DEBUG, "setting audio active");
+   nextTime = vgetCurMs();
+   nextRecTime = vgetCurMs();
+   audioActive = true;
+   hasPlayed = false;
 
-    // mark audio as active
-    cpLog(LOG_DEBUG, "setting audio active");
-    nextTime = vm_gettimeofday();
-    nextRecTime = vm_gettimeofday();
-    audioActive = true;
-    hasPlayed = false;
-
-    return 0;
+   return 0;
 } 
 
-int
-VmcpDevice::stop (void)
-{
-    if (!audioActive) 
-    {
-         return 1;
-    }
+int VmcpDevice::stop (void) {
+   if (!audioActive) {
+      return 1;
+   }
 
-    MediaDevice::stop();
+   MediaDevice::stop();
 
-    // mark audio as deactivated.
-    cpLog(LOG_DEBUG, "Audio Stop received.");
-    audioActive = false;
-    hookStateOffhook = false;
+   // mark audio as deactivated.
+   cpLog(LOG_DEBUG, "Audio Stop received.");
+   audioActive = false;
+   hookStateOffhook = false;
     
-    ///reportEvent(DeviceEventHookDown);
+   //reportEvent(DeviceEventHookDown);
 
-    player.stop();
-    recorder.close();
+   player.stop();
+   recorder.close();
 
-    myVmStack->sendClose(); 
+   myVmStack->sendClose(); 
 	
-    close(ss);
-    ss = -1;
-    cpLog(LOG_DEBUG,"End of session");  
-    hasPlayed = false;
+   close(ss);
+   ss = -1;
+   cpLog(LOG_DEBUG,"End of session");  
+   hasPlayed = false;
 
-    return 0;
-} 
+   return 0;
+}//stop
 
 void
 VmcpDevice::sinkData(char* data, int length, VCodecType type,
@@ -420,13 +362,16 @@ VmcpDevice::sinkData(char* data, int length, VCodecType type,
         return;
     }
 
+    // TODO:  Figure out why the sleeps were needed and work-around
+    // this.  Maybe tie this to tick logic? --Ben
+
     //Synchronize writing
     if ( (!audioActive) || (!hookStateOffhook) )
     {
        //vusleep(30000);
         return ;
     }
-    int wait = networkPktSize - (vm_gettimeofday() - nextRecTime);
+    int wait = networkPktSize - (vgetCurMs() - nextRecTime);
     if ( wait > 0 )
     {
        //vusleep(wait*1000);
