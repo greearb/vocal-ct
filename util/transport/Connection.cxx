@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
+    "$Id: Connection.cxx,v 1.7 2004/06/03 23:54:17 greear Exp $";
 
 #ifndef __vxworks
 
@@ -363,6 +363,11 @@ void Connection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    }
    if (!_inProgress) {
       write();
+   }
+   if (checkIfSet(exc_fds)) {
+      cpLog(LOG_ERR, "Closing connection: %s due to fdset exception.\n",
+            toString().c_str());
+      close();
    }
 }
 

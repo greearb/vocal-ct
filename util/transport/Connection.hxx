@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.7 2004/06/03 07:28:15 greear Exp $";
+    "$Id: Connection.hxx,v 1.8 2004/06/03 23:54:17 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -191,6 +191,9 @@ public:
        IP_ADDRESSS:Port.
    */
    string getDescription() const;
+
+   // Maybe add more details here later.
+   string toString() const { return getDescription(); }
 
    /** 
        Gets the IP of the peer machine (destination).

@@ -54,10 +54,11 @@
 
 
 static const char* const Http_def_h_Version =
-    "$Id: Http_def.h,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Http_def.h,v 1.2 2004/06/03 23:54:17 greear Exp $";
 
 #define HTTP_VERSION    "VPP/1.0" // Vovida Provisioning Protocol
 #define CONT_LENGTH     "Content-Length:"
+#define VPP_TIMESTAMP   "Timestamp:"
 #define VPPREQ_BUF_LEN  56
 #define URL_LENGTH       100
 #define CONT_STR_LENGTH  56

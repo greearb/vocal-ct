@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.5 2004/06/03 23:54:17 greear Exp $";
 
 #ifndef __vxworks
 
@@ -366,13 +366,5 @@ TcpClientSocket::connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLe
     }
     return descBuf;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif
