@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.10 2004/11/08 20:39:13 greear Exp $";
 
 
 #include <string>
@@ -167,6 +167,9 @@ public:
 
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now);
+
+   // Set the purge timer for the specified call.
+   virtual void setPurgeTimer(const SipTransactionId& forCall);
 
    static int getInstanceCount() { return _cnt; }
    

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.7 2004/11/05 07:25:06 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.8 2004/11/08 20:39:13 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -85,6 +85,14 @@ void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
    string k(m->getTransactionId().getLevel2().c_str());
    table[k] = m;
 }
+
+void SipTransactionDB::setPurgeTimer(const SipTransactionId& id) {
+   Sptr<SipCallContainer> c = getCallContainer(id);
+   if (c != 0) {
+      c->setPurgeTimer(vgetCurMs() + (10 * 1000)); // 10 seconds
+   }
+}
+
 
 void SipTransactionDB::purgeOldCalls(uint64 now) {
    map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.begin();

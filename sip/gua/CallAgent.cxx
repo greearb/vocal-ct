@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -94,7 +94,7 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
     facade = _facade;
     myState = ControlStateFactory::instance().getState(INIT);
     //Create new UserAgent
-    if(aRole == A_CLIENT) {
+    if (aRole == A_CLIENT) {
         char buf[64];
         snprintf(buf, 63, "CallAgent-C:%d\n", callId);
         buf[63] = 0;

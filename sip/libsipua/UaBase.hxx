@@ -53,7 +53,7 @@
 
 
 static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.5 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaBase.hxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
 
 #include <string>
 #include <vector>
@@ -200,7 +200,8 @@ protected:
    Sptr<SipTransceiver> myStack;
    ///
    SipCSeq myLocalCSeq;
-   ///
+
+   SipTransactionId callId; // So we can clean it up in the destructor
 
 private:
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.10 2004/11/08 20:39:13 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -287,6 +287,13 @@ void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
 }//send
 
 
+// Set the purge timer for the specified call.
+void SipTransceiver::setPurgeTimer(const SipTransactionId& forCall) {
+   sentRequestDB.setPurgeTimer(forCall);
+   sentResponseDB.setPurgeTimer(forCall);
+}
+
+
 // NOTE:  To receive messages, also call receiveNB
 void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                           uint64 now) {
@@ -299,6 +306,10 @@ void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
    if (sipAgent != 0) {
       sipAgent->tick(input_fds, output_fds, exc_fds, now);
    }
+
+   // TODO:  If we ever wanted to optimize this for many calls, then could
+   // keep a separate list of to-be-purged calls...that way we do not have
+   // to walk all of the calls every 5 seconds. --Ben
 
    // See if we should purge any old calls?
    if (lastPurge + 5000 < now) {

@@ -50,7 +50,7 @@
 
 
 static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.5 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaBase.cxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
 
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -81,13 +81,14 @@ UaBase::UaBase( const char* class_name,
         facade(_facade),
         myStack(stack),
         myLocalCSeq(reqMsg->getCSeq()),
+        callId(*(reqMsg.getPtr())),
         instanceName(dbg_id),
         myControllerAgent(controllerAgent)
 {
    cpLog(LOG_DEBUG, "Creating UaBase, this: %p  debug_id: %s\n",
          this, instanceName.c_str());
    myState = UaStateFactory::instance().getState(U_STATE_IDLE);
-   
+
 }// constructor
 
 
@@ -132,10 +133,10 @@ UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,
 {
     Sptr<InviteMsg> inviteMsg = new InviteMsg(*invMsg);
 
-	 // 26/1/04 fpi
-	 // change ALLOW header
-	 inviteMsg->setNumAllow(0);
-	 inviteMsg->setAllow(Data(allowField), 0);
+    // 26/1/04 fpi
+    // change ALLOW header
+    inviteMsg->setNumAllow(0);
+    inviteMsg->setAllow(Data(allowField), 0);
 
     //Remove the contact header 
     inviteMsg->setNumContact(0);
@@ -158,75 +159,67 @@ UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,
     SipVia via("", _localIp);
     via.setHost(_localIp);
     via.setPort(_sipPort);
-    if(transport == 2) //TCP
-    {
-        via.setTransport("TCP");
+    if (transport == 2) {
+       via.setTransport("TCP");
     }
     inviteMsg->setVia(via);
 
     inviteMsg->setNumRecordRoute(0);
     inviteMsg->setNumRoute(0);
 
-    if(changeCallId)
-    {
-        //Set the new callId 
-        SipCallId id("", _localIp);
-        inviteMsg->setCallId(id);
-        //Set the request URI to outbound proxy
-        SipRequestLine& reqLine = inviteMsg->getMutableRequestLine();
-        Sptr<SipUrl> sUrl;
-        sUrl.dynamicCast(reqLine.getUrl());
-        sUrl->setMaddrParam("");
-        //Look for magic "!" in the request line
-        //if found parse it and send it to the contact found in it
-        string sUser = sUrl->getUserValue().logData();
-        string::size_type pos;
-        if((pos = sUser.find("!")) != string::npos)
-        {
-            string user = sUser.substr(0, pos);
-            string hostPort = sUser.substr(pos+1);
-            string host = hostPort;
-            pos = hostPort.find("_");
-            int nextHopPort = 0;
-            if(pos != string::npos)
-            {
-                 string prt = hostPort.substr(pos+1);
-                 nextHopPort = atoi(prt.c_str());
-                 sUrl->setPort(Data(nextHopPort));
-                 host = hostPort.substr(0, pos);
-            }
-            NetworkAddress na (host);
-            string nextHopAddr = na.getIpName().convertString();
-            sUrl->setUserValue(user);
-            sUrl->setHost(nextHopAddr);
-        }
-        else
-        {
-           string outboundProxyAddr = proxyAddress.getIpName().convertString();
-           int outboundProxyPort =  proxyAddress.getPort();
-				
-			  // 20/01/04 fpi
-			  // I think it should be possible to do not specify
-			  // a proxy. So I use "0.0.0.0" value or proxyAddress
-			  // string length equal to 0 with "do not use proxy"
-			  // meaning			  
-			  if (outboundProxyAddr.length() && (outboundProxyAddr != "0.0.0.0"))
-			  {
-				  sUrl->setHost(outboundProxyAddr);
-				  sUrl->setPort(Data(outboundProxyPort));
-			  }
-
-            if(!sUrl->getUserValue().length())
-            {
-               //set the user to be to
-               sUrl->setUserValue(inviteMsg->getTo().getUser());
-            }
-        }
-        if(transport == 2) //TCP
-        {
-            sUrl->setTransportParam("tcp");
-        }
-        reqLine.setUrl(sUrl.getPtr());
+    if (changeCallId) {
+       //Set the new callId 
+       SipCallId id("", _localIp);
+       inviteMsg->setCallId(id);
+       //Set the request URI to outbound proxy
+       SipRequestLine& reqLine = inviteMsg->getMutableRequestLine();
+       Sptr<SipUrl> sUrl;
+       sUrl.dynamicCast(reqLine.getUrl());
+       sUrl->setMaddrParam("");
+       //Look for magic "!" in the request line
+       //if found parse it and send it to the contact found in it
+       string sUser = sUrl->getUserValue().logData();
+       string::size_type pos;
+       if ((pos = sUser.find("!")) != string::npos) {
+          string user = sUser.substr(0, pos);
+          string hostPort = sUser.substr(pos+1);
+          string host = hostPort;
+          pos = hostPort.find("_");
+          int nextHopPort = 0;
+          if (pos != string::npos) {
+             string prt = hostPort.substr(pos+1);
+             nextHopPort = atoi(prt.c_str());
+             sUrl->setPort(Data(nextHopPort));
+             host = hostPort.substr(0, pos);
+          }
+          NetworkAddress na (host);
+          string nextHopAddr = na.getIpName().convertString();
+          sUrl->setUserValue(user);
+          sUrl->setHost(nextHopAddr);
+       }
+       else {
+          string outboundProxyAddr = proxyAddress.getIpName().convertString();
+          int outboundProxyPort =  proxyAddress.getPort();
+          
+          // 20/01/04 fpi
+          // I think it should be possible to do not specify
+          // a proxy. So I use "0.0.0.0" value or proxyAddress
+          // string length equal to 0 with "do not use proxy"
+          // meaning			  
+          if (outboundProxyAddr.length() && (outboundProxyAddr != "0.0.0.0")) {
+             sUrl->setHost(outboundProxyAddr);
+             sUrl->setPort(Data(outboundProxyPort));
+          }
+          
+          if (!sUrl->getUserValue().length()) {
+             //set the user to be to
+             sUrl->setUserValue(inviteMsg->getTo().getUser());
+          }
+       }
+       if (transport == 2) {
+          sUrl->setTransportParam("tcp");
+       }
+       reqLine.setUrl(sUrl.getPtr());
     }
 
     return inviteMsg;
@@ -334,6 +327,8 @@ UaBase::~UaBase() {
    //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
    cpLog(LOG_DEBUG_STACK , "(%s:%p) Deleting instance..\n",
          instanceName.c_str(), this);
+   // Make sure the call is purged soon after...
+   myStack->setPurgeTimer(callId);
    clearRouteList();
 }
 

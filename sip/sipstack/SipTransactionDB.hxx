@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionDB_hxx_version =
-    "$Id: SipTransactionDB.hxx,v 1.6 2004/11/05 07:25:06 greear Exp $";
+    "$Id: SipTransactionDB.hxx,v 1.7 2004/11/08 20:39:13 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsgContainer.hxx"
@@ -103,6 +103,8 @@ public:
    void addCallContainer(Sptr<SipCallContainer> cc);
 
    void purgeOldCalls(uint64 now);
+
+   void setPurgeTimer(const SipTransactionId& id);
 
 protected:
 

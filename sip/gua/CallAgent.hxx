@@ -53,7 +53,7 @@
 
 
 static const char* const CallAgent_hxx_Version =
-    "$Id: CallAgent.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
+    "$Id: CallAgent.hxx,v 1.3 2004/11/08 20:39:13 greear Exp $";
 
 #include "global.h"
 #include <map>
@@ -131,10 +131,6 @@ public:
    void dohold();
    ///
    void resume();    
-   ///
-   //void hold() { myActiveFlg = false; };
-   ///
-   // void release() { myActiveFlg = true; };
    
    ///
    void processHold();
@@ -151,35 +147,23 @@ public:
    static int getInstanceCount() { return _cnt; }
 
 private:
-   ///
-   Sptr<StatusMsg> doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp );
-   ///
+   Sptr<StatusMsg> doholdresume200OKstuff(const Sptr<SipMsg>& msg,
+                                          SdpSession& remoteSdp);
    void startSession(SdpSession& localSdp, SdpSession& remoteSdp);
-   ///
-   //static long myRotatingId;
-   
-   ///
+
    ControlState* myState; 
 
    UaFacade* facade;
 
-   ///
    AgentRole myRole;
 
-   ///
-   bool      myActiveFlg;
+   bool myActiveFlg;
    bool freedMedia;
-
-   ///
-   typedef map<SipCallLeg, int> MediaDataMap;
-   ///
-   MediaDataMap myMediaDataMap; 
 
    // Not implemented.
    CallAgent();
    const CallAgent& operator =( const CallAgent& src );
    CallAgent( const CallAgent& src );
-
 
    static int _cnt;
 };
