@@ -49,7 +49,7 @@
  */
 
 static const char* const SipFrom_cxx_Version =
-    "$Id: SipFrom.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipFrom.cxx,v 1.4 2004/08/18 07:18:51 greear Exp $";
 
 #include "global.h"
 #include "SipFrom.hxx"
@@ -534,26 +534,38 @@ SipFrom::getPort() const
 }
 
     
-void
-SipFrom::setPort(const Data& newport)
-{
-    if (urlType == TEL_URL)
-    {
-	return;
-    }
-    if (fromUrl == 0)
-    {
-	fromUrl = new SipUrl("", getLocalIp(), false);
-    }
-    if (fromUrl != 0)
-    {
-	if (fromUrl->getType() == SIP_URL)
-	{
-	    Sptr<SipUrl> sipUrl((SipUrl*)(fromUrl.getPtr()));
-	    sipUrl->setPort(newport);
-	}
+void SipFrom::setPort(const Data& newport) {
+   if (urlType == TEL_URL) {
+      return;
+   }
+   if (fromUrl == 0) {
+      fromUrl = new SipUrl("", getLocalIp(), false);
+   }
+   if (fromUrl != 0) {
+      if (fromUrl->getType() == SIP_URL) {
+         Sptr<SipUrl> sipUrl;
+         sipUrl.dynamicCast(fromUrl);
+         sipUrl->setPort(newport);
+      }
+      
+   }
+}
 
-    }
+void SipFrom::setPort(int newport) {
+   if (urlType == TEL_URL) {
+      return;
+   }
+   if (fromUrl == 0) {
+      fromUrl = new SipUrl("", getLocalIp(), false);
+   }
+   if (fromUrl != 0) {
+      if (fromUrl->getType() == SIP_URL) {
+         Sptr<SipUrl> sipUrl;
+         sipUrl.dynamicCast(fromUrl);
+         sipUrl->setPort(newport);
+      }
+      
+   }
 }
 
 

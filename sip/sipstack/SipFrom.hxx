@@ -52,7 +52,7 @@
  */
 
 static const char* const SipFrom_hxx_version =
-    "$Id: SipFrom.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipFrom.hxx,v 1.4 2004/08/18 07:18:51 greear Exp $";
 
 
 #include <map>
@@ -137,6 +137,7 @@ class SipFrom : public SipHeader
         Data encode() const;
         ///
         void setPort(const Data& newport);
+        void setPort(int newport);
         ///
         Data getPortData();
         ///

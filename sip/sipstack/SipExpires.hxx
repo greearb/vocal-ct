@@ -52,7 +52,7 @@
  */
 
 static const char* const SipExpiresVersion =
-    "$Id: SipExpires.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipExpires.hxx,v 1.3 2004/08/18 07:18:50 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx"
@@ -72,8 +72,7 @@ enum SipExpiresErrorType
 
 
 /// Exception handling class SipExpiresParserException
-class SipExpiresParserException : public VException
-{
+class SipExpiresParserException : public VException {
     public:
         SipExpiresParserException( const string& msg,
                                    const string& file,
@@ -149,12 +148,5 @@ class SipExpires : public SipHeader
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif
