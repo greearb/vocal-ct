@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/06/20 21:55:42 greear Exp $
+# $Id: Makefile,v 1.4 2004/08/13 07:33:33 greear Exp $
 
 
 BUILD = build
@@ -192,9 +192,9 @@ netMgnt:  snmpplusplus
 cdrlib:
 	cd cdr/cdrLib; $(MAKE)
 
-pslib: contrib 
-	-( test -d provisioning/util ) && ( cd provisioning/util; $(MAKE) )
-	-( test -d provisioning/psLib ) && ( cd provisioning/psLib; $(MAKE) )
+pslib: contrib sdp2 proxy_base
+	cd provisioning/util; $(MAKE)
+	cd provisioning/psLib; $(MAKE)
 
 dbmodules: contrib_xerces_c util
 	cd prov/cpp/pserver/dbmodules; $(MAKE)
@@ -312,7 +312,7 @@ mgcp_test:
 	@( test -d mgcp && test -f mgcp/Makefile ) || ( echo; echo; echo "please check out the mgcp directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co mgcp" ; echo;echo && exit -1 )
 	cd mgcp; $(MAKE) test
 
-proxy_base: heartbeat contrib sip sdp2 pslib util 
+proxy_base: heartbeat contrib sdp2 sip util 
 	@( test -d sip/base && test -f sip/base/LICENSE ) || ( echo; echo; echo "please check out the proxyBase directory first" ; echo;echo && exit -1 )
 	cd sip/base; $(MAKE)
 
@@ -425,12 +425,11 @@ allinoneconfigure:
 
 allinone: install_bin allinoneconfigure
 
-fs: sip proxy_base
+fs: sip proxy_base cpl
 	@( test -d proxies/fs/cpl && test -f proxies/fs/cpl/Makefile && test -d proxies/fs/base && test -f proxies/fs/base/Makefile ) || ( echo; echo; echo "please check out the proxies/fs directory first" ; echo;echo && exit -1 )
-	cd proxies/fs/cpl; $(MAKE)
 	cd proxies/fs/base; $(MAKE)
 
-cpl: sip
+cpl: sip pslib
 	@( test -d proxies/fs/cpl && test -f proxies/fs/cpl/Makefile ) || ( echo; echo; echo "please check out the proxies/fs/cpl directory first" ; echo;echo && exit -1 )
 	cd proxies/fs/cpl; $(MAKE)
 
@@ -438,15 +437,14 @@ cplfs: cpl
 	@( test -d proxies/fs/base && test -f proxies/fs/base/Makefile ) || ( echo; echo; echo "please check out the proxies/fs/base directory first" ; echo;echo && exit -1 )
 	cd proxies/fs/base; $(MAKE)
 
-fsvm: sip proxy_base
-	cd proxies/fs/cpl; $(MAKE)
+fsvm: sip proxy_base cpl
 	cd proxies/fs/vm; $(MAKE)
 
 js: sip proxy_base heartbeat
 	@( test -d proxies/fs/jtapi/server && test -f proxies/fs/jtapi/server/Makefile ) || ( echo; echo; echo "please check out the proxies/fs/jtapi/server directory first" ; echo;echo && exit -1 )
 	cd proxies/fs/jtapi/server; $(MAKE)
 
-heartbeat: util pslib
+heartbeat: util
 	-( test -d heartbeat && test -f heartbeat/Makefile ) && ( cd heartbeat; $(MAKE) )
 
 hbs: util heartbeat 
@@ -577,22 +575,22 @@ subdirs:
 	for i in $(SUBDIRS) ; do ( cd $$i && $(MAKE) ; $(MAKE) install ) ; done
 
 cleanall:
-	touch $$.$$.$$.d
-	find . -name 'obj.*' -print -exec /bin/rm -rf {} \;
-	find . -name 'bin.*' -print -exec /bin/rm -rf {} \;
-	find . -name 'lib.*' -print -exec /bin/rm -rf {} \;
-	find . -name '*.o' -print -exec /bin/rm -f {} \;
-	find . -name '*.a' -print -exec /bin/rm -f {} \;
-	find . -name '*.d' -print -exec /bin/rm -f {} \;
-	find . -name 'core' -print -exec /bin/rm -f {} \;
-	find . -name '.link_host' -print -exec /bin/rm -f {} \;
-	for i in $(SUBDIRS) ; do ( cd $$i && $(MAKE) cleanall ) ; done
-	rm -rf release/bin.*/*
-	rm -rf release/lib.*/*
-	rm -rf release/include/*
-	rm -f stage/gua.gz stage/rs stage/psClient.jar stage/cdrsrv stage/sipset
-	rm -f stage/ms stage/pserver stage/fs
-	rm -f build/Makefile.conf
+	-touch $$.$$.$$.d
+	-find . -name 'obj.*' -print -exec /bin/rm -rf {} \;
+	-find . -name 'bin.*' -print -exec /bin/rm -rf {} \;
+	-find . -name 'lib.*' -print -exec /bin/rm -rf {} \;
+	-find . -name '*.o' -print -exec /bin/rm -f {} \;
+	-find . -name '*.a' -print -exec /bin/rm -f {} \;
+	-find . -name '*.d' -print -exec /bin/rm -f {} \;
+	-find . -name 'core' -print -exec /bin/rm -f {} \;
+	-find . -name '.link_host' -print -exec /bin/rm -f {} \;
+	-for i in $(SUBDIRS) ; do ( cd $$i && $(MAKE) cleanall ) ; done
+	-rm -rf release/bin.*/*
+	-rm -rf release/lib.*/*
+	-rm -rf release/include/*
+	-rm -f stage/gua.gz stage/rs stage/psClient.jar stage/cdrsrv stage/sipset
+	-rm -f stage/ms stage/pserver stage/fs
+	-rm -f build/Makefile.conf
 
 veryclean: cleanall
 

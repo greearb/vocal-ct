@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile,v 1.2 2004/08/13 07:33:33 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -248,6 +248,8 @@ install: all
 	cd quicknet ; $(MAKE) install
 
 doc:
+
+cleanall: clean
 
 clean:
 	rm -rf xerces-c-src1_4_0.$(OS_ARCH)
