@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2004/12/07 19:55:13 greear Exp $
+# $Id: Makefile,v 1.7 2004/12/07 21:10:07 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -35,7 +35,7 @@ LDLIBS_LAST += -lCodecLib
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
-LIBDIRS += $(HOME)/btbits/btbits/l4libs/VoiceAge
+LIBDIRS += ../../../../btbits/l4libs/VoiceAge
 
 LDLIBS_LAST += -lg729 -lg729utils
 endif
@@ -178,7 +178,7 @@ SRC += LF/LFVoipCtrlHandler.cxx LF/LFVoipEndp.cxx LF/LFVoipHelper.cxx LF/LFVoipM
        LF/LANforgeCustomDevice.cxx
 
 
-LFDIR=$(HOME)/btbits/btbits
+LFDIR=../../../../btbits
 INCDIRS += $(LFDIR)/server $(LFDIR)/include $(LFDIR)/l4libs/curl-7.10.4/include
 LIBDIRS += $(LFDIR)/lib
 
