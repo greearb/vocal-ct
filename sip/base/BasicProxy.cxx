@@ -50,7 +50,7 @@
 
 
 static const char* const BasicProxy_cxx_Version =
-    "$Id: BasicProxy.cxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
+    "$Id: BasicProxy.cxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
 
 
 #include "global.h"
@@ -78,28 +78,23 @@ BasicProxy::BasicProxy(const Sptr < Builder >  builder,
                          applName, filteron, nat, aContext)
 {
 
-    if (CommandLine::instance()->getInt("HEARTBEAT")) {
-        cpLog(LOG_INFO, "Initializing heartbeat mechanism");
-        myHeartbeatThread = new HeartbeatThread(local_ip, local_dev_to_bind_to,
-                                                myType, defaultSipPort,
-                                                HB_RX|HB_TX|HB_HOUSEKEEPING);
-        myHeartbeatThread->addServerContainer(SERVER_RS); //Listen for Register Servers
-        myHeartbeatThread->addServerContainer(SERVER_POS); //Listen for Provision servers.
-    }
+   cpLog(LOG_INFO, "Initializing heartbeat mechanism");
+   HeartbeatThread::initialize(local_ip, local_dev_to_bind_to,
+                               myType,
+                               HB_RX|HB_TX|HB_HOUSEKEEPING);
+   HeartbeatThread::instance().addServerContainer(SERVER_RS); //Listen for Register Servers
+   HeartbeatThread::instance().addServerContainer(SERVER_POS); //Listen for Provision servers.
 }
 
 
 void BasicProxy::startTxHeartbeat() {
-   assert(myHeartbeatThread);
-   myHeartbeatThread->startTxHeartbeat();
+   HeartbeatThread::instance().startTxHeartbeat();
 }
 
 
 void BasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       uint64 now) {
-   if (myHeartbeatThread) {
-      myHeartbeatThread->tick(input_fds, output_fds, exc_fds, now);
-   }
+   HeartbeatThread::instance().tick(input_fds, output_fds, exc_fds, now);
 
    // Let the base class have it's say.
    HeartLessProxy::tick(input_fds, output_fds, exc_fds, now);
@@ -108,10 +103,8 @@ void BasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 int BasicProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now) {
-   if (myHeartbeatThread) {
-      myHeartbeatThread->setFds(input_fds, output_fds, exc_fds,
-                                maxdesc, timeout, now);
-   }
+   HeartbeatThread::instance().setFds(input_fds, output_fds, exc_fds,
+                                      maxdesc, timeout, now);
 
    // Let the base class have it's say.
    HeartLessProxy::setFds(input_fds, output_fds, exc_fds,
@@ -119,10 +112,5 @@ int BasicProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    return 0;
 }
 
-BasicProxy::~BasicProxy()
-{
-   if (myHeartbeatThread) {
-      delete myHeartbeatThread;
-      myHeartbeatThread = NULL;
-   }
+BasicProxy::~BasicProxy() {
 }

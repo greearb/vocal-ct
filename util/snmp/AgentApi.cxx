@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.4 2004/06/09 07:19:35 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.5 2004/06/10 23:16:17 greear Exp $";
 
 
 #include "global.h"
@@ -90,21 +90,23 @@ AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Def
        // register to receive the messages on the well known agent port
        // then send out the multicast message.
 #ifdef __linux__
-       udpStack = new UdpStack("", "", 0, agentTrapPort, agentTrapPort, sendrecv, false);
+       udpStack = new UdpStack(false, "", "", 0, agentTrapPort, agentTrapPort,
+                               sendrecv, false);
 #else
-       udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
+       udpStack = new UdpStack(false, "", "", 0, -1 , -1 , sendrecv, false);
 #endif	
        message1.action = (actionT)Register_Req;
        udpStack->queueTransmitTo((char *)&message1, sizeof(message1), &dest);
        break;
 
     case SERVER_NetMgnt:
-       udpStack = new UdpStack("", "", 0, MANAGERTRAPPORT , MANAGERTRAPPORT, sendrecv, false);
+       udpStack = new UdpStack(false, "", "", 0, MANAGERTRAPPORT,
+                               MANAGERTRAPPORT, sendrecv, false);
        break;
 
     default :
 
-       udpStack = new UdpStack("", "", 0, -1 , -1 , sendrecv, false);
+       udpStack = new UdpStack(false, "", "", 0, -1 , -1 , sendrecv, false);
 
        memset(&message, 0, sizeof(message));
        message1.action = (actionT)Register;
@@ -308,13 +310,7 @@ int AgentApi::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
       agentRegister->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }
 
-   udpStack->addToFdSet(input_fds);
-   udpStack->addToFdSet(exc_fds);
-   if (udpStack->getBacklogMsgCount()) {
-      udpStack->addToFdSet(output_fds);
-   }
-
-   maxdesc = udpStack->getMaxFD(maxdesc);
+   udpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    return 0;
 }
 

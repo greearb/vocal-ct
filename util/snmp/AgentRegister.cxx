@@ -51,7 +51,7 @@
 
 
 static const char* const AgentRegister_cxx_Version =
-    "$Id: AgentRegister.cxx,v 1.4 2004/06/09 07:19:35 greear Exp $";
+    "$Id: AgentRegister.cxx,v 1.5 2004/06/10 23:16:17 greear Exp $";
 
 
 #include "global.h"
@@ -96,7 +96,7 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
     dest.setHostName(hostname);
     dest.setPort(agentTrapPort);
 
-    regUdpStack = new UdpStack("", "", &mcAddr, registerMulticastPort,
+    regUdpStack = new UdpStack(false, "", "", &mcAddr, registerMulticastPort,
                                registerMulticastPort, sendrecv, false, true);
     if (regUdpStack == 0) {
         cpLog(LOG_ERR, "can't register udp multicast port %d", registerMulticastPort);
@@ -107,7 +107,7 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
     regUdpStack->joinMulticastGroup(mcAddr, &iface, 0);
 
     // A new stack has been created to do the transmission. Contact nismail@cisco.com
-    regTrUdpStack = new UdpStack("", "", (const NetworkAddress *)&dest,
+    regTrUdpStack = new UdpStack(false, "", "", (const NetworkAddress *)&dest,
                                  -1, -1, sendonly, false, false);
     if (regTrUdpStack == 0) {
        cpLog(LOG_ERR, "can't create a register transmit UDP stack");
@@ -134,19 +134,8 @@ AgentRegister::~AgentRegister()
 int AgentRegister::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                           int& maxdesc, uint64& timeout, uint64 now) {
    // We only read on regUdpStack
-   regUdpStack->addToFdSet(input_fds);
-   regUdpStack->addToFdSet(exc_fds);
-   if (regUdpStack->getBacklogMsgCount()) {
-      regUdpStack->addToFdSet(output_fds);
-   }
-   maxdesc = regUdpStack->getMaxFD(maxdesc);
-
-   regTrUdpStack->addToFdSet(exc_fds);
-   if (regTrUdpStack->getBacklogMsgCount()) {
-      regTrUdpStack->addToFdSet(output_fds);
-      maxdesc = regUdpStack->getMaxFD(maxdesc);
-   }
-
+   regUdpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   regTrUdpStack->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    return 0;
 }
 

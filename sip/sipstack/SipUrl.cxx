@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUrl_cxx_Version =
-    "$Id: SipUrl.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipUrl.cxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
 
 #include "global.h"
 #include "SipUrl.hxx"
@@ -139,7 +139,7 @@ SipUrl::SipUrl( const Data& data, const string& _local_ip, bool lr ) throw(SipUr
 
     // Make sure we were really passed an IP as first arg
     // TODO:  Remove this some day.
-    unsigned long foo;
+//    unsigned long foo;
 //    assert(SystemInfo::toIpv4String(local_ip.c_str(), foo));
 //    assert(strstr(local_ip.c_str(), ":") == NULL);
 
@@ -1096,10 +1096,15 @@ SipUrl::getPort() const
     return port;
 }
 
+
+void SipUrl::setPort(uint16 p) {
+    char buf[30];
+    snprintf(buf, 30, "%hu", p);
+    port = buf;
+}
     
 void 
-SipUrl::setPort(const Data& newport)
-{
+SipUrl::setPort(const Data& newport) {
     port = newport;
     char* ptr = NULL;
     strtol(port.c_str(), &ptr, 10);

@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -196,8 +196,7 @@ public:
     someone requested it once.
 */
 
-class UdpStack: public RCObject
-{
+class UdpStack: public BugCatcher {
 public:
    /** if local_ip is specified (not == ""), then we will attempt to 
     * bind to that local IP.  This allows one to specify the local interface
@@ -209,7 +208,8 @@ public:
     * If device_to_bind_to is not "",  then we'll attempt to bind to it
     * with SO_BINDTODEVICE
     */
-   UdpStack ( const string& desired_local_ip,
+   UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socket? */
+              const string& desired_local_ip,
               const string& device_to_bind_to, 
               const NetworkAddress* destinationHost = NULL,
               int localMinPort = -1,
@@ -299,6 +299,9 @@ public:
 
    /// Find the max of any file descripts in this stack and the passed value
    int getMaxFD ( int prevMax);
+
+   int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              int& maxdesc, uint64& timeout, uint64 now);
 
    /// Check and see if this stacks file descriptor is set in fd_set
    bool checkIfSet ( fd_set* set );
@@ -508,6 +511,7 @@ private:
 
    uint32 busy; //counter, number of times we tried to write and got EAGAIN
    uint32 drop_in_bklog; //Failed to send in the backlog
+   uint32 rxbusy;
 
    // Msgs may queue here if we have no kernel buffers to send at the moment.
    list<Sptr<ByteBuffer> > sendBacklog;

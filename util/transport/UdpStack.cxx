@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.5 2004/06/09 07:19:35 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.6 2004/06/10 23:16:17 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -181,7 +181,8 @@ typedef unsigned int  uintptr_t;
 
 static const char separator[7] = "\n****\n";
 
-UdpStack::UdpStack ( const string& local_ip,
+UdpStack::UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socket? */
+                     const string& local_ip,
                      const string& device_to_bind_to,
                      const NetworkAddress* desHost
                      /* null if this is the server */ ,
@@ -214,8 +215,7 @@ UdpStack::UdpStack ( const string& local_ip,
 
     data->socketFd = socket(NetworkConfig::instance().getAddrFamily(), SOCK_DGRAM, IPPROTO_UDP);
     cpLog (LOG_DEBUG_STACK, "UdpStack socketFd = %d", data->socketFd);
-    if ( data->socketFd < 0 )
-    {
+    if ( data->socketFd < 0 ) {
        // Clean up memory before we throw the exception.
        delete data;
        data = NULL;
@@ -250,69 +250,54 @@ UdpStack::UdpStack ( const string& local_ip,
     struct protoent * protoent;
     protoent = getprotobyname("icmp");
 
-    if (!protoent)
-    {
+    if (!protoent) {
         fprintf(stderr, "Cannot get icmp protocol\n");
     }
-    else
-    {
+    else {
         if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
-                       (char*)&buf1, len1)
-                == -1)
-        {
-            fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
-                    strerror(errno));
+                       (char*)&buf1, len1) < 0) {
+           fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
+                   strerror(errno));
         }
 #if 1
         if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
-                       (int *)&rcvbufnew, rcvbufnewlen)
-                == -1)
-        {
+                       (int *)&rcvbufnew, rcvbufnewlen) < 0) {
             fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
                     strerror(errno));
         }
 #endif
         if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
-                       (int*)&rcvbuf, &rcvbuflen) == -1)
-        {
+                       (int*)&rcvbuf, &rcvbuflen) < 0) {
             fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
                     strerror(errno));
         }
-        else
-        {
+        else {
             cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
         }
         if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
-                       (int*)&sndbuf, &sndbuflen) == -1)
-        {
+                       (int*)&sndbuf, &sndbuflen) < 0) {
             fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
                     strerror(errno));
         }
-        else
-        {
+        else {
             cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
         }
     }
 
 #endif
 
-    if (isMulticast)
-    {
+    if (isMulticast) {
         // set option to get rid of the "Address already in use" error
         if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEADDR,
-                       (char*)&buf1, len1)
-                == -1)
-        {
-            fprintf(stderr, "setsockopt error SO_REUSEADDR :%s",
-                    strerror(errno));
+                       (char*)&buf1, len1) < 0) {
+           fprintf(stderr, "setsockopt error SO_REUSEADDR :%s",
+                   strerror(errno));
         }
 
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__FreeBSD__)
 
         if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEPORT,
-                       (char*)&buf1, len1)
-                == -1)
-        {
+                       (char*)&buf1, len1) < 0) {
             fprintf(stderr, "setsockopt error SO_REUSEPORT :%s",
                     strerror(errno));
         }
@@ -321,109 +306,96 @@ UdpStack::UdpStack ( const string& local_ip,
 
     }
 
-    switch (mode)
-    {
-        case inactive :
-        {
+    setModeBlocking(isBlocking);
+
+    switch (mode) {
+        case inactive : {
             cpLog(LOG_INFO, "Udp stack is inactive");
             cpLog(LOG_ERR, "desHost is saved for future use.");
             doClient(desHost);
         }
         break;
-        case sendonly :
-        {
-            if ( desHost )
-            {
+        case sendonly : {
+            if ( desHost ) {
                 // set the remote address
                 doClient(desHost);
             }
-            else
-            {
+            else {
                 cpLog(LOG_DEBUG_STACK, "sendonly Udp stack, desHost is needed by using setDestination()");
             }
+            break;
         }
-        break;
-        case recvonly :
-        {
-            if ( desHost )
-            {
+        case recvonly : {
+            if ( desHost ) {
                 cpLog(LOG_ERR,
                       "recvonly Udp stack, desHost is saved for future use.");
                 doClient(desHost);
             }
-            else
-            {
+            else {
                 // only receive, do bind socket to local port
                 doServer(minPort, maxPort);
             }
+            break;
         }
-        break;
-        case sendrecv :
-        {
-            if ( desHost )
-            {
+        case sendrecv : {
+            if ( desHost ) {
                 // receive and send,
                 // bind the socket to local port and set the remote address
                 doServer(minPort, maxPort);
                 doClient(desHost);
             }
-            else
-            {
+            else {
                 // only receive, do bind socket to local port
                 doServer(minPort, maxPort);
                 cpLog(LOG_DEBUG_STACK, "sendrecv Udp stack, desHost is needed by using setDestination()");
             }
+            break;
         }
-        break;
         default :
         cpLog(LOG_ERR, "undefined mode for udp stack");
         break;
     }
 
-    //    logFlag = true;
 
-    strstream logFileNameRcv;
-    strstream logFileNameSnd;
+// This is totally busted, need to see the file name somewhere!!
+#if 0
+    if (logFlag) {
+       strstream logFileNameRcv;
+       strstream logFileNameSnd;
 
-    if (logFlag)
-    {
         in_log = new ofstream(logFileNameRcv.str(), ios::app);
-        if (!in_log)
-        {
-            cerr << "Cannot open file "
-            << logFileNameRcv.str() << endl;
-            logFileNameRcv.freeze(false);
-            logFlag = false;
+        if (!in_log) {
+           cerr << "Cannot open file "
+                << logFileNameRcv.str() << endl;
+           logFileNameRcv.freeze(false);
+           logFlag = false;
         }
-        else
-        {
-            in_log->write ("UdpRcv\n", 7);
-            strstream lcPort;
-            lcPort << "localPort: " << getTxPort() << "\n" << char(0);
-            in_log->write(lcPort.str(), strlen(lcPort.str()));
-            lcPort.freeze(false);
-            logFileNameRcv.freeze(false);
-            rcvCount = 0;
+        else {
+           in_log->write ("UdpRcv\n", 7);
+           strstream lcPort;
+           lcPort << "localPort: " << getTxPort() << "\n" << char(0);
+           in_log->write(lcPort.str(), strlen(lcPort.str()));
+           lcPort.freeze(false);
+           logFileNameRcv.freeze(false);
+           rcvCount = 0;
         }
 
         out_log = new ofstream(logFileNameSnd.str(), ios::app);
-        if (!out_log)
-        {
-            cerr << "Cannot open file "
-            << logFileNameSnd.str() << endl;
-            logFileNameSnd.freeze(false);
-            logFlag = false;
+        if (!out_log) {
+           cerr << "Cannot open file "
+                << logFileNameSnd.str() << endl;
+           logFileNameSnd.freeze(false);
+           logFlag = false;
         }
-        else
-        {
-            if (! logFlag)
-                logFlag = true;
-            out_log->write ("UdpSnd\n", 7);
-            logFileNameSnd.freeze(false);
-            sndCount = 0;
+        else {
+           if (! logFlag)
+              logFlag = true;
+           out_log->write ("UdpSnd\n", 7);
+           logFileNameSnd.freeze(false);
+           sndCount = 0;
         }
     }
-
+#endif
 }
 
 void
@@ -934,84 +906,80 @@ UdpStack::getDestinationHost () const
 }
 
 
-int
-UdpStack::getSocketFD ()
-{
+int UdpStack::getSocketFD () {
     return data->socketFd;
 }
 
+int UdpStack::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     int& maxdesc, uint64& timeout, uint64 now) {
+   addToFdSet(input_fds);
+   addToFdSet(exc_fds);
+   if (sendBacklog.size()) {
+      addToFdSet(output_fds);
+   }
+   if (data->socketFd > maxdesc) {
+      maxdesc = data->socketFd;
+   }
+   return 0;
+}
+
 void
-UdpStack::addToFdSet ( fd_set* set )
-{
-    assert(set);
+UdpStack::addToFdSet ( fd_set* set ) {
     FD_SET(data->socketFd, set);
 }
 
 
 int
-UdpStack::getMaxFD ( int prevMax )
-{
+UdpStack::getMaxFD ( int prevMax ) {
     return ( getSocketFD() > prevMax ) ? getSocketFD() : prevMax;
 }
 
 
 bool
-UdpStack::checkIfSet ( fd_set* set )
-{
-    assert(set);
+UdpStack::checkIfSet ( fd_set* set ) {
     return ( FD_ISSET(data->socketFd, set) ? true : false );
 }
 
 
 int
-UdpStack::receive ( const char* buf, const int bufSize, int flags )
-{
-    if ((mode == sendonly) || (mode == inactive))
-    {
-        cpLog(LOG_ERR, "The stack is not in a state capable of receiving.");
-        return -1;
-    }
+UdpStack::receive ( const char* buf, const int bufSize, int flags ) {
+   if ((mode == sendonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The stack is not in a state capable of receiving.");
+      return -1;
+   }
 
-    int len = recv( data->socketFd,
-                    (char *)buf, bufSize,
-                    flags);
-    if ( len < 0 )
-    {
-        if (errno == EAGAIN) {
-           return -EAGAIN;
-        }
-        else {
-           int err = errno;
-           cpLog(LOG_ERR, "UdpStack: receive error: %s", strerror(err));
-#if 0
-           throw UdpStackException(errMsg.str());
-           assert(0);
-#endif
-        }
-        //        cpLog(LOG_DEBUG_STACK, "UdpStack::receive pkt len=0");
-    }
-    else if (len == 0)
-    {
-	// received no bytes
-	cpLog(LOG_DEBUG, "did not receive any data");
-    }
-    else
-    {
-        numBytesReceived += len;
-        numPacketsReceived += 1;
-    }
+   int len = recv( data->socketFd,
+                   (char *)buf, bufSize,
+                   flags);
+   if ( len < 0 ) {
+      if ((errno == EAGAIN) || (errno == EINTR)) {
+         rxbusy++;
+         return 0;
+      }
+      else {
+         int err = errno;
+         cpLog(LOG_ERR, "UdpStack: receive error: %s", strerror(err));
+      }
+   }
+   else if (len == 0) {
+      // received no bytes
+      cpLog(LOG_DEBUG, "did not receive any data");
+   }
+   else {
+      numBytesReceived += len;
+      numPacketsReceived += 1;
+   }
 
-    if ( (logFlag) && (len > 0) )
-    {
-        strstream lenln1;
-        lenln1 << ++rcvCount << " " << len << "\n" << char(0);
-        in_log->write(lenln1.str(), strlen(lenln1.str()));
-        in_log->write(buf, len);
-        in_log->write(separator, 6);
-        lenln1.freeze(false);
-    }
+   if ( (logFlag) && (len > 0) ) {
+      strstream lenln1;
+      lenln1 << ++rcvCount << " " << len << "\n" << char(0);
+      in_log->write(lenln1.str(), strlen(lenln1.str()));
+      in_log->write(buf, len);
+      in_log->write(separator, 6);
+      lenln1.freeze(false);
+   }
 
-    return len;
+   return len;
 }
 
 
@@ -1433,6 +1401,7 @@ UdpStack::queueTransmitTo ( const char* buffer,
    }
    return rslt;
 }
+
 
 int UdpStack::doTransmitTo( const char* buffer,
                             const int length,

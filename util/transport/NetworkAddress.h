@@ -52,7 +52,7 @@
  */
 
 static const char* const NetworkAddress_hxx_Version =
-"$Id: NetworkAddress.h,v 1.1 2004/05/01 04:15:38 greear Exp $";
+"$Id: NetworkAddress.h,v 1.2 2004/06/10 23:16:17 greear Exp $";
 
 #include <netdb.h>
 #include <iostream>
@@ -133,6 +133,9 @@ class NetworkAddress : public BugCatcher
 
         /// get IP address as a string in the form "192.168.4.5"
         const Data& getIpName () const;
+
+        // Returns something like: "192.168.1.1:666"
+        const string getIpAndPortName() const;
 
         /** 
             return the IP4 address packed as an unsigned int, in
@@ -244,28 +247,17 @@ class NetworkAddress : public BugCatcher
 
 
 inline ostream &
-operator<< ( ostream & xStream, const NetworkAddress& rxObj )
-{
+operator<< ( ostream & xStream, const NetworkAddress& rxObj ) {
     return rxObj.print ( xStream );
 }
 
 
-class NetworkAddressHash
-{
+class NetworkAddressHash {
     public:
-        unsigned long int operator() ( const NetworkAddress& src ) const
-            {
-                return src.hashIpPort();
-            }
+        unsigned long int operator() ( const NetworkAddress& src ) const {
+            return src.hashIpPort();
+        }
 };
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 // NETWORKADDRESS_HXX_
 #endif

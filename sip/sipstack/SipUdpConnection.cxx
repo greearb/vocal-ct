@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.7 2004/06/09 07:19:35 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.8 2004/06/10 23:16:17 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -79,9 +79,7 @@ SipUdpConnection::SipUdpConnection(const string& local_ip,
                                    const string& local_dev_to_bind_to,
                                    int port)
     : randomLosePercent(0),
-      udpStack(local_ip, local_dev_to_bind_to, NULL, port ) {
-
-    udpStack.setModeBlocking(false);
+      udpStack(false, local_ip, local_dev_to_bind_to, NULL, port ) {
 
     atomic_inc(&_cnt);
 }

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUrl_hxx_Version =
-    "$Id: SipUrl.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
+    "$Id: SipUrl.hxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
 
 #include <string>
 #include "global.h"
@@ -64,6 +64,7 @@ static const char* const SipUrl_hxx_Version =
 #include "Sptr.hxx"
 #include "EmbeddedObj.hxx"
 #include "NetworkAddress.h"
+#include <misc.hxx>
 
 /// Exception handling class
 
@@ -174,6 +175,8 @@ class SipUrl : public BaseUrl
     
 	///
 	void setPort(const Data& newport) ;
+
+	void setPort(uint16 newport);
     
 	///
 	const Data& getPasswd() const ;
@@ -300,12 +303,5 @@ class SipUrl : public BaseUrl
 
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

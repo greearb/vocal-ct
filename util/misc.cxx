@@ -192,5 +192,19 @@ bool visNumber(const char* s) {
    return true;
 }//isNumber
 
+string itoa(int i) {
+   char buf[30];
+   snprintf(buf, 30, "%d", i);
+   return buf;
+}
+
+string itoa(uint16 i) {
+   char buf[30];
+   snprintf(buf, 30, "%hu", i);
+   return buf;
+}
+
+
+
 #endif
 #endif

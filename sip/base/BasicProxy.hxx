@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.6 2004/06/09 07:19:35 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
 
 
 #include "HeartbeatThread.hxx"
@@ -120,14 +120,6 @@ public:
 
    virtual void startTxHeartbeat();
 
-protected:
-
-
-   /** Pointer to heartbeat tx thread object
-    */
-   HeartbeatThread*  myHeartbeatThread;
-   
-   
 private:
    
    

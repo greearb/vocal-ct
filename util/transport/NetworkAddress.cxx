@@ -50,7 +50,7 @@
 
 
 static const char* const NetworkAddress_cxx_Version =
-"$Id: NetworkAddress.cxx,v 1.2 2004/05/29 01:10:34 greear Exp $";
+"$Id: NetworkAddress.cxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
 
 #include <string>
 #if defined(__FreeBSD__) || defined (__APPLE__)
@@ -208,8 +208,7 @@ NetworkAddress::getHostName( )  const
 
 
 const Data&
-NetworkAddress::getIpName () const
-{
+NetworkAddress::getIpName () const {
     //cpLog(LOG_DEBUG_STACK, "NetworkAddress::getIpName()");
     if (!ipAddressSet)
         initIpAddress();
@@ -217,6 +216,17 @@ NetworkAddress::getIpName () const
     //assert(ipAddress != "127.0.0.1");
     return ipAddress;
 }
+
+
+// Returns something like: "192.168.1.1:666"
+const string NetworkAddress::getIpAndPortName() const {
+    getIpName(); //Ensure ipAddress cache is up to date
+    int sz = ipAddress.size() + 20;
+    char tmp[sz];
+    snprintf(tmp, sz, "%s:%d", ipAddress.c_str(), getPort());
+    return tmp;
+}
+
 
 
 u_int32_t
@@ -910,15 +920,4 @@ char* formatWindowsError(char* buffer, int size)
         return buffer;
 }
 #endif
-
-
-
-
-   
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
