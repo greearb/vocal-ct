@@ -4,7 +4,7 @@
 
 #This is the old manual way of doing it
 
-  ./config --with-shared-libs --with-lanforge
+  ./configure --with-shared-libs --with-lanforge
 
   make
 
