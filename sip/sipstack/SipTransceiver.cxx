@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -93,62 +93,20 @@ atomic_t SipTransceiver::_cnt;
 // TODO:  Ensure non-blocking IO is handled everywhere...
 
 
-class TransactionDBStatus: public BugCatcher
-{
-    public:
-        TransactionDBStatus(SipTransactionDB& x, Data label )
-            :myItem(x),
-             myLabel(label + ": ")
-            {
-            }
-
-        Data status()
-            {
-                return myLabel + myItem.getDetails();
-            }
-
-    private:
-        SipTransactionDB& myItem;
-        Data myLabel;
-};
-
-
-class SipUdpStatus : public BugCatcher
-{
-    public:
-        SipUdpStatus(SipUdpConnection& x, int port)
-            :myItem(x),
-             myLabel()
-            {
-                char buf[256];
-                sprintf(buf, "UDP Stack (port %d): ", port);
-                myLabel = buf;
-            }
-        Data status()
-            {
-                return myLabel + myItem.getDetails();
-            }
-    private:
-        SipUdpConnection& myItem;
-        Data myLabel;
-};
-
-
 SipAppContext SipTransceiver::myAppContext = APP_CONTEXT_GENERIC;
 
-SipTransceiver::SipTransceiver( int hashTableHint,
-                                const string& local_ip,
-                                const string& local_dev_to_bind_to,
-                                Data adata, 
-				int siplistenPort, 
-				bool nat,
-				SipAppContext aContext,
-                                bool blocking)
+SipTransceiver::SipTransceiver(const string& local_ip,
+                               const string& local_dev_to_bind_to,
+                               Data adata, 
+                               int siplistenPort, 
+                               bool nat,
+                               SipAppContext aContext,
+                               bool blocking)
     :
     udpConnection(0),
     tcpConnection(0),
-    sentRequestDB(hashTableHint, local_ip),
-    sentResponseDB(hashTableHint, local_ip),
+    sentRequestDB(local_ip),
+    sentResponseDB(local_ip),
     localIp(local_ip)
 {
     //debugMemUsage("Beginning SipTransceiver constructor", "gua_mem.txt");
@@ -156,10 +114,13 @@ SipTransceiver::SipTransceiver( int hashTableHint,
           local_ip.c_str(), local_dev_to_bind_to.c_str(), siplistenPort);
 
     myAppContext = aContext;
-    cpLog( LOG_DEBUG_STACK, "SipStack listening on port %d ", siplistenPort );
-    cpLog( LOG_DEBUG_STACK, "SipStack context %s ", (myAppContext == APP_CONTEXT_PROXY) ? "Proxy" : "Non-Proxy" );
+    cpLog( LOG_DEBUG_STACK, "SipStack listening on port %d ",
+           siplistenPort );
+    cpLog( LOG_DEBUG_STACK, "SipStack context %s ",
+           (myAppContext == APP_CONTEXT_PROXY) ? "Proxy" : "Non-Proxy" );
 
-    udpConnection = new SipUdpConnection(local_ip, local_dev_to_bind_to, siplistenPort );
+    udpConnection = new SipUdpConnection(local_ip, local_dev_to_bind_to,
+                                         siplistenPort );
     //debugMemUsage("Constructed SipUdpConnection", "gua_mem.txt");
 
     if ( udpConnection == 0 ) {
@@ -195,10 +156,6 @@ SipTransceiver::SipTransceiver( int hashTableHint,
 #if 0
         // I purged the debugging code...maybe put it back someday? --Ben
         //debugMemUsage("Before debugger", "gua_mem.txt");
-        debugger = new SipDebuggingInterface(atoi(port)); 
-        debugger->add(new TransactionDBStatus(sentRequestDB, "Request DB"));
-        debugger->add(new TransactionDBStatus(sentResponseDB, "Response DB"));
-        debugger->add(new SipUdpStatus(*udpConnection, siplistenPort));
 #endif
     }
 
@@ -210,370 +167,298 @@ SipTransceiver::SipTransceiver( int hashTableHint,
 }
 
 
-SipTransceiver::~SipTransceiver()
-{
-
+SipTransceiver::~SipTransceiver() {
     atomic_dec(&_cnt);
 }
 
 
-void
-SipTransceiver::sendAsync(SipCommand& sipMessage)
-{
-    if ( !(sipMessage.checkMaxForwards()) )
-    {
-        cpLog(LOG_DEBUG_STACK, "SipTransceiver: sendAsync: %s",
-              sipMessage.encode().logData());
-        cpLog(LOG_DEBUG_STACK, "reached MaxForwards limit, not sending");
+void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage) {
+   if ( !(sipMessage->checkMaxForwards()) ) {
+      cpLog(LOG_DEBUG_STACK, "SipTransceiver: sendAsync: %s",
+            sipMessage->encode().c_str());
+      cpLog(LOG_DEBUG_STACK, "reached MaxForwards limit, not sending");
+      return ;
+   }
 
-        return ;
-    }
+   Sptr<SipMsg> sm;
+   sm.dynamicCast(sipMessage);
+   Sptr<SipMsgContainer> msgPtr = sentRequestDB.processSend(sm);
 
-    SipMsgContainer* msgPtr = sentRequestDB.processSend(copyPtrtoSptr(&sipMessage));
-
-    if(msgPtr)
-    {
-	//// should this only be for actually sent messages? /////////
-	if (sipAgent != 0)
-	{
-	    updateSnmpData(copyPtrtoSptr(&sipMessage), OUTS);
-	}
-	//////////////////////////////////////////////////////////////
+   if (msgPtr != 0) {
+      //// should this only be for actually sent messages? /////////
+      if (sipAgent != 0) {
+         updateSnmpData(sm, OUTS);
+      }
+      //////////////////////////////////////////////////////////////
 	
-	send(msgPtr);
-    }
-}
+      send(msgPtr);
+   }
+}//sendAsync
 
 
-void
-SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
-                       const Data& iport) 
-{
-    cpLog(LOG_DEBUG_STACK, "Entering: %s, host: %s  Port: %s\n",
-          __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
+void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
+                               const Data& iport) {
+   cpLog(LOG_DEBUG_STACK, "Entering: %s, host: %s  Port: %s\n",
+         __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
 
-    Data port(iport);
-    if (port == "0") {
-        port = "5060"; //Default
-    }
+   Data port(iport);
+   if ((port == "0") || (port.size() == 0)) {
+      port = "5060"; //Default
+   }
 
-    if ( !(sipMessage->checkMaxForwards()) )
-    {
-        cpLog(LOG_DEBUG_STACK, "SipTransceiver: sendAsync: %s",
-              sipMessage->encode().logData());
-        cpLog(LOG_DEBUG_STACK, "reached MaxForwards limit, not sending");
+   if ( !(sipMessage->checkMaxForwards()) ) {
+      cpLog(LOG_DEBUG_STACK, "SipTransceiver: sendAsync: %s",
+            sipMessage->encode().logData());
+      cpLog(LOG_DEBUG_STACK, "reached MaxForwards limit, not sending");
+      return ;
+   }
 
-        return ;
-    }
-
-    SipMsgContainer* msgPtr = sentRequestDB.processSend(sipMessage.getPtr());
+   Sptr<SipMsgContainer> msgPtr = sentRequestDB.processSend(sipMessage.getPtr());
     
-    if(msgPtr)
-    {
-	//// should this only be for actually sent messages? /////////
-	if (sipAgent != 0)
-	{
-	    updateSnmpData(sipMessage.getPtr(), OUTS);
-	}
-	//////////////////////////////////////////////////////////////
+   if (msgPtr != 0) {
+      //// should this only be for actually sent messages? /////////
+      if (sipAgent != 0) {
+         updateSnmpData(sipMessage.getPtr(), OUTS);
+      }
+      //////////////////////////////////////////////////////////////
 
-	send(msgPtr, host, port);
-    }
-}
+      send(msgPtr, host, port);
+   }
+}//sendAsync
 
 
-void
-SipTransceiver::sendReply(StatusMsg& sipMessage)
-{
-    //// should this not be symmetric to what we are doing in sendAsync????
-    //// (its missing all the checks and the snmp update)
-    cpLog(LOG_DEBUG_STACK, "Entering %s\n", __PRETTY_FUNCTION__);
-    SipMsgContainer *sipMsg = sentResponseDB.processSend(copyPtrtoSptr(&sipMessage));
-    if(sipMsg)
-    {
-	send(sipMsg);
-    }
-}
+void SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage) {
+   //TODO:  Should be symetric??
+   //// should this not be symmetric to what we are doing in sendAsync????
+   //// (its missing all the checks and the snmp update)
 
+   cpLog(LOG_DEBUG_STACK, "Entering %s\n", __PRETTY_FUNCTION__);
 
-void
-SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage)
-{
-    //// should this not be symmetric to what we are doing in sendAsync????
-    //// (its missing all the checks and the snmp update)
+   Sptr<SipMsg> sm;
+   sm.dynamicCast(sipMessage);
     
-    cpLog(LOG_DEBUG_STACK, "Entering %s\n", __PRETTY_FUNCTION__);
-    SipMsgContainer *sipMsg = sentResponseDB.processSend(sipMessage.getPtr());
-    if(sipMsg)
-    {
-	send(sipMsg);
-    }
+   Sptr<SipMsgContainer> sipMsg = sentResponseDB.processSend(sm);
+   if (sipMsg != 0) {
+      send(sipMsg);
+   }
+}
+
+void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg) {
+   send(sipMsg, "", "");
 }
 
 
-void
-SipTransceiver::send(SipMsgContainer *sipMsg, const Data& host,
-                       const Data& iport)
-{
+void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
+                          const Data& iport) {
 
-    cpLog(LOG_DEBUG_STACK, "Entering %s, host: %s  port: %s\n",
-          __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
+   cpLog(LOG_DEBUG_STACK, "Entering %s, host: %s  port: %s\n",
+         __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
 
-    Data port(iport);
-    if (port == "0") {
-        port = "5060"; //Default
-    }
+   Data port(iport);
+   if (port == "0") {
+      port = "5060"; //Default
+   }
 
+   if ((sipMsg->getTransport() == TCP) ||
+       (sipMsg->getTransport() == "tcp")) {
+      if (tcpConnection != 0) {
+         //send on tcp.
+         cpLog(LOG_DEBUG_STACK, "%s Sending on tcp Connection...\n",
+               __PRETTY_FUNCTION__);
+         tcpConnection->send(sipMsg, host, port);
+      }
+      else {
+         cpLog(LOG_INFO, "%s ERROR: TCP connection not instantiated",
+               __PRETTY_FUNCTION__);
+      }
+   }
+   else {
+      if (udpConnection != 0) {
+         //send on udp.
+         cpLog(LOG_DEBUG_STACK, "%s Sending on UDP Connection...\n",
+               __PRETTY_FUNCTION__);
+         udpConnection->send(sipMsg, host, port);
+      }
+      else {
+         cpLog(LOG_INFO, "%s ERROR: UDP connection not instantiated",
+               __PRETTY_FUNCTION__);
+      }
+   }
+}//send
 
-    if ((sipMsg->msg.transport == TCP) ||
-        (sipMsg->msg.transport == "tcp"))
-    {
-        if (tcpConnection != 0)
-        {
-            //send on tcp.
-            cpLog(LOG_DEBUG_STACK, "%s Sending on tcp Connection...\n",
-                  __PRETTY_FUNCTION__);
-            tcpConnection->send(sipMsg, host, port);
-        }
-        else
-        {
-            cpLog(LOG_INFO, "%s ERROR: TCP connection not instantiated",
-                  __PRETTY_FUNCTION__);
-
-	    /// hence delete the msg container
-	    SipTransactionGC::instance()->
-                collect(sipMsg, ORPHAN_CLEANUP_DELAY);
-        }
-    }
-    else
-    {
-        if (udpConnection != 0)
-        {
-            //send on udp.
-            cpLog(LOG_DEBUG_STACK, "%s Sending on UDP Connection...\n",
-                  __PRETTY_FUNCTION__);
-            udpConnection->send(sipMsg, host, port);
-        }
-        else
-        {
-            cpLog(LOG_INFO, "%s ERROR: UDP connection not instantiated", __PRETTY_FUNCTION__);
-	    /// hence delete the msg container
-	    SipTransactionGC::instance()->collect(sipMsg, ORPHAN_CLEANUP_DELAY);
-        }
-    }
-}
 
 Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
-    Sptr < SipMsgQueue > msgQPtr;
+   // Check UDP fist, and if nothing there, check the Tcp stack.
+   Sptr <SipMsgContainer> msgPtr = udpConnection->getNextMessage();
+   if ( msgPtr.getPtr() == 0) {
+      msgPtr = tcpConnection->getNextMessage();
+      if (msgPtr.getPtr() == 0) {
+         return NULL; // Nothing available
+      }
+   }
 
-    // Check UDP fist, and if nothing there, check the Tcp stack.
-    Sptr <SipMsgContainer> msgPtr = udpConnection->getNextMsg();
-    if ( msgPtr.getPtr() == 0) {
-        msgPtr = tcpConnection->getNextMsg();
-        if (msgPtr.getPtr() == 0) {
-            return msgPtr; // Nothing available
-        }
-    }
+   Sptr<SipMsg> sipPtr = msgPtr->getMsgIn();
 
-    /********************** TO DO ****************************
-     * not doing 'coz need to bring some stuff from udp impl
-     * to here, so will do after 500 cps
-     * msgPtr->msg.in = SipMsg::decode(msgPtr->msg.out);
-     *********************************************************/
+   /********************** TO DO ****************************
+    * not doing 'coz need to bring some stuff from udp impl
+    * to here, so will do after 500 cps
+    * msgPtr->msg.in = SipMsg::decode(msgPtr->msg.out);
+    *********************************************************/
 
-    /*****************************************************************
-     * how does this affect the transactions, i.e. it is only being
-     * done on received messages, so should this be before or after
-     * going thru the data base (i.e. is it visible to transactionDB)?
-     *****************************************************************/
+   /*****************************************************************
+    * how does this affect the transactions, i.e. it is only being
+    * done on received messages, so should this be before or after
+    * going thru the data base (i.e. is it visible to transactionDB)?
+    *****************************************************************/
 
-    /*********** decided to remove it from the stack ******************/
-    cpLog(LOG_DEBUG, "SipTransceiver: Received: %s, natOn: %d",
-          msgPtr->msg.in->briefString().c_str(), natOn);
-    if ( natOn == true) {
-        //changes for taking care of the NAT traversals
-        SipVia natVia = msgPtr->msg.in->getVia(0);
-        LocalScopeAllocator lo; 
-        //cpLog (LOG_DEBUG, "natVia = %s", natVia.encode().logData());
-        string addr1 = natVia.getHost().getData(lo);
-        string addr2 = msgPtr->msg.in->getReceivedIPName().getData(lo);
-
-        //addr2 can be empty if stack had generated the message like 408
-        if(addr2 != "") {
-            NetworkAddress netaddr1(addr1);
-            NetworkAddress netaddr2(addr2);
-                
-            if ( netaddr1.getIpName() != netaddr2.getIpName() || (addr1 == "")) {
-                natVia.setReceivedhost(msgPtr->msg.in->getReceivedIPName());
-                natVia.setReceivedport(msgPtr->msg.in->getReceivedIPPort());
-                //remove the first item from the via list
-                msgPtr->msg.in->removeVia(0);
-                //insert natvia in the vector via list
-                msgPtr->msg.in->setVia(natVia, 0);
-            }
-        }
-    }
-    //---NAT
-    /**********************************************************************/
+   /*********** decided to remove it from the stack ******************/
+   cpLog(LOG_DEBUG, "SipTransceiver: Received: %s, natOn: %d",
+         sipPtr->briefString().c_str(), natOn);
+   if ( natOn == true) {
+      //changes for taking care of the NAT traversals
+      SipVia natVia = sipPtr->getVia(0);
+      //cpLog (LOG_DEBUG, "natVia = %s", natVia.encode().logData());
+      string addr1 = natVia.getHost().c_str();
+      string addr2 = sipPtr->getReceivedIPName().c_str();
+      
+      //addr2 can be empty if stack had generated the message like 408
+      if (addr2 != "") {
+         NetworkAddress netaddr1(addr1);
+         NetworkAddress netaddr2(addr2);
+         
+         if ( netaddr1.getIpName() != netaddr2.getIpName() || (addr1 == "")) {
+            natVia.setReceivedhost(sipPtr->getReceivedIPName());
+            natVia.setReceivedport(sipPtr->getReceivedIPPort());
+            //remove the first item from the via list
+            sipPtr->removeVia(0);
+            //insert natvia in the vector via list
+            sipPtr->setVia(natVia, 0);
+         }
+      }
+   }
+   //---NAT
+   /**********************************************************************/
 	
       
-    cpLog(LOG_DEBUG, "SipTransceiver Received, after NAT handling: %s",
-          msgPtr->msg.in->briefString().c_str());
-    cpLog(LOG_DEBUG_STACK, "SipTransceiver: msg->out is; %s",msgPtr->msg.out.logData());
-      
-    SipMsgQueue *msgQ = 0;
-    Sptr<SipMsg> sipPtr = msgPtr->msg.in;
+   cpLog(LOG_DEBUG, "SipTransceiver Received, after NAT handling: %s",
+         msgPtr->getMsgIn()->briefString().c_str());
+   cpLog(LOG_DEBUG_STACK, "SipTransceiver: msg->out is; %s",
+         msgPtr->getEncodedMsg().c_str());
+   
+   Sptr<SipMsgQueue> msgQ;
 
-    if(msgPtr->msg.in->getType() == SIP_STATUS) {
-        msgQ = sentRequestDB.processRecv(msgPtr);
-        cpLog(LOG_DEBUG_STACK, "SipTransceiver: was SIP_STATUS, msgQ: %x", msgQ);
-    }
-    else {
-        msgQ = sentResponseDB.processRecv(msgPtr);
-        cpLog(LOG_DEBUG_STACK, "SipTransceiver: not SIP_STATUS, msgQ: %x\n", msgQ);
-    }
-      
-    if(msgQ) {
-        msgQPtr = msgQ;
-        
-        //need to have snmpDetails for this.
-        if (sipAgent != 0) {
-            updateSnmpData(sipPtr, INS);
-        }
-    }
-    else if(msgPtr->msg.in != 0) {
-        send(msgPtr);
-    }
-    else if(msgPtr->msg.out.length()) {
-        send(msgPtr);
-    }
-    else {
-        delete msgPtr;
-    }
+   if (msgPtr->getMsgIn()->getType() == SIP_STATUS) {
+      msgQ = sentRequestDB.processRecv(msgPtr);
+      cpLog(LOG_DEBUG_STACK, "SipTransceiver: was SIP_STATUS..\n");
+   }
+   else {
+      msgQ = sentResponseDB.processRecv(msgPtr);
+      cpLog(LOG_DEBUG_STACK, "SipTransceiver: not SIP_STATUS..\n");
+   }
 
-    return msgQPtr;
+   if (msgQ != 0) {
+      //need to have snmpDetails for this.
+      if (sipAgent != 0) {
+         updateSnmpData(sipPtr, INS);
+      }
+      // TODO:  Understand why we need to send here.  Shouldn't the
+      // request or response DBs take care of this?
+      send(msgPtr); //TODO:  make sure we aren't responding to acks, etc.
+   }
+
+   return msgQ;
 }
 
 
-void
-SipTransceiver::reTransOff()
-{
-    cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned off ***");
-    SipUdpConnection::reTransOff();
+void SipTransceiver::reTransOff() {
+   //TODO:  This should not be a static method on SipUdpConnection!
+   cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned off ***");
+   SipUdpConnection::reTransOff();
 }
 
 
-void
-SipTransceiver::reTransOn()
-{
-    cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned on ***");
-    SipUdpConnection::reTransOn();
+void SipTransceiver::reTransOn() {
+   cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned on ***");
+   SipUdpConnection::reTransOn();
 }
 
 
-void
-SipTransceiver::setRetransTime(int initial, int max)
-{
-    cpLog(LOG_DEBUG_STACK, "Initial time set to %d ms", initial);
-    cpLog(LOG_DEBUG_STACK, "Max time set to %d ms", max);
-    SipUdpConnection::setRetransTime(initial, max);
+void SipTransceiver::setRetransTime(int initial, int max) {
+   cpLog(LOG_DEBUG_STACK, "Initial time set to %d ms", initial);
+   cpLog(LOG_DEBUG_STACK, "Max time set to %d ms", max);
+   SipUdpConnection::setRetransTime(initial, max);
 }
 
 
-void
-SipTransceiver::setRandomLosePercent(int percent)
-{
-    if (udpConnection != 0)
-    {
-        udpConnection->setRandomLosePercent(percent);
-    }
+void SipTransceiver::setRandomLosePercent(int percent) {
+   if (udpConnection != 0) {
+      udpConnection->setRandomLosePercent(percent);
+   }
 }
 
-
+// TODO:  WTF does this do?
+#if 0
 SipTransactionDB::CallLegVector
-SipTransceiver::getCallLegMsgs(Sptr < SipMsg > sipmsg)
-{
-    //// will it always be on SentRequest???
-    return (sentRequestDB.getCallLegMsgs(sipmsg));
+SipTransceiver::getCallLegMsgs(Sptr < SipMsg > sipmsg) {
+   //// will it always be on SentRequest???
+   return (sentRequestDB.getCallLegMsgs(sipmsg));
 }
-
+#endif
 
 void
-SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType)
-{
-    //come here only if snmpAgent is valid.
+SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType) {
+   //come here only if snmpAgent is valid.
 
-    if (sipAgent == 0)
-        return ;
+   if (sipAgent == 0)
+      return ;
 
-    Method type = sipMsg->getType();
-    if (type == SIP_STATUS)
-    {
-        if (snmpType == INS)
-        {
-            sipAgent->updateSipCounter(sipSummaryInResponses);
-        }
-        else if (snmpType == OUTS)
-        {
-            sipAgent->updateSipCounter(sipSummaryOutResponses);
-        }
+   Method type = sipMsg->getType();
+   if (type == SIP_STATUS) {
+      if (snmpType == INS) {
+         sipAgent->updateSipCounter(sipSummaryInResponses);
+      }
+      else if (snmpType == OUTS) {
+         sipAgent->updateSipCounter(sipSummaryOutResponses);
+      }
 
-        //get the status code of this msg.
-        assert(sipMsg->isStatusMsg());
-        Sptr < StatusMsg > statusMsg((StatusMsg*)(sipMsg.getPtr()));
+      //get the status code of this msg.
+      assert(sipMsg->isStatusMsg());
+      Sptr < StatusMsg > statusMsg((StatusMsg*)(sipMsg.getPtr()));
 
-        int statusCode = statusMsg->getStatusLine().getStatusCode();
+      int statusCode = statusMsg->getStatusLine().getStatusCode();
 
-        if (snmpType == INS)
-        {
-            sipAgent->updateStatusSnmpData(statusCode, INS);
-        }
-        else if (snmpType == OUTS)
-        {
-            sipAgent->updateStatusSnmpData(statusCode, OUTS);
-	}
+      if (snmpType == INS) {
+         sipAgent->updateStatusSnmpData(statusCode, INS);
+      }
+      else if (snmpType == OUTS) {
+         sipAgent->updateStatusSnmpData(statusCode, OUTS);
+      }
+   }
+   else {
+      //this is a command.
+      if (snmpType == INS) {
+         sipAgent->updateSipCounter(sipSummaryInRequests);
+         sipAgent->updateCommandSnmpData(type, INS);
+      }
+      else if (snmpType == OUTS) {
+         sipAgent->updateSipCounter(sipSummaryOutRequests);
+         sipAgent->updateCommandSnmpData(type, OUTS);
+      }
+   }
+}//updateSnmpData
 
-    }
-
-    else
-    {
-        //this is a command.
-        if (snmpType == INS)
-        {
-            sipAgent->updateSipCounter(sipSummaryInRequests);
-
-            sipAgent->updateCommandSnmpData(type, INS);
-        }
-        else if (snmpType == OUTS)
-        {
-            sipAgent->updateSipCounter(sipSummaryOutRequests);
-
-            sipAgent->updateCommandSnmpData(type, OUTS);
-        }
-    }
-}
-
-
+#if 0
 void
-SipTransceiver::printSize()
-{
+SipTransceiver::printSize() {
     cpLog(LOG_ERR, "%s:::::\n%s\n%s\n\n%s\n%s\n\n%s\n%s",
 	  "Sip Stack Size",
 	  "SentResponseDB size...", sentResponseDB.getDetails().logData(),
 	  "SentRequestDB size...", sentRequestDB.getDetails().logData(),
           "UDP stack details...", udpConnection->getDetails().logData());
 }
-
+#endif
 
 Data
-SipTransceiver::getLocalNamePort() const
-{
+SipTransceiver::getLocalNamePort() const {
     return myLocalNamePort;
 }
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

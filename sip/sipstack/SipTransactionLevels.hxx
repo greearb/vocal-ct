@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.6 2004/06/02 20:23:10 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
@@ -89,8 +89,8 @@ public:
 
    string toString() const;
 
-   void setRetransCount(int i) { retransCount = i; }
-   int getRetransCount() { return retransCount; }
+   void setRetransSoFar(int i) { retransSoFar = i; }
+   int getRetransSoFar() { return retransSoFar; }
 
    uint64 getGcAt() { return shouldGcAt; }
    void setGcAt(uint64 v) { shouldGcAt = v; }
@@ -118,6 +118,16 @@ public:
 
    const string& getEncodedMsg() { return in_encode; }
 
+   // From the RetransmitContents class originally.
+   void setRetransmitMax(int i) { retransCount = i; }
+   int getRetransmitMax() const { return retransCount; }
+
+   const uint64& getNextTx() const { return nextTx; }
+   void setNextTx(uint64& next_tx) { nextTx = next_tx; }
+
+   int getLastWaitPeriod() { return wait_period; }
+   void setWaitPeriod(int t) { wait_period = t; }
+
 protected:
    // refence to the message (for incoming messages)
    Sptr<SipMsg> in;
@@ -127,19 +137,31 @@ protected:
 
    //Host
    Sptr<NetworkAddress> netAddr;
-
-   //
    string  transport;
 
    uint64 shouldGcAt; //When should we garbage-collect this thing.  Used by SipTransactionGC
-   int retransCount;
+   int retransCount; //maximum
+   int retransSoFar; //how many times have we re-transmitted so far?
    bool collected;
    int prepareCount; /** How many times have we tried to send this
                       * message.  Used by SipTcpStack at least.
                       */
    SipTransactionId trans_id;
 
+   // From the RetransmitContents object.
+   Sptr<SipMsgContainer> sipMsg;
+   uint64 nextTx;
+   int wait_period;
 }; //class SipMsgContainer
+
+
+// We want the lower time to be first in the heap, used to sort
+// the transmit heap.
+struct SipMsgContainerComparitor {
+        bool operator()(Sptr<SipMsgContainer> a, Sptr<SipMsgContainer> b) {
+            return (b->getNextTx() < a->getNextTx());
+        }
+};
 
 
 class SipCallContainer : public BugCatcher {

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.7 2004/06/02 20:23:10 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -453,10 +453,6 @@ SipTcpConnection::getNextMessage() {
       Sptr<SipMsgContainer> rv = rcvFifo.front();
       rcvFifo.pop_front();
       return rv;
-   }
-   else {
-      // Maybe can read from the Udp Stack
-      return receiveMessage();
    }
 }
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.6 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.7 2004/06/02 20:23:10 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
@@ -118,124 +118,123 @@ class NTcpStuff: public BugCatcher {
 class SipTcpConnection;
 
 class NTcpConnInfo {
-    public:
-        ///
-        NTcpConnInfo(SipTcpConnection* sc);
-        ///
-        virtual ~NTcpConnInfo();
-        ///
-        Sptr<NTcpStuff> setConnNPeerIp(int fd, Sptr < Connection > conn, const Data& ip);
+public:
+   ///
+   NTcpConnInfo(SipTcpConnection* sc);
+   ///
+   virtual ~NTcpConnInfo();
+   ///
+   Sptr<NTcpStuff> setConnNPeerIp(int fd, Sptr < Connection > conn, const Data& ip);
 
-        void createConnection(Sptr<Connection> conn);
+   void createConnection(Sptr<Connection> conn);
 
-        Sptr < NTcpStuff > createOrGetPersistentConnection(const NetworkAddress& nwaddr);
+   Sptr < NTcpStuff > createOrGetPersistentConnection(const NetworkAddress& nwaddr);
 
-        // Adds a mapping to this destination.
-        void notifyDestination(const string& dest_key, Sptr<NTcpStuff> connInfo);
+   // Adds a mapping to this destination.
+   void notifyDestination(const string& dest_key, Sptr<NTcpStuff> connInfo);
 
-        ///
-        Sptr < NTcpStuff > getStatusMsgConn(Sptr < SipMsg > msg);
-        ///
-        void setStatusMsgConn(Sptr < SipMsg > msg, int fd);
+   ///
+   Sptr < NTcpStuff > getStatusMsgConn(Sptr < SipMsg > msg);
+   ///
+   void setStatusMsgConn(Sptr < SipMsg > msg, int fd);
 
-        ///
-        Sptr<NTcpStuff> getConnInfo(int fd);
+   ///
+   Sptr<NTcpStuff> getConnInfo(int fd);
 
-        ///
-        void doCleanup();
+   ///
+   void doCleanup();
 
-        void delConn(int fd);
+   void delConn(int fd);
         
-        void delIdMapEntry(const SipTransactionId& id);
+   void delIdMapEntry(const SipTransactionId& id);
         
-        int tcpReadOrAccept(int tcpfd, TcpServerSocket& tcpStack);
+   int tcpReadOrAccept(int tcpfd, TcpServerSocket& tcpStack);
 
-        virtual void writeTick(fd_set* output_fds);
+   virtual void writeTick(fd_set* output_fds);
 
-        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                          uint64 now);
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                           int& maxdesc, uint64& timeout, uint64 now);
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-    private:
-        ///
-        Sptr < NTcpStuff > getCurrent(int fd);
+private:
+   ///
+   Sptr < NTcpStuff > getCurrent(int fd);
         
-        // Keep various fast-lookup maps.
-        map < int, Sptr < NTcpStuff > > myMap;
-        map < SipTransactionId, Sptr < NTcpStuff > > idMap;
-        map < string, Sptr < NTcpStuff > > myDestinationMap;
+   // Keep various fast-lookup maps.
+   map < int, Sptr < NTcpStuff > > myMap;
+   map < SipTransactionId, Sptr < NTcpStuff > > idMap;
+   map < string, Sptr < NTcpStuff > > myDestinationMap;
 
 
-        list<int>  myCleanupList;
+   list<int>  myCleanupList;
 
-        Data nullData;
+   Data nullData;
 
-        SipTcpConnection* sip_conn; // Owner of this object, will process incomming msgs.
+   SipTcpConnection* sip_conn; // Owner of this object, will process incomming msgs.
 };
 
 
-class SipTcpConnection: public BugCatcher
-{
-    public:
-        /**
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        SipTcpConnection(const string& local_ip,
-                         const string& local_dev_to_bind_to,
-                         int port /* = SIP_PORT */, bool blocking);
-        ///
-        virtual ~SipTcpConnection();
-
-        int send(Sptr<SipMsgContainer> msg, const Data& host,
-                 const Data& port);
-
-        const string getLocalIp() const;
-
-        // May pull from fifo
-        Sptr<SipMsgContainer> getNextMessage();
-
-
-        virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                          uint64 now);
-
-        virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
-                           int& maxdesc, uint64& timeout, uint64 now);
-
-        TcpServerSocket& getTcpStack() { return mytcpStack; }
-
-        void processMsgsIfReady(Sptr<NTcpStuff> conn);
-
-        const string& getLocalDev() { return local_dev_to_bind_to; }
-        const string& getLocalIp() { return local_ip_to_bind_to; }
-
-    protected:
-        // Read from socket.
-        Sptr<SipMsgContainer> receiveMessage();
-
-    private:
-
-        Sptr < NTcpStuff > createRequestTransaction(Sptr<SipCommand> command);
-
-        int prepareEvent(Sptr<SipMsgContainer> sipMsg);
-
-        int sendMain(uint64& now);
-        int processMain();
-
-        TcpServerSocket mytcpStack;
-        NTcpConnInfo tcpConnInfo;
-
-        list < Sptr <SipMsgContainer> > sendQ;
-        list <int > processFifo;
-        list < Sptr <SipMsgContainer> > rcvFifo;
-
-        string local_ip_to_bind_to;
-        string local_dev_to_bind_to;
+class SipTcpConnection: public BugCatcher {
+public:
+   /**
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   SipTcpConnection(const string& local_ip,
+                    const string& local_dev_to_bind_to,
+                    int port /* = SIP_PORT */, bool blocking);
+   ///
+   virtual ~SipTcpConnection();
+   
+   int send(Sptr<SipMsgContainer> msg, const Data& host,
+            const Data& port);
+   
+   const string getLocalIp() const;
+   
+   // May pull from fifo
+   Sptr<SipMsgContainer> getNextMessage();
+   
+   
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+   
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+   
+   TcpServerSocket& getTcpStack() { return mytcpStack; }
+   
+   void processMsgsIfReady(Sptr<NTcpStuff> conn);
+   
+   const string& getLocalDev() { return local_dev_to_bind_to; }
+   const string& getLocalIp() { return local_ip_to_bind_to; }
+   
+protected:
+   // Read from socket.
+   Sptr<SipMsgContainer> receiveMessage();
+   
+private:
+   
+   Sptr < NTcpStuff > createRequestTransaction(Sptr<SipCommand> command);
+   
+   int prepareEvent(Sptr<SipMsgContainer> sipMsg);
+   
+   int sendMain(uint64& now);
+   int processMain();
+   
+   TcpServerSocket mytcpStack;
+   NTcpConnInfo tcpConnInfo;
+   
+   list < Sptr <SipMsgContainer> > sendQ;
+   list <int > processFifo;
+   list < Sptr <SipMsgContainer> > rcvFifo;
+   
+   string local_ip_to_bind_to;
+   string local_dev_to_bind_to;
 };
 
 
-int isFullMsg(const string& str);
+   int isFullMsg(const string& str);
  
 } // namespace Vocal
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.4 2004/05/29 01:10:34 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -161,224 +161,215 @@ public:
 
 class UdpStack: public RCObject
 {
-    public:
-        /** if local_ip is specified (not == ""), then we will attempt to 
-         * bind to that local IP.  This allows one to specify the local interface
-         * to use.  No ports can be specified and the stack will pick one, OR a minPort
-         * can be specified and it will be used, OR a min and max can be
-         * specified and the stack will use the first free port in that
-         * range. The destiantion hostname and port may be set in the
-         * destinationHost parameter.
-         * If device_to_bind_to is not "",  then we'll attempt to bind to it
-         * with SO_BINDTODEVICE
-         */
-        UdpStack ( const string& desired_local_ip,
-                   const string& device_to_bind_to, 
-                   const NetworkAddress* destinationHost = NULL,
-                   int localMinPort = -1,
-                   int localMaxPort = -1,
-                   UdpMode mode = sendrecv,
-                   bool log_flag = false,
-                   bool isMulticast = false);
+public:
+   /** if local_ip is specified (not == ""), then we will attempt to 
+    * bind to that local IP.  This allows one to specify the local interface
+    * to use.  No ports can be specified and the stack will pick one, OR a minPort
+    * can be specified and it will be used, OR a min and max can be
+    * specified and the stack will use the first free port in that
+    * range. The destiantion hostname and port may be set in the
+    * destinationHost parameter.
+    * If device_to_bind_to is not "",  then we'll attempt to bind to it
+    * with SO_BINDTODEVICE
+    */
+   UdpStack ( const string& desired_local_ip,
+              const string& device_to_bind_to, 
+              const NetworkAddress* destinationHost = NULL,
+              int localMinPort = -1,
+              int localMaxPort = -1,
+              UdpMode mode = sendrecv,
+              bool log_flag = false,
+              bool isMulticast = false);
 
-        /** connectPorts() has to be called before using send()
-         * It associates the local port to remote port
-         * so that receive and send only from and to that remote port
-	 */
-        void connectPorts();
+   /** connectPorts() has to be called before using send()
+    * It associates the local port to remote port
+    * so that receive and send only from and to that remote port
+    */
+   void connectPorts();
 
-        /// disconnectPorts() dissolve the port association
-        void disconnectPorts();
+   /// disconnectPorts() dissolve the port association
+   void disconnectPorts();
+   
+   /// set the local ports
+   void setLocal (const int minPort = -1, int maxPort = -1 );
 
-        /// set the local ports
-        void setLocal (const int minPort = -1, int maxPort = -1 );
+   /// set the default destination
+   void setDestination ( const NetworkAddress* host );
 
-        /// set the default destination
-        void setDestination ( const NetworkAddress* host );
+   /// set the default destination
+   void setDestination ( const char* host, int port );
 
-        /// set the default destination
-        void setDestination ( const char* host, int port );
+   /// Get the udp stack mode
+   UdpMode getMode () {
+      return mode;
+   };
 
-        /// Get the udp stack mode
-        UdpMode getMode ()
-        {
-            return mode;
-        };
+   /// Get the udp stack logFlag
+   bool getLogFlag () {
+      return logFlag;
+   };
 
-        /// Get the udp stack logFlag
-        bool getLogFlag ()
-        {
-            return logFlag;
-        };
+   /// Get the name for local
+   string getLclName () const {
+      return lclName;
+   };
 
-        /// Get the name for local
-        string getLclName () const
-        {
-            return lclName;
-        };
+   /// Get the name for remote
+   string getRmtName () const {
+      return rmtName;
+   };
 
-        /// Get the name for remote
-        string getRmtName () const
-        {
-            return rmtName;
-        };
+   /// Get the port being used for recieving
+   int getRxPort ();
 
-        /// Get the port being used for recieving
-        int getRxPort ();
+   /// Get the port being used for transmitting
+   int getTxPort ();
 
-        /// Get the port being used for transmitting
-        int getTxPort ();
+   /// Get the destination port
+   int getDestinationPort () {
+      return getRxPort();
+   };
 
-        /// Get the destination port
-        int getDestinationPort ()
-        {
-            return getRxPort();
-        };
-
-        ///
-        NetworkAddress* getDestinationHost () const;
+   ///
+   NetworkAddress* getDestinationHost () const;
 
 
-        /// Set the mode
-        void setMode ( const UdpMode theMode )
-        {
-            mode = theMode;
-        };
+   /// Set the mode
+   void setMode ( const UdpMode theMode ) {
+      mode = theMode;
+   };
 
-        /// Set the logFlag
-        void setLogFlag ( const bool theLogFlag )
-        {
-            logFlag = theLogFlag;
-        };
+   /// Set the logFlag
+   void setLogFlag ( const bool theLogFlag ) {
+      logFlag = theLogFlag;
+   };
 
-        /// Set the name to something logical - only used for errors
-        void setLclName ( const string& theName )
-        {
-            lclName = theName;
-        };
+   /// Set the name to something logical - only used for errors
+   void setLclName ( const string& theName ) {
+      lclName = theName;
+   };
 
-        void setRmtName ( const string& theName )
-        {
-            rmtName = theName;
-        };
+   void setRmtName ( const string& theName ) {
+      rmtName = theName;
+   };
 
 
-        /// Get the file descriptor for the socket - use with care or not at all
-        int getSocketFD ();
+   /// Get the file descriptor for the socket - use with care or not at all
+   int getSocketFD ();
 
-        /// Add this stacks file descriptors to the the fdSet
-        void addToFdSet ( fd_set* set );
+   /// Add this stacks file descriptors to the the fdSet
+   void addToFdSet ( fd_set* set );
 
-        /// Find the max of any file descripts in this stack and the passed value
-        int getMaxFD ( int prevMax);
+   /// Find the max of any file descripts in this stack and the passed value
+   int getMaxFD ( int prevMax);
 
-        /// Check and see if this stacks file descriptor is set in fd_set
-        bool checkIfSet ( fd_set* set );
+   /// Check and see if this stacks file descriptor is set in fd_set
+   bool checkIfSet ( fd_set* set );
 
 
-        /** 
-	    Receive a datagram.
-            Once connectPorts() is called, can't receive from other ports.
+   /** 
+       Receive a datagram.
+       Once connectPorts() is called, can't receive from other ports.
+       
+       @param buffer   buffer to write message into
+       @param bufSize     maximum size of the buffer
+       @param flags    Passed to sendto, ie MSG_DONTWAIT
+       @return size of message received.
+   */
+   int receive ( const char* buffer,
+                 const int bufSize,
+                 int flags = 0);  // returns bytes read
 
-	    @param buffer   buffer to write message into
-	    @param bufSize     maximum size of the buffer
-            @param flags    Passed to sendto, ie MSG_DONTWAIT
-	    @return size of message received.
-	*/
-        int receive ( const char* buffer,
-                      const int bufSize,
-                      int flags = 0);  // returns bytes read
+   /** 
+       Receive a datagram.
+       Use receive if you do not need to be able to tell who this packet
+       came from.
+       
+       @param buffer   buffer to write message into
+       @param bufSize  maximum size of the buffer
+       @param sender   address of the sender.
+       @param flags    Flags passed to recvfrom, ie MSG_DONTWAIT
+       @return size of message received.
+       
+   */
+   int receiveFrom ( char* buffer,
+                     const int bufSize,
+                     NetworkAddress* sender,
+                     int flags = 0);  // returns bytes read
 
-        /** 
-	    Receive a datagram.
-            Use receive if you do not need to be able to tell who this packet
-            came from.
+   /** 
+       Receive a datagram.
+       Use receive if you do not need to be able to tell who this packet
+       came from.
+       
+       @param buffer   buffer to write message into.
+       @param bufSize     maximum size of the buffer.
+       @param sender   the NetworkAdddress# of the sender.
+       @param sec      number of seconds to wait.
+       @param usec     number of microseconds to wait.
+       
+       @return size of message received, if successful, -1 for
+       error, or 0 if the timeout was reached without receiving a
+       message.
+   */
+   int receiveTimeout ( char* buffer,
+                        const int bufSize,
+                        NetworkAddress* sender,
+                        int sec = 0,
+                        int usec = 0);
 
-	    @param buffer   buffer to write message into
-	    @param bufSize  maximum size of the buffer
-	    @param sender   address of the sender.
-            @param flags    Flags passed to recvfrom, ie MSG_DONTWAIT
-	    @return size of message received.
+   /** 
+       Transmit a datagram.
+       ConnectPorts() should be called before it is called.
+       
+       @param buffer   buffer to read message from
+       @param length  number of bytes to send.
+   */
+   void transmit ( const char* buffer,
+                   const int length );
 
-	*/
-        int receiveFrom ( const char* buffer,
-                          const int bufSize,
-                          NetworkAddress* sender,
-                          int flags = 0);  // returns bytes read
+   /** 
+       Transmit a datagram.
+       Use transmit if you always sent to the same person.
+       
+       @param buffer   buffer to read message from.
+       @param length   number of bytes to send.
+       @param dest     destination to send packet to.
+       
+       @return >0 if transmitted OK, or -errno if not OK.
+   */
+   /// Transmit a datagram
+   int transmitTo ( const char* buffer,
+                    const int length,
+                    const NetworkAddress* dest );
+   ///
+   void joinMulticastGroup ( NetworkAddress group,
+                             NetworkAddress* iface = NULL,
+                             int ifaceInexe = 0 );
+   ///
+   void leaveMulticastGroup( NetworkAddress group,
+                             NetworkAddress* iface = NULL,
+                             int ifaceInexe = 0 );
+   ///
+   virtual ~UdpStack ();
+   
+   /// Get the number of bytes the stack has processed
+   int getBytesTransmitted () const;
 
-        /** 
-	    Receive a datagram.
-            Use receive if you do not need to be able to tell who this packet
-            came from.
+   /// Get the number of datagrams the stack has processed
+   int getPacketsTransmitted () const;
 
-	    @param buffer   buffer to write message into.
-	    @param bufSize     maximum size of the buffer.
-	    @param sender   the NetworkAdddress# of the sender.
-	    @param sec      number of seconds to wait.
-	    @param usec     number of microseconds to wait.
+   /// Get the number of bytes the stack has processed
+   int getBytesReceived () const;
 
-	    @return size of message received, if successful, -1 for
-	    error, or 0 if the timeout was reached without receiving a
-	    message.
-	*/
-        int receiveTimeout ( const char* buffer,
-                             const int bufSize,
-                             NetworkAddress* sender,
-                             int sec = 0,
-                             int usec = 0);
+   /// Get the number of datagrams the stack has processed
+   int getPacketsReceived () const;
 
-        /** 
-	    Transmit a datagram.
-            ConnectPorts() should be called before it is called.
-
-	    @param buffer   buffer to read message from
-	    @param length  number of bytes to send.
-	*/
-        void transmit ( const char* buffer,
-                        const int length );
-
-        /** 
-	    Transmit a datagram.
-	    Use transmit if you always sent to the same person.
-
-	    @param buffer   buffer to read message from.
-	    @param length   number of bytes to send.
-	    @param dest     destination to send packet to.
-
-	    @return 0 if transmitted OK, or > 0 if not OK.
-	*/
-        /// Transmit a datagram
-        int transmitTo ( const char* buffer,
-                         const int length,
-                         const NetworkAddress* dest );
-        ///
-        void joinMulticastGroup ( NetworkAddress group,
-                                  NetworkAddress* iface = NULL,
-                                  int ifaceInexe = 0 );
-        ///
-        void leaveMulticastGroup( NetworkAddress group,
-                                  NetworkAddress* iface = NULL,
-                                  int ifaceInexe = 0 );
-        ///
-        virtual ~UdpStack ();
-
-        /// Get the number of bytes the stack has processed
-        int getBytesTransmitted () const;
-
-        /// Get the number of datagrams the stack has processed
-        int getPacketsTransmitted () const;
-
-        /// Get the number of bytes the stack has processed
-        int getBytesReceived () const;
-
-        /// Get the number of datagrams the stack has processed
-        int getPacketsReceived () const;
-
-        /** This can be used to eulate network packet loss by throwing
-            out a certain percentage of the tranmitted packets */
-        void emulatePacketLoss ( float probabilityOfLoss ) {
-            packetLossProbability = probabilityOfLoss;
-        };
+   /** This can be used to eulate network packet loss by throwing
+       out a certain percentage of the tranmitted packets */
+   void emulatePacketLoss ( float probabilityOfLoss ) {
+      packetLossProbability = probabilityOfLoss;
+   };
 
    /**Set the mode to be blocking or non-blocking
     *flg=true (blocking)
@@ -407,7 +398,8 @@ private:
    void doClient ( const NetworkAddress* desName);
    
    int recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
-                      struct sockaddr *sa, socklen_t *salenptr, struct in6_pktinfo *pktp);
+                      struct sockaddr *sa, socklen_t *salenptr,
+                      struct in6_pktinfo *pktp);
    /// name of receiver
    string lclName;
 
@@ -417,47 +409,47 @@ private:
    /// probability of a given packet being thrown out by the stack
    float packetLossProbability;
 
-        /// number of bytes the stack has received
-        int numBytesReceived;
+   /// number of bytes the stack has received
+   int numBytesReceived;
 
-        /// number of datagrams the stack has received
-        int numPacketsReceived;
+   /// number of datagrams the stack has received
+   int numPacketsReceived;
 
-        /// number of bytes the stack has transimitted
-        int numBytesTransmitted;
+   /// number of bytes the stack has transimitted
+   int numBytesTransmitted;
 
-        /// number of datagrams the stack has transimitted
-        int numPacketsTransmitted;
+   /// number of datagrams the stack has transimitted
+   int numPacketsTransmitted;
 
-        /// Mode
-        UdpMode mode;
+   /// Mode
+   UdpMode mode;
 
 
-        /** Local IP address that we ended up bound to.
-         */
-        string curLocalIp; 
+   /** Local IP address that we ended up bound to.
+    */
+   string curLocalIp; 
 
-        /** If you wish to bind to a local IP, set that here.  If left
-         * blank, the default local IP, as determined by the operating
-         * system, will be used.
-         */
-        string desiredLocalIp;
+   /** If you wish to bind to a local IP, set that here.  If left
+    * blank, the default local IP, as determined by the operating
+    * system, will be used.
+    */
+   string desiredLocalIp;
 
-        bool boundLocal; /* Have we bound ourselves to the local IP yet */
+   bool boundLocal; /* Have we bound ourselves to the local IP yet */
 
-        /// flag for msg log
-        bool logFlag;
+   /// flag for msg log
+   bool logFlag;
 
-        /// private data that will be a pain to port
-        UdpStackPrivateData* data;
+   /// private data that will be a pain to port
+   UdpStackPrivateData* data;
 
-        ofstream* in_log;
-        ofstream* out_log;
+   ofstream* in_log;
+   ofstream* out_log;
 
-        int rcvCount ;
-        int sndCount ;
-	bool   blockingFlg;
-        string localDev;
+   int rcvCount ;
+   int sndCount ;
+   bool   blockingFlg;
+   string localDev;
 };
 
 

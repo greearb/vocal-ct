@@ -50,7 +50,7 @@
  */
 
 static const char* const cpLog_cxx_Version =
-    "$Id: cpLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: cpLog.cxx,v 1.3 2004/06/02 20:23:10 greear Exp $";
 
 
 #include "global.h"
@@ -544,11 +544,11 @@ rotateFilesIfNecessary()
 
     struct stat fileInfo;
     
-    if (stat (cpLogFilename, &fileInfo))
-    {
+    if (stat (cpLogFilename, &fileInfo)) {
         /* What?  We can't see the log file? */
-        handleCriticalError ("cpLog could not stat its own current log file, %s:  %s", cpLogFilename, strerror (errno));
-            return;
+        handleCriticalError ("cpLog could not stat its own current log file -:%s:-  %s",
+                             cpLogFilename, strerror (errno));
+        return;
     }
     
     if (fileInfo.st_size >= SIZE_PER_LOGFILE)

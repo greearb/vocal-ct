@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -82,7 +82,8 @@ Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId
 }
 
 void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
-   table.put(m->getTransactionId().getLevel1(), m);
+   string k(m->getTransactionId().getLevel1().c_str());
+   table[k] = m;
 }
 
 #warning "WTF is this supposed to do???"

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipMsgVersion 
-= "$Id: SipMsg.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+= "$Id: SipMsg.hxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
 
 #include "Data.hxx"
 #include "NetworkAddress.h"
@@ -772,7 +772,7 @@ class SipMsg: public BugCatcher
 	/** this function is contained in SipCommand, and Status Msg
 	 * to decode different headers.  data should not be a
 	 * reference as it is modified in the decoding process */
-	static SipMsg* decode( Data data, const string& local_ip);
+	static Sptr<SipMsg> decode( Data data, const string& local_ip);
 
 	///
 	void setVersion( const Data& version);

@@ -49,7 +49,7 @@
  */
 
 static const char* const SessionTimer_cxx_version =
-    "$Id: SessionTimer.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SessionTimer.cxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
 
 #include "global.h"
 #include "SessionTimer.hxx"
@@ -220,17 +220,13 @@ void* SessionTimer::processThreadWrapper(void *p)
 #endif
 
 void
-SessionTimer::sendInvite(Sptr<VSessionData> sData)
-{
+SessionTimer::sendInvite(Sptr<VSessionData> sData) {
    cpLog(LOG_DEBUG, "Sending re-invite for call-leg (%s)",
          sData->myInviteMsg->computeCallLeg().encode().logData());
    SipCSeq cSeq = sData->myInviteMsg->getCSeq();
    cSeq.incrCSeq();
    sData->myInviteMsg->setCSeq(cSeq); 
-   mTransceiver->sendAsync(sData->myInviteMsg.getPtr());
+   Sptr<SipCommand> sc;
+   sc.dynamicCast(sData->myInviteMsg);
+   mTransceiver->sendAsync(sc);
 }
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

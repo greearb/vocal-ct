@@ -49,7 +49,7 @@
  */
 
 static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipMsg.cxx,v 1.3 2004/06/02 20:23:10 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -1590,7 +1590,7 @@ SipMsg::parseMime(Data msg)
 }
 
 
-SipMsg*
+Sptr<SipMsg>
 SipMsg::decode(Data data, const string& local_ip)
 {
     // skip any leading whitespace
@@ -1615,7 +1615,7 @@ SipMsg::decode(Data data, const string& local_ip)
 
     data = data.substring(i, -1); // this is not implemented, so ....
 
-    SipMsg* sipMsg = NULL;
+    Sptr<SipMsg> sipMsg;
     cpLog(LOG_DEBUG_STACK,"Going to decode a sip Msg");
     
     data.removeLWS();
@@ -1633,11 +1633,10 @@ SipMsg::decode(Data data, const string& local_ip)
 
     startline = tmp.getLine(&getLineFailed);
 
-    if(getLineFailed)
-    {
+    if (getLineFailed) {
 	// this is a bad message
 	cpLog(LOG_DEBUG_STACK, "Parse failed.  no newlines found in message");
-	return 0;
+	return sipMsg;
     }
 
     char matchedChar = '\0';
@@ -1646,178 +1645,144 @@ SipMsg::decode(Data data, const string& local_ip)
 
     sipMethod  = dataToMethod(method);
 
-    if(sipMethod == SIP_UNKNOWN)
-    {
+    if (sipMethod == SIP_UNKNOWN) {
         cpLog(LOG_DEBUG_STACK, "failed to match method '%s'", 
               method.logData());
     }
 
-    if(sipMethod != SIP_STATUS)
-    {
+    if (sipMethod != SIP_STATUS) {
         // make sure this is really a SIP message
         matchedChar = '\0';
         Data uri = startline.matchChar(" \t", &matchedChar);
         
-        if(matchedChar == '\0')
-        {
+        if (matchedChar == '\0') {
             cpLog(LOG_DEBUG_STACK, "Could not split off protocol/version");
             return 0;
         }
         Data version = startline;
         matchedChar = '\0';
         Data protocol = version.matchChar("/", &matchedChar);
-        if(matchedChar == '\0')
-        {
+        if (matchedChar == '\0') {
             cpLog(LOG_DEBUG_STACK, "Could not find protocol version");
             return 0;
         }
-        if( !isEqualNoCase(protocol, "sip"))
-        {
+        if ( !isEqualNoCase(protocol, "sip")) {
             cpLog(LOG_DEBUG_STACK, "protocol is not SIP");
             return 0;
         }
     }
 
-    switch(sipMethod)
-    {
+    switch (sipMethod) {
     case SIP_INVITE:
-	try
-	{
+	try {
 	    sipMsg = new InviteMsg(data, local_ip);
 	}
-	catch (SipParserException&)
-	{
+	catch (SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the invite msg");
 	}
 	break;
     case SIP_BYE:
-	try
-	{
+	try {
 	    sipMsg = new ByeMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the bye msg");
 	}
 	break;
     case SIP_CANCEL:
-	try
-	{
+	try {
 	    sipMsg = new CancelMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the cancel msg");
 	}
 	break;
     case SIP_ACK:
-	try
-	{
+	try {
 	    sipMsg = new AckMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the ack msg");	
 	}
 	break;
     case SIP_STATUS:
-	try
-	{
+	try {
 	    sipMsg = new StatusMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the status msg");
 	}
 	break;
     case SIP_INFO:
-	try
-	{
+	try {
 	    sipMsg = new InfoMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the info msg");	
 	}
 	break;
     case SIP_OPTIONS:
-	try
-	{
+	try {
 	    sipMsg = new OptionsMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the options msg");
 	}
 	break;
     case SIP_REGISTER:
-	try
-	{
+	try {
 	    sipMsg = new RegisterMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the register msg");
 	}
 	break;
     case SIP_TRANSFER:
-	try
-	{
+	try {
 	    sipMsg = new TransferMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the transfer msg");
 	}
 	break;
     case SIP_SUBSCRIBE:
-	try
-	{
+	try {
 	    sipMsg = new SubscribeMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the subscribe msg");
 	}
 	break;
     case SIP_REFER:
-	try
-	{
+	try {
 	    sipMsg = new ReferMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the refer msg");
 	}
 	break;
     case SIP_NOTIFY:
-	try
-	{
+	try {
 	    sipMsg = new NotifyMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the notify msg");
 	}
 	break;
     case SIP_UNKNOWN:
-	try
-	{
+	try {
 	    sipMsg = new UnknownExtensionMsg(data, local_ip);
 	}
-	catch(SipParserException&)
-	{
+	catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, 
                   "Failed in creating the UnknownExtension msg");
 	}
         break;
     case SIP_MESSAGE:
-        try
-        {
+        try {
             sipMsg = new MessageMsg(data, local_ip);
         }
-        catch(SipParserException&)
-        {
+        catch(SipParserException&) {
 	    cpLog(LOG_DEBUG_STACK, "Failed in creating the MESSAGE msg");
         }
         break;
@@ -1828,11 +1793,10 @@ SipMsg::decode(Data data, const string& local_ip)
     }//end switch
     
     //print it out here.
-    if(sipMsg != 0)
-    {
+    if (sipMsg != 0) {
 	cpLog(LOG_DEBUG_STACK, 
 	      " In sipmsg:     after decoding: %s", 
-	      sipMsg->encode().logData());
+	      sipMsg->encode().c_str());
     }
     
     return sipMsg;

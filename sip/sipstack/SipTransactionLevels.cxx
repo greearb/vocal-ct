@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipTransactionLevels.cxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionLevels.cxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionLevels.hxx"
@@ -58,14 +58,15 @@ static const char* const SipTransactionLevels_cxx_version =
 using namespace Vocal;
 
 
-SipMsgContainer::SipMsgContainer(const SipTransactionId& id) {
+SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
+      : trans_id(id) {
    clear();
    trans_id = id;
 }
 
 void SipMsgContainer::setMsgIn(Sptr<SipMsg> inm) {
    in = inm;
-   in_encode = in->encode();
+   in_encode = in->encode().c_str();
 }
 
 void SipMsgContainer::clear() {
@@ -78,6 +79,9 @@ void SipMsgContainer::clear() {
    collected = false;
    prepareCount = 0;
    trans_id.clear();
+
+   nextTx = 0;
+   wait_period = 0;
 }//clear
 
 bool SipMsgContainer::matches(const SipTransactionId& id) {
@@ -85,32 +89,34 @@ bool SipMsgContainer::matches(const SipTransactionId& id) {
 }
 
 void SipMsgContainer::cleanup() {
-    msg.in = NULL;
-    msg.netAddr = NULL;
+    in = NULL;
+    netAddr = NULL;
+    in_encode = "";
+    trans_id.clear();
 }
 
 string SipMsgContainer::toString() const {
     ostringstream oss;
-    if (msg.in.getPtr()) {
-        oss << " in: " << msg.in->toString() << endl;
+    if (in.getPtr()) {
+        oss << " in: " << in->toString() << endl;
     }
     else {
         oss << " in: NULL\n";
     }
 
     
-    oss << "out: " << msg.out.c_str()
+    oss << "out: " << in_encode.c_str()
         << "\nnetAddr: ";
 
-    if (msg.netAddr != 0) {
-        oss << msg.netAddr->toString();
+    if (netAddr != 0) {
+        oss << netAddr->toString();
     }
     else {
         oss << "NULL";
     }
 
-    oss << "\ntype: " << msg.type << " transport: " << msg.transport.c_str()
-        << "\nretransCount: " << retransCount << " collected: " << collected
+    oss << "\ntransport: " << transport.c_str()
+        << " retransCount: " << retransCount << " collected: " << collected
         << endl;
 
     return oss.str();
@@ -121,7 +127,7 @@ string SipMsgContainer::toString() const {
 
 SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
       : id(call_id) {
-   seqSet = false;
+   setSeq = false;
    curSeqNum = 0;
 }
 
@@ -146,10 +152,14 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
     list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
     while (i != msgs.end()) {
         Sptr<SipMsgPair> mp = *i;
-        if ((mp->request != 0) && mp->request->getType() == method) {
+        if ((mp->request != 0) &&
+            (mp->request->getMsgIn() != 0) &&
+            (mp->request->getMsgIn()->getType() == method)) {
             return (*i);
         }
-        if ((mp->response != 0) && mp->response->getType() == method) {
+        if ((mp->response != 0) &&
+            (mp->response->getMsgIn() != 0) &&
+            (mp->response->getMsgIn()->getType() == method)) {
             return (*i);
         }
         i++;
@@ -160,6 +170,6 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
 
 void SipCallContainer::clear() {
    msgs.clear();
-   seqSet = false;
+   setSeq = false;
    curSeqNum = 0;
 }

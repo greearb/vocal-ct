@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.5 2004/06/02 20:23:10 greear Exp $";
 
 
 
@@ -91,6 +91,13 @@ public:
              const Data& port);
    
    int udpSend(Sptr<SipMsgContainer> msg);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
    
    // Returns the configured IP, if it is not "", otherwise, returns
    // default system IP address.
@@ -111,6 +118,7 @@ public:
    
    
    int receiveMain();
+
    // May pull from incomming fifo
    Sptr<SipMsgContainer> getNextMessage();
    
@@ -135,13 +143,12 @@ private:
    static int  Udpretransmitimeinitial;
    static int Udpretransmittimemax;
    int randomLosePercent;
+   char rcvBuf[MAX_UDP_RCV_BUF];
    
    UdpStack udpStack;
    priority_queue <Sptr <RetransmitContents>,
                    vector< Sptr<SipMsgContainer> >,
                    RetransContentsComparitor > sendQ;
-   list <Sptr <SipMsgContainer> > rcvFifo;
-   char rcvBuf[MAX_UDP_RCV_BUF];
    
    static atomic_t _cnt;
 };

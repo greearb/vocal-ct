@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.6 2004/06/02 20:23:10 greear Exp $";
 
 
 #include <string>
@@ -89,126 +89,155 @@ typedef enum
 
 
 /**
-   SipTransceiver is the main class for users the SIP stack.  It is the object
-   which the caller uses to send and receive SIP messages.
-*/
+ * SipTransceiver is the main class for users the SIP stack.
+ *  It is the object
+ *  which the caller uses to send and receive SIP messages.
+ */
 class SipTransceiver: public BugCatcher {
-    public:
-	/**
-         * hashTableSizeHint is what we'll use for the initial number of hash table
-         * buckets.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this
-         *  device with SO_BINDTODEV
-         */
- 	SipTransceiver(int hashTableSizeHint,
-                       const string& local_ip,
-                       const string& local_ip_to_bind_to,
-                       Data s, /* = 0 */
-		       int sipPort,/* = SIP_PORT, */
-		       bool nat/* = false*/ , 
-		       SipAppContext aContext/*=APP_CONTEXT_GENERIC*/,
-                       bool blocking);
+public:
+   /**
+    * hashTableSizeHint is what we'll use for the initial number of hash table
+    * buckets.
+    * @param local_dev_to_bind_to  If not "", we'll bind to this
+    *  device with SO_BINDTODEV
+    */
+   SipTransceiver(const string& local_ip,
+                  const string& local_ip_to_bind_to,
+                  Data s, /* = 0 */
+                  int sipPort,/* = SIP_PORT, */
+                  bool nat/* = false*/ , 
+                  SipAppContext aContext/*=APP_CONTEXT_GENERIC*/,
+                  bool blocking);
+
+   ///
+   virtual ~SipTransceiver();
+   
+   /**
+    * Copy on write is "expensive", can we change this interface,
+    * specially since we know that most of these are in Sptr's
+    * already
+    */
+   virtual void sendAsync(Sptr<SipCommand> sipMessage);
+
+   ///Interface so that we do not have to copy message again in stack
+   void sendAsync(Sptr<SipCommand> sipMessage, const Data& host/*=""*/,
+                  const Data& port /*=""*/);
+   
+   ///Interface so that we do not have to copy message again in stack
+   virtual void sendReply(Sptr<StatusMsg> sipMessage);
+
+   /**
+    ** Return a deque of SipMsgs, basically containing the msg chain.
+    *  Will not block (will return NULL if cannot read anything)
+    */
+   virtual Sptr < SipMsgQueue > receiveNB();
+   
+   ///
+   static void reTransOff();
+
+   ///
+   static void reTransOn();
 
 	///
-	virtual ~SipTransceiver();
+   static void setRetransTime(int initial = retransmitTimeInitial ,
+                              int max = retransmitTimeMax 
+                              /* Default values in TranscevierSymbols.hxx*/ );
 
-	/**
-	 * Copy on write is "expensive", can we change this interface,
-	 * specially since we know that most of these are in Sptr's
-	 * already
-	 */
-	virtual void sendAsync(SipCommand& sipMessage);
+   /// Used for debugging
+   void setRandomLosePercent(int percent);
 
-	///Interface so that we do not have to copy message again in stack
-	void sendAsync(Sptr<SipCommand> sipMessage, const Data& host="",
-                       const Data& port="5060");
+   const string getLocalIp() const { return localIp; }
 
-	///
-	virtual void sendReply(StatusMsg& sipMessage);
-
-	///Interface so that we do not have to copy message again in stack
-	virtual void sendReply(Sptr<StatusMsg> sipMessage);
-
-	/**
-	 ** Return a deque of SipMsgs, basically containing the msg chain.
-         *  Will not block (will return NULL if cannot read anything)
-	 */
-	virtual Sptr < SipMsgQueue > receiveNB();
-
-	///
-	static void reTransOff();
-
-	///
-	static void reTransOn();
-
-
-	///
-	static void setRetransTime(int initial = retransmitTimeInitial ,
-				   int max = retransmitTimeMax 
-				   /* Default values in TranscevierSymbols.hxx*/ );
-
-	/// Used for debugging
-	void setRandomLosePercent(int percent);
-
-        const string getLocalIp() const { return localIp; }
-
-	///
-	void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
+   ///
+   void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
 
 #if 0
-	///
-	SipTransactionDB::CallLegVector getCallLegMsgs(Sptr < SipMsg >
-						       sipmsg);
+   ///
+   SipTransactionDB::CallLegVector getCallLegMsgs(Sptr < SipMsg > sipmsg);
 #endif
 
-	///
-	void printSize();
+   ///
+   void printSize();
+   
+   ///
+   static SipAppContext myAppContext;
 
-	///
-	static SipAppContext myAppContext;
+   ///
+   Data getLocalNamePort() const;
 
-	///
-	Data getLocalNamePort() const;
-
-        static int getInstanceCount() { return atomic_read(&_cnt); }
-
-    private:
-	///
-        SipTransceiver();
-	SipTransceiver(const SipTransceiver&);
-	///
-	SipTransceiver& operator =(const SipTransceiver& src);
+   static int getInstanceCount() { return atomic_read(&_cnt); }
+   
+private:
+   ///
+   SipTransceiver();
+   SipTransceiver(const SipTransceiver&);
+   ///
+   SipTransceiver& operator =(const SipTransceiver& src);
   
 
-	/* ---------------------------------------------------------------
-           these will have to be shared iff there has to be thread pooling 
-           --------------------------------------------------------------- */
+   /* ---------------------------------------------------------------
+      these will have to be shared iff there has to be thread pooling 
+      --------------------------------------------------------------- */
+   
+   Sptr < SipUdpConnection > udpConnection;
 
-	Sptr < SipUdpConnection > udpConnection;
+   Sptr < SipTcpConnection > tcpConnection;
 
-	Sptr < SipTcpConnection > tcpConnection;
+   SipSentRequestDB sentRequestDB;
 
-	SipSentRequestDB sentRequestDB;
+   SipSentResponseDB sentResponseDB;
 
-	SipSentResponseDB sentResponseDB;
+   ///
+   void send(Sptr<SipMsgContainer> msgPtr, const Data& host,
+             const Data& port);
 
-	///
-	void send(SipMsgContainer *msgPtr, const Data& host="",
-                  const Data& port="5060");
+   void send(Sptr<SipMsgContainer> msgPtr);
   
-	/// SNMP details data member vriables
-	Sptr<SipAgent> sipAgent;
+   /// SNMP details data member vriables
+   Sptr<SipAgent> sipAgent;
 
-	Data myLocalNamePort;
+   Data myLocalNamePort;
+   
+   Data application;
   
-	Data application;
-  
-	bool natOn;
+   bool natOn;
+   
+   string localIp;
 
-        string localIp;
-
-        static atomic_t _cnt;
+   static atomic_t _cnt;
 };
+
+#if 0
+class TransactionDBStatus: public BugCatcher {
+public:
+   TransactionDBStatus(SipTransactionDB& x, Data label )
+         :myItem(x),
+          myLabel(label + ": ") {
+   }
+
+private:
+   SipTransactionDB& myItem;
+   Data myLabel;
+};
+
+
+class SipUdpStatus : public BugCatcher {
+public:
+   SipUdpStatus(SipUdpConnection& x, int port)
+         :myItem(x),
+          myLabel() {
+      char buf[256];
+      sprintf(buf, "UDP Stack (port %d): ", port);
+      myLabel = buf;
+   }
+   Data status() {
+      return myLabel + myItem.getDetails();
+   }
+private:
+   SipUdpConnection& myItem;
+   Data myLabel;
+};
+#endif
  
 } // namespace Vocal
 

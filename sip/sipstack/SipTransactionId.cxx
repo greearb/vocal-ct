@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionId_cxx_version =
-    "$Id: SipTransactionId.cxx,v 1.2 2004/06/01 07:23:31 greear Exp $";
+    "$Id: SipTransactionId.cxx,v 1.3 2004/06/02 20:23:10 greear Exp $";
 
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
@@ -120,7 +120,7 @@ string SipTransactionId::toString() {
 }
 
 
-void SipTrasactionId::clear() {
+void SipTransactionId::clear() {
     valid = false;
     level1 = "";
     level2 = "";

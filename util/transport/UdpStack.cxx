@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.3 2004/05/29 01:10:34 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.4 2004/06/02 20:23:10 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -1015,22 +1015,21 @@ UdpStack::receive ( const char* buf, const int bufSize, int flags )
 }
 
 
-int
-UdpStack::receiveFrom ( const char* buffer,
-                        const int bufSize,
-                        NetworkAddress* sender,
-                        int flags) // returns bytes read
-{
-    if ((mode == sendonly) || (mode == inactive))
-    {
-        cpLog(LOG_ERR, "The stack is not capable to receive. ");
-        return -1;
-    }
+int UdpStack::receiveFrom ( char* buffer,
+                            const int bufSize,
+                            NetworkAddress* sender,
+                            int flags) {
+   if ((mode == sendonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The stack is not capable to receive. ");
+      return -1;
+   }
 
-    struct sockaddr_storage xSrc;
+   struct sockaddr_storage xSrc;
+   int srcLen = sizeof(xSrc);
 
-    int srcLen = sizeof(xSrc);
-    if(sender) sender->getSockAddr(&xSrc);
+   if (sender) {
+      sender->getSockAddr(&xSrc);
+   }
 
 // 25/11/03 fpi
 // WorkAround Win32
@@ -1062,8 +1061,7 @@ UdpStack::receiveFrom ( const char* buffer,
     int len = 0;
     bool ipV6 = false;
     struct in6_pktinfo pktinfo;
-    if(NetworkConfig::instance().getAddrFamily() == AF_INET)
-    {
+    if (NetworkConfig::instance().getAddrFamily() == AF_INET) {
 #ifdef WIN32
        do {
           len = recvfrom( data->socketFd,
@@ -1084,310 +1082,272 @@ UdpStack::receiveFrom ( const char* buffer,
                        (socklen_t*) &srcLen);
 #endif
     }
-    else
-    {
-        ipV6 = true;
-        int _flags=flags;
-        len = recvfrom_flags( data->socketFd,
-                        (char *)buffer,
-                        bufSize,
-                        &_flags /*flags */ ,
-                        (struct sockaddr*) &xSrc,
-                        (socklen_t*) &srcLen,
-                        &pktinfo);
+    else {
+       ipV6 = true;
+       int _flags=flags;
+       len = recvfrom_flags( data->socketFd,
+                             (char *)buffer,
+                             bufSize,
+                             &_flags /*flags */ ,
+                             (struct sockaddr*) &xSrc,
+                             (socklen_t*) &srcLen,
+                             &pktinfo);
     }
 
-// #endif
-    if ( len <= 0 )
-    {
-        int err = errno;
-        if (errno == EAGAIN) {
-           // This can be a normal case...
-           len = -EAGAIN;
-        }
-        else {
-           strstream errMsg;
-           errMsg << "UdpStack<" << getLclName() << ">::receive error : ";
-           errMsg << strerror(err);
-           errMsg << char(0);
-           
-           cpLog(LOG_ERR, "%s", errMsg.str());
-           errMsg.freeze(false);
-        }
+    if ( len <= 0 ) {
+       int err = errno;
+       if ((errno == EAGAIN) || (errno == EINTR)) {
+          // This can be a normal case...
+          len = 0;
+       }
+       else {
+          strstream errMsg;
+          errMsg << "UdpStack<" << getLclName() << ">::receive error : ";
+          errMsg << strerror(err);
+          errMsg << char(0);
+          
+          cpLog(LOG_ERR, "%s", errMsg.str());
+          errMsg.freeze(false);
+       }
     }
-    else
-    {
-        if(sender)
-        {
-            struct sockaddr_storage xSrcT;
-	    sender->getSockAddr(&xSrcT);
-            if(memcmp(&xSrc, &xSrcT, srcLen)  == 0)
-	    {
-		//No need to set anything, return
-                numBytesReceived += len;
-                numPacketsReceived += 1;
-		return len;
-	    }
-            //Do the heavy-weight work only if the caller shows interest
-	    char hostname[256];
-	    char port[64];
-            hostname[0] = '\0';
-            port[0] = '\0';
-	    int err = getnameinfo((struct sockaddr *)&xSrc, srcLen, hostname, 256, port, 64, NI_NUMERICHOST | NI_NUMERICSERV);
-	    if (err) {
-                cpLog(LOG_ERR, "Failed to get the host name");
-	    }
+    else {
+       if (sender) {
+          struct sockaddr_storage xSrcT;
+          sender->getSockAddr(&xSrcT);
+          if (memcmp(&xSrc, &xSrcT, srcLen)  == 0) {
+             //No need to set anything, return
+             numBytesReceived += len;
+             numPacketsReceived += 1;
+             return len;
+          }
 
-            string tmp = hostname;
-            if(ipV6)
-            {
-                struct sockaddr_in6* sin6 = (struct sockaddr_in6*)&xSrc;
-                if(IN6_IS_ADDR_LOOPBACK((struct in6_addr*)&sin6->sin6_addr) &&
-                   (inet_ntop(AF_INET6, &pktinfo.ipi6_addr, hostname, 256)))
-                {
-	            tmp = "[";
-	            tmp += hostname;
-	            tmp += "]";
-                }
-                else
-                {
-	            tmp = "[";
-	            tmp += hostname;
-	            tmp += "]";
-                }
-            }
-            cpLog(LOG_DEBUG, "***Received from:%s:%s", tmp.c_str(), port);
-            sender->setPort(atoi(port));
-            if((sender->getIpName() != Data(hostname)))
-            {
-                sender->setHostName(tmp.c_str());
-            }
-        }
-        numBytesReceived += len;
-        numPacketsReceived += 1;
+          //TODO:  Should allow a way to disable this as it is a potentially
+          // long blocking call. --Ben
+          //Do the heavy-weight work only if the caller shows interest
+          char hostname[256];
+          char port[64];
+          hostname[0] = '\0';
+          port[0] = '\0';
+          int err = getnameinfo((struct sockaddr *)&xSrc, srcLen, hostname, 256, port, 64, NI_NUMERICHOST | NI_NUMERICSERV);
+          if (err) {
+             cpLog(LOG_ERR, "Failed to get the host name");
+          }
+          
+          string tmp = hostname;
+          if (ipV6) {
+             struct sockaddr_in6* sin6 = (struct sockaddr_in6*)&xSrc;
+             if (IN6_IS_ADDR_LOOPBACK((struct in6_addr*)&sin6->sin6_addr) &&
+                 (inet_ntop(AF_INET6, &pktinfo.ipi6_addr, hostname, 256))) {
+                tmp = "[";
+                tmp += hostname;
+                tmp += "]";
+             }
+             else {
+                tmp = "[";
+                tmp += hostname;
+                tmp += "]";
+             }
+          }
+          cpLog(LOG_DEBUG, "***Received from:%s:%s", tmp.c_str(), port);
+          sender->setPort(atoi(port));
+          if ((sender->getIpName() != Data(hostname))) {
+             sender->setHostName(tmp.c_str());
+          }
+       }
+       numBytesReceived += len;
+       numPacketsReceived += 1;
     }
 
-    if ( (logFlag) && (len > 0) )
-    {
-        strstream lenln2;
-        lenln2 << ++rcvCount << " " << len << "\n" << char(0);
-        in_log->write(lenln2.str(), strlen(lenln2.str()));
-        in_log->write(buffer, len);
-        in_log->write(separator, 6);
-        lenln2.freeze(false);
+    if ( (logFlag) && (len > 0) ) {
+       strstream lenln2;
+       lenln2 << ++rcvCount << " " << len << "\n" << char(0);
+       in_log->write(lenln2.str(), strlen(lenln2.str()));
+       in_log->write(buffer, len);
+       in_log->write(separator, 6);
+       lenln2.freeze(false);
     }
 
     return len;
-}
+}//receiveFrom
+
 
 int
-UdpStack::receiveTimeout ( const char* buffer,
+UdpStack::receiveTimeout ( char* buffer,
                            const int bufSize,
                            NetworkAddress* sender,
                            int sec,
                            int usec)
 {
 #ifndef __vxworks
-    timeval tv;
-    fd_set rset;
-    int fd = getSocketFD();
+   timeval tv;
+   fd_set rset;
+   int fd = getSocketFD();
 
 // Make the coket non-blocking and then change it againb after the receivfrom
 #ifndef WIN32
-    int retVal;
-    bool madeNonBlocking = false;
-    if(blockingFlg)
-    {
-        madeNonBlocking = true;
-        if(setModeBlocking(false) < 0)
-            return -1;
-    }
+   int retVal;
+   bool madeNonBlocking = false;
+   if (blockingFlg) {
+      madeNonBlocking = true;
+      if (setModeBlocking(false) < 0)
+         return -1;
+   }
 #else
-    int retVal;
-    unsigned long non_blocking = 1;
-    if (ioctlsocket(fd, FIONBIO, &non_blocking))
-        return -1;
+   int retVal;
+   unsigned long non_blocking = 1;
+   if (ioctlsocket(fd, FIONBIO, &non_blocking))
+      return -1;
 #endif
 
-    // select will return upon timeout, error or received message
-    FD_ZERO(&rset);
-    FD_SET(fd, &rset);
-    tv.tv_sec = sec;
-    tv.tv_usec = usec;
-    retVal = select(fd + 1, &rset, NULL, NULL, &tv);
-    // we don't care about no stinking error
-    if (retVal <= 0)
-        return retVal;
+   // select will return upon timeout, error or received message
+   FD_ZERO(&rset);
+   FD_SET(fd, &rset);
+   tv.tv_sec = sec;
+   tv.tv_usec = usec;
+   retVal = select(fd + 1, &rset, NULL, NULL, &tv);
+   // we don't care about no stinking error
+   if (retVal <= 0)
+      return retVal;
 
 
-    retVal = receiveFrom( buffer,
-                          bufSize,
-                          sender);
+   retVal = receiveFrom( buffer,
+                         bufSize,
+                         sender);
 
-    cpLog(LOG_DEBUG, "UdpStack::receiveTimeout, retVal: %d\n", retVal);
+   cpLog(LOG_DEBUG, "UdpStack::receiveTimeout, retVal: %d\n", retVal);
 
 #ifndef WIN32
-    if(madeNonBlocking)
-    {
-        if(setModeBlocking(true) < 0);
-            return -1;
-    }
+   if (madeNonBlocking) {
+      if (setModeBlocking(true) < 0);
+      return -1;
+   }
 #else
-	non_blocking = 0;
-	if (ioctlsocket(fd, FIONBIO, &non_blocking) != 0)
-	return -1;
+   non_blocking = 0;
+   if (ioctlsocket(fd, FIONBIO, &non_blocking) != 0)
+      return -1;
 #endif
 
-    return retVal;
+   return retVal;
 #else
 
-    cpLog(LOG_ERR, "UdpStack::receiveTimeout  * not defined in vxworks *\n");
-    return -1;
+   cpLog(LOG_ERR, "UdpStack::receiveTimeout  * not defined in vxworks *\n");
+   return -1;
 #endif
 }
 
 // uses send() which is better to get ICMP msg back
 // function returns a 0  normally
 void
-UdpStack::transmit ( const char* buf, const int length )
-{
-    if ((mode == recvonly) || (mode == inactive))
-    {
-        cpLog(LOG_ERR, "The stack is not capable to transmit. ");
-        return ;
-    }
+UdpStack::transmit ( const char* buf, const int length ) {
+   if ((mode == recvonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The stack is not capable to transmit. ");
+      return ;
+   }
 
-    assert(buf);
-    assert(length > 0);
+   assert(buf);
+   assert(length > 0);
 
-    if ( packetLossProbability > 0.0 )
-    {
-        static bool randInit = false;
-        if (!randInit)
-        {
-            randInit = true;
+   if ( packetLossProbability > 0.0 ) {
+      static bool randInit = false;
+      if (!randInit) {
+         randInit = true;
 
-            timeval tv;
-            gettimeofday(&tv, NULL);
+         timeval tv;
+         gettimeofday(&tv, NULL);
 
-            long seed = tv.tv_sec + tv.tv_usec;
+         long seed = tv.tv_sec + tv.tv_usec;
+         
+         srandom(seed);
+      }
 
-            srandom(seed);
-        }
+      double numerator( random() & 0x7FFFFFFF );
+      double denominator( 0x7FFFFFFF );
+      double prob = numerator / denominator;
+      if ( prob < packetLossProbability ) {
+         // ok - just drop this packet
+         return ;
+      }
+   }
 
-        double numerator( random() & 0x7FFFFFFF );
-        double denominator( 0x7FFFFFFF );
-        double prob = numerator / denominator;
-        if ( prob < packetLossProbability )
-        {
-            // ok - just drop this packet
-            return ;
-        }
-    }
+   int count = send( data->socketFd,
+                     (char *)buf, length,
+                     0 /* flags */ );
 
-    int count = send( data->socketFd,
-                      (char *)buf, length,
-                      0 /* flags */ );
-
-    if ( count < 0 )
-    {
-        int err = errno;
-        strstream errMsg;
-        errMsg << "UdpStack<" << getRmtName() << ">::transmit ";
-
-        switch (err)
-        {
-            case ECONNREFUSED:
-            {
-                // This is the most common error - you get it if the host
-                // does not exist or is nor running a program to recevice
-                // the packets. This is what you get with the other side
-                // crashes.
-
-                errMsg << "Connection refused by destination host";
-                errMsg << char(0);
-                cpLog(LOG_ERR, errMsg.str());
-
-#if 0
-                throw UdpStackExceptionConectionRefused(errMsg.str());
-#endif
-            }
-            break;
-            case EHOSTDOWN:
-            {
-                errMsg << "destination host is down";
-                errMsg << char(0);
-                cpLog(LOG_ERR, errMsg.str());
-
-            }
-            break;
-            case EHOSTUNREACH:
-            {
-                errMsg << "no route to to destination host";
-                errMsg << char(0);
-                cpLog(LOG_ERR,  errMsg.str());
-
-            }
-            break;
-            default:
-            {
-                errMsg << ": " << strerror(err);
-                errMsg << char(0);
-                cpLog(LOG_ERR, errMsg.str());
-            }
-        }
+   if ( count < 0 ) {
+      int err = errno;
+      strstream errMsg;
+      errMsg << "UdpStack<" << getRmtName() << ">::transmit ";
+      
+      switch (err) {
+      case ECONNREFUSED: {
+         // This is the most common error - you get it if the host
+         // does not exist or is nor running a program to recevice
+         // the packets. This is what you get with the other side
+         // crashes.
+         
+         errMsg << "Connection refused by destination host";
+         errMsg << char(0);
+         cpLog(LOG_ERR, errMsg.str());
+         break;
+      }
+      case EHOSTDOWN: {
+         errMsg << "destination host is down";
+         errMsg << char(0);
+         cpLog(LOG_ERR, errMsg.str());
+         break;
+      }
+      case EHOSTUNREACH: {
+         errMsg << "no route to to destination host";
+         errMsg << char(0);
+         cpLog(LOG_ERR,  errMsg.str());
+         break;
+      }
+      default: {
+         errMsg << ": " << strerror(err);
+         errMsg << char(0);
+         cpLog(LOG_ERR, errMsg.str());
+      }
+      }//switch
  
-        cpLog (LOG_ERR, "UDP send() error: ");
+      cpLog (LOG_ERR, "UDP send() error: ");
 
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
-    }
-    else if ( count != length )
-    {
-        /*
-                int err = errno;
-        */
-        strstream errMsg;
-        errMsg << "UdpStack<" << getRmtName()
-        << ">:transmit error is send: "
-        << "Asked to transmit " << length
-        << " bytes but only sent " << count ;
-        errMsg << char(0);
+      errMsg.freeze(false);
+   }
+   else if ( count != length ) {
+      /*
+        int err = errno;
+      */
+      strstream errMsg;
+      errMsg << "UdpStack<" << getRmtName()
+             << ">:transmit error is send: "
+             << "Asked to transmit " << length
+             << " bytes but only sent " << count ;
+      errMsg << char(0);
 
-        cpLog(LOG_ERR,  errMsg.str());
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
-    }
-    else
-    {
-        numBytesTransmitted += count;
-        numPacketsTransmitted += 1;
-    }
+      cpLog(LOG_ERR,  errMsg.str());
+      errMsg.freeze(false);
+   }
+   else {
+      numBytesTransmitted += count;
+      numPacketsTransmitted += 1;
+   }
 
 
-    if ( (logFlag) && (count > 0) )
-    {
-        strstream lenln3;
-        lenln3 << ++sndCount << " " << count << char(0);
-        out_log->write(lenln3.str(), strlen(lenln3.str()));
-        lenln3.freeze(false);
+   if ( (logFlag) && (count > 0) ) {
+      strstream lenln3;
+      lenln3 << ++sndCount << " " << count << char(0);
+      out_log->write(lenln3.str(), strlen(lenln3.str()));
+      lenln3.freeze(false);
+      
+      strstream rAddress1;
+      rAddress1 << " " << getRmtName() << "\n" << char(0);
+      out_log->write(rAddress1.str(), strlen(rAddress1.str()));
+      rAddress1.freeze(false);
 
-        strstream rAddress1;
-        rAddress1 << " " << getRmtName() << "\n" << char(0);
-        out_log->write(rAddress1.str(), strlen(rAddress1.str()));
-        rAddress1.freeze(false);
-
-        out_log->write(buf, count);
-        out_log->write(separator, 6);
-    }
-
-}
+      out_log->write(buf, count);
+      out_log->write(separator, 6);
+   }
+}//transmit
 
 
 string UdpStack::toString() {
@@ -1404,136 +1364,74 @@ string UdpStack::toString() {
 }
 
 
+// Returns number of bytes written, or -errno on error.
 int
 UdpStack::transmitTo ( const char* buffer,
                        const int length,
-                       const NetworkAddress* dest )
-{
+                       const NetworkAddress* dest ) {
 
-    if ((mode == recvonly) || (mode == inactive))
-    {
-        cpLog(LOG_ERR, "The stack is not capable to transmit. ");
-        return 4;
-    }
+   if ((mode == recvonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The stack is not capable to transmit. ");
+      return -EINVAL;
+   }
 
-    assert(buffer);
-    assert(length > 0);
+   assert(buffer);
+   assert(length > 0);
 
-    //SP setDestination(dest);
-    struct sockaddr_storage xDest;
-    memset(&xDest, 0, sizeof(xDest));
-    dest->getSockAddr(&xDest);
-    int count = sendto( data->socketFd,
-                        (char*)buffer,
-                        length,
-                        0 ,  // flags
-                        (struct sockaddr*) & xDest,
-                        sizeof(struct sockaddr_storage));
+   //SP setDestination(dest);
+   struct sockaddr_storage xDest;
+   memset(&xDest, 0, sizeof(xDest));
+   dest->getSockAddr(&xDest);
+   int count = sendto( data->socketFd,
+                       (char*)buffer,
+                       length,
+                       0 ,  // flags
+                       (struct sockaddr*) & xDest,
+                       sizeof(struct sockaddr_storage));
 
-    if ( count < 0 )
-    {
-        int err = errno;
-        ostrstream errMsg;
-        errMsg << "UdpStack<" << getRmtName() << ">::transmitTo error\n"
-               << toString() << "\n buffer: " << (void*)(buffer)
-               << " length: " << length << " dest: " << dest->toString()
-               << ", error: ";
+   if ( count < 0 ) {
+      int err = errno;
+      ostrstream errMsg;
+      errMsg << "UdpStack<" << getRmtName() << ">::transmitTo error\n"
+             << toString() << "\n buffer: " << (void*)(buffer)
+             << " length: " << length << " dest: " << dest->toString()
+             << ", error: ";
+      return -err;
+   }
+   else if ( count != length ) {
 
-        switch (err)
-        {
-            case ECONNREFUSED:
-            {
-                // This is the most common error - you get it if the host
-                // does not exist or is nor running a program to recevice
-                // the packets. This is what you get when the other side
-                // crashes.
+      strstream errMsg;
+      errMsg << "UdpStack<" << getRmtName()
+             << ">:transmit error is send: "
+             << "Asked to transmit " << length
+             << " bytes but only sent " << count ;
+      errMsg << char(0);
+      cpLog(LOG_ERR, errMsg.str());
 
-                errMsg << "Connection refused by destination host";
-                errMsg << char(0);
-                cpLog(LOG_ERR,  errMsg.str());
-                return 1;
-#if 0
-                throw UdpStackExceptionConectionRefused(errMsg.str());
-#endif
-            }
-            break;
-            case EHOSTDOWN:
-            {
-                errMsg << "destination host is down";
-                errMsg << char(0);
-                cpLog(LOG_ERR,  errMsg.str());
-                return 2;
-            }
-            break;
-            case EHOSTUNREACH:
-            {
-                errMsg << "no route to to destination host";
-                errMsg << char(0);
-                cpLog(LOG_ERR,  errMsg.str());
-                return 3;
-            }
-            break;
-            default:
-            {
-                errMsg << ": " << strerror(err); // << " *** " << host;
-                errMsg << char(0);
-                cpLog(LOG_ERR,  errMsg.str());
-                assert(0);
-                return 3;
-            }
-        }
+      assert(0); // This should never happen
+   }
+   else {
+      numBytesTransmitted += count;
+      numPacketsTransmitted += 1;
+   }
 
-        cpLog (LOG_ERR, "UDP sendto() error: ");
+   if ( (logFlag) && (count > 0) ) {
+      strstream lenln4;
+      lenln4 << ++sndCount << " " << count << char(0);
+      out_log->write(lenln4.str(), strlen(lenln4.str()));
+      lenln4.freeze(false);
 
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
-    }
-    else if ( count != length )
-    {
+      strstream rAddress2;
+      rAddress2 << " " << getRmtName() << "\n" << char(0);
+      out_log->write(rAddress2.str(), strlen(rAddress2.str()));
+      rAddress2.freeze(false);
 
-        //        int err = errno;
+      out_log->write(buffer, count);
+      out_log->write(separator, 6);
+   }
 
-        strstream errMsg;
-        errMsg << "UdpStack<" << getRmtName()
-        << ">:transmit error is send: "
-        << "Asked to transmit " << length
-        << " bytes but only sent " << count ;
-        errMsg << char(0);
-
-        cpLog(LOG_ERR, errMsg.str());
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
-    }
-    else
-    {
-        numBytesTransmitted += count;
-        numPacketsTransmitted += 1;
-    }
-
-    if ( (logFlag) && (count > 0) )
-    {
-        strstream lenln4;
-        lenln4 << ++sndCount << " " << count << char(0);
-        out_log->write(lenln4.str(), strlen(lenln4.str()));
-        lenln4.freeze(false);
-
-        strstream rAddress2;
-        rAddress2 << " " << getRmtName() << "\n" << char(0);
-        out_log->write(rAddress2.str(), strlen(rAddress2.str()));
-        rAddress2.freeze(false);
-
-        out_log->write(buffer, count);
-        out_log->write(separator, 6);
-    }
-
-    return 0;
-}
+   return count;
+}//transmitTo
 
 
 ///
