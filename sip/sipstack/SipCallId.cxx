@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCallId_cxx_Version =
-    "$Id: SipCallId.cxx,v 1.3 2004/11/04 05:16:41 greear Exp $";
+    "$Id: SipCallId.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipCallId.hxx"
@@ -164,7 +164,7 @@ SipCallId::parse( const Data& calliddata)
 
         scanSipCallId(data);
     }
-    catch (SipCallIdParserException exception)
+    catch (SipCallIdParserException&)
     {
         if (SipParserMode::sipParserMode())
         {
@@ -190,7 +190,7 @@ SipCallId::decode( const Data& callidstr )
     {
         parse(callidstr);
     }
-    catch (SipCallIdParserException exception)
+    catch (SipCallIdParserException&)
     {
 
         if (SipParserMode::sipParserMode())

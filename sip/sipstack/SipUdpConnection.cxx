@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.10 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.11 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -57,6 +57,7 @@ static const char* const SipUdpConnection_cxx_Version =
 #include "SipCommand.hxx"
 #include "StatusMsg.hxx"
 #include "SipVia.hxx"
+#include <errno.h>
 
 
 using namespace Vocal;

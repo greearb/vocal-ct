@@ -56,7 +56,7 @@
 
 
 static const char* const mstringHeaderVersion =
-    "$Id: mstring.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: mstring.hxx,v 1.2 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -201,19 +201,19 @@ class mstring : public string
         mstring & tab2sp(unsigned tab_size = 8);
 
         ///Compare two strings. The function is provided just for convinience and uniformity
-        int compare(const string &str, size_type len = npos) const;
+        int compare(const string &str, size_type len = string::npos) const;
 
         ///Compare two strings ignoring case. The function is provided just for convinience and uniformity
         int comparei(const string &str, size_type len = npos) const;
 
         ///Compare two strings. The function is provided just for convinience and uniformity
-        friend int compare(const mstring &str1, const mstring &str2, size_type len = npos)
+        friend int compare(const mstring &str1, const mstring &str2, size_type len = string::npos)
         {
             return str1.compare(str2, len);
         }
 
         ///Compare two strings ignoring case. The function is provided just for convinience and uniformity
-        friend int comparei(const mstring &str1, const mstring &str2, size_type len = npos)
+        friend int comparei(const mstring &str1, const mstring &str2, size_type len = string::npos)
         {
             return str1.comparei(str2, len);
         }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAlso_cxx_Version =
-    "$Id: SipAlso.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipAlso.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -250,7 +250,7 @@ SipAlso::parse( const Data& alsodata)
     {
         scanSipAlso(data);
     }
-    catch (SipAlsoParserException exception)
+    catch (SipAlsoParserException&)
     {
         if (SipParserMode::sipParserMode())
         {
@@ -276,7 +276,7 @@ SipAlso::decode( const Data& alsostr )
     {
         parse(alsostr);
     }
-    catch (SipAlsoParserException exception)
+    catch (SipAlsoParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

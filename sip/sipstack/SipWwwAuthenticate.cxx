@@ -50,7 +50,7 @@
  */
 
 static const char* const SipWwwAuthenticate_cxx_Version =
-    "$Id: SipWwwAuthenticate.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
+    "$Id: SipWwwAuthenticate.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -139,13 +139,13 @@ SipWwwAuthenticate::decode(const Data& data)
     {
         scanSipWwwauthorization(nData);
     }
-    catch (SipWwwAuthenticateParserException exception)
+    catch (SipWwwAuthenticateParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
 
             throw SipWwwAuthenticateParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__,
                 DECODE_FAILED_WWWAUTHENTICATE

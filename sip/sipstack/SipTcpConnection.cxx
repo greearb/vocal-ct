@@ -49,12 +49,13 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.10 2004/09/30 23:17:43 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.11 2004/11/19 01:54:38 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "global.h"
 #include "InviteMsg.hxx"

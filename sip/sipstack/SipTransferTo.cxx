@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransferTo_cxx_Version =
-    "$Id: SipTransferTo.cxx,v 1.3 2004/06/16 06:51:26 greear Exp $";
+    "$Id: SipTransferTo.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipTransferTo.hxx"
@@ -258,7 +258,7 @@ SipTransferTo::parse( const Data& todata)
 
         scanSipTransferTo(data);
     }
-    catch (SipTransferToParserException exception)
+    catch (SipTransferToParserException&)
     {
         if (SipParserMode::sipParserMode())
         {
@@ -280,7 +280,7 @@ SipTransferTo::decode( const Data& tostr )
     {
         parse(tostr);
     }
-    catch (SipTransferToParserException exception)
+    catch (SipTransferToParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

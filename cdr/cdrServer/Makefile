@@ -1,10 +1,10 @@
-# $Id: Makefile,v 1.2 2004/08/18 22:39:14 greear Exp $
+# $Id: Makefile,v 1.3 2004/11/19 01:54:37 greear Exp $
 
 BUILD = ../../build
 
 include $(BUILD)/Makefile.pre
 
-PACKAGES += CDRLIB PSLIB SIP PROXYBASE PSUTILIB HEARTBEAT UTIL LIBCEXT PTHREAD LIBXML OPENSSL
+PACKAGES += CDRLIB PSLIB SIP PROXYBASE PSUTILIB HEARTBEAT UTIL LIBCEXT PTHREAD LIBXML OPENSSL SDP2
 
 # names of programs (e.g. test programs) to be compiled
 TESTPROGRAMS = cdrserv.cxx

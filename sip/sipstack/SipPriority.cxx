@@ -50,7 +50,7 @@
  */
 
 static const char* const SipPriority_cxx_Version =
-    "$Id: SipPriority.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipPriority.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 
@@ -134,7 +134,7 @@ SipPriority::decode(const Data& vdata)
     {
         scanPriority(data1);
     }
-    catch (SipPriorityParserException exception)
+    catch (SipPriorityParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

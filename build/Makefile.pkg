@@ -1,4 +1,4 @@
-# $Id: Makefile.pkg,v 1.2 2004/05/05 06:37:32 greear Exp $
+# $Id: Makefile.pkg,v 1.3 2004/11/19 01:54:36 greear Exp $
 
 # The license applies to all software incorporated in the "Vovida
 # Open Communication Application Library" except for those portions
@@ -467,7 +467,8 @@ ifeq ($(VOCAL_HAS_POSTGRESQL),true)
 # PostgreSQL libraries
 PGSQL_INCLUDEDIRS := /usr/include/pgsql
 PGSQL_LIBNAME := pq
-PGSQL_DEPENDS := /usr/lib/libpq.a
+# Can't do this...what if we're using shared libraries?? --Ben
+#PGSQL_DEPENDS := /usr/lib/libpq.a
 
 endif
 

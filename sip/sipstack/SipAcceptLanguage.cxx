@@ -50,7 +50,7 @@
  */
 
 static const char* const SipAcceptLanguage_cxx_Version =
-    "$Id: SipAcceptLanguage.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipAcceptLanguage.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -99,7 +99,7 @@ void SipAcceptLanguage::decode(const Data& vdata)
 
         scanAcceptLanguage(vdata);
     }
-    catch (SipAcceptLanguageParserException exception)
+    catch (SipAcceptLanguageParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

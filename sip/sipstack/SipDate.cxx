@@ -49,7 +49,7 @@
  */
 
 static const char* const SipDate_cxx_Version =
-    "$Id: SipDate.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipDate.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -109,7 +109,7 @@ SipDate::decode(const Data& data)
 
         scanSipDate(nData);
     }
-    catch (SipDateParserException exception)
+    catch (SipDateParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.6 2004/11/04 05:16:40 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.7 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -63,6 +63,7 @@ static const char* const RtpReceiver_cxx_Version =
 #include "vtypes.h"
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 #include "cpLog.h"
 #include "vsock.hxx"

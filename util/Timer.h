@@ -56,7 +56,7 @@
 
 
 static const char* const TimerHeaderVersion =
-    "$Id: Timer.h,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: Timer.h,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 
@@ -219,7 +219,7 @@ bool Timer < T > ::sleepFor(timeval* t)
             // indicate almost no time to wait!
             t->tv_sec = 0;
             t->tv_usec = 1;
-            XDEBUG(3, cout << "diff: " << tv_diff(events.front().myTime, now) << endl; ) ;
+            //XDEBUG(3, cout << "diff: " << tv_diff(events.front().myTime, now) << endl; ) ;
             retval = false;
         }
         else
@@ -254,8 +254,7 @@ void Timer < T > ::insert(T obj, int msDelay)
     int err = gettimeofday(&now, NULL);
     assert( !err );
 
-    XDEBUG(3, cout << "DELAY: " << msDelay << endl;
-          );
+    //XDEBUG(3, cout << "DELAY: " << msDelay << endl);
     addMs(&now, msDelay);
 
     TimerObj < T > x(now, obj);

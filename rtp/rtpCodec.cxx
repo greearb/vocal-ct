@@ -50,7 +50,9 @@
  */
 
 static const char* const rtpCodec_cxx_Version =
-    "$Id: rtpCodec.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: rtpCodec.cxx,v 1.2 2004/11/19 01:54:38 greear Exp $";
+
+#include <errno.h>
 
 #include "global.h"
 #include "rtpCodec.h"

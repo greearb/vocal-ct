@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReferredBy_cxx_version =
-    "$Id: SipReferredBy.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipReferredBy.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipReferredBy.hxx"
@@ -314,7 +314,7 @@ SipReferredBy::parse( const Data& refertodata)
         }
 
     }
-    catch (SipReferredByParserException exception)
+    catch (SipReferredByParserException&)
     {
         if (SipParserMode::sipParserMode())
         {
@@ -403,7 +403,7 @@ SipReferredBy::decode( const Data& alsostr )
 	// AmyS - 05/16/02. Parse w/o Referred-By in the str.
         parse(alsostr);
     }
-    catch (SipReferredByParserException exception)
+    catch (SipReferredByParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

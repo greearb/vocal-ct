@@ -50,7 +50,7 @@
  */
 
 static const char* const SipInReplyTo_cxx_Version =
-    "$Id: SipInReplyTo.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipInReplyTo.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -121,13 +121,13 @@ void SipInReplyTo::decode(const Data& data)
 
         scanSipInReplyTo(nData);
     }
-    catch (SipInReplyToParserException exception)
+    catch (SipInReplyToParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in Constructor in Sip InReply TO  : ( ");
             throw SipInReplyToParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_INREPLYTO_FAILED
             );

@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile.tools,v 1.2 2004/11/19 01:54:37 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -26,10 +26,18 @@
 
 ##############################  GNU toolchain  ##############################
 
+#  It is useful to allow CC and CXX to be set by a ./config or similar
+# script.  So, source this file if it exists
+
+include $(ROOT)/build/Makefile.cc_config
+
 
 ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
-CC		= gcc
-CXX		= g++
+
+# Use whatever is already in our environment.
+#CC		= gcc
+#CXX		= g++
+
 # This is desired, forces you to fix some things...
 MKSHLIB		= $(CC) -fPIC -shared -Wl,-z,defs
 #MKSHLIB		= $(CC) -fPIC -shared

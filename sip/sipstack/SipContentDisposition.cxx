@@ -50,7 +50,7 @@
  */
 
 static const char* const SipContentDisposition_cxx_Version =
-    "$Id: SipContentDisposition.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipContentDisposition.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipContentDisposition.hxx"
@@ -113,7 +113,7 @@ void SipContentDisposition::decode(const Data& data)
 
         scanSipContentDisposition(nData);
     }
-    catch (SipContentDispositionParserException exception)
+    catch (SipContentDispositionParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

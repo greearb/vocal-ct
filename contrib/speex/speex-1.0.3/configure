@@ -5437,7 +5437,9 @@ fi
 LIBTOOL_DEPS="$ac_aux_dir/ltmain.sh"
 
 # Always use our own libtool.
-LIBTOOL='$(SHELL) $(top_builddir)/libtool'
+#LIBTOOL='$(SHELL) $(top_builddir)/libtool'
+# Actually, lets use the OS's. --Ben
+LIBTOOL=libtool
 
 # Prevent multiple expansion
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipContentLanguage_cxx_Version =
-    "$Id: SipContentLanguage.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipContentLanguage.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -125,13 +125,13 @@ void SipContentLanguage::decode(const Data& data)
 
         scanSipContentLanguage(nData);
     }
-    catch (SipContentLanguageParserException exception)
+    catch (SipContentLanguageParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in decode method of ContentLanguage  :( ");
             throw SipContentLanguageParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_CONTENTLANGUAGE_FAILED
             );

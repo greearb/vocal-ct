@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRedirect_cxx_Version =
-    "$Id: SipDiversion.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipDiversion.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "cpLog.h"
@@ -259,7 +259,7 @@ void SipDiversion::decode(const Data& diversiondata)
     {
         parse(rdata);
     }
-    catch (SipDiversionParserException exception)
+    catch (SipDiversionParserException&)
     {
         if (SipParserMode::sipParserMode())
         {
@@ -391,7 +391,7 @@ SipDiversion::parse( const Data& diversiondata)
 
         scanSipDiversion(data);
     }
-    catch (SipDiversionParserException exception)
+    catch (SipDiversionParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.5 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.6 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -79,6 +79,7 @@ static const char* const RtcpReceiver_cxx_Version =
 #include "Rtp.hxx"
 #include "Rtcp.hxx"
 #include <misc.hxx>
+#include <errno.h>
 
 
 /* ----------------------------------------------------------------- */

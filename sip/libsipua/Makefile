@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
+# $Id: Makefile,v 1.3 2004/11/19 01:54:38 greear Exp $
 
 BUILD = ../../build
 
@@ -12,7 +12,7 @@ PACKAGES += PROXYBASE RADIUS SIP SDP2 UTIL LIBXML
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L../sipstack/obj.$(TARGET_NAME)/ \
    -L$(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)/  -L$(ROOT)/sip/base/obj.$(TARGET_NAME)/ 
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil -lsip -lsdp2 -lproxyBase
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lsip -lsdp2 -lproxyBase
 
 
 INCDIRS += $(ROOT)/sip/libsipua  $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/libsipua/controlState

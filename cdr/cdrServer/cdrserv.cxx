@@ -49,7 +49,7 @@
  */
 
 static const char* const cdrserv_cxx_Version =
-    "$Id: cdrserv.cxx,v 1.4 2004/08/18 22:39:14 greear Exp $";
+    "$Id: cdrserv.cxx,v 1.5 2004/11/19 01:54:37 greear Exp $";
 
 #include "VCdrException.hxx"
 #include "CommandLine.hxx"
@@ -58,6 +58,7 @@ static const char* const cdrserv_cxx_Version =
 #include "HeartbeatThread.hxx"
 #include "cpLog.h"
 #include <ProvisionInterface.hxx>
+#include <errno.h>
 
 
 bool cdr_running = true;

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipAuthorization_cxx_version =
-    "$Id: SipAuthorization.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipAuthorization.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipAuthorization.hxx"
@@ -127,24 +127,20 @@ SipAuthorization::operator ==( const SipAuthorization& src) const
 
 
 void 
-SipAuthorization::decode(const Data& data)
-{
+SipAuthorization::decode(const Data& data) {
     Data nData = data;
-
-    try
-    {
+    
+    try {
         scanSipAuthorization(nData);
     }
-    catch (SipAuthorizationParserException exception)
-    {
-        if (SipParserMode::sipParserMode())
-        {
+    catch (SipAuthorizationParserException e) {
+        if (SipParserMode::sipParserMode()) {
             throw SipAuthorizationParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__,
                 DECODE_FAILED_AUTHORIZE
-            );
+                );
         }
     }
 }
@@ -330,11 +326,3 @@ SipAuthorization::compareSipHeader(SipHeader* msg) const
 	return false;
     }
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -50,7 +50,7 @@
  */
 
 static const char* const SipProxyAuthenticate_cxx_Version =
-    "$Id: SipProxyAuthenticate.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipProxyAuthenticate.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "cpLog.h"
@@ -133,13 +133,13 @@ SipProxyAuthenticate::decode(const Data& data)
     {
         scanSipProxyauthorization(nData);
     }
-    catch (SipProxyAuthenticateParserException exception)
+    catch (SipProxyAuthenticateParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
 
             throw SipProxyAuthenticateParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__,
                 DECODE_FAILED_PROXYAUTHENTICATE

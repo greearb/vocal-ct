@@ -1,6 +1,11 @@
-# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
+# $Id: Makefile,v 1.3 2004/11/19 01:54:37 greear Exp $
 
 # $Log: Makefile,v $
+# Revision 1.3  2004/11/19 01:54:37  greear
+# First attempt at allowing a 32-bit compile on Opteron.  Had to fix
+# some code that GCC 3.4 would not compile as well.
+# --Ben
+#
 # Revision 1.2  2004/06/22 02:24:04  greear
 # gua can now make calls to itself.  Have not tested registration yet.
 # Have not driven through CLI yet...
@@ -63,8 +68,8 @@ TARGET_LIBRARY = libcdr
 
 PACKAGES += UTIL LIBXML
 
-MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lxml -lvutil
+MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/lib.$(TARGET_NAME)/
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvxml -lvutil
 
 
 # name of all files to be compiled (don't include header files)

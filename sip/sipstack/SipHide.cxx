@@ -49,7 +49,7 @@
  */
 
 static const char* const SipHide_cxx_Version =
-    "$Id: SipHide.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipHide.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipHide.hxx"
@@ -117,13 +117,13 @@ void SipHide::decode(const Data& vdata)
 
         scanHide(data1);
     }
-    catch (SipHideParserException exception)
+    catch (SipHideParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in decode() of Hide : ( ");
             throw SipHideParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_HIDE_FAILED
             );

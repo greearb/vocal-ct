@@ -49,7 +49,7 @@
  */
 
 static const char* const SipReplaces_cxx_version =
-    "$Id: SipReplaces.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipReplaces.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "SipParserMode.hxx"
 #include "SipReplaces.hxx"
@@ -150,7 +150,7 @@ SipReplaces::decode( const Data& data )
         pdata += data;
         parse(pdata);
     }
-    catch (SipReplacesParserException exception)
+    catch (SipReplacesParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

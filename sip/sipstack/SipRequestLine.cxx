@@ -49,7 +49,7 @@
  */
 
 static const char* const SipRequestLine_cxx_Version =
-    "$Id: SipRequestLine.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipRequestLine.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipRequestLine.hxx"
@@ -151,7 +151,7 @@ SipRequestLine::decode(const Data& data) throw (SipRequestLineParserException&)
     {
         scanSipRequestLine(nData);
     }
-    catch (SipRequestLineParserException exception)
+    catch (SipRequestLineParserException&)
     {
         cpLog(LOG_ERR, "Failed to Decode in Constructor of Requestline, data: %s",
               data.c_str());

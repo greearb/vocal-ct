@@ -1,11 +1,12 @@
-# $Id: Makefile,v 1.5 2004/11/05 07:25:06 greear Exp $
+# $Id: Makefile,v 1.6 2004/11/19 01:54:38 greear Exp $
 
 BUILD = ../build
 
 include $(BUILD)/Makefile.pre
 
 # Fixes screwup with RH 9.0 (NPTL libraries & kernel, specifically)
-MKSHLIB_LIBS += -lstdc++ -lm -lgcc_s
+#MKSHLIB_LIBS += -lstdc++ -lm -lgcc_s
+MKSHLIB_LIBS += -lstdc++ -lm
 
 TARGET_LIBRARY = libvutil
 

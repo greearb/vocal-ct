@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateInCall_cxx_Version =
-    "$Id: UaStateInCall.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaStateInCall.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "UaStateInCall.hxx"
 #include "UaStateFactory.hxx"
@@ -61,6 +61,8 @@ static const char* const UaStateInCall_cxx_Version =
 #include "SystemInfo.hxx"
 #include "CancelMsg.hxx"
 #include "UaBase.hxx"
+#include <errno.h>
+
 
 using namespace Vocal::UA;
 

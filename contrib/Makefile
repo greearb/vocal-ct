@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/08/20 07:29:33 greear Exp $
+# $Id: Makefile,v 1.4 2004/11/19 01:54:37 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -78,7 +78,7 @@ imap:
 else
 imap: imap.$(OS_ARCH)
 	$(LNDIR) ../imap imap.$(OS_ARCH)
-	cd imap.$(OS_ARCH) && env MAKEFLAGS= MAKELEVEL= $(MAKE) $(IMAP_OS_ARG)
+	(cd imap.$(OS_ARCH) && MAKEFLAGS= MAKELEVEL= CC="$(CC)" $(MAKE) $(IMAP_OS_ARG))
 
 imap.$(OS_ARCH):
 	-mkdir imap.$(OS_ARCH) 
@@ -117,7 +117,7 @@ ifeq ($(OSTYPE),SunOS)
 XERCES_CONFIGURE=-psolaris -ccc -xCC -minmem -nfileonly -tnative
 else
   ifeq ($(OSTYPE),Linux)
-    XERCES_CONFIGURE=-plinux -c$(CC) -x$(CXX) -minmem -nfileonly -tnative
+    XERCES_CONFIGURE=-plinux -c"$(CC)" -x"$(CXX)" -minmem -nfileonly -tnative
   endif
 endif
 
@@ -141,12 +141,12 @@ libxml: ../lib.$(TARGET_NAME)/libvxml.so
 	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.so.2.6.11 $@
 
 libxmlB: libxml2.$(TARGET_NAME)
-	cd libxml2.$(TARGET_NAME) ; env CC=$(CC) $(MAKE)
+	(cd libxml2.$(TARGET_NAME) ; CC="$(CC)" $(MAKE))
 	cd libxml2.$(TARGET_NAME)/.libs ; ln -s -f libxml2.so libvxml.so
 
 libxml2.$(TARGET_NAME):
 	$(LNDIR) ../libxml2-2.6.11 libxml2.$(TARGET_NAME)
-	cd libxml2.$(TARGET_NAME) ; env CC=$(CC) $(CONFIGURE) --without-threads
+	(cd libxml2.$(TARGET_NAME) ; CC="$(CC)" $(CONFIGURE) --without-threads --without-python)
 endif
 
 libcext: libcext_bsd libcext_lgpl
@@ -172,7 +172,7 @@ libcext_lgpl.$(OS_ARCH):
 speex_targ: ../lib.$(TARGET_NAME)/libspeex.so.1
 
 speex_targB: speex.$(TARGET_NAME);
-	cd speex.$(TARGET_NAME); env CC=$(CC) $(MAKE); $(MAKE) install
+	(cd speex.$(TARGET_NAME); CC="$(CC)" $(MAKE); CC="$(CC)" $(MAKE) install)
 
 ../lib.$(TARGET_NAME)/libspeex.so.1:  speex_targB
 	mkdir -p ../lib.$(TARGET_NAME)
@@ -182,7 +182,7 @@ speex_targB: speex.$(TARGET_NAME);
 speex.$(TARGET_NAME):
 	mkdir -p ../speex/speex-1.0.3/build
 	$(LNDIR) ../speex/speex-1.0.3 speex.$(TARGET_NAME)
-	cd speex.$(TARGET_NAME) ; env CC=$(CC) ./configure --prefix=`pwd`/build
+	(cd speex.$(TARGET_NAME) ; CC="$(CC)" ./configure --prefix=`pwd`/build)
 
 
 
@@ -193,7 +193,7 @@ else
 newsndfile: ../lib.$(TARGET_NAME)/libsndfile.so.1
 
 newsndfileB: newsndfile.$(OS_ARCH)
-	cd newsndfile.$(OS_ARCH) ; env CC=$(CC) $(MAKE_NOJ)
+	(cd newsndfile.$(OS_ARCH) ; CC="$(CC)" $(MAKE_NOJ))
 
 ../lib.$(TARGET_NAME)/libsndfile.so.1:  newsndfileB
 	mkdir -p ../lib.$(TARGET_NAME)
@@ -205,18 +205,18 @@ ifeq ($(OSTYPE),SunOS)
 newsndfile.$(OS_ARCH):
 	$(LNDIR) ../$(SNDFILEVERSION) newsndfile.$(OS_ARCH)
 	ln -s /usr/include/assert.h newsndfile.$(OS_ARCH)/src/GSM610/assert.h
-	cd newsndfile.$(OS_ARCH) ; env CC=$(CC) $(CONFIGURE)
+	(cd newsndfile.$(OS_ARCH) ; CC="$(CC)" $(CONFIGURE))
 else
 newsndfile.$(OS_ARCH):
 	$(LNDIR) ../$(SNDFILEVERSION) newsndfile.$(OS_ARCH)
 ifeq ($(VOCAL_TOOLCHAIN_TYPE),armcross)
-	cd newsndfile.$(OS_ARCH) ; env CC=$(CC) $(CONFIGURE) --disable-gcc-opt
+	(cd newsndfile.$(OS_ARCH) ; CC="$(CC)" $(CONFIGURE) --disable-gcc-opt)
 	echo '#define GUESS_LITTLE_ENDIAN 1' >> newsndfile.$(OS_ARCH)/src/config.h
 else
-	cd newsndfile.$(OS_ARCH) ; env CC=$(CC) $(CONFIGURE)
+	(cd newsndfile.$(OS_ARCH) ; CC="$(CC)" $(CONFIGURE))
 
 
-#	cd newsndfile.$(OS_ARCH) ; ./ltconfig ltmain.sh; aclocal; env CC=$(CC) $(CONFIGURE)
+#	(cd newsndfile.$(OS_ARCH) ; ./ltconfig ltmain.sh; aclocal; CC="$(CC)" $(CONFIGURE))
 
 endif
 endif
@@ -254,11 +254,12 @@ cleanall: clean
 
 clean:
 	-rm -rf xerces-c-src1_4_0.$(OS_ARCH)
-	-rm -rf libxml2.$(OS_ARCH)
+	-rm -rf libxml2.$(TARGET_NAME)
 	-rm -rf Equivalence.$(OS_ARCH)
 	-rm -rf yarrow.$(OS_ARCH)
 	-rm -rf newsndfile.$(OS_ARCH)
 	-rm -rf speex.*
+	-rm -f speex/speex-1.0.3/config.cache
 	-rm -rf imap.$(OS_ARCH)
 	-if [ -d yarrow ]; then cd yarrow ; $(MAKE) clean; fi
 	-if [ -d quicknet ]; then cd quicknet; $(MAKE) clean; fi

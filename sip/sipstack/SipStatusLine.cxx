@@ -50,7 +50,7 @@
  */
 
 static const char* const SipStatusLine_cxx_Version =
-    "$Id: SipStatusLine.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipStatusLine.cxx,v 1.2 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "SipStatusLine.hxx"
@@ -166,7 +166,7 @@ SipStatusLine::decode(const Data& data)
 
         scanSipStatusLine(nData);
     }
-    catch (SipStatusLineParserException exception)
+    catch (SipStatusLineParserException&)
     {
         cpLog(LOG_ERR, "Failed to decode data: <%s>", data.logData());
         assert(0);

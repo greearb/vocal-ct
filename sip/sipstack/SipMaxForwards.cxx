@@ -50,7 +50,7 @@
  */
 
 static const char* const SipMaxForwards_cxx_Version =
-    "$Id: SipMaxForwards.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipMaxForwards.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -119,13 +119,13 @@ void SipMaxForwards::decode(const Data& data)
 
         scanSipMaxForwards(nData);
     }
-    catch (SipMaxForwardsParserException exception)
+    catch (SipMaxForwardsParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in decode() of SipMaxForwards  : ( ");
             throw SipMaxForwardsParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_MAXFORWARDS_FAILED
             );

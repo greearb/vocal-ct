@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCSeq_cxx_Version =
-    "$Id: SipCSeq.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipCSeq.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -169,7 +169,7 @@ SipCSeq::decode( const Data& cseqstr )
     {
         parse(cseqstr);
     }
-    catch (SipCSeqParserException exception)
+    catch (SipCSeqParserException&)
     {
 
         if (SipParserMode::sipParserMode())
@@ -233,7 +233,7 @@ SipCSeq::parse( const Data& cseqdata)
     {
         scanSipCSeq(data);
     }
-    catch (SipCSeqParserException exception)
+    catch (SipCSeqParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

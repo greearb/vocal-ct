@@ -50,7 +50,7 @@
  */
 
 static const char* const SipOrganization_cxx_Version =
-    "$Id: SipOrganization.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipOrganization.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 
@@ -122,14 +122,14 @@ void SipOrganization::decode(const Data& data)
     {
         scanSipOrganization(nData);
     }
-    catch (SipOrganizationParserException exception)
+    catch (SipOrganizationParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in Constructor : ( ");
 
             throw SipOrganizationParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_ORGANIZATION_FAILED );
         }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipContentEncoding_cxx_Version =
-    "$Id: SipContentEncoding.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipContentEncoding.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 #include "SipContentEncoding.hxx"
 #include "SipParserMode.hxx"
@@ -113,7 +113,7 @@ SipContentEncoding::decode(const Data& indata)
     {
         scanSipContentEncoding(nData);
     }
-    catch (SipContentEncodingParserException exception)
+    catch (SipContentEncodingParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

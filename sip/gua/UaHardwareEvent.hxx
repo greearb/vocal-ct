@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const UaHardwareEventVersion =
-    "$Id: UaHardwareEvent.hxx,v 1.2 2004/06/19 00:51:08 greear Exp $";
-
 #include <string>
 #include <vector>
 #include "SipProxyEvent.hxx"

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.6 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -58,6 +58,7 @@ static const char* const RtpSession_cxx_Version =
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -69,7 +70,6 @@ static const char* const RtpSession_cxx_Version =
 #include "Rtp.hxx"
 #include "Rtcp.hxx"
 #include "RtpSession.hxx"
-
 
 
 /* ----------------------------------------------------------------- */

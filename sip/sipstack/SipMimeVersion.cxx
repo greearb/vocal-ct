@@ -50,7 +50,7 @@
  */
 
 static const char* const SipMimeVersion_cxx_Version =
-    "$Id: SipMimeVersion.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipMimeVersion.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
 
 
 #include "global.h"
@@ -114,13 +114,13 @@ void SipMimeVersion::decode(const Data& data)
 
         scanSipMimeVersion(nData);
     }
-    catch (SipMimeVersionParserException exception)
+    catch (SipMimeVersionParserException e)
     {
         if (SipParserMode::sipParserMode())
         {
             cpLog(LOG_ERR, "Failed to Decode in decode() of SipMimeVersion  : ( ");
             throw SipMimeVersionParserException(
-                exception.getDescription(),
+                e.getDescription(),
                 __FILE__,
                 __LINE__, DECODE_MIMEVERSION_FAILED
             );

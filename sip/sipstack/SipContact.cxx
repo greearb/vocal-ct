@@ -49,7 +49,7 @@
  */
 
 static const char* const SipContact_cxx_Version =
-    "$Id: SipContact.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipContact.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -129,7 +129,7 @@ SipContact::decode( const Data& contactstr )
     {
         parse(contactstr);
     }
-    catch (SipContactParserException exception)
+    catch (SipContactParserException&)
     {
         if (SipParserMode::sipParserMode())
         {

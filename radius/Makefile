@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/06/22 02:24:04 greear Exp $
+# $Id: Makefile,v 1.3 2004/11/19 01:54:38 greear Exp $
 
 BUILD = ../build
 
@@ -9,7 +9,7 @@ TARGET_LIBRARY = libradius
 PACKAGES += UTIL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil
 
 
 SRC = \
