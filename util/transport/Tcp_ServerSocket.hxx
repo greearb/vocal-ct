@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -61,6 +61,7 @@ static const char* const TcpServerSocketHeaderVersion =
 #include "mstring.hxx"
 #include "Connection.hxx"
 #include <BugCatcher.hxx>
+#include <Sptr.hxx>
 
 class VNetworkException;
 class TcpServerSocket;
@@ -103,11 +104,8 @@ public:
    */
    TcpServerSocket(const string& local_ip,
                    const string& local_dev_to_bind_to,
-                   int servPort) throw (VNetworkException&);
+                   int servPort, bool blocking) throw (VNetworkException&);
    
-   TcpServerSocket(const TcpServerSocket&);
-   
-   TcpServerSocket& operator=(TcpServerSocket& other);
    virtual ~TcpServerSocket();
 
    /**
@@ -130,9 +128,22 @@ public:
    void close();
 
    /// get the server connection
-   Connection& getServerConn() {
+   Sptr <Connection> getServerConn() {
       return _serverConn;
    };
+
+   /// Get the file descriptor for the socket - use with care or not at all
+   int getSocketFD () { return _serverConn->getConnId(); }
+
+   /// Add this stacks file descriptors to the the fdSet
+   void addToFdSet ( fd_set* set );
+
+   /// Find the max of any file descripts in this stack and the passed value
+   int getMaxFD ( int prevMax);
+
+   /// Check and see if this stacks file descriptor is set in fd_set
+   bool checkIfSet ( fd_set* set );
+   
 
    const string& getSpecifiedLocalIp() const { return local_ip; }
 
@@ -145,7 +156,13 @@ private:
    void listenOn(const string& local_ip, const string& local_dev_to_bind_to,
                  int servPort) throw (VNetworkException&);
 
-   Connection _serverConn;
+   Sptr<Connection> _serverConn;
+
+   // Don't be using these:  Copying file descriptors leads to too many
+   // easy ways to create errors. --Ben
+   TcpServerSocket(const TcpServerSocket&);   
+   TcpServerSocket& operator=(TcpServerSocket& other);
+
 };
 
 #endif

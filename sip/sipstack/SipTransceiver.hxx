@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 
 #include <string>
@@ -87,6 +87,7 @@ typedef enum
    APP_CONTEXT_PROXY
 }SipAppContext;
 
+
 /**
    SipTransceiver is the main class for users the SIP stack.  It is the object
    which the caller uses to send and receive SIP messages.
@@ -97,15 +98,17 @@ class SipTransceiver: public BugCatcher
 	/**
          * hashTableSizeHint is what we'll use for the initial number of hash table
          * buckets.
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+         * @param local_dev_to_bind_to  If not "", we'll bind to this
+         *  device with SO_BINDTODEV
          */
  	SipTransceiver(int hashTableSizeHint,
                        const string& local_ip,
                        const string& local_ip_to_bind_to,
-                       Data s = 0,
-		       int sipPort = SIP_PORT, 
-		       bool nat = false , 
-		       SipAppContext aContext=APP_CONTEXT_GENERIC);
+                       Data s, /* = 0 */
+		       int sipPort,/* = SIP_PORT, */
+		       bool nat/* = false*/ , 
+		       SipAppContext aContext/*=APP_CONTEXT_GENERIC*/,
+                       bool blocking);
 
 	///
 	virtual ~SipTransceiver();

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-    "$Id: SipTcpConnection.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTcpConnection.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -259,11 +259,11 @@ NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket* tcpStack)
 
     cpLog(LOG_DEBUG_STACK, "Received tcp msg on fd: %d", tcpfd);
 
-    if (tcpfd == tcpStack->getServerConn().getConnId())
+    if (tcpfd == tcpStack->getServerConn()->getConnId())
     {
         //this has happened on the default server socket.
         //create a new connection and accept on it.
-        newconn = new Connection;
+        newconn = new Connection(tcpStack->getServerConn()->isBlocking());
 
         int clientId = 0;
 
@@ -369,9 +369,9 @@ NTcpConnInfo::setTCPFds(fd_set* fdSet)
 SipTcpConnection_impl_::SipTcpConnection_impl_(list < Sptr<SipMsgContainer> >* fifo,
                                                const string& local_ip,
                                                const string& _local_dev_to_bind_to,
-                                               int port)
+                                               int port, bool blocking)
         :
-        mytcpStack(local_ip, _local_dev_to_bind_to, port),
+        mytcpStack(local_ip, _local_dev_to_bind_to, port, blocking),
         sendFifo(),
         recFifo(fifo),
         shutdownNow(false),
@@ -381,13 +381,12 @@ SipTcpConnection_impl_::SipTcpConnection_impl_(list < Sptr<SipMsgContainer> >* f
 
     // put the tcpStack into the tcpConnInfo map
 
-    int fd = mytcpStack.getServerConn().getConnId();
+    int fd = mytcpStack.getServerConn()->getConnId();
     string mh = local_ip;
     if (mh.size() == 0) {
         mh = Vocal::theSystem.gethostAddress(); //OK
     }
-    Sptr < Connection > myConn = new Connection(mytcpStack.getServerConn());
-    tcpConnInfo.setConnNSenderIp(fd, myConn, mh);
+    tcpConnInfo.setConnNSenderIp(fd, mytcpStack.getServerConn(), mh);
 }
 
 
@@ -553,24 +552,24 @@ SipTcpConnection_impl_::createRequestTransaction(Sptr < SipCommand > command)
 
     NetworkAddress nwaddr(host.convertString(), port);
     TcpClientSocket clientSocket(nwaddr, local_dev_to_bind_to,
-                                 local_ip_to_bind_to, false );
-    try
-    {
+                                 local_ip_to_bind_to, true, false );
+    try {
         clientSocket.connect();
     }
-    catch (VNetworkException& exception)
-    {
+    catch (VNetworkException& exception) {
         cpLog(LOG_ERR, exception.getDescription().c_str());
     }
-    Sptr<Connection> connection = new Connection(clientSocket.getConn());
 
-    cpLog(LOG_DEBUG_STACK, "Adding non-persistent connection %d",connection->getConnId());
+    Sptr<Connection> connection = clientSocket.getConn();
+
+    cpLog(LOG_DEBUG_STACK, "Adding non-persistent connection %d",
+          connection->getConnId());
 
     char buf[56];
     ostrstream strm(buf,56);
     strm << nwaddr.getIpName() << ":" << nwaddr.getPort() << ends;
 
-    tcpConnInfo.setConnNSenderIp(connection->getConnId(),connection,strm.str());
+    tcpConnInfo.setConnNSenderIp(connection->getConnId(), connection, strm.str());
     return connection;
 }
 
@@ -606,14 +605,13 @@ SipTcpConnection_impl_::createOrGetPersistentConnection(
     
     cpLog( LOG_DEBUG_STACK, "Creating persistent connection for %s", buf );
     TcpClientSocket clientSocket(nwaddr, local_dev_to_bind_to,
-                                 local_ip_to_bind_to, false );
-    try
-    {
+                                 local_ip_to_bind_to, true, false);
+    try {
         clientSocket.connect();
-        Sptr < Connection > connection = new Connection(clientSocket.getConn());
+        Sptr < Connection > connection = clientSocket.getConn();
 	
         // insert the appropriate connection
-        myDestinationMap[buf] = connection;	
+        myDestinationMap[buf] = connection;
         cpLog(LOG_DEBUG_STACK, "Adding persistent connection %d" , 
               connection->getConnId());
         tcpConnInfo.setConnNSenderIp(connection->getConnId(), connection, buf);
@@ -1036,9 +1034,10 @@ SipTcpConnection_impl_::receiveMain()
 SipTcpConnection::SipTcpConnection( list < Sptr<SipMsgContainer> >* fifo,
                                     const string& local_ip,
                                     const string& local_dev_to_bind_to,
-                                    int port)
+                                    int port, bool blocking)
 {
-    impl_ = new SipTcpConnection_impl_(fifo, local_ip, local_dev_to_bind_to, port);
+    impl_ = new SipTcpConnection_impl_(fifo, local_ip, local_dev_to_bind_to,
+                                       port, blocking);
 }
 
 

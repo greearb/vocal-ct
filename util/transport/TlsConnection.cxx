@@ -49,7 +49,7 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
@@ -57,8 +57,8 @@ static const char* const TlsConnection_cxx_version =
 #endif
 #include "cpLog.h"
 
-bool TlsConnection::initThreads = false;
-
+#if 0
+// No more locking needed I think. --Ben
 extern "C"
 {
     void my_locking_function(int mode, int n, const char *file, int line);
@@ -94,41 +94,44 @@ static void setCallbacks()
     CRYPTO_set_locking_callback(my_locking_function);
 #endif
 }
+#endif
 
-
-TlsConnection::TlsConnection()
-    : Connection(),
+TlsConnection::TlsConnection(bool blocking)
+    : Connection(blocking),
       ctx(0),
       ssl(0),
       meth(0),
       myCertificate(),
       myKey()
 {
-    if(!initThreads)
-    {
-        // set the callbacks
-        setCallbacks();
-        initThreads = true;
-    }
 }
 
-
-TlsConnection::TlsConnection(Connection& other)
-    : Connection(other),
+TlsConnection::TlsConnection(Connection& other, bool really)
+    : Connection(other, really),
       ctx(0),
       ssl(0),
       meth(0),
       myCertificate(),
       myKey()
 {
-    if(!initThreads)
-    {
-        // set the callbacks
-        setCallbacks();
-        initThreads = true;
-
-    }
+    assert(!shouldCloseOnDestruct());
 }
+
+TlsConnection::~TlsConnection() {
+#ifdef VOCAL_HAS_OPENSSL
+    if (ssl) {
+        SSL_free (ssl);
+        ssl = NULL;
+    }
+
+    if (ctx) {
+        SSL_CTX_free (ctx);
+        ctx = NULL;
+    }
+#endif
+
+}
+
 
 
 bool 
@@ -140,37 +143,21 @@ TlsConnection::isTls() const
 int 
 TlsConnection::iclose()
 {
-    if(ssl)
-    {
+    if(ssl) {
 #ifdef VOCAL_HAS_OPENSSL
 	cpLog(LOG_DEBUG_STACK, "closing SSL");
         SSL_shutdown(ssl);
 	
 	SSL_free (ssl);
 	SSL_CTX_free (ctx);
+        ssl = NULL;
+        ctx = NULL;
 #endif
     }
     cpLog(LOG_DEBUG_STACK, "closing regular connection");
 
     return Connection::iclose();
 }
-
-
-const TlsConnection&
-TlsConnection::operator=(const TlsConnection& x)
-{
-    if(&x != this)
-    {
-        this->Connection::operator=(x);
-        ctx = x.ctx;
-        ssl = x.ssl;
-        meth = x.meth;
-        myCertificate = x.myCertificate;
-        myKey = x.myKey;
-    }
-    return *this;
-}
-
 
 
 ssize_t 
@@ -355,8 +342,7 @@ TlsConnection::initTlsServer(const char* certificate,
     meth = TLSv1_server_method();
     SSL_load_error_strings();
     ctx = SSL_CTX_new (meth);
-    if(ctx == 0)
-    {
+    if(ctx == 0) {
 	cpLog(LOG_ERR, "no ctx");
 	return -1;
     }
@@ -388,8 +374,7 @@ TlsConnection::initTlsServer(const char* certificate,
     int err;
     assert(ctx != 0);
     ssl = SSL_new (ctx);
-    if(ssl == 0)
-    {
+    if(ssl == 0) {
 	cpLog(LOG_ERR, "failed to create new ssl");
 	return -1;
     }

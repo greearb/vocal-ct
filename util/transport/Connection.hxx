@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Connection.hxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -130,41 +130,48 @@ class Connection: public BugCatcher
 
         /**
            Construct a connection.
-           @param blocking  create a blocking object
+           @param blocking  create a blocking object, or non-blocking if false.
 
         */
-        Connection(bool blocking = true);
+        Connection(bool blocking);
 
         /**
            Construct a connection.
            @param conId  file descriptor to wrap with connection object.
            @param blocking  create a blocking object.
         */
-        Connection(int conId, bool blocking = true);
+        Connection(int conId, bool blocking);
+
+
+        /** On_purpose is just to make sure we call this method
+         * on purpose, and thus are paying atention to making sure
+         * the underlying socket descriptors are set correctly.
+         */
+        Connection(const Connection& other, bool on_purpose);
 
         /** return the file descriptor */
-        inline int getConnId() const
-        {
+        int getConnId() const {
             return _connId;
         }
 
         /** return the address connecting to */
-        inline struct sockaddr& getConnAddr()
-        {
+        struct sockaddr& getConnAddr() {
             return *_connAddr;
         }
  
         /** return length of the connecting address. */
-        inline socklen_t getConnAddrLen() const
-        {
+        socklen_t getConnAddrLen() const {
             return _connAddrLen;
         }
 
-        Connection(const Connection& other);
-
         virtual ~Connection();
 
+        // Be very careful with this.  You must set closeOnDestruct
+        // correctly!
         Connection& operator=(const Connection& other);
+
+        virtual void setCloseOnDestruct(bool b) { closeOnDestruct = b; }
+        virtual bool shouldCloseOnDestruct() const { return closeOnDestruct; }
 
         /**
            this is true if the two Connection objects have the same
@@ -188,6 +195,7 @@ class Connection: public BugCatcher
 
         /**
            Reads line until '\n' is encountered or data ends.
+           **** Inefficient, reads one char at a time!!
 
            @param data buffer to read data into
            @param maxlen  maximum number of bytes to read into buffer
@@ -199,6 +207,29 @@ class Connection: public BugCatcher
            @throw VNetworkException
          */
         int readLine(void* data, size_t maxlen, int &bytesRead) throw (VNetworkException&);
+
+
+        /**
+           Reads into internal buffer.  Can use getLine() to grab lines from
+           the buffer after calling this.
+           Should be called on a non-blocking socket, and may not read an entire
+           line each call (and it may read more than one line)
+
+           @return >= 0 if read was ok, < 0 if there is an error
+
+           @throw VNetworkException
+         */
+        int readNB() throw (VNetworkException&);
+
+
+        /** Returns >= 0 if we received a newline, OR if the entire buffer is full
+         * but there is no newline.  RsltBuf will be null terminated.  Maxlen specifies
+         * the memory allocated for rsltBuf and is uses to ensure we do not over-run
+         * the buffer.  maxlen MUST be > MAXLINE.
+         * In general, call this method repeatedly untill it returns < 0
+         *  Used with readNB for non-blocking readLind like behaviour.
+         */
+        int getLine(char* rsltBuf, int maxlen);
 
         /**
            Reads bytes from the connection.
@@ -288,7 +319,7 @@ class Connection: public BugCatcher
 
             @return true if data is ready to be read, or false otherwise.
         */
-        bool isReadReady(int seconds = 0, int mSeconds = 20000) const;
+        bool isReadReady(int seconds, int mSeconds) const;
 
         /// initialize the SIGPIPE signal handler (for broken pipes)
         void initialize();
@@ -302,7 +333,22 @@ class Connection: public BugCatcher
         void setConnectInProgress(bool v) { _inProgress = true; }
         bool isConnectInProgress() const { return _inProgress; }
 
+        /// Get the file descriptor for the socket - use with care or not at all
+        int getSocketFD () { return getConnId(); }
+
+        /// Add this stacks file descriptors to the the fdSet
+        void addToFdSet ( fd_set* set );
+
+        /// Find the max of any file descripts in this stack and the passed value
+        int getMaxFD ( int prevMax);
+
+        /// Check and see if this stacks file descriptor is set in fd_set
+        bool checkIfSet ( fd_set* set );
+
+        bool isBlocking() { return _blocking; }
+
     protected:
+        // Inefficient, reads one char at a time!!
         ssize_t effRead(char* ptr);
 
         virtual int iclose();
@@ -324,6 +370,18 @@ class Connection: public BugCatcher
         bool _inProgress; // Doing a non-blocking connect
         static bool _init;  /// Set to true if signal handler initialized
         bool _isClient; //  set if it is the client
+        bool closeOnDestruct; /* Should we close our socket on destruct, or not.
+                               * Helps with shared sockets. */
+
+        char buf[MAXLINE];
+        int sofar;
+
+    private:
+        // Don't use this, makes it a total PITA to figure out how to
+        // safely close file descriptors.
+        Connection(const Connection& other);
+
+
 };
 
 

@@ -50,7 +50,7 @@
 
 
 static const char* const HeartLessProxy_cxx_Version =
-    "$Id: HeartLessProxy.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
+    "$Id: HeartLessProxy.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 
 #include "global.h"
@@ -84,9 +84,10 @@ HeartLessProxy::HeartLessProxy(
     //  Filter option controls which transceiver object is created for the
     //  sip stack.
     // NOTE:  The filter transceiver is just a typedef to SipTransceiver...
+    // Create non-blocking sipstack.
     mySipStack = new SipTransceiver(hashTableSize, local_ip,
                                     local_dev_to_bind_to, applName,
-                                    defaultSipPort, nat, aContext);
+                                    defaultSipPort, nat, aContext, false);
 
     myBuilder->setSipStack(mySipStack);
 

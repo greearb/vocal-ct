@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 #ifndef __vxworks
 
 
@@ -81,9 +81,10 @@ static const char* const TcpServerSocket_cxx_Version =
 #define LISTENQ   15
 TcpServerSocket::TcpServerSocket(const string& _local_ip,
                                  const string& local_dev_to_bind_to,
-                                 int servPort)
+                                 int servPort, bool blocking)
    throw (VNetworkException&)
 {
+    _serverConn = new Connection(blocking);
     local_ip = _local_ip;
     listenOn(local_ip, local_dev_to_bind_to, servPort);
 }
@@ -115,16 +116,14 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
     sRes = res;
     do
     {
-        _serverConn._connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-         if (_serverConn._connId < 0)
-         {
+        _serverConn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+         if (_serverConn->_connId < 0) {
              continue;
          }
          int on = 1;
 #ifndef WIN32
-         if ( setsockopt ( _serverConn._connId, SOL_SOCKET, SO_REUSEADDR,
-                      reinterpret_cast<sockbuf_t *>(&on), sizeof ( on )) )
-         {
+         if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR,
+                      reinterpret_cast<sockbuf_t *>(&on), sizeof ( on )) ) {
              // this is an error -- can't set it
              cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
          }
@@ -145,7 +144,7 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
             // Bind to specific device.
             char dv[15 + 1];
             strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-            if (setsockopt(_serverConn._connId, SOL_SOCKET, SO_BINDTODEVICE,
+            if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
                            dv, 15 + 1)) {
                cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
                      dv, strerror(errno));
@@ -153,13 +152,13 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
          }
 #endif
 
-        if (::bind(_serverConn._connId, res->ai_addr, res->ai_addrlen) == 0)
+        if (::bind(_serverConn->_connId, res->ai_addr, res->ai_addrlen) == 0)
         {
 
             //Success
-            delete []_serverConn._connAddr;
-            _serverConn._connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-            memcpy(_serverConn._connAddr, res->ai_addr, res->ai_addrlen);
+            delete []_serverConn->_connAddr;
+            _serverConn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
+            memcpy(_serverConn->_connAddr, res->ai_addr, res->ai_addrlen);
 
             char tmp_addr[80];
             struct sockaddr_in* sin = (struct sockaddr_in*)(res->ai_addr);
@@ -172,14 +171,8 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
                   curLocalIp.c_str(), servPort);
             break;
         }
-#ifndef WIN32
-        ::close(_serverConn._connId);
-#else
-        // 25/11/03 fpi
-        // WorkAround Win32
-        ::closesocket(_serverConn._connId);
-#endif
-        _serverConn._connId = -1; //Ensure it is not used later.
+
+        close();
     } while((res = res->ai_next) != NULL);
 
     freeaddrinfo(sRes);
@@ -193,7 +186,7 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
 
-    if (::listen(_serverConn._connId, LISTENQ))
+    if (::listen(_serverConn->_connId, LISTENQ))
     {
         char buf[256];
         sprintf(buf, "listen failed, reason:%s", strerror(errno));
@@ -202,12 +195,15 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
     }
 }
 
+#if 0
 TcpServerSocket::TcpServerSocket(const TcpServerSocket& other)
 {
     _serverConn = other._serverConn;
     local_ip = other.local_ip;
 }
+#endif
 
+#if 0
 TcpServerSocket&
 TcpServerSocket::operator=(TcpServerSocket& other)
 {
@@ -219,6 +215,7 @@ TcpServerSocket::operator=(TcpServerSocket& other)
     }
     return *this;
 }
+#endif
 
 TcpServerSocket::~TcpServerSocket()
 {
@@ -232,13 +229,13 @@ TcpServerSocket::~TcpServerSocket()
 int TcpServerSocket::acceptNB(Connection& con) {
    fd_set rdfds;
    FD_ZERO(&rdfds);
-   FD_SET(_serverConn._connId, &rdfds);
+   FD_SET(_serverConn->_connId, &rdfds);
    struct timeval tv;
    tv.tv_usec = 0;
    tv.tv_sec = 0;
 
-   if (select(_serverConn._connId + 1, &rdfds, NULL, NULL, &tv) > 0) {
-      if ((con._connId = ::accept(_serverConn._connId, (SA*) con._connAddr,
+   if (select(_serverConn->_connId + 1, &rdfds, NULL, NULL, &tv) > 0) {
+      if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr,
                                   &con._connAddrLen)) < 0) {
          return -errno;
       }
@@ -251,10 +248,27 @@ int TcpServerSocket::acceptNB(Connection& con) {
 }
 
 
+void TcpServerSocket::addToFdSet ( fd_set* set ) {
+   FD_SET(getSocketFD(), set);
+}
+
+int TcpServerSocket::getMaxFD ( int prevMax) {
+   if (prevMax < getSocketFD()) {
+      return getSocketFD();
+   }
+   return prevMax;
+}
+
+bool TcpServerSocket::checkIfSet ( fd_set* set ) {
+   return !!(FD_ISSET(getSocketFD(), set));
+}
+
+
+
 int
 TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
 {
-    if ((con._connId = ::accept(_serverConn._connId, (SA*) con._connAddr, &con._connAddrLen)) < 0)
+    if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr, &con._connAddrLen)) < 0)
     {
         char buf[256];
         sprintf(buf, "Failed to accept the connection, reason:%s", strerror(errno));
@@ -270,11 +284,21 @@ TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
 void
 TcpServerSocket::close()
 {
-    #if !defined(WIN32)
-    ::close(_serverConn.getConnId());
-    #else
-    ::closesocket(_serverConn.getConnId());
-    #endif
+#if !defined(WIN32)
+    ::close(_serverConn->getConnId());
+#else
+    ::closesocket(_serverConn->getConnId());
+#endif
+    
+#ifndef WIN32
+        ::close(_serverConn->_connId);
+#else
+        // 25/11/03 fpi
+        // WorkAround Win32
+        ::closesocket(_serverConn->_connId);
+#endif
+
+    _serverConn->_connId = -1; //Ensure it is not used later.
 }
 
 #endif

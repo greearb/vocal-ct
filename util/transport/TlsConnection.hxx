@@ -52,7 +52,7 @@
  */
 
 static const char* const TlsConnection_hxx_version =
-    "$Id: TlsConnection.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TlsConnection.hxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
 
 #include "Connection.hxx"
 
@@ -133,17 +133,21 @@ typedef void SSL_METHOD;
 
 
 */
+
 class TlsConnection : public Connection
 {
     public:
         /// initiate an empty TLS server connection.
-        TlsConnection();
+        TlsConnection(bool blocking);
 
         /** 
-            Begin a TLS client connection over an existing, open, TCP
-            connection.
+         * Begin a TLS client connection over an existing, open, TCP
+         * connection.  Really is just to give this a unique signature so
+         * that you know to be careful with who owns the socket.
          */
-        TlsConnection(Connection& other);
+        TlsConnection(Connection& other, bool really);
+
+        virtual ~TlsConnection();
 
         /// initialize as a TLS client
         int initTlsClient();
@@ -160,9 +164,6 @@ class TlsConnection : public Connection
            @return true if TLS active on this connection, false otherwise.
         */
         bool isTls() const;
-
-        /// assignment operator
-        const TlsConnection& operator=(const TlsConnection& x);
 
         /** 
             Tell whether this object was built with TLS support.
@@ -185,12 +186,14 @@ class TlsConnection : public Connection
 
         SSL_CTX* ctx;
         SSL*     ssl;
-        SSL_METHOD *meth;
-        Connection* myConn;
+        SSL_METHOD *meth; // Does not need freeing???
         Data myCertificate;
         Data myKey;
 
-        static bool initThreads;
+    private:
+        /// assignment operator (Don't use)
+        const TlsConnection& operator=(const TlsConnection& x);
+
 };
 
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Connection.cxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
 
 #ifndef __vxworks
 
@@ -82,7 +82,8 @@ bool Connection::_init = false;
 
 Connection::Connection(bool blocking)
     : _connId(-1), _live(false), _connAddrLen(0), 
-      _connAddr(0), _blocking(blocking)
+      _connAddr(0), _blocking(blocking),
+      closeOnDestruct(true)
 {
     initialize();
 }
@@ -90,46 +91,49 @@ Connection::Connection(bool blocking)
 
 Connection::Connection(int conId, bool blocking)
     : _connId(conId), _live(true), _connAddrLen(0), 
-      _connAddr(0), _blocking(blocking)
+      _connAddr(0), _blocking(blocking),
+      closeOnDestruct(true)
 {
     initialize();
 }
 
-
-Connection::Connection(const Connection& other)
-{
+Connection::Connection(const Connection& other, bool on_purpose) {
     _connId = other._connId;
     _live = other._live;
     _connAddrLen = other._connAddrLen;
     _blocking = other._blocking;
-    if(other._connAddr)
-    {
+    if (other._connAddr) {
         _connAddr = (struct sockaddr*) new char[_connAddrLen];
         memcpy((void*)_connAddr, (void*)other._connAddr, _connAddrLen);
     }
+    else {
+        _connAddr = NULL;
+    }
     setState();
+    closeOnDestruct = false;
 }
 
-
-Connection::~Connection()
-{
+Connection::~Connection() {
+    if (closeOnDestruct) {
+        close();
+    }
     delete []_connAddr;
 }
 
 
-Connection& Connection::operator=(const Connection& other)
-{
-    if (this != &other)
-    {
+Connection& Connection::operator=(const Connection& other) {
+    if (this != &other) {
 	_connId = other._connId;
 	_live = other._live;
 	_connAddrLen = other._connAddrLen;
 	_blocking = other._blocking;
-        if(other._connAddr)
-        {
+        if (other._connAddr) {
             delete []_connAddr;
             _connAddr = (struct sockaddr*) new char[_connAddrLen];
 	    memcpy((void*)_connAddr, (void*)other._connAddr, _connAddrLen);
+        }
+        else {
+            _connAddr = NULL;
         }
 	setState();
     }
@@ -138,10 +142,8 @@ Connection& Connection::operator=(const Connection& other)
 
 
 void
-Connection::initialize()
-{
-    if (!_init)
-    {
+Connection::initialize() {
+    if (!_init) {
 
 #if !defined(__vxworks) && !defined(WIN32)
         // setup SIGPIPE handler
@@ -155,6 +157,62 @@ Connection::initialize()
     _connAddrLen = sizeof(struct sockaddr);
     memset(_connAddr, 0, _connAddrLen);
 }
+
+
+int Connection::getLine(char* rbuf, int maxlen) {
+    assert(maxlen > MAXLINE); // Force calling code to give us an appropriately large buffer.
+    int i;
+    for (i = 0; i<sofar; i++) {
+        if (buf[i] == '\n') {
+            memcpy(rbuf, buf, i);
+            buf[i] = 0; // Terminate string, overwriting the newline
+            memmove(buf, buf + i + 1, MAXLINE - (i + 1));
+            sofar -= (i + 1);
+            return i;
+        }
+    }
+
+    // No newline found, but maybe our buffer is full anyway?
+    assert(sofar <= MAXLINE);
+
+    if (sofar == MAXLINE) {
+        memcpy(rbuf, buf, sofar);
+        rbuf[sofar] = 0;
+        sofar = 0; // Clear entire buffer
+        return sofar;
+    }
+
+    // Buffer is not full, and we have no newline, so return -1 indicating
+    // no line was found.
+    rbuf[0] = 0;
+    return -1;
+}
+
+int Connection::readNB() throw (VNetworkException&) {
+    int rc;
+
+    rc = readn(buf + sofar, MAXLINE - sofar);
+    if (rc < 0) {
+        if ((errno == EINTR) || (errno == EAGAIN)) {
+            // Not a problem.
+        }
+        else {
+            return -errno; // Read failure
+        }
+    }
+    else if (rc == 0) {
+        // EOF reached, return what we have.
+        buf[sofar] = 0; //Terminate string
+        return sofar;
+    }
+    else {
+        sofar += rc;
+    }
+
+    // If here, we MAY have a complete line (or even multiple lines)
+    return sofar;
+}
+
 
 int
 Connection::readLine(void* dataRead, size_t maxlen, int& bytesRead) throw (VNetworkException&)
@@ -271,6 +329,7 @@ Connection::writeData(void* data, size_t n) throw (VNetworkException&)
 }
 
 
+// Inefficient, reads one char at a time!!
 ssize_t
 Connection::effRead(char* ptr)
 {
@@ -311,6 +370,7 @@ Connection::effRead(char* ptr)
 int
 Connection::iclose()
 {
+    assert(!shouldCloseOnDestruct());
 #ifndef WIN32
     return ::close(_connId);
 #else
@@ -492,6 +552,21 @@ Connection::setState()
     else {
         _live = false;
     }
+}
+
+void Connection::addToFdSet ( fd_set* set ) {
+    FD_SET(getSocketFD(), set);
+}
+
+int Connection::getMaxFD ( int prevMax) {
+    if (getSocketFD() > prevMax) {
+        return getSocketFD();
+    }
+    return prevMax;
+}
+
+bool Connection::checkIfSet ( fd_set* set ) {
+    return FD_ISSET(getSocketFD(), set);
 }
 
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -88,6 +88,10 @@ using namespace Vocal;
 
 
 atomic_t SipTransceiver::_cnt;
+
+#warning "Port to non-blocking IO model."
+// TODO:  Ensure non-blocking IO is handled everywhere...
+
 
 class TransactionDBStatus: public BugCatcher
 {
@@ -137,8 +141,9 @@ SipTransceiver::SipTransceiver( int hashTableHint,
                                 const string& local_dev_to_bind_to,
                                 Data adata, 
 				int siplistenPort, 
-				bool nat  /*Default Agruments*/,
-				SipAppContext aContext  /*Default Agruments*/)
+				bool nat,
+				SipAppContext aContext,
+                                bool blocking)
     :
     recvdMsgsFifo(),
     udpConnection(0),
@@ -167,7 +172,8 @@ SipTransceiver::SipTransceiver( int hashTableHint,
     }
 
     tcpConnection = new SipTcpConnection( &recvdMsgsFifo, local_ip,
-                                          local_dev_to_bind_to, siplistenPort );
+                                          local_dev_to_bind_to, siplistenPort,
+                                          blocking);
     //debugMemUsage("Constructed SipTcpConnection", "gua_mem.txt");
     if ( tcpConnection == 0 ) {
         cpLog(LOG_ERR, "SipTransceiver::unable to instantiate TCP connections");

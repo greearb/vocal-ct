@@ -51,7 +51,7 @@
 
 
 static const char* const CdrInterface_cxx_Version =
-    "$Id: CdrInterface.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrInterface.cxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
 
 
 #include <netdb.h>
@@ -454,7 +454,7 @@ CdrInterface::sendToPrimary( const CdrClient &dat ) throw (VCdrException&)
     CdrClient tmp(dat);
     try
     {
-        (m_primaryCdr->getConn()).writeData(&tmp, sizeof(CdrClient));
+        m_primaryCdr->getConn()->writeData(&tmp, sizeof(CdrClient));
     }
     catch (VNetworkException &e)
     {
@@ -492,7 +492,7 @@ CdrInterface::sendToBackup( const CdrClient &dat ) throw (VCdrException&)
     CdrClient tmp(dat);
     try
     {
-        (m_backupCdr->getConn()).writeData(&tmp, sizeof(CdrClient));
+       m_backupCdr->getConn()->writeData(&tmp, sizeof(CdrClient));
     }
     catch (VNetworkException &e)
     {

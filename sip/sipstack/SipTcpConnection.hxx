@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
@@ -79,7 +79,7 @@ class SipTcpConnection: public BugCatcher
         SipTcpConnection(list < Sptr<SipMsgContainer> > * fifo,
                          const string& local_ip,
                          const string& local_dev_to_bind_to,
-                         int port = SIP_PORT);
+                         int port /* = SIP_PORT */, bool blocking);
         ///
         virtual ~SipTcpConnection();
 
@@ -173,7 +173,7 @@ class SipTcpConnection_impl_
         SipTcpConnection_impl_(list < Sptr <SipMsgContainer> > * fifo,
                                const string& local_ip,
                                const string& local_dev_to_bind_to,
-			       int port = SIP_PORT);
+			       int port, /* = SIP_PORT*/ bool blocking);
         ///
         ~SipTcpConnection_impl_();
         ///

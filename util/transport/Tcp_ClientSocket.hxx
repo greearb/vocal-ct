@@ -52,12 +52,14 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
 #include "VNetworkException.hxx"
 #include "Data.hxx"
+#include <Sptr.hxx>
+
 
 class NetworkAddress;
 
@@ -79,7 +81,7 @@ class NetworkAddress;
 
    </pre>
 */
-class TcpClientSocket
+class TcpClientSocket: public BugCatcher
 {
     public:
 
@@ -95,7 +97,7 @@ class TcpClientSocket
         TcpClientSocket(const string& hostName,
                         const string& local_dev_to_bind_to,
                         const string& local_ip_to_bind_to,
-                        bool closeCon = true, bool blocking = true);
+                        bool closeCon, bool blocking);
 
         /**
            Create client TCP connection.
@@ -111,7 +113,7 @@ class TcpClientSocket
         TcpClientSocket(const string& hostName, int servPort,
                         const string& local_dev_to_bind_to,
                         const string& local_ip_to_bind_to,
-                        bool closeCon = true, bool blocking = true);
+                        bool closeCon, bool blocking);
 
         /**
            Create client TCP connection.
@@ -126,9 +128,9 @@ class TcpClientSocket
         TcpClientSocket(const NetworkAddress& server,
                         const string& local_dev_to_bind_to,
                         const string& local_ip_to_bind_to,
-                        bool closeCon = true, bool blocking = true);
+                        bool closeCon, bool blocking);
 
-        ~TcpClientSocket();
+        virtual ~TcpClientSocket();
 
 
         /**
@@ -144,9 +146,13 @@ class TcpClientSocket
         /**
            get the Connection which was created by this object.
         */
-        Connection& getConn() {
+        Sptr <Connection> getConn() {
             return _conn;
         };
+
+        void setConnection(Sptr<Connection> c) {
+            _conn = c;
+        }
 
         bool isConnected() const;
 
@@ -157,7 +163,7 @@ class TcpClientSocket
         string local_dev_to_bind_to;
         string local_ip_to_bind_to;
 
-        Connection _conn;
+        Sptr <Connection> _conn;
         Data _hostName;
         int _serverPort;
         bool _closeCon;

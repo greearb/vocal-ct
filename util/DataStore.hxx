@@ -54,14 +54,16 @@
 
 
 #include "VFileSystem.hxx"
+#include "BugCatcher.hxx"
+
 
 static const char* const DataStoreVersion =
-    "$Id: DataStore.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: DataStore.hxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
 
 
 
 /// Class that specifies access signature for abstract data storage
-class DataStore
+class DataStore: public BugCatcher
 {
     protected:
 

@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.2 2004/05/06 05:41:05 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
 
 #ifndef __vxworks
 
@@ -80,7 +80,6 @@ TcpClientSocket::TcpClientSocket(const string& hostName,
     :
     local_dev_to_bind_to(_local_dev_to_bind_to),
     local_ip_to_bind_to(_local_ip_to_bind_to),
-    _conn(blocking),
     _hostName(hostName),
     _serverPort( -1),
     _closeCon(closeCon),
@@ -96,7 +95,6 @@ TcpClientSocket::TcpClientSocket(const string& hostName, int servPort,
     :
     local_dev_to_bind_to(_local_dev_to_bind_to),
     local_ip_to_bind_to(_local_ip_to_bind_to),
-    _conn(blocking),
     _hostName(hostName),
     _serverPort(servPort),
     _closeCon(closeCon),
@@ -112,7 +110,6 @@ TcpClientSocket::TcpClientSocket(const NetworkAddress& server,
     :
     local_dev_to_bind_to(_local_dev_to_bind_to),
     local_ip_to_bind_to(_local_ip_to_bind_to),
-    _conn(blocking),
     _closeCon(closeCon),
     _blocking(blocking)
 {
@@ -155,6 +152,7 @@ TcpClientSocket::operator=(TcpClientSocket& other)
 void
 TcpClientSocket::initalize()
 {
+    _conn = new Connection(_blocking);
 }
 
 TcpClientSocket::~TcpClientSocket()
@@ -164,8 +162,8 @@ TcpClientSocket::~TcpClientSocket()
 
 
 bool TcpClientSocket::isConnected() const {
-    if (_conn.isLive()) {
-        if (!_conn.isConnectInProgress()) {
+    if (_conn->isLive()) {
+        if (!_conn->isConnectInProgress()) {
             return true;
         }
     }
@@ -196,10 +194,10 @@ TcpClientSocket::connect() throw (VNetworkException&)
     }
     tSave = res;
     do {
-        assert(_conn._connId < 0); // Make sure we don't leak sockets
+        assert(_conn->_connId < 0); // Make sure we don't leak sockets
 
-        _conn._connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (_conn._connId < 0) {
+        _conn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (_conn->_connId < 0) {
             char buf[256];
             sprintf(buf, "Failed to create socket: reason %s",
                 strerror(errno));
@@ -222,7 +220,7 @@ TcpClientSocket::connect() throw (VNetworkException&)
             // Bind to specific device.
             char dv[15 + 1];
             strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-            if (setsockopt(_conn._connId, SOL_SOCKET, SO_BINDTODEVICE,
+            if (setsockopt(_conn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
                            dv, 15 + 1)) {
                 cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
                       dv, strerror(errno));
@@ -246,7 +244,7 @@ TcpClientSocket::connect() throw (VNetworkException&)
                 throw VNetworkException(buf, __FILE__, __LINE__, errno);
             }
             else {
-                if (::bind(_conn._connId, res2->ai_addr, res2->ai_addrlen) != 0) {
+                if (::bind(_conn->_connId, res2->ai_addr, res2->ai_addrlen) != 0) {
                     char buf[256];
                     sprintf(buf, "bind failed, reason:%s", gai_strerror(errno));
                     cpLog(LOG_ERR, buf);
@@ -255,29 +253,29 @@ TcpClientSocket::connect() throw (VNetworkException&)
             }
         }
 
-        int rv = ::connect(_conn._connId, res->ai_addr, res->ai_addrlen);
+        int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
         if (rv >= 0) {
             ///Success
             char descBuf[256];
             cpLog(LOG_DEBUG, "Connected to %s", connectionDesc(res, descBuf, 256));
-            delete []_conn._connAddr;
-            _conn._connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-            memcpy((_conn._connAddr), (res->ai_addr), res->ai_addrlen);
+            delete []_conn->_connAddr;
+            _conn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
+            memcpy((_conn->_connAddr), (res->ai_addr), res->ai_addrlen);
             cpLog(LOG_DEBUG, "SIze:%d, size2:%d",
-                  sizeof(*_conn._connAddr), res->ai_addrlen);
-            _conn._connAddrLen = res->ai_addrlen;
+                  sizeof(*_conn->_connAddr), res->ai_addrlen);
+            _conn->_connAddrLen = res->ai_addrlen;
             break;
         }
         else {
             myerrno = errno;
             // If we are non-blocking, then EINPROGRESS is OK
             if (myerrno == EINPROGRESS) {
-                _conn.setConnectInProgress(true);
+                _conn->setConnectInProgress(true);
                 break;
             }
         }
 
-        _conn.close();
+        _conn->close();
     } while ((res = res->ai_next) != 0);
 
     if (res == 0) {
@@ -287,18 +285,18 @@ TcpClientSocket::connect() throw (VNetworkException&)
             _serverPort,
             gai_strerror(myerrno), myerrno);
         cpLog(LOG_ERR, buf);
-        _conn.close();
+        _conn->close();
         throw VNetworkException(buf, __FILE__, __LINE__, errno);
     }
     freeaddrinfo(tSave);
-    _conn.setState();
+    _conn->setState();
 }
 
 void
 TcpClientSocket::close()
 {
-    if (_closeCon && _conn.getConnId() > 2)
-        _conn.close();
+    if (_closeCon && _conn->getConnId() > 2)
+        _conn->close();
 }
 
 const char*
