@@ -49,7 +49,7 @@
  */
 
 static const char* const cdrserv_cxx_Version =
-    "$Id: cdrserv.cxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: cdrserv.cxx,v 1.4 2004/08/18 22:39:14 greear Exp $";
 
 #include "VCdrException.hxx"
 #include "CommandLine.hxx"
@@ -57,9 +57,12 @@ static const char* const cdrserv_cxx_Version =
 #include "CdrBilling.hxx"
 #include "HeartbeatThread.hxx"
 #include "cpLog.h"
+#include <ProvisionInterface.hxx>
 
 
 bool cdr_running = true;
+
+Sptr<CdrManager> cdrManager;
 
 int main( const int argc, const char** argv ) {
     CdrConfig configData;
@@ -70,7 +73,6 @@ int main( const int argc, const char** argv ) {
     string readSecret, writeSecret;
 
     int logLevel = LOG_DEBUG;
-    bool useProvisioning = false;
 
     // Read command line or env vars
     //
@@ -79,54 +81,67 @@ int main( const int argc, const char** argv ) {
         configData.m_localIp = envptr;
     }
 
-    envptr = getenv("CDRCONFIGFILE");
-    if (envptr) {
-        configFile = envptr;
+    CommandLine &parms = *CommandLine::instance(argc, argv);
+    logLevel = cpLogStrToPriority(parms.getString("LOGLEVEL").c_str());
+    string tip = parms.getString("LOCALIP");
+    if (tip.size() && configData.m_localIp.empty()) {
+       // No environ-var set, so use cmd-line arg.
+       configData.m_localIp = tip;
     }
-    else {
-        CommandLine &parms = *CommandLine::instance(argc, argv);
-        logLevel = cpLogStrToPriority(parms.getString("LOGLEVEL").c_str());
-        string tip = parms.getString("LOCALIP");
-        if (tip.size() && configData.m_localIp.empty()) {
-            // No environ-var set, so use cmd-line arg.
-            configData.m_localIp = tip;
-        }
+    
+    NetworkAddress na1(CommandLine::instance()->getString( "PSERVER" ));
+    psHost = na1;
+    
+    NetworkAddress na2(CommandLine::instance()->getString( "PSERVERBACKUP" ));
+    altHost = na2;
+    
+    readSecret = CommandLine::instance()->getString("CONFDIR") 
+       + "/" + "vocal.secret";
+    writeSecret = CommandLine::instance()->getString("CONFDIR") 
+       + "/" + "vocal.writesecret";
 
-        NetworkAddress na1(CommandLine::instance()->getString( "PSERVER" ));
-        psHost = na1;
+    cdrManager = new CdrManager(configData);
 
-        NetworkAddress na2(CommandLine::instance()->getString( "PSERVERBACKUP" ));
-        altHost = na2;
+    ProvisionInterface::initialize(psHost.getHostName().c_str(),
+                                   psHost.getPort(),
+                                   altHost.getHostName().c_str(),
+                                   altHost.getPort(),
+                                   readSecret.c_str(),
+                                   writeSecret.c_str(),
+                                   true);
 
-        readSecret = CommandLine::instance()->getString("CONFDIR") 
-            + "/" + "vocal.secret";
-        writeSecret = CommandLine::instance()->getString("CONFDIR") 
-            + "/" + "vocal.writesecret";
+    // TODO:  Do we need server callbacks??
+    HeartbeatThread::initialize(configData.m_localIp, "", /*localDevToBindTo*/
+                                SERVER_CDR,
+                                HB_RX|HB_HOUSEKEEPING, NULL);
 
-        useProvisioning = true;
+    // Listen for heartbeats from various server types, and
+    // provisioning information too.
+    HeartbeatThread::instance().addServerContainer(SERVER_RS);
+    HeartbeatThread::instance().addServerContainer(SERVER_POS);
+    HeartbeatThread::instance().addServerContainer(SERVER_JS);
+    HeartbeatThread::instance().addServerContainer(SERVER_FS);
+    HeartbeatThread::instance().addServerContainer(SERVER_MS);
+    
+    ProvisionInterface::instance().setHeartbeatThread(HeartbeatThread::instance());
+
+    ProvisionInterface::instance().registerHandler(cdrManager.getPtr());
+
+    string all;
+    ProvisionInterface::instance().registerSubscriberInterest(all);
+    ProvisionInterface::instance().registerServerInterest();
+
+    ProvisionInterface::instance().requestAllServers();
+    if (ProvisionInterface::instance().waitFor(ALL_SERVERS, 60 * 1000)) {
+       cpLog(LOG_ERR, "ERROR:  Did not get the listing of ALL_SERVERS in time.\n");
+       exit(8);
     }
 
-    // Load configuration from provisioning or config file
-    //
-    try {
-        if (useProvisioning) {
-            configData.getPsData(psHost,
-                                 altHost,
-                                 readSecret, 
-                                 writeSecret, true /* use tls? */);
-            configData.m_logLevel = logLevel;
-        }
-        else if (configFile[0]) {
-            configData.getData(configFile);
-        }
-        else {
-            cpLog(LOG_ALERT, "No configuration data.");
-            exit(1);
-        }
-    }
-    catch (VException& e) {
-        cpLog(LOG_ALERT, "Error reading config data. Exiting application. Reason:%s", e.getDescription().c_str());
-        exit(1);
+    ProvisionInterface::instance().requestAllSubscribers();
+    // Wait untill we have a response (or 60 seconds has elapsed)
+    if (ProvisionInterface::instance().waitFor(ALL_SUBSCRIBERS, 60 * 1000) < 0) {
+       cpLog(LOG_ERR, "ERROR:  Did not get the listing of ALL_SUBSCRIBERS in time.\n");
+       exit(7);
     }
 
     // Start Application
@@ -135,9 +150,6 @@ int main( const int argc, const char** argv ) {
         // set logging level
         cpLogSetPriority(configData.m_logLevel);
         configData.print(LOG_INFO);
-
-        // first call to instance for initialization
-        CdrManager::instance(&configData);
 
         // Drop into our main loop.
         fd_set input_set;
@@ -160,15 +172,10 @@ int main( const int argc, const char** argv ) {
 
             now = vgetCurMs();
             
-            CdrManager::instance().setFds(&input_set, &output_set, &exc_set, maxdesc,
-                                          sleep_for, now);
-
-            // TODO:  Heartbeat thread
-#if 0
-            if (useProvisioning) {
-                heartbeat.run();
-            }
-#endif
+            cdrManager->setFds(&input_set, &output_set, &exc_set, maxdesc,
+                               sleep_for, now);
+            HeartbeatThread::instance().setFds(&input_set, &output_set, &exc_set,
+                                               maxdesc, sleep_for, now);
 
             timeout_tv = vms_to_tv(sleep_for);
 
@@ -189,9 +196,8 @@ int main( const int argc, const char** argv ) {
 
             now = vgetCurMs();
 
-            // Either we timed out, or a file descriptor is readable.  Let the
-            // BasicProxy do it's job.
-            CdrManager::instance().tick(&input_set, &output_set, &exc_set, now);
+            cdrManager->tick(&input_set, &output_set, &exc_set, now);
+            HeartbeatThread::instance().tick(&input_set, &output_set, &exc_set, now);
         }//while
     }
     catch (VException& e) {

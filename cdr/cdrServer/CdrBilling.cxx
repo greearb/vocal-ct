@@ -51,7 +51,7 @@
 
 
 static const char* const CdrBilling_cxx_Version =
-    "$Id: CdrBilling.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
+    "$Id: CdrBilling.cxx,v 1.4 2004/08/18 22:39:14 greear Exp $";
 
 
 #include <stdio.h>
@@ -69,7 +69,7 @@ static const char* const CdrBilling_cxx_Version =
 #include "MindClient.hxx"
 #include "cpLog.h"
 #include <FileStackLock.hxx>
-
+#include <ProvisionInterface.hxx>
 
 const int BILLING_FILE_LOCK_LIMIT = 3600*6;       // 6 hours
 const uint64 BILLING_STORAGE_LIMIT = 3600 * 72 * 1000;   // 72 hours
@@ -115,7 +115,7 @@ int CdrBilling::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 void CdrBilling::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       uint64 now) {
 
-   if (sendBillingRecords(userAliases)) {
+   if (sendBillingRecords()) {
       lastConnectTime = now;
    }
    else {
@@ -126,7 +126,7 @@ void CdrBilling::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 bool
-CdrBilling::sendBillingRecords(CdrUserCache &userAliases ) {
+CdrBilling::sendBillingRecords() {
     try {
         MindClient::initialize(cdata.m_localIp,
                                cdata.m_radiusServerHost.c_str(),
@@ -187,14 +187,14 @@ CdrBilling::sendBillingRecords(CdrUserCache &userAliases ) {
                 //
       
                 // Provisioning supplies the customer code/ANI based on userId
-                string ANI(userAliases.getCustomerId(ref.m_userId));
+                string ANI(ProvisionInterface::instance().getSubscribers().getMasterUser(ref.m_userId));
 
                 string recvNum;
                 if (ref.m_DTMFCalledNum[0] != 0) {
-                   recvNum = userAliases.getCustomerId(ref.m_DTMFCalledNum);
+                   recvNum = ProvisionInterface::instance().getSubscribers().getMasterUser(ref.m_DTMFCalledNum);
                 }
                 else {
-                   recvNum = userAliases.getCustomerId(ref.m_E164CalledNum);
+                   recvNum = ProvisionInterface::instance().getSubscribers().getMasterUser(ref.m_E164CalledNum);
                 }
 
                 // set userID and ANI

@@ -53,7 +53,7 @@
 
 
 static const char* const CdrManager_hxx_Version =
-    "$Id: CdrManager.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrManager.hxx,v 1.4 2004/08/18 22:39:14 greear Exp $";
 
 
 #include <list>
@@ -62,6 +62,9 @@ static const char* const CdrManager_hxx_Version =
 #include <misc.hxx>
 #include "CdrBilling.hxx"
 #include <Sptr.hxx>
+#include <ProvisionInterface.hxx>
+#include <PSResponseHandler.hxx>
+
 
 class CdrServer;
 class CdrCache;
@@ -72,25 +75,15 @@ class EventObj;
     CdrManager manages time and data events.
 **/
 
-class CdrManager {
+class CdrManager : public PSResponseHandler {
 public:
 
-   /**
-    * Get singleton instance.
-    * @param CdrConfig*, must be passed for the very first call
-    * @return CdrManager reference
-    */
-   static CdrManager &instance(const CdrConfig *cdata = 0);
-    
+   /// Private constructor for singleton
+   CdrManager( const CdrConfig &cdata );
+
    ///
    virtual ~CdrManager();
     
-   ///
-   static void destroy();
-
-   /// Event loop
-   void run();
-
    /**
     * Register a new event
     * @param EventObj*
@@ -104,8 +97,6 @@ public:
     * @return void
     */
    void unregister(Sptr<EventObj> obj );
-
-
 
    /**
     * Call back function for the Cdr Cache
@@ -124,12 +115,6 @@ public:
              uint64 now);
 
 private:
-
-   /// Private constructor for singleton
-   CdrManager( const CdrConfig &cdata );
-
-   ///
-   static CdrManager *m_instance;
 
    ///
    list < Sptr<EventObj> > m_eventList;

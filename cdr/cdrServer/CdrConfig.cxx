@@ -51,7 +51,7 @@
 
 
 static const char* const CdrConfig_cxx_Version =
-    "$Id: CdrConfig.cxx,v 1.4 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrConfig.cxx,v 1.5 2004/08/18 22:39:14 greear Exp $";
 
 
 #include <fstream.h>
@@ -143,88 +143,6 @@ CdrConfig::cdrConfigTag2i( const char *tag ) {
    cpLog (LOG_ERR, "Unknown tag = %s", tag);
     
    return CdrConfigTagMax;
-}
-
-void
-CdrConfig::setCdrConfig( const char* tag,
-                         const char* type,
-                         const char* value ) {
-   switch ( cdrConfigTag2i(tag) ) {
-   case CdrServerHost:
-      m_serverHost = value;
-      break;
-      
-   case CdrServerPort:
-      m_serverPort = atoi(value);
-      break;
-      
-   case CdrBillingFrequency:
-      m_billingFrequency = atoi(value);
-      break;
-
-   case CdrUnsentFileExt:
-      m_unsentFileExt = value;
-      break;
-
-   case CdrBillingLockFile:
-      m_billingLockFile = value;
-      break;
-
-   case CdrBillingDirectory:
-      m_billingDirectory = value;
-      break;
-
-   case CdrBillingFileName:
-      m_billingFileName = value;
-      break;
-
-   case CdrLogLevel:
-      m_logLevel = atoi(value);
-      break;
-
-   case CdrLogFile:
-      m_logFile = value;
-      break;
-
-   case CdrRadiusServerHost:
-      m_radiusServerHost = value;
-      break;
-
-   case CdrRadiusRetries:
-      m_radiusRetries = atoi(value);
-      break;
-
-   case CdrRadiusSecretKey:
-      m_radiusSecretKey = value;
-      break;
-
-   case CdrRolloverSize:
-      m_rolloverSize = atoi(value);
-      break;
-
-   case CdrRolloverPeriod:
-      m_rolloverPeriod = atoi(value);
-      break;
-
-   case CdrFileCheckFreq:
-      m_fileCheckFreq = atoi(value);
-      break;
-
-   case CdrLocalIp:
-      m_localIp = value;
-      break;
-
-   case CdrBillRingTime: {
-      char val = tolower(value[0]);
-      m_billRingTime = (val == 't' || val == 'y' || val == '1');
-      break;
-   }
-
-   default: {
-      cpLog ( LOG_ERR, "Invalid tag index" );
-      break;
-   }
-   } // end switch
 }
 
 
@@ -319,115 +237,9 @@ CdrConfig::setEnvCdr() {
    }
 }
 
-void
-CdrConfig::getData( const string &fileName ) throw (VCdrException&) {
-   // The config file will be checked first.
-   // Any variable set in the environment will overwrite the
-   // values set in the config file.
-   
-   ifstream fstrm(fileName.c_str(), ios::in);
-   if (!fstrm.is_open()) {
-      cpLog(LOG_DEBUG,
-            "Failed to open configuration file %s", fileName.c_str());
-      setEnvCdr();
-      throw VCdrException("Failed to open configuration file",
-                          __FILE__, __LINE__);
-   }
-
-   char buffer[1024];
-   char tag[128];
-   char type[128];
-   char value[128];
-
-#warning "Fix this parsing, could get buffer over runs."
-   while (!fstrm.eof()) {
-      fstrm.getline(buffer, 1024);
-      sscanf(buffer, "%s%s%s", tag, type, value);
-      if (isalnum(tag[0]) && tag[0] != '#') {
-         setCdrConfig(tag, type, value);
-      }
-   }
-
-   // Logically, the file check frequency should not be more than
-   // the rolloverPeriod
-   if (m_fileCheckFreq > m_rolloverPeriod) {
-      m_fileCheckFreq = m_rolloverPeriod;
-   }
-
-   // since the env vars are used for debugging, they override
-   // the config and ps values
-   setEnvCdr();
-}
-
-void
-CdrConfig::getPsData( const NetworkAddress& psHost,
-                      const NetworkAddress& altHost,
-		      const string& readSecret,
-                      const string& writeSecret,
-                      bool useTls)
-    throw (VCdrException&) {
-   // read configuration file
-   cpLog(LOG_ALERT, "Loading config data from provisioning");
-   
-   char nasname[1024];
-   if (m_localIp.size()) {
-      strncpy(nasname, m_localIp.c_str(), 1023);
-      nasname[1023] = 0; /* Better safe than hosed */
-   }
-   else {
-      if (gethostname(nasname, sizeof(nasname)) != 0) {
-         throw VCdrException("Hostname undeterminable", __FILE__, __LINE__);
-      }
-   }
-
-   NetworkAddress naddr(nasname);
-
-   VCdrServerData psCdrData;
-   string psHostPort;
-
-   // Find the provisioning data for this server
-   try {
-      ProvisionInterface::initialize(psHost.getHostName().c_str(),
-                                     psHost.getPort(),
-                                     altHost.getHostName().c_str(),
-                                     altHost.getPort(),
-                                     readSecret.c_str(),
-                                     writeSecret.c_str(),
-                                     useTls);
-
-      ProvisionInterface& pserv = ProvisionInterface::instance();
-      
-      list < string > cdrHosts;
-      pserv.getCdrServers(cdrHosts);
-
-      // TODO
-      for (list < string > ::iterator itr = cdrHosts.begin();
-           itr != cdrHosts.end(); itr++) {
-         string hostName = *itr;
-         
-         // erase the ':' and portnumber if they exists
-         // so we can compare it to this server
-         int pos = hostName.find(':');
-         int hsize = hostName.size();
-         if (pos < hsize) {
-            hostName.erase(pos, hsize);
-         }
-         
-         if (hostName == naddr.getIpName().convertString()) {
-            psHostPort = *itr;
-            break;
-         }
-      }
-
-      
-      // get config data for this server
-      pserv.getCdrData(psHostPort.c_str(), psCdrData);
-   }
-   catch (VException &e) {
-      cpLog( LOG_ERR, "Error parsing configuration file" );
-      throw VCdrException("No provisioning data available", __FILE__, __LINE__);
-   }
-
+#warning "Implement getting CDR info from ProvisionInterface"
+#if 0
+// TODO:  Get this from the provisioning server
    m_billingDirectory = psCdrData.getBillingDir();
    m_billingFileName = psCdrData.getBillingDataFile();
    m_billingFrequency = psCdrData.getBillingFreq();
@@ -451,6 +263,7 @@ CdrConfig::getPsData( const NetworkAddress& psHost,
    // the config and ps values
    setEnvCdr();
 }
+#endif
 
 void
 CdrConfig::print(const int loglevel) {

@@ -53,11 +53,10 @@
 
 
 static const char* const CdrBilling_hxx_Version =
-    "$Id: CdrBilling.hxx,v 1.4 2004/06/15 00:30:10 greear Exp $";
+    "$Id: CdrBilling.hxx,v 1.5 2004/08/18 22:39:14 greear Exp $";
 
 
 #include "CdrConfig.hxx"
-#include "CdrUserCache.hxx"
 #include <misc.hxx>
 #include "CdrFileHandler.hxx"
 #include <Sptr.hxx>
@@ -71,10 +70,6 @@ class VRadiusException;
 
 class CdrBilling {
 protected:
-
-   // Keep a cache of the users so that we don't have to retrieve them
-   // from provisioning all the time
-   CdrUserCache userAliases;
 
    // We need to monitor the last time we connected to the billing server,
    // if the time exceeds the time limit for storing billing records, then
@@ -101,7 +96,7 @@ public:
     * @param CdrUserCache&
     * @return bool true if able to connect with billing server
     */
-   bool sendBillingRecords(CdrUserCache &userAliases);
+   bool sendBillingRecords();
 
    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      int& maxdesc, uint64& timeout, uint64 now);

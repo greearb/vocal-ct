@@ -51,7 +51,7 @@
 
 
 static const char* const CdrManager_cxx_Version =
-    "$Id: CdrManager.cxx,v 1.4 2004/06/15 00:30:10 greear Exp $";
+    "$Id: CdrManager.cxx,v 1.5 2004/08/18 22:39:14 greear Exp $";
 
 
 #include <time.h>
@@ -70,42 +70,20 @@ static const char* const CdrManager_cxx_Version =
 const unsigned long int MIN_SLEEP_TIME = 75000;
 const int CYCLE_COUNT = 1000;
 
-// Static declarations
-CdrManager* CdrManager::m_instance = 0;
-
-
-CdrManager&
-CdrManager::instance( const CdrConfig *cdata ) {
-   if (!m_instance) {
-      assert(cdata);
-
-      m_instance = new CdrManager(*cdata);
-
-      // register events
-      m_instance->registerEvent(m_instance->cdrServer.getPtr());
-      m_instance->registerEvent(m_instance->cdrCache.getPtr());
-   }
-   return *m_instance;
-}
-
 CdrManager::CdrManager( const CdrConfig &cdata )
-      : m_configData(cdata)
-{
+      : m_configData(cdata) {
    cdrServer = new CdrServer(cdata);
    cdrCache = new CdrCache(cdata);
+
+   // register events
+   registerEvent(cdrServer.getPtr());
+   registerEvent(cdrCache.getPtr());
 }
 
 
 CdrManager::~CdrManager() {
    // Nothing to do
 }
-
-void
-CdrManager::destroy() {
-    delete m_instance;
-    m_instance = 0;
-}
-
 
 
 int CdrManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,

@@ -1,4 +1,3 @@
-
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
  * 
@@ -50,54 +49,15 @@
  */
 
 
-static const char* const CdrMarshal_cxx_Version =
-    "$Id: CdrMarshal.cxx,v 1.3 2004/08/18 22:39:14 greear Exp $";
+#ifndef __CDR_COMMON_HXX__
+#define __CDR_COMMON_HXX__
 
-
-#include "CdrMarshal.hxx"
 #include "CdrManager.hxx"
-#include "VNetworkException.hxx"
-#include "cpLog.h"
-#include "cdr_common.hxx"
+#include <Sptr.hxx>
 
 
-CdrMarshal::CdrMarshal() :
-    EventObj( (int)0, true ),      // ensure use of constructor EventObj(int)
-    m_conn( false )          // set non-blocking
-{}
+extern Sptr<CdrManager> cdrManager;
 
-void
-CdrMarshal::onData() {
-   try {
-      getData();
-   }
-   catch ( VNetworkException &e ) {
-      // remove marshal from list when it's connection is closed
-      m_done = true;
-      
-      cpLog( LOG_ALERT, "Marshal marked for removal from list. Reason:%s",
-             e.getDescription().c_str() );
-   }
-}
 
-void CdrMarshal::getData() throw (VNetworkException&) {
-   CdrClient msg;
-   static int datasize = sizeof(msg);
 
-   
-   int n = m_conn.read();
-
-   if (( n < datasize ) || (!m_conn.isLive())) {
-      m_conn.close();
-      // TODO:  Gotta be a cleaner way than throwing an exception here.
-      throw VNetworkException( "Socket read failed, connection terminated",
-                               __FILE__, __LINE__ );
-   }
-
-   
-   while (m_conn.getRcvBytesWaiting() >= datasize) {
-      m_conn.peekRcvdBytes((unsigned char*)(&msg), datasize);
-      m_conn.consumeRcvdBytes(datasize);
-      cdrManager->addCache(msg);
-   }
-}//getData
+#endif

@@ -51,7 +51,7 @@
 
 
 static const char* const CdrServer_cxx_Version =
-    "$Id: CdrServer.cxx,v 1.2 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrServer.cxx,v 1.3 2004/08/18 22:39:14 greear Exp $";
 
 
 #include "CdrServer.hxx"
@@ -59,7 +59,7 @@ static const char* const CdrServer_cxx_Version =
 #include "CdrManager.hxx"
 #include "Tcp_ServerSocket.hxx"
 #include "cpLog.h"
-
+#include "cdr_common.hxx"
 
 CdrServer::CdrServer ( const CdrConfig &cdata ) :
     EventObj( (int)0, true ),      // ensure use of constructor EventObj(int)
@@ -86,7 +86,7 @@ void CdrServer::onData() {
    m_tcpSock->accept( newMs->getConn() );
    newMs->preRegister();
 
-   CdrManager::instance().registerEvent( newMs.getPtr() );
+   cdrManager->registerEvent( newMs.getPtr() );
 
    cpLog( LOG_INFO, "A new Marshal has requested a connection" );
 }
