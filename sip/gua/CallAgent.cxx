@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.3 2004/10/29 07:22:34 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -94,8 +94,7 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
     facade = _facade;
     myState = ControlStateFactory::instance().getState(INIT);
     //Create new UserAgent
-    if(aRole == A_CLIENT)
-    {
+    if(aRole == A_CLIENT) {
         char buf[64];
         snprintf(buf, 63, "CallAgent-C:%d\n", callId);
         buf[63] = 0;
@@ -104,8 +103,7 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
                                  facade, buf);
         myState->makeCall(*this);
     }
-    else
-    {
+    else {
         char buf[64];
         snprintf(buf, 63, "CallAgent:%d\n", callId);
         buf[63] = 0;
@@ -118,11 +116,11 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
 
     //Add the callleg in CallDb
     CallDB::instance().addCallLeg(myInvokee);
-
 };
 
 
 CallAgent::~CallAgent() { 
+   assertNotDeleted();
    freeMedia();
    _cnt--;
 }
@@ -169,65 +167,60 @@ CallAgent::placeCall()
 }
 
 
-void 
-CallAgent::doBye()
-{
-    if (!myState->canBye()) {
-        cpLog(LOG_ERR, "CallAgent::doBye(), this: %p, myState: %s cannot bye!",
-              this, myState->className().c_str());
+void CallAgent::doBye() {
+   if (!myState->canBye()) {
+      cpLog(LOG_ERR, "CallAgent::doBye(), this: %p, myState: %s cannot bye!",
+            this, myState->className().c_str());
+      
+      // Try to end call, maybe that will work!
+      endCall();
 
-        // Try to end call, maybe that will work!
-        endCall();
+      return;
+   }
 
-	return;
-    }
+   cpLog(LOG_ERR, "CallAgent::doBye(), this: %p", this);
+   Sptr<SipMsg> bMsg = myInvokee->sendBye();
+   if (bMsg != 0) {
+      facade->postInfo(bMsg);
+   }
 
-    cpLog(LOG_ERR, "CallAgent::doBye(), this: %p", this);
-    Sptr<SipMsg> bMsg = myInvokee->sendBye();
-    if (bMsg != 0) {
-       facade->postInfo(bMsg);
-    }
-
-    endCall();
-    strstream str;
-    str << "L_HANGUP BYE" << ends;
-    facade->postMsg(str.str());
-    str.freeze(false);
+   endCall();
+   strstream str;
+   str << "L_HANGUP BYE" << ends;
+   facade->postMsg(str.str());
+   str.freeze(false);
 }
 
-void 
-CallAgent::endCall()
-{
-    cpLog(LOG_ERR, "CallAgent::endCall, in state: %s\n",
-          myState->className().c_str());
-    assertNotDeleted();
+void CallAgent::endCall() {
+   cpLog(LOG_ERR, "CallAgent::endCall, this: %p  in state: %s\n",
+         this, myState->className().c_str());
+   assertNotDeleted();
 
-    if(!myActiveFlg)
-    {
-        cpLog(LOG_ERR, "Call Agent no more active, ignoring endCall(), this: %p", this);
-        return;
-    }
+   if (!myActiveFlg) {
+      cpLog(LOG_ERR, "Call Agent no more active, ignoring endCall(), this: %p", this);
+      return;
+   }
 
-    cpLog(LOG_ERR, "CallAgent::endCall(), this: %p", this);
+   cpLog(LOG_ERR, "CallAgent::endCall(), this: %p", this);
+   
+   try {
+      freeMedia();
 
-    try {
-        freeMedia();
-
-	///Transit the controller state
-	myState->bye(*this);  //-> TEAR_DOWN
-        while (myState->end(*this) < 0) {  //-> INIT
-           // NOTE:  It is REQUIRED that states eventually transition to a state
-           // where 'end' cannot fail.
-           cpLog(LOG_ERR, "Failed to end in previous state, trying again in state: %s\n", myState->className().c_str());
-           // Continue
-        }
-        facade->notifyCallEnded();
-    }
-    catch(CInvalidStateException& e)
-    {
-        cpLog(LOG_ERR, "Unexpected Error ? :(:%s", e.getDescription().c_str());
-    }
-}
+      // Transit the controller state
+      myState->bye(*this);  //-> TEAR_DOWN
+      while (myState->end(*this) < 0) {  //-> INIT
+         // NOTE:  It is REQUIRED that states eventually transition to a state
+         // where 'end' cannot fail.
+         cpLog(LOG_ERR, "Failed to end in previous state, trying again in state: %s\n",
+               myState->className().c_str());
+         // Continue
+      }
+      facade->notifyCallEnded();
+   }
+   catch(CInvalidStateException& e) {
+      cpLog(LOG_ERR, "Unexpected Error ? :(:%s", e.getDescription().c_str());
+   }
+}//endCall
 
 void CallAgent::freeMedia() {
    cpLog(LOG_ERR, "in CallAgent::freeMedia, freedMedia: %d\n",
@@ -441,7 +434,8 @@ CallAgent::acceptCall()
         }
 #else
         SipSdp localSdp(myInvokee->getMyLocalIp());
-        SdpSession localS = MediaController::instance().createSession(remoteSdp->getSdpDescriptor());
+        SdpSession localS = MediaController::instance().createSession(remoteSdp->getSdpDescriptor(),
+                                                                      "CallAgent::acceptCall");
         setHost(localS, S_host);
         localSdp.setSdpDescriptor(localS);
 #endif
@@ -469,14 +463,13 @@ CallAgent::stopCall()
     }
 }
 
-void
-CallAgent::setDeleted() {
+void CallAgent::setDeleted() {
    myActiveFlg = false;
    cpLog(LOG_ERR, "CallAgent::setDeleted:%d", getId());
    CallDB::instance().removeCallData(*myInvokee);
 
-   // TODO:  Needed??
-   //UaCallControl::instance().removeAgent(getId(), 1000);
+   UaCallControl::instance().removeAgent(getId());
+   myInvokee = NULL; // Have to cut the reference counter loop!
 }
 
 int

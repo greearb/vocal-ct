@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 
 #include "global.h"
@@ -815,11 +815,17 @@ int RtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 
-int RtpSession::receive (RtpPacket& pkt, fd_set* fds) {
+int RtpSession::retrieve(RtpPacket& pkt) {
+   return recv->retrieve(pkt);
+}
+
+int RtpSession::readNetwork(fd_set* fds) {
    if ( !( sessionState == rtp_session_sendrecv
            || sessionState == rtp_session_recvonly ) ) {
       if (recv) {
-         recv->receive(pkt, fds);
+         if (fds && FD_ISSET(recv->getUdpStack()->getSocketFD(), fds)) {
+            recv->readNetwork();
+         }
          sessionError = session_wrongState;
          cpLog (LOG_ERR, "RTP stack can't receive. Wrong state");
       }
@@ -833,8 +839,11 @@ int RtpSession::receive (RtpPacket& pkt, fd_set* fds) {
    }
    
    sessionError = session_success;
-   return recv->receive(pkt, fds);
-}
+   if (fds && FD_ISSET(recv->getUdpStack()->getSocketFD(), fds)) {
+      recv->readNetwork();
+   }
+   return 0;
+}//readNetwork
 
 
 /* --- Send and Receive RTCP Functions ----------------------------- */

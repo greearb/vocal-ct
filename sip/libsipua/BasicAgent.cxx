@@ -8,7 +8,6 @@ int BasicAgent::_cnt = 0;
 
 BasicAgent::BasicAgent(unsigned long authId, const string& className)
       : myAuthId(authId),
-        myDelFlag(false),
         class_name(className) {
    _cnt++;
    cpLog(LOG_ERR, "Creating basic-agent (id: %d className: %s  this: %p, _cnt: %d\n",
@@ -16,19 +15,10 @@ BasicAgent::BasicAgent(unsigned long authId, const string& className)
 }
 
 
-BasicAgent::BasicAgent( const BasicAgent& src )
-      : class_name(src.class_name)
-{
-   _cnt++;
-   cpLog(LOG_ERR, "Copy-Creating basic-agent: %p, cnt: %d\n", this, _cnt);
-   copyObj(src);
-}
-
-
 BasicAgent::~BasicAgent() {
+   assertNotDeleted();
    cpLog(LOG_ERR, "Deleting basic-agent, id: %d, this %p, cnt: %d\n",
          myAuthId, this, _cnt);
-   _cnt--;
    if (myInvokee != 0) {
       // myInvokee points back to this, and we MUST have it cleaned
       // up before deleting this object, otherwise we crash in UaStateInCall
@@ -36,5 +26,7 @@ BasicAgent::~BasicAgent() {
       myInvokee->assertNotDeleted();
 
       myInvokee->setControllerAgent(NULL); // Keep the invokee from accessing deleted mem
+      myInvokee = NULL;
    }
-}
+   _cnt--;
+}//destructor

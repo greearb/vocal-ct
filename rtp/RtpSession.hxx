@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
 
 
 
@@ -287,7 +287,10 @@ public:
    /** Receives RTP packet information from network
     * Returns <= 0 if packet is not valid.
     **/
-   int receive (RtpPacket& pkt, fd_set* fds);
+   int readNetwork(fd_set* fds);
+
+   // Read from the jitter buffer.
+   int retrieve(RtpPacket& pkt);
 
 
    /** Checks RTCP interval, transmits and receeives if neccessary

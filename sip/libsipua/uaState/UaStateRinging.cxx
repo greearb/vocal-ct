@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateRinging_cxx_Version =
-    "$Id: UaStateRinging.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UaStateRinging.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
 
 #include "UaStateRinging.hxx"
 #include "UaStateFactory.hxx"
@@ -91,16 +91,16 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         agent.getResponse()->setCSeq(statusMsg->getCSeq());
         agent.setLocalCSeq(statusMsg->getCSeq());
         //Notify CC
-        if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedStatus(agent, msg);
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->receivedStatus(agent, msg);
+        }
         agent.setCallLegState(C_LIVE);
         //Transit to Incall
         changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
     }
-    else if(statusCode > 200)
-    {
-        if(statusCode != 408)
-        {
+    else if (statusCode > 200) {
+        if (statusCode != 408) {
             //Send ACK message
             Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
             SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
@@ -117,8 +117,9 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         }
 
         //Notify CC
-        if (agent.getControllerAgent()) {
-            agent.getControllerAgent()->receivedStatus(agent, msg);
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->receivedStatus(agent, msg);
         }
 
         //Transit to Idle
@@ -143,7 +144,10 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
     if(((statusCode > 200) && (statusCode < 400)) || (statusCode > 500))
     {
         cpLog(LOG_WARNING, "UaStateRinging::Received %d", statusCode);
-        if(agent.getControllerAgent()) agent.getControllerAgent()->endCall();
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->endCall();
+        }
         //Transit to idle
         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
         return 0;
@@ -217,7 +221,6 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
     {
 	// get out of here because we cannot send appropriately.
         cpLog(LOG_WARNING, "To does not contain sip: URL");
-//        if(agent.getControllerAgent()) agent.getControllerAgent()->endCall();
         //Transit to idle
         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
 	throw CInvalidStateException("does not contain sip: URL", 
@@ -239,8 +242,9 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
     agent.getSipTransceiver()->sendReply(sendSMsg);
     agent.setResponse(sendSMsg.getPtr());
     //Notify CC to start the call monitor
-    if (agent.getControllerAgent()) {
-       agent.getControllerAgent()->inCall();
+    Sptr<BasicAgent> ba = agent.getControllerAgent();
+    if (ba != 0) {
+       ba->inCall();
     }
     agent.setCallLegState(C_LIVE);
     agent.setResponse(sendSMsg.getPtr());
@@ -272,8 +276,10 @@ UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
          }
          agent.setCallLegState(CLS_NONE);
          //Notify CC
-         if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedRequest(agent, msg);
+         Sptr<BasicAgent> ba = agent.getControllerAgent();
+         if (ba != 0) {
+            ba->receivedRequest(agent, msg);
+         }
          //Transit to Failure
          changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
     }

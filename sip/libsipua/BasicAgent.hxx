@@ -53,7 +53,7 @@
 
 
 static const char* const BasicAgent_hxx_Version =
-    "$Id: BasicAgent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BasicAgent.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -77,95 +77,71 @@ namespace UA {
 
    </pre>
 */
-class BasicAgent : public BugCatcher
-{
-   public:
-      ///
-      BasicAgent(unsigned long authId, const string& className);
-
-      BasicAgent( const BasicAgent& src );
-
-      virtual ~BasicAgent();
-
-      ///
-      const BasicAgent& operator =( const BasicAgent& src )
-      {
-          if(this != &src)
-          {
-              copyObj(src);
-          }
-          return *this;
-      }
-
-      ///
-      const string& className() const { return class_name; }
-
-      ///
-      void placeCall();
-      ///
-      virtual void inCall() = 0;
-
-      ///
-      virtual void callFailed()=0;
-      ///
-      virtual void doBye() = 0;
-      ///
-      virtual void doCancel() = 0;
-       ///
-      virtual void dohold() { };
-      ///
-      virtual void endCall()=0;
-      ///
-      virtual void hold(UaBase& agent, const Sptr<SipMsg>& msg) { };
-      ///
-      virtual void reqResume(Sptr<SipMsg>& msg) { };
-      ///
-      virtual void timerExpired() { };
-
-      ///
-      unsigned long getId() const { return myAuthId; };
-      ///
-      bool toBeDeleted() const { return myDelFlag; }
-
-      ///
-      Sptr<UaBase> getInvokee() const { return myInvokee; }
-      ///
-      //void setInvokee(const Sptr<UaBase>& userAgent) { myInvokee = userAgent; };
-      ///
-      virtual void setDeleted() { myDelFlag = true; };
-
-      ///
-      virtual void copyObj(const BasicAgent& src )
-      {
-          myAuthId = src.myAuthId;
-          myDelFlag = src.myDelFlag;
-          myInvokee = src.myInvokee;
-          assert(class_name == src.class_name);
-      }
-
-      ///
-      virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg)=0;
-      ///
-      virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)=0;
-
-      static int getInstanceCount() { return _cnt; }
-
-   protected:
-      ///
-      unsigned long myAuthId;
-      ///
-      Sptr<UaBase> myInvokee;
-
+class BasicAgent : public BugCatcher {
+public:
+   ///
+   BasicAgent(unsigned long authId, const string& className);
+   
+   BasicAgent( const BasicAgent& src );
+   
+   virtual ~BasicAgent();
+   
+   ///
+   const string& className() const { return class_name; }
+   
+   ///
+   void placeCall();
+   ///
+   virtual void inCall() = 0;
+   
+   ///
+   virtual void callFailed()=0;
+   ///
+   virtual void doBye() = 0;
+   ///
+   virtual void doCancel() = 0;
+   ///
+   virtual void dohold() { };
+   ///
+   virtual void endCall()=0;
+   ///
+   virtual void hold(UaBase& agent, const Sptr<SipMsg>& msg) { };
+   ///
+   virtual void reqResume(Sptr<SipMsg>& msg) { };
+   ///
+   virtual void timerExpired() { };
+   
+   ///
+   unsigned long getId() const { return myAuthId; };
+   
+   ///
+   Sptr<UaBase> getInvokee() const { return myInvokee; }
+   ///
+   //void setInvokee(const Sptr<UaBase>& userAgent) { myInvokee = userAgent; };
+   ///
+   virtual void setDeleted() = 0;
+   
+   ///
+   virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg)=0;
+   ///
+   virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)=0;
+   
+   static int getInstanceCount() { return _cnt; }
+   
+protected:
+   ///
+   unsigned long myAuthId;
+   ///
+   Sptr<UaBase> myInvokee;
+   
 private:
-      static int _cnt;
-      BasicAgent(); //restrict 
+   static int _cnt;
+   BasicAgent(); //restrict 
+   const BasicAgent& operator =( const BasicAgent& src );
 
-      ///
-      bool myDelFlag;
-
-      string class_name;
-
-      //static int _cnt;
+   string class_name;
+   
+   //static int _cnt;
 };
 
 

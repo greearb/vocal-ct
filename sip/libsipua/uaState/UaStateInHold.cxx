@@ -75,30 +75,32 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
     statusMsg.dynamicCast(msg);
     assert(statusMsg != 0);
     int statusCode = statusMsg->getStatusLine().getStatusCode();
-    if(statusCode >= 200)
-    {
+    if (statusCode >= 200) {
         //Send Ack
-        if(statusMsg->getCSeq().getMethod() == INVITE_METHOD)
-        {
+        if (statusMsg->getCSeq().getMethod() == INVITE_METHOD) {
             Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
 	    addSelfInVia(agent, ackMsg.getPtr());
             agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
         }
     }
-    if(statusCode == 200) {
-	if (statusMsg->getCSeq().getMethod() == INVITE_METHOD)
-	{
+    if (statusCode == 200) {
+	if (statusMsg->getCSeq().getMethod() == INVITE_METHOD) {
 	    //Sync up the sequence number
 	    agent.getResponse()->setCSeq(statusMsg->getCSeq());
-	    agent.getControllerAgent()->dohold(); // DO the Hold here, since 200 OK for the
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->dohold(); // DO the Hold here, since 200 OK for the
+            }
 	    // REINVITE Is recevied.
 	    return;
 	}
     }
     
     //Notify CC   
-    if(agent.getControllerAgent())
-        agent.getControllerAgent()->receivedStatus(agent, msg);
+    Sptr<BasicAgent> ba = agent.getControllerAgent();
+    if (ba != 0) {
+       ba->receivedStatus(agent, msg);
+    }
 }
 
 int
@@ -118,8 +120,7 @@ UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         assert(sipCmd != 0);
         Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
 
-        if(sdpData != 0)
-        {
+        if(sdpData != 0) {
             sendSMsg->setNumContentData(0);
             sendSMsg->setContentData(sdpData.getPtr());
         }
@@ -138,8 +139,7 @@ UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         sendSMsg->setContact( me );
         agent.getSipTransceiver()->sendReply(sendSMsg); 
     }
-    else if(statusCode > 200)
-    {
+    else if(statusCode > 200) {
         agent.sendReplyForRequest(agent.getRequest(), statusCode);
     }
     return 0;
@@ -163,8 +163,10 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Send 200 status msg
             agent.sendReplyForRequest(msg, 200);
             //Notify CC
-            if(agent.getControllerAgent())
-                agent.getControllerAgent()->receivedRequest(agent, msg);
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->receivedRequest(agent, msg);
+            }
         }
         break;
         case SIP_BYE:
@@ -173,10 +175,10 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Send 200 
             agent.sendReplyForRequest(msg, 200);
             //Notify CC of the call end
-            if(agent.getControllerAgent()) 
-            {
-                agent.getControllerAgent()->endCall();
-                agent.getControllerAgent()->receivedRequest(agent, msg);
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->endCall();
+               ba->receivedRequest(agent, msg);
             }
             //Transit to Idle
             changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
@@ -188,8 +190,10 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Save the Ack message for future BYE
             agent.setAck(msg);
             //Notify CC
-            if(agent.getControllerAgent())
-                agent.getControllerAgent()->receivedRequest(agent, msg);
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->receivedRequest(agent, msg);
+            }
         }
         break;
         case SIP_INVITE:
@@ -206,8 +210,10 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 
             agent.setRequest(msg);
             //Notify CC
-            if(agent.getControllerAgent())
-                agent.getControllerAgent()->reqResume(msg);
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->reqResume(msg);
+            }
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
         }
         break;
@@ -218,11 +224,11 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             agent.sendReplyForRequest(msg, 200);
             agent.sendReplyForRequest(msg, 487);
             //Notify CC of the call end
-            if(agent.getControllerAgent()) 
-            {
-                 //Notify CC
-                 agent.getControllerAgent()->receivedRequest(agent, msg);
-                 agent.getControllerAgent()->endCall();
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               //Notify CC
+               ba->receivedRequest(agent, msg);
+               ba->endCall();
             }
             //Transit to Idle
             changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
@@ -260,23 +266,19 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             invMsg->setCallId(agent.getRequest()->getCallId());
             //Set the To tag from the previous final response
             SipTo to = invMsg->getTo();
-            if(to.getUser() == agent.getResponse()->getTo().getUser())
-            {
+            if (to.getUser() == agent.getResponse()->getTo().getUser()) {
                to.setTag(agent.getResponse()->getTo().getTag());
             }
-            else
-            {
+            else {
                to.setTag(agent.getResponse()->getFrom().getTag());
             }
             invMsg->setTo(to);
 
             SipFrom from = invMsg->getFrom();
-            if(from.getUser() == agent.getResponse()->getFrom().getUser())
-            {
+            if (from.getUser() == agent.getResponse()->getFrom().getUser()) {
                 from.setTag(agent.getResponse()->getFrom().getTag());
             }
-            else
-            {
+            else {
                 from.setTag(agent.getResponse()->getTo().getTag());
             }
             invMsg->setFrom(from);

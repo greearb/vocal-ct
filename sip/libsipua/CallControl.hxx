@@ -53,7 +53,7 @@
 
 
 static const char* const CallControl_hxx_Version =
-    "$Id: CallControl.hxx,v 1.3 2004/06/17 06:56:51 greear Exp $";
+    "$Id: CallControl.hxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
 
 #include "global.h"
 #include <map>
@@ -72,43 +72,39 @@ namespace UA {
    Main interface to handle requests in 3pcc
    </pre>
 */
-class CallControl 
-{
-   public:
-      ///
-      virtual string className() { return "CallControl"; }
-
-      ///Destructor
-      virtual ~CallControl();
-
-      ///Hook to call the controller when a request is received
-      virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg) { };
-      ///Hook to call controller when a status is received
-      virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) { };
-
-      /**Called by the application when either a SIP, user event is
-       * received. Only handles the SIP event, if it is part of an exisitng
-       * call-leg. Returns true if successfully handles the event.
-       */
-      virtual bool processEvent(const Sptr<SipProxyEvent>& event);
-
-#if 0
-      /**Application calls to schedule a call-agent for collection
-       * @param id - Indentifies the agent in callDB
-       * @param timeInMs - Time after which agent will be collected
-       */
-      virtual void removeAgent(unsigned long id, int timeInMs=5000);
-#endif
-
-   protected:
-      ///
-      typedef map<int , Sptr<BasicAgent> > CallMap;
-
-      ///
-      CallControl();
-      ///
-      CallMap     myCallMap;
-      ///
+class CallControl {
+public:
+   ///
+   virtual string className() { return "CallControl"; }
+   
+   ///Destructor
+   virtual ~CallControl();
+   
+   ///Hook to call the controller when a request is received
+   virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg) { };
+   ///Hook to call controller when a status is received
+   virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) { };
+   
+   /**Called by the application when either a SIP, user event is
+    * received. Only handles the SIP event, if it is part of an exisitng
+    * call-leg. Returns true if successfully handles the event.
+    */
+   virtual bool processEvent(const Sptr<SipProxyEvent>& event);
+   
+   /**Application calls to remove an agent.
+    * @param id - Indentifies the agent in callDB
+    */
+   virtual void removeAgent(unsigned long id);
+   
+protected:
+   ///
+   typedef map<int , Sptr<BasicAgent> > CallMap;
+   
+   ///
+   CallControl();
+   ///
+   CallMap     myCallMap;
+   ///
 };
 
 }

@@ -50,7 +50,7 @@
 
 
 static const char* const NetworkAddress_cxx_Version =
-"$Id: NetworkAddress.cxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
+"$Id: NetworkAddress.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
 
 #include <string>
 #if defined(__FreeBSD__) || defined (__APPLE__)
@@ -437,80 +437,74 @@ NetworkAddress::hashIpPort( const u_int32_t lipAddress, const int port )
 
 
 void
-NetworkAddress::initIpAddress() const
-{
-    //cpLog(LOG_DEBUG_STACK, "initIpAddress() for hostName %s", hostName.c_str());
+NetworkAddress::initIpAddress() const {
+   //cpLog(LOG_DEBUG_STACK, "initIpAddress() for hostName %s", hostName.c_str());
            
-    if (ipAddressSet)
-        return;
-          
-    struct addrinfo hints;
-    struct addrinfo *res = 0;
+   if (ipAddressSet)
+      return;
 
-    // Setup structures
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype = SOCK_STREAM;
+   if (hostName.size() == 0) {
+      // Haven't resolved it yet, IP address better be valid!
+      assert(is_valid_ip4_addr(ipAddress));
+      ipAddressSet = true;
+      return;
+   }
+   
+   struct addrinfo hints;
+   struct addrinfo *res = 0;
 
-    Data the_host = hostName;
+   // Setup structures
+   memset(&hints, 0, sizeof(hints));
+   hints.ai_socktype = SOCK_STREAM;
+   
+   Data the_host = hostName;
 
-    if(the_host.find("[", 0) != Data::npos)
-        the_host = the_host.substr(1, the_host.length()-2);
+   if (the_host.find("[", 0) != Data::npos) {
+      the_host = the_host.substr(1, the_host.length()-2);
+   }
 
-    bool nameIsAddress = false;
-    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-    if (is_valid_ip6_addr(the_host)) {
-        hints.ai_family = PF_INET6;
-        nameIsAddress = true;
-    }
-    else if (is_valid_ip4_addr(the_host)) 
-    {
-        hints.ai_family = PF_INET;
-        nameIsAddress = true;
-    }
-
-    //if nameIsAddress, we are done
-    if(nameIsAddress) {
-        ipAddress = the_host;
-        //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
-        ipAddressSet = true;
-        return;
-    }
-
-    //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
-    //it is a host name to do nslookup to get the IP address
-    int error = getaddrinfo(the_host.c_str(), NULL, &hints, &res);
-    if (error) {
-        cpLog(LOG_ERR, "Failed to resolve %s, reason:%s", the_host.c_str(), gai_strerror(error));
-        return;
-    }
-
-    char ip[256];
-    //cpLog(LOG_DEBUG_STACK, "getnameinfo()");
-    error = getnameinfo(res->ai_addr, res->ai_addrlen, ip, 256, NULL, 0, NI_NUMERICHOST );
-    if (error) {
-        cpLog(LOG_ERR, "Failed to getnameinfo %s, reason:%s", the_host.c_str(), gai_strerror(error));
-        freeAddrInfo(res);
-        return;
-    }
-        
-#if 0  
-    //Do not set the hostname unless someone asks for it
-    //Host name will get set when someone asks the name using getHostName() interface
-    if(nameIsAddress) {
-        char hName[256];
-        //Get the host name of the address
-        error = getnameinfo(res->ai_addr, res->ai_addrlen, hName, 256, NULL, 0, NI_NAMEREQD );
-        if (error) {
-            cpLog(LOG_ERR, "Failed to resolve address %s to a name", ip);
-            hostName = ip;
-        }
-        else hostName = hName;
-    }
-#endif
-    freeAddrInfo(res);
-    ipAddress = ip;
-    //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
-    ipAddressSet = true;
+   bool nameIsAddress = false;
+   hints.ai_family = NetworkConfig::instance().getAddrFamily();
+   if (is_valid_ip6_addr(the_host)) {
+      hints.ai_family = PF_INET6;
+      nameIsAddress = true;
+   }
+   else if (is_valid_ip4_addr(the_host)) {
+      hints.ai_family = PF_INET;
+      nameIsAddress = true;
+   }
+   
+   //if nameIsAddress, we are done
+   if (nameIsAddress) {
+      ipAddress = the_host;
+      //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
+      ipAddressSet = true;
+      return;
+   }
+   
+   //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
+   //it is a host name to do nslookup to get the IP address
+   int error = getaddrinfo(the_host.c_str(), NULL, &hints, &res);
+   if (error) {
+      cpLog(LOG_ERR, "Failed to resolve %s, reason:%s",
+            the_host.c_str(), gai_strerror(error));
+      return;
+   }
+   
+   char ip[256];
+   //cpLog(LOG_DEBUG_STACK, "getnameinfo()");
+   error = getnameinfo(res->ai_addr, res->ai_addrlen, ip, 256, NULL, 0, NI_NUMERICHOST );
+   if (error) {
+      cpLog(LOG_ERR, "Failed to getnameinfo %s, reason:%s",
+            the_host.c_str(), gai_strerror(error));
+      freeAddrInfo(res);
+      return;
+   }
+   
+   freeAddrInfo(res);
+   ipAddress = ip;
+   //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
+   ipAddressSet = true;
 }
 
 NetworkAddress::NetworkAddress( const NetworkAddress& x)

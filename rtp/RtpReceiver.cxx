@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 
 #include "global.h"
@@ -94,7 +94,9 @@ RtpReceiver::RtpReceiver (const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localMinPort, int localMaxPort,
                           RtpPayloadType _format, int _clockrate,
-                          int per_sample_size, int samplesize) {
+                          int per_sample_size, int samplesize)
+      : tmpPkt(1024)
+{
     /// udp stack is a sendrecv stack
     myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
                             NULL, localMinPort, localMaxPort) ;
@@ -107,7 +109,9 @@ RtpReceiver::RtpReceiver (const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localPort, RtpPayloadType _format,
                           int _clockrate, int per_sample_size,
-                          int samplesize) {
+                          int samplesize)
+      : tmpPkt(1024)
+{
     /// udp stack is a sendrecv stack
     myStack = new UdpStack (false, local_ip, local_dev_to_bind_to, NULL, localPort) ;
 
@@ -116,7 +120,9 @@ RtpReceiver::RtpReceiver (const string& local_ip,
 
 RtpReceiver::RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
                           int _clockrate, int per_sample_size,
-                          int samplesize) {
+                          int samplesize)
+      : tmpPkt(1024)
+{
     /// udp stack is a sendrecv stack
     myStack = udp;
     
@@ -196,262 +202,221 @@ int RtpReceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 /* --- receive packet functions ------------------------------------ */
 
-int RtpReceiver::receive (RtpPacket& pkt,  fd_set* fds) {
-    int len = 0;
-    bool faking = 0;
-    int rv = 0;
-    int seq;
+int RtpReceiver::readNetwork() {
+   int len = 0;
+   bool faking = 0;
+   int rv = 0;
+   int seq;
 
-    bool read_ntwk = false;
-    if (fds && FD_ISSET(myStack->getSocketFD(), fds)) {
-       read_ntwk = true;
-    }
+   tmpPkt.clear();
 
-    // empty network que
-    NtpTime arrival (0, 0);
-    while (read_ntwk) { // read all we can from the network.
-        rv = getPacket(pkt);
-        if (rv <= 0) {
-           break;
-        }
+   // empty network que
+   NtpTime arrival (0, 0);
+   rv = getPacket(tmpPkt);
+   if (rv <= 0) {
+      return rv;
+   }
 
-        // only play packets for valid sources
-        if (probation < 0) {
-            cpLog(LOG_ERR, "****Packet from invalid source");
-            pkt.clear();
-            continue;
-        }
+   // only play packets for valid sources
+   if (probation < 0) {
+      cpLog(LOG_ERR, "****Packet from invalid source");
+      return -1;
+   }
 
-        arrival = getNtpTime();
-        int packetTransit = 0;
-        int delay = 0;
+   arrival = getNtpTime();
+   int packetTransit = 0;
+   int delay = 0;
 
-        rtp_ntohl(&pkt);
+   rtp_ntohl(&tmpPkt);
 
-#if 0
-        // This looks pretty bogus, and why wouldn't you need to do it on
-        // sparc too?  If the codec changes mid-stream, then the user can
-        // just hear/see garbage. --Ben
+   len = tmpPkt.getPayloadUsage();
+   if (len <= 0 || len > 1012) {
+      cpLog(LOG_ERR, "Got an invalid packet size");
+      invalidPldSize++;
+      return -2;
+   }
 
-        // convert codec
-        RtpPayloadType lType = pkt.getPayloadType();
-        if ((lType != rtpPayloadDTMF_RFC2833) &&
-            (lType != rtpPayloadCiscoRtp) &&
-             lType != format)
-        {
-#ifndef __sparc
-            // replace p with a new packet
-            convertRtpPacketCodec (apiFormat, pkt);
-#endif
-        }
-#endif
+   // This does NOT deal with variable sized compression schemes. --Ben
+   // fix frame boundry
+   //if (len > networkFormat_payloadSize ) {
+   //    int lenold = len;
+   //    len = ( len / networkFormat_payloadSize ) * networkFormat_payloadSize;
+   //    tmpPkt.setPayloadUsage( len );
+   //    cpLog( LOG_ERR, "Fixing frame boundry to %d from %d", len, lenold );
+   //    sampleSize = (lenold / networkFormat_payloadSize) * sampleSize;
+   //}
 
-        len = pkt.getPayloadUsage();
-        if (len <= 0 || len > 1012)
-        {
-            cpLog(LOG_ERR, "Got an invalid packet size");
-            invalidPldSize++;
-            pkt.clear();
-            continue;
-        }
+   // reordering the packets according to the seq no
+   // leave gaps and copy the next packet in all the gap
+   // when the late packets come copy it into the correct pos
 
-#if 0
-        // Don't know what this is, and don't like how it is being detected
-        // (What about variable compression codecs??)
-	/**/
-        // drop SID packets
-        if (!isSpeexFormat()) {
-           if (len < XXXX) {
-              cpLog( LOG_DEBUG_STACK, "Dropping SID packet" );
-              setPrevSeqRecv(pkt.getSequence());
-              sidPktsRcvd++;
-              pkt.clear();
-              continue;
-           }
-        }
-	/**/
-#endif
-
-        // This does NOT deal with variable sized compression schemes. --Ben
-        // fix frame boundry
-        //if (len > networkFormat_payloadSize ) {
-        //    int lenold = len;
-        //    len = ( len / networkFormat_payloadSize ) * networkFormat_payloadSize;
-        //    pkt.setPayloadUsage( len );
-        //    cpLog( LOG_ERR, "Fixing frame boundry to %d from %d", len, lenold );
-        //    sampleSize = (lenold / networkFormat_payloadSize) * sampleSize;
-        //}
-
-        // reordering the packets according to the seq no
-        // leave gaps and copy the next packet in all the gap
-        // when the late packets come copy it into the correct pos
-
-        seq = pkt.getSequence();
-        if (RtpSeqGreater(seq, prevSeqRecv)) {
-           cpLog(LOG_DEBUG_STACK, "seq-greater:  pkt.seq: %d  prevSeq: %d, inPos: %d"
-                 "  playPos: %d  cur_max_jbs: %d, queue_count: %d, sampleSize: %d",
-                 seq, prevSeqRecv, inPos, playPos, cur_max_jbs,
-                 getJitterPktsInQueueCount(), sampleSize);
+   seq = tmpPkt.getSequence();
+   if (RtpSeqGreater(seq, prevSeqRecv)) {
+      cpLog(LOG_DEBUG_STACK, "seq-greater:  tmpPkt.seq: %d  prevSeq: %d, inPos: %d"
+            "  playPos: %d  cur_max_jbs: %d, queue_count: %d, sampleSize: %d",
+            seq, prevSeqRecv, inPos, playPos, cur_max_jbs,
+            getJitterPktsInQueueCount(), sampleSize);
            
-           // C.Cameron, hacked by Ben Greear
-           while (RtpTimeGreater( pkt.getRtpTime() - sampleSize,
-                                  prevPacketRtpTime )) {
+      // C.Cameron, hacked by Ben Greear
+      while (RtpTimeGreater( tmpPkt.getRtpTime() - sampleSize,
+                             prevPacketRtpTime )) {
               
-              // silence patching
-              cpLog( LOG_ERR, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
-                     pkt.getRtpTime(), sampleSize, prevPacketRtpTime,
-                     seq, prevSeqRecv);
+         // silence patching
+         cpLog( LOG_ERR, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
+                tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
+                seq, prevSeqRecv);
 
-              int tmp;
-              assert((tmp = RtpSeqDifference(seq, prevSeqRecv)) > 1);
+         int tmp;
+         assert((tmp = RtpSeqDifference(seq, prevSeqRecv)) > 1);
 
-              if ( cpLogGetPriority() >= LOG_DEBUG_HB ) {
-                 cerr << "s" << sampleSize;
-              }
+         if ( cpLogGetPriority() >= LOG_DEBUG_HB ) {
+            cerr << "s" << sampleSize;
+         }
 
-              if (jitterBuffer[inPos] == NULL) {
-                 jitterBuffer[inPos] = new RtpData();
-              }
+         if (jitterBuffer[inPos] == NULL) {
+            jitterBuffer[inPos] = new RtpData();
+         }
 
-              if (! isSpeexFormat()) {
-                 if ( silenceCodec == 0 ) {
-                    cpLog( LOG_DEBUG_STACK, "Patching silence" );
-                    if ((pkt.getPayloadType() >= rtpPayloadDynMin) &&
-                        (pkt.getPayloadType() <= rtpPayloadDynMax) &&
-                        (codecString[0] != '\0')) {
-                       silenceCodec = findSilenceCodecString(codecString, len);
-                    }
-                    else {
-                       silenceCodec = findSilenceCodec( pkt.getPayloadType(), len );
-                    }
+         if (! isSpeexFormat()) {
+            if ( silenceCodec == 0 ) {
+               cpLog( LOG_DEBUG_STACK, "Patching silence" );
+               if ((tmpPkt.getPayloadType() >= rtpPayloadDynMin) &&
+                   (tmpPkt.getPayloadType() <= rtpPayloadDynMax) &&
+                   (codecString[0] != '\0')) {
+                  silenceCodec = findSilenceCodecString(codecString, len);
+               }
+               else {
+                  silenceCodec = findSilenceCodec( tmpPkt.getPayloadType(), len );
+               }
                     
-                    if ( silenceCodec == 0 ) {
-                       if ( len > rtpCodecInfo[ numRtpCodecInfo - 1 ].length ) {
-                          cpLog( LOG_ERR, "Requested codec too big to fake %d", len );
-                          assert( 0 );
-                       }
-                       cpLog( LOG_DEBUG_STACK, "Faking silence packet with 0x00" );
-                       silenceCodec = (char*)&rtpCodecInfo[ numRtpCodecInfo - 1 ].silence;
-                       faking = true;
-                    }
-                 }
-                 assert( silenceCodec );
+               if ( silenceCodec == 0 ) {
+                  if ( len > rtpCodecInfo[ numRtpCodecInfo - 1 ].length ) {
+                     cpLog( LOG_ERR, "Requested codec too big to fake %d", len );
+                     assert( 0 );
+                  }
+                  cpLog( LOG_DEBUG_STACK, "Faking silence packet with 0x00" );
+                  silenceCodec = (char*)&rtpCodecInfo[ numRtpCodecInfo - 1 ].silence;
+                  faking = true;
+               }
+            }
+            assert( silenceCodec );
                  
-                 jitterBuffer[inPos]->setData(silenceCodec, len);
-                 jitterBuffer[inPos]->setSilenceFill(true);
-              }
-              else {
-                 // For speex, we let the codec deal with it, will flag on
-                 // the 'isLogicallyEmpty' field in the RtpData object.
-                 jitterBuffer[inPos]->setSilenceFill(false); // Not particularly silence.
-              }
+            jitterBuffer[inPos]->setData(silenceCodec, len);
+            jitterBuffer[inPos]->setSilenceFill(true);
+         }
+         else {
+            // For speex, we let the codec deal with it, will flag on
+            // the 'isLogicallyEmpty' field in the RtpData object.
+            jitterBuffer[inPos]->setSilenceFill(false); // Not particularly silence.
+         }
               
-              jitterBuffer[inPos]->setIsLogicallyEmpty(true);
-              jitterBuffer[inPos]->setIsInUse(true);
+         jitterBuffer[inPos]->setIsLogicallyEmpty(true);
+         jitterBuffer[inPos]->setIsInUse(true);
               
-              incrementInPos();
-              silencePatched++; //Accounting
+         incrementInPos();
+         silencePatched++; //Accounting
               
-              prevPacketRtpTime += sampleSize;
-           }//while, do silence filling on missing slots.
+         prevPacketRtpTime += sampleSize;
+      }//while, do silence filling on missing slots.
 
-           if ( prevPacketRtpTime != (pkt.getRtpTime() - sampleSize)) {
-              cpLog( LOG_ERR, "Silent patching failed to correct rtptime"
-                     "prevPacketRtpTime(%u), p->getRtpTime()(%u), networkPacketSize(%d)",
-                     prevPacketRtpTime, pkt.getRtpTime(), sampleSize );
+      if ( prevPacketRtpTime != (tmpPkt.getRtpTime() - sampleSize)) {
+         cpLog( LOG_ERR, "Silent patching failed to correct rtptime"
+                "prevPacketRtpTime(%u), p->getRtpTime()(%u), networkPacketSize(%d)",
+                prevPacketRtpTime, tmpPkt.getRtpTime(), sampleSize );
 
-              prevPacketRtpTime = pkt.getRtpTime() - sampleSize;
-              // On second thoughts, don't let a bogus packet kill us!
-              // After a 1-2 day call, a Cisco phone dropped a few packets and
-              // then started sampling at an 80-byte offset, from our
-              // perspective.  The prevPacketRtpTime fixup above should get
-              // us back in sync.
-              //assert(0); // No excuse to be here. --Ben
-           }
+         prevPacketRtpTime = tmpPkt.getRtpTime() - sampleSize;
+         // On second thoughts, don't let a bogus packet kill us!
+         // After a 1-2 day call, a Cisco phone dropped a few packets and
+         // then started sampling at an 80-byte offset, from our
+         // perspective.  The prevPacketRtpTime fixup above should get
+         // us back in sync.
+         //assert(0); // No excuse to be here. --Ben
+      }
 
-           // Add the real packet
-           if (jitterBuffer[inPos] == NULL) {
-              jitterBuffer[inPos] = new RtpData();
-           }
+      // Add the real packet
+      if (jitterBuffer[inPos] == NULL) {
+         jitterBuffer[inPos] = new RtpData();
+      }
 
-           jitterBuffer[inPos]->setData(pkt.getPayloadLoc(), len);
-           jitterBuffer[inPos]->setSilenceFill(false);
-           jitterBuffer[inPos]->setIsLogicallyEmpty(false);
-           jitterBuffer[inPos]->setIsInUse(true);
+      jitterBuffer[inPos]->setData(tmpPkt.getPayloadLoc(), len);
+      jitterBuffer[inPos]->setSilenceFill(false);
+      jitterBuffer[inPos]->setIsLogicallyEmpty(false);
+      jitterBuffer[inPos]->setIsInUse(true);
 
-           incrementInPos();
+      incrementInPos();
 
-           // update counters
-           RtpSeqNumber tSeq = prevSeqRecv;
-           prevSeqRecv++;
-           if (prevSeqRecv > RTP_SEQ_MOD) {
-              setPrevSeqRecv(0);
-           }
-           if (prevSeqRecv < tSeq) {
-              cpLog(LOG_DEBUG_STACK, "Recv cycle");
-              assert(prevSeqRecv == 0);
-              recvCycles += RTP_SEQ_MOD;
-           }
+      // update counters
+      RtpSeqNumber tSeq = prevSeqRecv;
+      prevSeqRecv++;
+      if (prevSeqRecv > RTP_SEQ_MOD) {
+         setPrevSeqRecv(0);
+      }
+      if (prevSeqRecv < tSeq) {
+         cpLog(LOG_DEBUG_STACK, "Recv cycle");
+         assert(prevSeqRecv == 0);
+         recvCycles += RTP_SEQ_MOD;
+      }
 
-           prevPacketRtpTime = pkt.getRtpTime();
+      prevPacketRtpTime = tmpPkt.getRtpTime();
 
-           if (faking) {
-              // Try again next time ???
-              silenceCodec = NULL;
-           }
-        }//if seq-number was in order
-        else {
-           // Find the index where we need to insert this.
-           int idx = calculatePreviousInPos(RtpSeqDifference(prevSeqRecv, pkt.getSequence()));
+      if (faking) {
+         // Try again next time ???
+         silenceCodec = NULL;
+      }
+   }//if seq-number was in order
+   else {
+      // Find the index where we need to insert this.
+      int idx = calculatePreviousInPos(RtpSeqDifference(prevSeqRecv, tmpPkt.getSequence()));
 
-           cpLog(LOG_ERR, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d\n",
-                 idx, prevSeqRecv, pkt.getSequence());
+      cpLog(LOG_ERR, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d\n",
+            idx, prevSeqRecv, tmpPkt.getSequence());
 
-           if (jitterBuffer[idx] == NULL) {
-              jitterBuffer[idx] = new RtpData();
-           }
+      if (jitterBuffer[idx] == NULL) {
+         jitterBuffer[idx] = new RtpData();
+      }
 
-           jitterBuffer[idx]->setData(pkt.getPayloadLoc(), len);
-           jitterBuffer[idx]->setSilenceFill(false);
-           jitterBuffer[idx]->setIsLogicallyEmpty(false);
-           jitterBuffer[idx]->setIsInUse(true);
+      jitterBuffer[idx]->setData(tmpPkt.getPayloadLoc(), len);
+      jitterBuffer[idx]->setSilenceFill(false);
+      jitterBuffer[idx]->setIsLogicallyEmpty(false);
+      jitterBuffer[idx]->setIsInUse(true);
 
-           insertedOooPkt++;
-        }//else
+      insertedOooPkt++;
+   }//else
 
-        packetReceived++;
-        payloadReceived += len;
+   packetReceived++;
+   payloadReceived += len;
 
-        // update jitter calculation
-        packetTransit = arrival - rtp2ntp(pkt.getRtpTime());
-        delay = packetTransit - lastTransit;
-        lastTransit = packetTransit;
+   // update jitter calculation
+   packetTransit = arrival - rtp2ntp(tmpPkt.getRtpTime());
+   delay = packetTransit - lastTransit;
+   lastTransit = packetTransit;
 
 #ifdef USE_LANFORGE
-        if (rtpStatsCallbacks) {
-           uint64 now = arrival.getMs();
-           rtpStatsCallbacks->avgNewJitterPB(now, delay, 1, len);
-        }
+   if (rtpStatsCallbacks) {
+      uint64 now = arrival.getMs();
+      rtpStatsCallbacks->avgNewJitterPB(now, delay, 1, len);
+   }
 #endif
 
-        if (delay < 0) {
-           delay = -delay;
-        }
+   if (delay < 0) {
+      delay = -delay;
+   }
 
-        // Found this on the web. --Ben
-        //jitter- is calculated as for RCTP - RFC 1889
-        //J = J + ( | D(i-1, i) | - J) / 16
-        //where J is jitter and D is delay between two frames
+   // Found this on the web. --Ben
+   //jitter- is calculated as for RCTP - RFC 1889
+   //J = J + ( | D(i-1, i) | - J) / 16
+   //where J is jitter and D is delay between two frames
 
-        // The +8 helps mitigate rounding errors.
-        jitter = jitter + (((delay - jitter) + 8) >> 4);
+   // The +8 helps mitigate rounding errors.
+   jitter = jitter + (((delay - jitter) + 8) >> 4);
+   return 0;
+}//read into our jitter buffer
 
-        pkt.clear();
-    }//while
 
-    // deque next packet
+int RtpReceiver::retrieve(RtpPacket& pkt) {
+    // deque next packet from the jitter buffer.
     if (inPos == playPos) {
-       cpLog (LOG_ERR, "Recv buffer is empty");
+       cpLog (LOG_ERR, "Recv buffer is empty when trying to retrieve");
        receiverError = recv_bufferEmpty;
        jitterBufferEmpty++; // Accounting
        return 0;
@@ -494,7 +459,7 @@ int RtpReceiver::receive (RtpPacket& pkt,  fd_set* fds) {
 
     // update counters
     RtpSeqNumber sSeq = prevSeqPlay;
-    seq = (int)(sSeq); /* Debugging, I see strange things here in gdb, maybe memory
+    int seq = (int)(sSeq); /* Debugging, I see strange things here in gdb, maybe memory
                         * is being clobbered.
                         */
     prevSeqPlay = (prevSeqPlay + 1) % RTP_SEQ_MOD;
@@ -508,66 +473,60 @@ int RtpReceiver::receive (RtpPacket& pkt,  fd_set* fds) {
     }
 
     return packetSize;
-}
+}//retrieve
 
 
-int RtpReceiver::getPacket(RtpPacket& pkt)
-{
-    // check for network activity
+int RtpReceiver::getPacket(RtpPacket& pkt) {
+   // check for network activity
 
-    // receive packet
-    int len;
-    len = myStack->receiveFrom ((char*)pkt.getHeader(), pkt.getPacketAlloc(), NULL,
-                                MSG_DONTWAIT);
-    if (len == 0) {
-       cpLog(LOG_DEBUG_STACK, "NOTE:  Received -EAGAIN when trying to read rtp packet.\n");
-       return 0;
-    }
+   // receive packet
+   int len;
+   len = myStack->receiveFrom ((char*)pkt.getHeader(), pkt.getPacketAlloc(), NULL,
+                               MSG_DONTWAIT);
+   if (len == 0) {
+      cpLog(LOG_DEBUG_STACK, "NOTE:  Received -EAGAIN when trying to read rtp packet.\n");
+      return 0;
+   }
 
-    pkt.setTotalUsage (len);
-    cpLog(LOG_DEBUG_STACK, "RTP get packet len = %d, seq: %d rptTime: %d payloadUsage: %d",
-          len, pkt.getSequence(), pkt.getRtpTime(), pkt.getPayloadUsage());
+   pkt.setTotalUsage (len);
+   cpLog(LOG_DEBUG_STACK, "RTP get packet len = %d, seq: %d rptTime: %d payloadUsage: %d",
+         len, pkt.getSequence(), pkt.getRtpTime(), pkt.getPayloadUsage());
 
-    // check packet
-    if ( !pkt.isValid() ) {
-        cpLog(LOG_ERR, "****Packet is not valid");
-        return -EINVAL;
-    }
-
-
-    // check if rtp event
-    if (pkt.getPayloadType() == rtpPayloadDTMF_RFC2833 ||
-            pkt.getPayloadType() == rtpPayloadCiscoRtp)
-    {
-        if(getDTMFInterface() != 0)
-        {
-            //If a call-back is set, let the callback handle
-            //the DTMF event
-            recvEvent( pkt );
-            return 0;
-        }
-        else
-        {
-            //Treat it as any other packet
-            return len;
-        }
-    }
-
-    // update receiver info
-    //   function may return 1, meaning packet
-    //   out of seq tolr or source not valid
-    if (updateSource(pkt))
-    {
-        cpLog(LOG_ERR, "****Packet is discarded or source not valid");
-        return -EINVAL;
-    }
-
-    return len;
-}
+   // check packet
+   if ( !pkt.isValid() ) {
+      cpLog(LOG_ERR, "****Packet is not valid");
+      return -EINVAL;
+   }
 
 
-int RtpReceiver::updateSource (RtpPacket& pkt)
-{
+   // check if rtp event
+   if (pkt.getPayloadType() == rtpPayloadDTMF_RFC2833 ||
+       pkt.getPayloadType() == rtpPayloadCiscoRtp) {
+      if (getDTMFInterface() != 0) {
+         //If a call-back is set, let the callback handle
+         //the DTMF event
+         recvEvent( pkt );
+         return 0;
+      }
+      else {
+         //Treat it as any other packet
+         return len;
+      }
+   }
+
+   // update receiver info
+   //   function may return 1, meaning packet
+   //   out of seq tolr or source not valid
+   if (updateSource(pkt)) {
+      cpLog(LOG_ERR, "****Packet is discarded or source not valid");
+      return -EINVAL;
+   }
+
+   return len;
+}//getPacket
+
+
+int RtpReceiver::updateSource (RtpPacket& pkt) {
     // check if ssrc in probation list
     if (sourceSet && (pkt.getSSRC() == srcProbation) && probationSet)
        // old probation packets still in que

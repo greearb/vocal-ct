@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
 
 
 #include <sys/types.h>
@@ -147,12 +147,15 @@ public:
    virtual ~RtpReceiver ();
 
 
-   /** Receive an RTP packet from buffer.
-       pkt is passed in, and is expected to be ready to receive a pkt
-       @return <= 0 implies one should not inspect pkt, nothing worth receiving
-       was received.
+   /** Receive an RTP packet from the network.
    **/
-   int receive (RtpPacket& pkt, fd_set* fds);
+   int readNetwork();
+
+   /**
+      @return <= 0 implies one should not inspect pkt, nothing worth receiving
+      was received.
+   */
+   int retrieve(RtpPacket& pkt);
 
 
    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
@@ -355,6 +358,9 @@ protected:
    /// my UDP stack
    Sptr<UdpStack> myStack;
 
+   // Cache this object here so we don't have to create & destroy it on
+   // the stack.
+   RtpPacket tmpPkt;
 
    // Indexes into our Jitter Buffer.
    // When inPos == playPos, the buffer is 'empty'.

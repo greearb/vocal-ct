@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCommand_cxx_version =
-    "$Id: SipCommand.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipCommand.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -306,19 +306,18 @@ SipCommand::getMutableRequestLine()
 
 
 void
-SipCommand::setRequestLine(const SipRequestLine& req)
-{
-    // Bug checking
-    Data e = req.encode();
-    cpLog(LOG_ERR, "ERROR: setRequestLine decode, req: %s\n", e.c_str());
-    SipRequestLine tmp(req);
-    try {
-        tmp.decode(e);
-    }
-    catch (...) {
-        assert(0);
-    }
-    myRequestLine = req;
+SipCommand::setRequestLine(const SipRequestLine& req) {
+   // Bug checking
+   Data e = req.encode();
+   SipRequestLine tmp(req);
+   try {
+      tmp.decode(e);
+   }
+   catch (...) {
+      cpLog(LOG_ERR, "ERROR: setRequestLine decode, req: %s\n", e.c_str());
+      assert(0);
+   }
+   myRequestLine = req;
 }
 
 

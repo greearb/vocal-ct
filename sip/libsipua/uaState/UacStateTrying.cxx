@@ -51,7 +51,7 @@
 
 
 static const char* const UacStateTrying_cxx_Version =
-    "$Id: UacStateTrying.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UacStateTrying.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
 
 #include "UacStateTrying.hxx"
 #include "UaStateFactory.hxx"
@@ -110,16 +110,16 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         agent.fixSdpForNat(msg, receivedIp);
 
         //Notify CC
-        if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedStatus(agent, msg);
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+            ba->receivedStatus(agent, msg);
+        }
         agent.setCallLegState(C_LIVE);
         //Transit to Incall
         changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
     }
-    else if(statusCode > 200)
-    {
-        if(statusCode != 408)
-        {
+    else if(statusCode > 200) {
+        if (statusCode != 408) {
             //Send ACK message
             Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
             SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
@@ -134,14 +134,15 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         }
 	if (statusCode == 302){
 	    SipContactList contactList = statusMsg->getContactList();
-	    if(!contactList.empty())
-	    {
+	    if(!contactList.empty()) {
 	        changeState(agent, UaStateFactory::instance().getState(U_STATE_REDIRECT)); 
 	    }
-            else
-            {
+            else {
 	        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE)); 
-                agent.getControllerAgent()->callFailed();
+                Sptr<BasicAgent> ba = agent.getControllerAgent();
+                if (ba != 0) {
+                   ba->callFailed();
+                }
                 return;
             }
 	}
@@ -150,20 +151,22 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
 	}
         //Notify CC
-        if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedStatus(agent, msg);
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->receivedStatus(agent, msg);
+        }
     }
-    else
-    {
+    else {
         //For 1xx
         //Notify CC
-        if((statusCode >= 180))
-        {
+        if ((statusCode >= 180)) {
             //Transit to ringing
             changeState(agent, UaStateFactory::instance().getState(U_STATE_RINGING));
         }
-        if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedStatus(agent, msg);
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->receivedStatus(agent, msg);
+        }
     }
 }
 
@@ -171,7 +174,10 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 void 
 UacStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
 {
-    cpLog(LOG_DEBUG, "(%s) receiving message (%s) give it to controller", agent.className().c_str(), msg->encode().logData());
-    if(agent.getControllerAgent())
-            agent.getControllerAgent()->receivedRequest(agent, msg);
+    cpLog(LOG_DEBUG, "(%s) receiving message (%s) give it to controller",
+          agent.className().c_str(), msg->encode().logData());
+    Sptr<BasicAgent> ba = agent.getControllerAgent();
+    if (ba != 0) {
+       ba->receivedRequest(agent, msg);
+    }
 }

@@ -51,7 +51,7 @@
 
 
 static const char* const UasStateTrying_cxx_Version =
-    "$Id: UasStateTrying.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UasStateTrying.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
 
 #include "UasStateTrying.hxx"
 #include "UaStateFactory.hxx"
@@ -69,29 +69,26 @@ UasStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
                  throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UasStateTrying::recvRequest");
-    if((msg->getType() == SIP_CANCEL) ||
-       (msg->getType() == SIP_BYE))
-    {
-        //Send 200 
-        //Sptr<StatusMsg> status =
-         agent.sendReplyForRequest(msg, 200);
-	//agent.setResponse(status); // VEER
-        if(msg->getType() == SIP_CANCEL)
-        {
-            agent.sendReplyForRequest(agent.getRequest(), 487);
-            if(agent.getControllerAgent())
-                agent.getControllerAgent()->doCancel();
-        }
-        //Notify CC
-        if(agent.getControllerAgent())
-        {
-            agent.getControllerAgent()->receivedRequest(agent, msg);
-        }
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
+    Sptr<BasicAgent> ba = agent.getControllerAgent();
+    if((msg->getType() == SIP_CANCEL) || (msg->getType() == SIP_BYE)) {
+       //Send 200 
+       //Sptr<StatusMsg> status =
+       agent.sendReplyForRequest(msg, 200);
+       //agent.setResponse(status); // VEER
+       if (msg->getType() == SIP_CANCEL) {
+          agent.sendReplyForRequest(agent.getRequest(), 487);
+          if (ba != 0) {
+             ba->doCancel();
+          }
+       }
+       //Notify CC
+       if (ba != 0) {
+          ba->receivedRequest(agent, msg);
+       }
+       changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
     }
-    else if(msg->getType() == SIP_INVITE)
-    {
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_S_TRYING));
+    else if (msg->getType() == SIP_INVITE) {
+       changeState(agent, UaStateFactory::instance().getState(U_STATE_S_TRYING));
     }
 }
 
@@ -104,15 +101,13 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
     assert(statusMsg != 0);
     int statusCode = statusMsg->getStatusLine().getStatusCode();
     //Only handle status code 18x, 2xx and above
-    if(statusCode == 100)
-    {
+    if (statusCode == 100) {
         //Do nothing
         return -1;
     }
 
 
-    if((statusCode >= 180) && (statusCode < 200))
-    {
+    if ((statusCode >= 180) && (statusCode < 200)) {
         //Send status message
         Sptr<SipSdp> sipSdp;
         sipSdp.dynamicCast(msg->getContentData(0));
@@ -124,8 +119,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
     // BugFix Bugzilla 780
     // contact field must be sent to allow the ua
     // placing the call to redirected number
-    else if((statusCode >= 300) && (statusCode < 400))
-    {
+    else if ((statusCode >= 300) && (statusCode < 400)) {
        Sptr<SipCommand> sipCmd;
        sipCmd.dynamicCast(agent.getRequest());
        assert(sipCmd != 0);
@@ -186,8 +180,10 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
         agent.getSipTransceiver()->sendReply(sendSMsg);
 	agent.setResponse(sendSMsg.getPtr());
-        if (agent.getControllerAgent())
-           agent.getControllerAgent()->inCall();
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->inCall();
+        }
         agent.setCallLegState(C_LIVE);
         //Transit to ringing
         changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));

@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.7 2004/10/25 23:21:14 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.8 2004/10/29 07:22:35 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -357,19 +357,15 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
 
     Sptr<UaHardwareEvent> hEvent;
     hEvent.dynamicCast(event);
-    if(hEvent != 0)
-    {
+    if(hEvent != 0) {
         //Get the event id
         cpLog(LOG_ERR, "Got HardwareEvent...\n");
         int id = hEvent->myId;
         Sptr<CallAgent> cAgent;
-        if(myCallMap.count(id))
-        {
+        if (myCallMap.count(id)) {
             cAgent.dynamicCast(myCallMap[id]);
-            if(hEvent->type == HardwareAudioType)
-            {
-                if(hEvent->request.type == AudioStop)
-                {
+            if (hEvent->type == HardwareAudioType) {
+                if (hEvent->request.type == AudioStop) {
                     cAgent->doBye();
                     UaFacade::instance().postMsg("AUDIO_STOP");
                 }
@@ -385,8 +381,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
                assert(0); //TODO:  Remove assert.
             }
         }
-        else
-        {
+        else {
             cpLog(LOG_ERR, "Did not find agent for id:%d" ,id);
         }
         return true;
@@ -399,17 +394,14 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
         //Get the event id
         int id = dEvent->id;
         Sptr<CallAgent> cAgent;
-        if(myCallMap.count(id))
-        {
+        if(myCallMap.count(id)) {
             cAgent.dynamicCast(myCallMap[id]);
-            if(dEvent->type == DeviceEventHookDown)
-            {
+            if(dEvent->type == DeviceEventHookDown) {
                 //VMCP server sent an event, cleanup
                 cAgent->doBye();
             }
 #if 0
-	    if(dEvent->type == DeviceEventReferUrl)
-	    {
+	    if(dEvent->type == DeviceEventReferUrl) {
 		SipUrl url(dEvent->item);
 		cAgent->doBlindXfer(url);
 //		cAgent->doBye();
@@ -695,7 +687,7 @@ UaCallControl::initiateInvite(const string& to)
         sipSdp->setSdpDescriptor(localSdp);
     }
 #else
-    SdpSession localSdp = MediaController::instance().createSession();
+    SdpSession localSdp = MediaController::instance().createSession("UaCallControll::initiateInvite");
     if(NAT_HOST.length())
     {
        setHost(localSdp, NAT_HOST);

@@ -50,7 +50,7 @@
 
 
 static const char* const CallControl_cxx_Version =
-    "$Id: CallControl.cxx,v 1.3 2004/06/17 06:56:51 greear Exp $";
+    "$Id: CallControl.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -80,8 +80,7 @@ CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
         SipCallLeg cLeg(sipMsg->getFrom(), sipMsg->getTo(), sipMsg->getCallId(),
                         sipMsg->getLocalIp());
         Sptr<MultiLegCallData> mData = CallDB::instance().getMultiLegCallData(cLeg);
-        if(mData != 0)
-        {
+        if (mData != 0) {
             mData->assertNotDeleted();
             //Call Data found
             Sptr<UaBase> agent;
@@ -110,36 +109,6 @@ CallControl::CallControl() {
    // Nothing to do
 }
 
-#if 0
-void*
-CallControl::cleanupThread(void* args)
-{
-    CallControl* self = static_cast<CallControl*>(args);
-    while(1)
-    {
-        unsigned long id = self->myFriedFifo.getNext();
-        self->myMutex.lock();
-        if (self->myShutdownFlag)
-           break;
-        CallMap::iterator itr = self->myCallMap.find(id);
-        if(itr != self->myCallMap.end())
-        {
-            //cpLog(LOG_DEBUG,  "Removing CallMap id:%d\n",id);
-            // This logging call seems to crash for some strange reason,
-            // during exit.  Probably because the Global Log objects are
-            // destroyed already?? --Ben
-            self->myCallMap.erase(id);
-        } 
-        self->myMutex.unlock();
-    }
-    return 0;
+void CallControl::removeAgent(unsigned long id) {
+   myCallMap.erase(id);
 }
-#endif
-
-#if 0
-void 
-CallControl::removeAgent(unsigned long id, int ms)
-{
-    myFriedFifo.addDelayMs(id, ms);
-}
-#endif

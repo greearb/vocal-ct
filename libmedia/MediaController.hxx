@@ -53,7 +53,7 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MediaController.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -115,13 +115,13 @@ public:
 
 
    ///Create a compatibl;e session after negotiating with remote SDP
-   SdpSession createSession(const SdpSession& remoteSdp)
+   SdpSession createSession(const SdpSession& remoteSdp, const char* debug)
       throw (MediaException&) ;
 
    /**Create a brand new SDP session
     * using the RTP port range and MediaCapabilities registered.
     */
-   SdpSession createSession()
+   SdpSession createSession(const char* debug)
       throw (MediaException&);
 
    ///Get SDP for an existing session identified by sId.
@@ -163,7 +163,7 @@ public:
 private:
    /// NOTE:  localAddr and port will be modified accordingly.
    int createSessionImpl(string& localAddr,
-                         int& port);
+                         int& port, const char* debug);
 
    /** Create the Instance of MediaController
     * @param local_ip  Local IP to bind to, use "" for system default.

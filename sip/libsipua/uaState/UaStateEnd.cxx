@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateEnd_cxx_Version =
-    "$Id: UaStateEnd.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaStateEnd.cxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
 
 #include "UaStateEnd.hxx"
 #include "StatusMsg.hxx"
@@ -72,9 +72,11 @@ UaStateEnd::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
     assert(statusMsg != 0);
     //Transit to Idle
     changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-    ///Notify CC
-    if(agent.getControllerAgent())
-        agent.getControllerAgent()->receivedStatus(agent, msg);
+    // Notify CC
+    Sptr<BasicAgent> ba = agent.getControllerAgent();
+    if (ba != 0) {
+       ba->receivedStatus(agent, msg);
+    }
 }
 
 int

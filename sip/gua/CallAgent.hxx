@@ -53,7 +53,7 @@
 
 
 static const char* const CallAgent_hxx_Version =
-    "$Id: CallAgent.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallAgent.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
 
 #include "global.h"
 #include <map>
@@ -71,145 +71,117 @@ namespace UA
 class UaFacade;
 
 /// Object to hold a thread for call-setup/teardown 
-class CallAgent : public BasicAgent
-{
-   public:
-      /// Create one with default values
-      CallAgent(int callId, Sptr<SipMsg> sMsg, UaFacade* facade, AgentRole aRole);
+class CallAgent : public BasicAgent {
 
-      ///
-      CallAgent( const CallAgent& src ): BasicAgent(src)
-      {
-         _cnt++;
-         copyObj(src);
-      }
+public:
+   /// Create one with default values
+   CallAgent(int callId, Sptr<SipMsg> sMsg, UaFacade* facade, AgentRole aRole);
 
-      virtual ~CallAgent();
+   virtual ~CallAgent();
 
-      // Release our media resources.
-      virtual void freeMedia();
-
-      /// 
-      const CallAgent& operator =( const CallAgent& src )
-      {
-          if(this != &src)
-          {
-              BasicAgent::operator=(src);
-              copyObj(src);
-          }
-          return *this;
-      }
-
-      void copyObj(const CallAgent& src)
-      {
-          myState = src.myState;
-          myRole = src.myRole;
-          myActiveFlg = src.myActiveFlg;
-          facade = src.facade;
-      }
-
-      ///
-      void setState(ControlState* state) { myState = state; };
+   // Release our media resources.
+   virtual void freeMedia();
+   
+   ///
+   void setState(ControlState* state) { myState = state; };
 
 
-      /** @name - Server side hooks */
-      //{@
-      ///
-      void inCall();
+   /** @name - Server side hooks */
+   //{@
+   ///
+   void inCall();
 
-      ///
-      void callFailed();
+   ///
+   void callFailed();
+   
+   ///
+   void endCall();
 
-      ///
-      void endCall();
+   ///
+   void doCancel();
 
-      ///
-      void doCancel();
-
-      ///
-      int sendBusy();
-      ///
-      void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
-      ///
-      void hold(UaBase& agent, const Sptr<SipMsg>& msg);
-      //@}
-      void reqResume( Sptr<SipMsg>& msg);
+   ///
+   int sendBusy();
+   ///
+   void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
+   ///
+   void hold(UaBase& agent, const Sptr<SipMsg>& msg);
+   //@}
+   void reqResume( Sptr<SipMsg>& msg);
 
 
-      /** @name - Client side actions */
-      //{@
+   ///
+   void placeCall();
+   ///
+   void acceptCall();
+   /// 
+   void stopCall();
+   ///
+   int sendCancel();
+   ///
+   void doBye();
+   ///
+   void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
+   ///
+   void doResume(Sptr<SipMsg>& msg);
+   
+   virtual void setDeleted();
 
-      ///
-      void placeCall();
-      ///
-      void acceptCall();
-      /// 
-      void stopCall();
-      ///
-      int sendCancel();
-      ///
-      void doBye();
-      ///
-      void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
-      ///
-      void doResume(Sptr<SipMsg>& msg);
+   ///
+   void dohold();
+   ///
+   void resume();    
+   ///
+   //void hold() { myActiveFlg = false; };
+   ///
+   // void release() { myActiveFlg = true; };
+   
+   ///
+   void processHold();
+   ///
+   void processResume();
+   ///
+   bool isActive() const { return myActiveFlg; };
 
-      //@}
+   ///Handle 401/407 challenges
+   void doAuthentication(Sptr<StatusMsg> sMsg);
+   ///
+   void requestResume( Sptr<SipMsg>& msg);
+   
+   static int getInstanceCount() { return _cnt; }
 
-      ///
-      void setDeleted();
-      ///
-      void dohold();
-      ///
-      void resume();    
-      ///
-      //void hold() { myActiveFlg = false; };
-      ///
-      // void release() { myActiveFlg = true; };
+private:
+   ///
+   Sptr<StatusMsg> doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp );
+   ///
+   void startSession(SdpSession& localSdp, SdpSession& remoteSdp);
+   ///
+   //static long myRotatingId;
+   
+   ///
+   ControlState* myState; 
 
-      ///
-      void processHold();
-      ///
-      void processResume();
-      ///
-      bool isActive() const { return myActiveFlg; };
+   UaFacade* facade;
 
-      ///Handle 401/407 challenges
-      void doAuthentication(Sptr<StatusMsg> sMsg);
-      ///
-      void requestResume( Sptr<SipMsg>& msg);
+   ///
+   AgentRole myRole;
 
-      static int getInstanceCount() { return _cnt; }
+   ///
+   bool      myActiveFlg;
+   bool freedMedia;
 
-   private:
-      ///
-      Sptr<StatusMsg> doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp );
-      ///
-      void startSession(SdpSession& localSdp, SdpSession& remoteSdp);
-      ///
-      //static long myRotatingId;
+   ///
+   typedef map<SipCallLeg, int> MediaDataMap;
+   ///
+   MediaDataMap myMediaDataMap; 
 
-      ///
-      ControlState* myState; 
+   // Not implemented.
+   CallAgent();
+   const CallAgent& operator =( const CallAgent& src );
+   CallAgent( const CallAgent& src );
 
-      UaFacade* facade;
 
-      ///
-      AgentRole myRole;
-
-      ///
-      bool      myActiveFlg;
-      bool freedMedia;
-
-      ///
-      typedef map<SipCallLeg, int> MediaDataMap;
-      ///
-      MediaDataMap myMediaDataMap; 
-
-      // Not implemented.
-      CallAgent();
-
-      static int _cnt;
+   static int _cnt;
 };
 
 }

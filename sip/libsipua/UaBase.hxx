@@ -53,7 +53,7 @@
 
 
 static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.4 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaBase.hxx,v 1.5 2004/10/29 07:22:35 greear Exp $";
 
 #include <string>
 #include <vector>
@@ -174,8 +174,8 @@ public:
    virtual const string& getNatHost() { return facade->getNatHost(); }
    virtual int getTransport() { return facade->getTransport(); }
 
-   BasicAgent*  getControllerAgent() { return myControllerAgent; }
-   void setControllerAgent(BasicAgent* a);
+   Sptr<BasicAgent>  getControllerAgent();
+   void setControllerAgent(Sptr<BasicAgent> a);
 
    Sptr<UaState> getState() { return myState; }
    
@@ -215,8 +215,8 @@ private:
    UaBase( const UaBase& src );
    UaBase& operator=(const UaBase& rhs);
 
-   BasicAgent* myControllerAgent;
-   ///
+   Sptr<BasicAgent> myControllerAgent;
+   
 };
 
 }

@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -148,11 +148,17 @@ protected:
       virtual void sendDTMF( int a, int b ) { mySession->recvDTMF(a); };
       MRtpSession* mySession;
    };
-   ///
-   void processIncomingRTP(fd_set* fds);
+
+   // Read from network into the jitter buffer.
+   void readNetwork(fd_set* fds);
+
+   // Consume a sample from the jitter buffer.
+   void retrieveRtpSample();
 
    ///
    int mySessionId;
+
+   uint64 lastRtpRetrieve;
 
    ///
    NetworkRes* myRemoteAddress;

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MediaSession.hxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
@@ -90,7 +90,8 @@ public:
     */
    MediaSession(int sessionId,
                 Sptr<NetworkRes> localRes,
-                const string& local_dev_to_bind_to);
+                const string& local_dev_to_bind_to,
+                const char* debug);
 
 
    ///Add a media device to the session

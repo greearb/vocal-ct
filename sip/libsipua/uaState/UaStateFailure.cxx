@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFailure_cxx_Version =
-    "$Id: UaStateFailure.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UaStateFailure.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
 
 #include "UaStateFailure.hxx"
 #include "UaBase.hxx"
@@ -69,24 +69,22 @@ void
 UaStateFailure::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
                  throw (CInvalidStateException&)
 {
-    cpLog(LOG_DEBUG, "UaStateFailure::recvRequest");
-    if(msg->getType() == SIP_ACK)
-    {
-        if(agent.isAServer())
-        {
-           // 13/1/04 fpi
-           // BugFix BugZilla 773
-           if(agent.getControllerAgent())
-              agent.getControllerAgent()->callFailed();
-			 
-           //Transit to Idle
-           changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-        }
-        else
-        {
-            cpLog(LOG_ERR, "Unexpected message type %d, while expecting ACK", msg->getType());
-        }
-    }
+   cpLog(LOG_DEBUG, "UaStateFailure::recvRequest");
+   if (msg->getType() == SIP_ACK) {
+      if (agent.isAServer()) {
+         // 13/1/04 fpi
+         // BugFix BugZilla 773
+         Sptr<BasicAgent> ba = agent.getControllerAgent();
+         if (ba != 0) {
+            ba->callFailed();
+         }
+         //Transit to Idle
+         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+      }
+      else {
+         cpLog(LOG_ERR, "Unexpected message type %d, while expecting ACK", msg->getType());
+      }
+   }
 }
 
 
@@ -123,12 +121,10 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
             agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
         }
         //Notify CC
-        if (agent.getControllerAgent()) {
-            agent.getControllerAgent()->receivedStatus(agent, msg);
-        }
-        //
-        if (agent.getControllerAgent()) {
-           agent.getControllerAgent()->callFailed();
+        Sptr<BasicAgent> ba = agent.getControllerAgent();
+        if (ba != 0) {
+           ba->receivedStatus(agent, msg);
+           ba->callFailed();
         }
         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
     }

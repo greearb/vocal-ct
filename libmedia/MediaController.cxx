@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.4 2004/09/30 23:17:43 greear Exp $";
+    "$Id: MediaController.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 
 #include "MediaController.hxx"
@@ -70,10 +70,9 @@ using namespace Vocal::UA;
 MediaController* MediaController::myInstance = 0;
 
 MediaController&
-MediaController::instance()
-{
-    assert(myInstance != 0);
-    return *myInstance;
+MediaController::instance() {
+   assert(myInstance != 0);
+   return *myInstance;
 }
 
 void MediaController::initialize(const string& local_ip,
@@ -81,12 +80,11 @@ void MediaController::initialize(const string& local_ip,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map)
 {
-    assert(myInstance == 0);
-    if(myInstance == 0)
-    {
-        myInstance = new MediaController(local_ip, local_dev_to_bind_to,
-                                         minRtpPort, maxRtpPort, prio_map);
-    }
+   assert(myInstance == 0);
+   if (myInstance == 0) {
+      myInstance = new MediaController(local_ip, local_dev_to_bind_to,
+                                       minRtpPort, maxRtpPort, prio_map);
+   }
 }
 
 MediaController::MediaController(const string& _local_ip,
@@ -96,88 +94,86 @@ MediaController::MediaController(const string& _local_ip,
       : local_ip(_local_ip),
         localDevToBindTo(local_dev_to_bind_to)
 {
-    cpLog(LOG_DEBUG, "MediaController::MediaController");
-    myRollingSessionId = 1;
-    //get the list of reserved ports
-    for(int i = minRtpPort; i < maxRtpPort; i = i+2)
-    {
-        //Check to see if port is free
-        try
-        {
-            UdpStack uStack(false, local_ip, localDevToBindTo, 0, i , i );
-            Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
-            myNetworkResList.push_back(res);
-        }
-        catch(...) {
-             cpLog(LOG_ERR, "Port %d is busy, try next", i);
-        }
-    } 
+   cpLog(LOG_DEBUG, "MediaController::MediaController");
+   myRollingSessionId = 1;
+   //get the list of reserved ports
+   for(int i = minRtpPort; i < maxRtpPort; i = i+2) {
+      //Check to see if port is free
+      try {
+         UdpStack uStack(false, local_ip, localDevToBindTo, 0, i , i );
+         Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
+         myNetworkResList.push_back(res);
+      }
+      catch(...) {
+         cpLog(LOG_ERR, "Port %d is busy, try next", i);
+      }
+   }
 
-    ///Create the list of supported codec, default list
-    Sptr<CodecAdaptor> cAdp = new CodecG711U();
-    map<VCodecType, int >::iterator itr = prio_map.find(cAdp->getType());
-    if (itr != prio_map.end()) {
-       cAdp->setPriority((*itr).second);
-       registerCodec(cAdp);
-    }
+   // Create the list of supported codec, default list
+   Sptr<CodecAdaptor> cAdp = new CodecG711U();
+   map<VCodecType, int >::iterator itr = prio_map.find(cAdp->getType());
+   if (itr != prio_map.end()) {
+      cAdp->setPriority((*itr).second);
+      registerCodec(cAdp);
+   }
 
 
 #ifdef USE_VOICE_AGE
-    Sptr<CodecAdaptor> cAdp2 = new CodecG729a();
-    itr = prio_map.find(cAdp2->getType());
-    if (itr != prio_map.end()) {
-       cpLog(LOG_ERR, "G729a is in priority map.\n");
-       cAdp2->setPriority((*itr).second);
-       registerCodec(cAdp2);
-    }
-    else {
-       cpLog(LOG_ERR, "G729a not in priority map.\n");
-    }
+   Sptr<CodecAdaptor> cAdp2 = new CodecG729a();
+   itr = prio_map.find(cAdp2->getType());
+   if (itr != prio_map.end()) {
+      cpLog(LOG_ERR, "G729a is in priority map.\n");
+      cAdp2->setPriority((*itr).second);
+      registerCodec(cAdp2);
+   }
+   else {
+      cpLog(LOG_ERR, "G729a not in priority map.\n");
+   }
 #endif
 
-    Sptr<CodecAdaptor> cAdp4 = new CodecSpeex();
-    itr = prio_map.find(cAdp4->getType());
-    if (itr != prio_map.end()) {
-       cAdp4->setPriority((*itr).second);
-       registerCodec(cAdp4);
-    }
+   Sptr<CodecAdaptor> cAdp4 = new CodecSpeex();
+   itr = prio_map.find(cAdp4->getType());
+   if (itr != prio_map.end()) {
+      cAdp4->setPriority((*itr).second);
+      registerCodec(cAdp4);
+   }
+   
+   Sptr<CodecAdaptor> cAdp5 = new CodecG726_16();
+   itr = prio_map.find(cAdp5->getType());
+   if (itr != prio_map.end()) {
+      cAdp5->setPriority((*itr).second);
+      registerCodec(cAdp5);
+   }
 
-    Sptr<CodecAdaptor> cAdp5 = new CodecG726_16();
-    itr = prio_map.find(cAdp5->getType());
-    if (itr != prio_map.end()) {
-       cAdp5->setPriority((*itr).second);
-       registerCodec(cAdp5);
-    }
+   cAdp5 = new CodecG726_24();
+   itr = prio_map.find(cAdp5->getType());
+   if (itr != prio_map.end()) {
+      cAdp5->setPriority((*itr).second);
+      registerCodec(cAdp5);
+   }
 
-    cAdp5 = new CodecG726_24();
-    itr = prio_map.find(cAdp5->getType());
-    if (itr != prio_map.end()) {
-       cAdp5->setPriority((*itr).second);
-       registerCodec(cAdp5);
-    }
+   cAdp5 = new CodecG726_32();
+   itr = prio_map.find(cAdp5->getType());
+   if (itr != prio_map.end()) {
+      cAdp5->setPriority((*itr).second);
+      registerCodec(cAdp5);
+   }
 
-    cAdp5 = new CodecG726_32();
-    itr = prio_map.find(cAdp5->getType());
-    if (itr != prio_map.end()) {
-       cAdp5->setPriority((*itr).second);
-       registerCodec(cAdp5);
-    }
+   cAdp5 = new CodecG726_40();
+   itr = prio_map.find(cAdp5->getType());
+   if (itr != prio_map.end()) {
+      cAdp5->setPriority((*itr).second);
+      registerCodec(cAdp5);
+   }
 
-    cAdp5 = new CodecG726_40();
-    itr = prio_map.find(cAdp5->getType());
-    if (itr != prio_map.end()) {
-       cAdp5->setPriority((*itr).second);
-       registerCodec(cAdp5);
-    }
+   Sptr<CodecAdaptor> cAdp3 = new CodecTelEvent();
+   itr = prio_map.find(cAdp3->getType());
+   if (itr != prio_map.end()) {
+      cAdp3->setPriority((*itr).second);
+      registerCodec(cAdp3);
+   }
 
-    Sptr<CodecAdaptor> cAdp3 = new CodecTelEvent();
-    itr = prio_map.find(cAdp3->getType());
-    if (itr != prio_map.end()) {
-       cAdp3->setPriority((*itr).second);
-       registerCodec(cAdp3);
-    }
-
-    cpLog(LOG_DEBUG, "Initialized MediaController");
+   cpLog(LOG_DEBUG, "Initialized MediaController");
 }
 
 MediaController::~MediaController()
@@ -209,7 +205,7 @@ int MediaController::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
 
 
 SdpSession
-MediaController::createSession(const SdpSession& remoteSdp) 
+MediaController::createSession(const SdpSession& remoteSdp, const char* debug) 
     throw (MediaException&) 
 {
     //Based on the remote SDP and capability, create a
@@ -219,7 +215,7 @@ MediaController::createSession(const SdpSession& remoteSdp)
     string localAddr;
     int    localPort;
     
-    int sId = createSessionImpl( localAddr, localPort);
+    int sId = createSessionImpl( localAddr, localPort, debug);
     SdpSession sdp;
     negotiateSdp(sdp, localAddr, localPort, remoteSdp);
     sdp.setSessionId(sId);
@@ -228,60 +224,54 @@ MediaController::createSession(const SdpSession& remoteSdp)
 }
 
 SdpSession
-MediaController::createSession() throw (MediaException&)
-{
+MediaController::createSession(const char* debug) throw (MediaException&) {
     string localAddr;
     int    localPort;
     
-    int sId = createSessionImpl( localAddr, localPort);
+    int sId = createSessionImpl( localAddr, localPort, debug);
     SdpSession sdp;
     setStandardSdp(sdp, localAddr, localPort);
     sdp.setSessionId(sId);
     return sdp;
 }
 
-int
-MediaController::createSessionImpl(string& localAddr,
-                                   int& port)
-{
-    //Get a NetworkRes from the list of resources and devices
-    //and create a session Id to assign
-    int sId = myRollingSessionId++;
-    //Get a free NetworkRes and a device
-    Sptr<NetworkRes> localRes; 
-    for(list<Sptr<NetworkRes> >::iterator itr = myNetworkResList.begin();
-            itr != myNetworkResList.end(); itr++)
-    {
-        if(!(*itr)->isBusy(local_ip, localDevToBindTo))
-        {
-            localRes = *itr;
-            localRes->setBusy(true, "MediaController createSessionImpl");
-            localAddr = localRes->getIpName().c_str();
-            port = localRes->getPort();
-            break;
-        }
-        else {
-           cpLog(LOG_ERR, "localRes: %s is busy: flag %d  probe: %d, mediaSessioMapSize: %d  owner: %p  MediaSession count: %d\n",
-                 (*itr)->toString().c_str(), (*itr)->getBusyFlag(),
-                 (*itr)->isPortTaken(local_ip), myMediaSessionMap.size(),
-                 (*itr)->getOwner(), MediaSession::getInstanceCount());
-        }
-    }
-    if(localRes == 0)
-    {
-        cpLog(LOG_ERR, "No Network resource is free");
-        throw MediaException("No Network resource is free",
-                             __FILE__, __LINE__);
-    }
+int MediaController::createSessionImpl(string& localAddr, int& port, const char* debug) {
+   //Get a NetworkRes from the list of resources and devices
+   //and create a session Id to assign
+   int sId = myRollingSessionId++;
+   //Get a free NetworkRes and a device
+   Sptr<NetworkRes> localRes; 
+   for(list<Sptr<NetworkRes> >::iterator itr = myNetworkResList.begin();
+       itr != myNetworkResList.end(); itr++) {
+      if (!(*itr)->isBusy(local_ip, localDevToBindTo)) {
+         localRes = *itr;
+         localAddr = localRes->getIpName().c_str();
+         port = localRes->getPort();
+         break;
+      }
+      else {
+         cpLog(LOG_ERR, "localRes: %s is busy: flag %d  probe: %d, mediaSessioMapSize: %d  owner: %p  MediaSession count: %d, debug: %s\n",
+               (*itr)->toString().c_str(), (*itr)->getBusyFlag(),
+               (*itr)->isPortTaken(local_ip), myMediaSessionMap.size(),
+               (*itr)->getOwner(), MediaSession::getInstanceCount(), debug);
+      }
+   }
+   if (localRes == 0) {
+      cpLog(LOG_ERR, "No Network resource is free, debug: %s", debug);
+      assert("No Ntwk Resource free" == "bug");
 
-    //TODO:  There is still a race here, cause another process could jump in
-    // and steal the port! --Ben
-    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, localDevToBindTo);
+      throw MediaException("No Network resource is free",
+                           __FILE__, __LINE__);
+   }
 
-    assert(myMediaSessionMap.count(sId) == 0);
-    myMediaSessionMap[sId] = mSession;
-    return sId;
-}
+   //TODO:  There is still a race here, cause another process could jump in
+   // and steal the port! --Ben
+   Sptr<MediaSession> mSession = new MediaSession(sId, localRes, localDevToBindTo, debug);
+
+   assert(myMediaSessionMap.count(sId) == 0);
+   myMediaSessionMap[sId] = mSession;
+   return sId;
+}//createSessionImpl
 
 void 
 MediaController::freeSession(int sId)

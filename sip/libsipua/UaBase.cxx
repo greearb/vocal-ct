@@ -50,7 +50,7 @@
 
 
 static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.4 2004/06/17 06:56:51 greear Exp $";
+    "$Id: UaBase.cxx,v 1.5 2004/10/29 07:22:35 greear Exp $";
 
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -91,25 +91,25 @@ UaBase::UaBase( const char* class_name,
 }// constructor
 
 
-void 
-UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg)
-{
-    if(sipMsg->getType() == SIP_STATUS)
-    {
-        cpLog(LOG_DEBUG, "(%s:%s:%p) received STATUS message %s, state: %s ",
-             className().c_str(), instanceName.c_str(), this,
-             sipMsg->encode().logData(),
-             myState->toString().c_str());
-        myState->recvStatus(*this, sipMsg);
-    }
-    else
-    {
-        cpLog(LOG_DEBUG, "(%s:%s:%p) received NON-STATUS message %s, state: %s ",
-             className().c_str(), instanceName.c_str(), this,
-             sipMsg->encode().logData(),
-             myState->toString().c_str());
-        myState->recvRequest(*this, sipMsg);
-    }
+Sptr<BasicAgent>  UaBase::getControllerAgent() {
+   return myControllerAgent;
+}
+
+void UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg) {
+   if (sipMsg->getType() == SIP_STATUS) {
+      cpLog(LOG_DEBUG, "(%s:%s:%p) received STATUS message %s, state: %s ",
+            className().c_str(), instanceName.c_str(), this,
+            sipMsg->encode().logData(),
+            myState->toString().c_str());
+      myState->recvStatus(*this, sipMsg);
+   }
+   else {
+      cpLog(LOG_DEBUG, "(%s:%s:%p) received NON-STATUS message %s, state: %s ",
+            className().c_str(), instanceName.c_str(), this,
+            sipMsg->encode().logData(),
+            myState->toString().c_str());
+      myState->recvRequest(*this, sipMsg);
+   }
 }
 
 int UaBase::sendMsg(Sptr<SipMsg> sipMsg) {
@@ -330,14 +330,11 @@ UaBase::ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp)
 
 
 UaBase::~UaBase() {
-    //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
-    cpLog(LOG_DEBUG_STACK , "(%s:%p) Deleting instance..\n",
-          instanceName.c_str(), this);
-    clearRouteList();
-
-    // Poison this guy.
-    myState = (UaState*)(0x147);
-    myControllerAgent = (BasicAgent*)(0x148);
+   assertNotDeleted();
+   //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
+   cpLog(LOG_DEBUG_STACK , "(%s:%p) Deleting instance..\n",
+         instanceName.c_str(), this);
+   clearRouteList();
 }
 
 void UaBase::clearRouteList() {
@@ -487,7 +484,7 @@ void UaBase::setState(Sptr<UaState> state) {
    myState = state;
 }
 
-void UaBase::setControllerAgent(BasicAgent* a) {
+void UaBase::setControllerAgent(Sptr<BasicAgent> a) {
    // NOTE:  If the BasicAgent is deleting itself, then it will set
    // this to NULL to keep us from de-referencing stale memory.
 

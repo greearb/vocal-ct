@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.4 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -74,6 +74,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
       rtp_rx_packet(1012)
 {
 
+    lastRtpRetrieve = 0;
     myCodec = cAdp;
     myLocalAddress = new NetworkRes(local);
     myRemoteAddress = new NetworkRes(remote);
@@ -133,8 +134,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
     rtpStack->setMarkerOnce();
 }
 
-void
-MRtpSession::processIncomingRTP(fd_set* fds) {
+void MRtpSession::readNetwork(fd_set* fds) {
     RtpSessionState sessionState = rtpStack->getSessionState();
     
     if ( sessionState == rtp_session_undefined ) {
@@ -142,8 +142,19 @@ MRtpSession::processIncomingRTP(fd_set* fds) {
         return;
     }
 
+
+    // Generally, we receive 1 pkt every 20ms, so only going to try to read one
+    // pkt at a time here.  If there is more to be received, the select will cause
+    // us to return here quickly... --Ben
+
+    rtpStack->readNetwork(fds);
+}//readNetwork
+
+
+void MRtpSession::retrieveRtpSample() {
     rtp_rx_packet.clear();
-    int rv = rtpStack->receive(rtp_rx_packet, fds);
+
+    int rv = rtpStack->retrieve(rtp_rx_packet);
 
     if (rv > 0) {
         /* Removing check for payload-usage.  It doesn't work for variable
@@ -156,23 +167,23 @@ MRtpSession::processIncomingRTP(fd_set* fds) {
             cpLog(LOG_ERR, "Received from RTP stack incorrect payload type, rtp_type: %d  codec_type: %d  codec_rtp_type: %d",
                   rtp_rx_packet.getPayloadType(), myCodec->getType(), myCodec->getRtpType());
         }
-
-        // Generally, we receive 1 pkt every 20ms, so only going to try to read one
-        // pkt at a time here.  If there is more to be received, the select will cause
-        // us to return here quickly... --Ben
-
     }//if
-}//processIncomingRTP
+}//retrieveRtpSample
 
 
 void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                        uint64 now) {
-    // TODO:  Only drain jitter buffer every XXX miliseconds.
-    // Maybe use the preferred timeout as calculated in the setFds method below?
+    readNetwork(input_fds); /** Handles both RTCP and RTP receive logic,
+                             * will not block. */
 
-    processIncomingRTP(input_fds); /** Handles both RTCP and RTP receive logic,
-                                     * will not block. */
-}
+    // Only drain jitter buffer every XXX miliseconds.
+    uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
+                                                 rtpStack->getCurMaxPktsInQueue());
+    if ((lastRtpRetrieve + pref) <= now) {
+        retrieveRtpSample();
+        lastRtpRetrieve = now;
+    }
+}//tick
 
 int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                         int& maxdesc, uint64& timeout, uint64 now) {
@@ -182,10 +193,15 @@ int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
     if (mySession.getPtr()) {
         uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
                                                      rtpStack->getCurMaxPktsInQueue());
-        timeout = min(timeout, pref);
+        if (pref + lastRtpRetrieve > now) {
+            timeout = min(timeout, (pref + lastRtpRetrieve) - now);
+        }
+        else {
+            timeout = 0;
+        }
     }
     return 0;
-}
+}//setFds
 
 
 void 

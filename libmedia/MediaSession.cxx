@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -77,36 +77,35 @@ int MediaSession::_cnt = 0;
 
 MediaSession::MediaSession(int sessionId, 
                            Sptr<NetworkRes> localRes,
-                           const string& local_dev_to_bind_to) 
+                           const string& local_dev_to_bind_to,
+                           const char* debug) 
       : mySessionId(sessionId),
         myRtpSession(NULL),
-        localDevToBindTo(local_dev_to_bind_to)
-{
-    _cnt++;
-    mySSRC = 0;
-    while (mySSRC == 0) {
-       mySSRC =  rand();
-    }
-    localRes->setBusy(true, "MediaSession constructor");
-    localRes->setOwner(this);
-    myLocalRes = localRes;
-    cpLog(LOG_ERR, "Created media session, this: %p, count: %d\n",
-          this, _cnt);
+        localDevToBindTo(local_dev_to_bind_to) {
+   _cnt++;
+   mySSRC = 0;
+   while (mySSRC == 0) {
+      mySSRC =  rand();
+   }
+   localRes->setBusy(true, "MediaSession constructor");
+   localRes->setOwner(this);
+   myLocalRes = localRes;
+   cpLog(LOG_ERR, "Created media session, this: %p, count: %d, debug: %s\n",
+         this, _cnt, debug);
 }
 
 
-MediaSession::~MediaSession()
-{
-    cpLog(LOG_ERR, "MediaSession::~MediaSession, this: %p, count: %d",
-          this, _cnt);
-    _cnt--;
-    tearDown();
-    if (myLocalRes.getPtr() != 0) {
-       myLocalRes->setOwner(NULL);
-       if (myLocalRes->getBusyFlag()) {
-          myLocalRes->setBusy(false, "MediaSession destructor");
-       }
-    }
+MediaSession::~MediaSession() {
+   cpLog(LOG_ERR, "MediaSession::~MediaSession, this: %p, count: %d",
+         this, _cnt);
+   _cnt--;
+   tearDown();
+   if (myLocalRes.getPtr() != 0) {
+      myLocalRes->setOwner(NULL);
+      if (myLocalRes->getBusyFlag()) {
+         myLocalRes->setBusy(false, "MediaSession destructor");
+      }
+   }
 }
  
 void

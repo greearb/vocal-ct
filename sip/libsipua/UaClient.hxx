@@ -53,7 +53,7 @@
 
 
 static const char* const UaClient_hxx_Version =
-    "$Id: UaClient.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaClient.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
 
 #include "UaBase.hxx" 
 
@@ -90,22 +90,22 @@ FooAgent::FooAgent(Sptr<SipMsg> sipMsg, AgentRole aRole)
  refer to /vocal/sip/gua/CallAgent.cxx
 </pre>
 */
-class UaClient : public UaBase
-{
-   public:
-      ///
-      UaClient( const Sptr<SipMsg>& reqMsg, Sptr<SipTransceiver> stack,
-                BasicAgent* controllerAgent,
-                BaseFacade* facade, const char* dbg_id)
-          : UaBase("UaClient", reqMsg, stack, controllerAgent, facade, dbg_id)
-      {
-          myAgentRole = A_CLIENT;
-      };
+class UaClient : public UaBase {
+public:
+   ///
+   UaClient( const Sptr<SipMsg>& reqMsg, Sptr<SipTransceiver> stack,
+             BasicAgent* controllerAgent,
+             BaseFacade* facade, const char* dbg_id)
+         : UaBase("UaClient", reqMsg, stack, controllerAgent, facade, dbg_id) {
+      myAgentRole = A_CLIENT;
+   };
 
-      /**Constructs a BYE messages and sends it. Since it was the Client
-       * for the initial INVITE, uses 200 response to construct a BYE message
-       */   
-      Sptr<SipMsg> sendBye();
+   virtual ~UaClient() { /* nothing to do at this time */ }
+
+   /**Constructs a BYE messages and sends it. Since it was the Client
+    * for the initial INVITE, uses 200 response to construct a BYE message
+    */   
+   Sptr<SipMsg> sendBye();
 
 };
 
