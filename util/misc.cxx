@@ -175,5 +175,23 @@ uint64 vtv_to_ns(const struct timeval& tv) {
    return us;
 }
 
+
+int vparseInt(const char* s) {
+   return strtol(s, NULL, 0); //should parse HEX, Octal, and Decimal.  If not decimal, must start with 0x
+}
+
+
+bool visNumber(const char* s) {
+   char* tst = 0;
+   long int l = strtol(s, &tst, 0); //should parse HEX, Octal, and Decimal.  If not decimal, must start with 0x
+   if (l == 0) {
+      if (s == tst) {
+         return false;
+      }
+   }
+   return true;
+}//isNumber
+
+
 #endif
 #endif

@@ -49,7 +49,7 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.5 2004/06/01 07:23:31 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.6 2004/06/06 08:32:37 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
@@ -215,6 +215,7 @@ int TlsConnection::initTlsClient() {
         if (myerr == SSL_ERROR_WANT_READ || myerr == SSL_ERROR_WANT_WRITE) {
             cpLog(LOG_DEBUG, "try again!\n");
             _inProgress = true;
+            err = 0;
         }
         else {
             // issue

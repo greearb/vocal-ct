@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.5 2004/06/06 08:32:37 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -155,6 +155,7 @@ class TcpClientSocket: public BugCatcher
         }
 
         bool isConnected() const;
+        bool isConnectInProgress() const;
 
         virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                           uint64 now);

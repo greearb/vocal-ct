@@ -52,16 +52,21 @@
 #ifndef HTTP_DEF_H
 #define  HTTP_DEF_H
 
+#warning "Remove me, I'm redundant"
+
+#if 0
 
 static const char* const Http_def_h_Version =
-    "$Id: Http_def.h,v 1.2 2004/06/03 23:54:17 greear Exp $";
+    "$Id: Http_def.h,v 1.3 2004/06/06 08:32:36 greear Exp $";
 
 #define HTTP_VERSION    "VPP/1.0" // Vovida Provisioning Protocol
-#define CONT_LENGTH     "Content-Length:"
-#define VPP_TIMESTAMP   "Timestamp:"
+
+
 #define VPPREQ_BUF_LEN  56
 #define URL_LENGTH       100
 #define CONT_STR_LENGTH  56
+
+
 #define VPPVER_LENGTH   56
 #define GET_REQ          "GET"         // get an item
 #define PUT_REQ          "PUT"         // put an item
@@ -85,5 +90,6 @@ static const char* const Http_def_h_Version =
 #define SYNC_START_REQ   "SYNCSTART"
 #define SYNC_STAT_REQ    "SYNCSTAT"
 
+#endif
 
 #endif  //HTTP_DEF_H

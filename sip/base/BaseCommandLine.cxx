@@ -50,7 +50,7 @@
  */
 
 static const char* const BaseCommandLine_cxx_Version =
-    "$Id: BaseCommandLine.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BaseCommandLine.cxx,v 1.2 2004/06/06 08:32:36 greear Exp $";
 
 
 #include "global.h"
@@ -63,8 +63,7 @@ using Vocal::SipTransceiver;
 
 using namespace Vocal;
 
-int baseCommandLine(const int argc, const char** argv, BaseCommandData* data)
-{
+int baseCommandLine(const int argc, const char** argv, BaseCommandData* data) {
     CommandLine::instance( argc, argv);
 
     data->debugLevel = CommandLine::instance()->getString( "LOGLEVEL" );
@@ -74,12 +73,10 @@ int baseCommandLine(const int argc, const char** argv, BaseCommandData* data)
 	char matched;
 	Data psHost = psHostPort.matchChar(":", &matched);
 	Data psPort = "6005";
-	if(matched != '\0') 
-	{ 
+	if(matched != '\0') { 
 	    psPort = psHostPort;
 	}
-	else 
-	{
+	else {
 	    // no match, so the remainder must be the psHost
 	    psHost = psHostPort;
 	}
@@ -89,6 +86,7 @@ int baseCommandLine(const int argc, const char** argv, BaseCommandData* data)
     }
     data->localIp = CommandLine::instance()->getString( "LOCAL_IP" );
     data->sipPort = CommandLine::instance()->getInt( "SIP_PORT" );
+    data->useTls = CommandLine::instance()->getInt( "USE_TLS" );
 
     {
 	Data psHostPort = CommandLine::instance()->getString( "PSERVERBACKUP" );

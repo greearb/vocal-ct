@@ -52,7 +52,7 @@
  */
 
 static const char* const BaseCommandLine_hxx_Version =
-    "$Id: BaseCommandLine.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BaseCommandLine.hxx,v 1.2 2004/06/06 08:32:36 greear Exp $";
 
 
 #include "global.h"
@@ -71,17 +71,17 @@ static const char* const BaseCommandLine_hxx_Version =
 
 </pre>
 */
-struct BaseCommandData
-{
-        string localIp; /* Local IP to bind to */
-	int sipPort;
-	string pServer;
-	int pServerPort;
-	string backupPServer;
-	int backupPServerPort;
-	string debugLevel;
-	string readSecretFile;
-	string writeSecretFile;
+struct BaseCommandData {
+   string localIp; /* Local IP to bind to */
+   int sipPort;
+   string pServer;
+   int pServerPort;
+   string backupPServer;
+   int backupPServerPort;
+   string debugLevel;
+   string readSecretFile;
+   string writeSecretFile;
+   bool useTls; //when talking to the provisioning server
 };
 
 

@@ -93,6 +93,8 @@ uint64 vtv_to_us(const struct timeval& tv);
 /** Convert to nano-seconds */
 uint64 vtv_to_ns(const struct timeval& tv);
 
+int vparseInt(const char* s);
+bool visNumber(const char* s);
 
 //void vusleep(int milliseconds);
 

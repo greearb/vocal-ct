@@ -51,7 +51,7 @@
 
 
 static const char* const CdrConfig_cxx_Version =
-    "$Id: CdrConfig.cxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrConfig.cxx,v 1.2 2004/06/06 08:32:35 greear Exp $";
 
 
 #include <fstream.h>
@@ -61,7 +61,7 @@ static const char* const CdrConfig_cxx_Version =
 #include <ctype.h>
 
 #include "CdrConfig.hxx"
-#include "ProvisionInterface.hxx"
+#include "ProvisionServer.hxx"
 #include "VCdrException.hxx"
 #include "NetworkAddress.h"
 #include "cpLog.h"

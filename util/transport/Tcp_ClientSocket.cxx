@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.5 2004/06/03 23:54:17 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.6 2004/06/06 08:32:37 greear Exp $";
 
 #ifndef __vxworks
 
@@ -174,6 +174,10 @@ TcpClientSocket::~TcpClientSocket() {
 }
 
 
+bool TcpClientSocket::isConnectInProgress() const {
+   return _conn->isConnectInProgress();
+}
+
 bool TcpClientSocket::isConnected() const {
     if (_conn->isLive()) {
         if (!_conn->isConnectInProgress()) {
@@ -185,125 +189,130 @@ bool TcpClientSocket::isConnected() const {
 
 
 void TcpClientSocket::connect() throw (VNetworkException&) {
-    struct addrinfo hints, *res, *tSave;
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-    hints.ai_socktype = SOCK_STREAM;
-    int err=0;
-    char pBuf[56];
-    int myerrno = 0;
+   if (_conn->isConnectInProgress()) {
+      // Already working on it.
+      return;
+   }
 
-    sprintf(pBuf, "%d", _serverPort);
-    if ((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
-        char buf[256];
-        snprintf(buf, 255, "Failed to getaddrinfo for server %s:%d, reason %s",
-                 _hostName.c_str(), 
-                 _serverPort,
-                 gai_strerror(errno));
-        cpLog(LOG_ERR, buf);
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
-    tSave = res;
-    do {
-        assert(_conn->_connId < 0); // Make sure we don't leak sockets
+   struct addrinfo hints, *res, *tSave;
+   memset(&hints, 0, sizeof(hints));
+   hints.ai_family = NetworkConfig::instance().getAddrFamily();
+   hints.ai_socktype = SOCK_STREAM;
+   int err=0;
+   char pBuf[56];
+   int myerrno = 0;
 
-        _conn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (_conn->_connId < 0) {
-            char buf[256];
-            sprintf(buf, "Failed to create socket: reason %s",
-                strerror(errno));
-            cpLog(LOG_DEBUG, buf);
-            continue;
-        }
-
-        // Set it to be non-blocking, etc.
-        _conn->setState();
-
-        // 16/1/04 fpi		  
-        // tbr
-        // todo
-        // Win32 WorkAround
-        // Note: I think this code is not useful,
-        // binding to a specific ip binds on the device
-        // that has the ip assigned
-
-        // It is useful in some cases on Linux, at least. --Ben
+   sprintf(pBuf, "%d", _serverPort);
+   if ((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
+      char buf[256];
+      snprintf(buf, 255, "Failed to getaddrinfo for server %s:%d, reason %s",
+               _hostName.c_str(), 
+               _serverPort,
+               gai_strerror(errno));
+      cpLog(LOG_ERR, buf);
+      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   }
+   tSave = res;
+   do {
+      assert(_conn->_connId < 0); // Make sure we don't leak sockets
+      
+      _conn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+      if (_conn->_connId < 0) {
+         char buf[256];
+         sprintf(buf, "Failed to create socket: reason %s",
+                 strerror(errno));
+         cpLog(LOG_DEBUG, buf);
+         continue;
+      }
+      
+      // Set it to be non-blocking, etc.
+      _conn->setState();
+      
+      // 16/1/04 fpi		  
+      // tbr
+      // todo
+      // Win32 WorkAround
+      // Note: I think this code is not useful,
+      // binding to a specific ip binds on the device
+      // that has the ip assigned
+      
+      // It is useful in some cases on Linux, at least. --Ben
 #ifdef __linux__
-        // Optionally, bind this to the local interface.
-        if (local_dev_to_bind_to.size()) {
-            // Bind to specific device.
-            char dv[15 + 1];
-            strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-            if (setsockopt(_conn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
-                           dv, 15 + 1)) {
-                cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                      dv, strerror(errno));
-            }
-        }
+      // Optionally, bind this to the local interface.
+      if (local_dev_to_bind_to.size()) {
+         // Bind to specific device.
+         char dv[15 + 1];
+         strncpy(dv, local_dev_to_bind_to.c_str(), 15);
+         if (setsockopt(_conn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
+                        dv, 15 + 1)) {
+            cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                  dv, strerror(errno));
+         }
+      }
 #endif
-
-        // Bind to the local IP
-        if (local_ip_to_bind_to.size()) {
-            struct addrinfo hints2, *res2;
-            memset(&hints2, 0, sizeof(hints2));
-            hints2.ai_flags = AI_PASSIVE;
-            hints2.ai_family = NetworkConfig::instance().getAddrFamily();
-            hints2.ai_socktype = SOCK_STREAM;
-            const char* lip = local_ip_to_bind_to.c_str();
-
-            if ((err = getaddrinfo(lip, NULL, &hints2, &res2)) != 0) {
-                char buf[256];
-                sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
-                cpLog(LOG_ERR, buf);
-                throw VNetworkException(buf, __FILE__, __LINE__, errno);
+      
+      // Bind to the local IP
+      if (local_ip_to_bind_to.size()) {
+         struct addrinfo hints2, *res2;
+         memset(&hints2, 0, sizeof(hints2));
+         hints2.ai_flags = AI_PASSIVE;
+         hints2.ai_family = NetworkConfig::instance().getAddrFamily();
+         hints2.ai_socktype = SOCK_STREAM;
+         const char* lip = local_ip_to_bind_to.c_str();
+         
+         if ((err = getaddrinfo(lip, NULL, &hints2, &res2)) != 0) {
+            char buf[256];
+            sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
+            cpLog(LOG_ERR, buf);
+            throw VNetworkException(buf, __FILE__, __LINE__, errno);
+         }
+         else {
+            if (::bind(_conn->_connId, res2->ai_addr, res2->ai_addrlen) != 0) {
+               char buf[256];
+               sprintf(buf, "bind failed, reason:%s", gai_strerror(errno));
+               cpLog(LOG_ERR, buf);
+               throw VNetworkException(buf, __FILE__, __LINE__, errno);
             }
-            else {
-                if (::bind(_conn->_connId, res2->ai_addr, res2->ai_addrlen) != 0) {
-                    char buf[256];
-                    sprintf(buf, "bind failed, reason:%s", gai_strerror(errno));
-                    cpLog(LOG_ERR, buf);
-                    throw VNetworkException(buf, __FILE__, __LINE__, errno);
-                }
-            }
-        }
-
-        int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
-        if (rv >= 0) {
-            ///Success
-            char descBuf[256];
-            cpLog(LOG_DEBUG, "Connected to %s", connectionDesc(res, descBuf, 256));
-            delete []_conn->_connAddr;
-            _conn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-            memcpy((_conn->_connAddr), (res->ai_addr), res->ai_addrlen);
-            cpLog(LOG_DEBUG, "SIze:%d, size2:%d",
-                  sizeof(*_conn->_connAddr), res->ai_addrlen);
-            _conn->_connAddrLen = res->ai_addrlen;
+         }
+      }
+      
+      int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
+      if (rv >= 0) {
+         ///Success
+         char descBuf[256];
+         cpLog(LOG_DEBUG, "Connected to %s", connectionDesc(res, descBuf, 256));
+         delete []_conn->_connAddr;
+         _conn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
+         memcpy((_conn->_connAddr), (res->ai_addr), res->ai_addrlen);
+         cpLog(LOG_DEBUG, "SIze:%d, size2:%d",
+               sizeof(*_conn->_connAddr), res->ai_addrlen);
+         _conn->_connAddrLen = res->ai_addrlen;
+         break;
+      }
+      else {
+         myerrno = errno;
+         // If we are non-blocking, then EINPROGRESS is OK
+         if (myerrno == EINPROGRESS) {
+            _conn->setConnectInProgress(true);
             break;
-        }
-        else {
-            myerrno = errno;
-            // If we are non-blocking, then EINPROGRESS is OK
-            if (myerrno == EINPROGRESS) {
-                _conn->setConnectInProgress(true);
-                break;
-            }
-        }
-
-        _conn->close();
-    } while ((res = res->ai_next) != 0);
-
-    if (res == 0) {
-        char buf[256];
-        snprintf(buf, 255, "Failed to connect to server %s:%d, reason %s (%d)",
-                 _hostName.c_str(), 
-                 _serverPort,
-                 gai_strerror(myerrno), myerrno);
-        cpLog(LOG_ERR, buf);
-        _conn->close();
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
-    freeaddrinfo(tSave);
-    _conn->setState();
+         }
+      }
+      
+      _conn->close();
+   } while ((res = res->ai_next) != 0);
+   
+   if (res == 0) {
+      char buf[256];
+      snprintf(buf, 255, "Failed to connect to server %s:%d, reason %s (%d)",
+               _hostName.c_str(), 
+               _serverPort,
+               gai_strerror(myerrno), myerrno);
+      cpLog(LOG_ERR, buf);
+      _conn->close();
+      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   }
+   freeaddrinfo(tSave);
+   _conn->setState();
 }//connect
 
 

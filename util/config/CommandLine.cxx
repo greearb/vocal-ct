@@ -49,7 +49,7 @@
  */
 
 static const char* const CommandLine_cxx_Version =
-    "$Id: CommandLine.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CommandLine.cxx,v 1.2 2004/06/06 08:32:37 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -98,6 +98,7 @@ const pair < const char*, const char* > CommandLine::cmdLineOptionString[] =
     pair < const char*, const char* > ("USE_SYSLOG", "0"),
     pair < const char*, const char* > ("CONFFILE", VOCAL_INSTALL_PATH "/etc/vocal.conf"),
     pair < const char*, const char* > ("CONFDIR", VOCAL_INSTALL_PATH "/etc"),
+    pair < const char*, const char* > ("USE_TLS", "0"),
 };
 
 
@@ -126,6 +127,7 @@ const optionMap myOptionMap[] =
     //{ 'p', "SIP_PORT",        0,   "SIP Port" }, /* Not needed, is last arg on cmd-line */
     { 'P', "PSERVER",         0,   "default provisioning server" },
     { 'S', "PSERVERBACKUP",   0,   "backup provisioning server" },
+    { 't', "USE_TLS",         "1", "backup provisioning server" },
     { 'V', "VERSION",         "1", "print version and exit" },
     { 0, 0, 0, 0 }
 };
