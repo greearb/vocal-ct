@@ -83,7 +83,7 @@
 
 
 static const char* const RadiusStack_hxx_Version =
-    "$Id: RadiusStack.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: RadiusStack.hxx,v 1.4 2004/06/15 00:30:10 greear Exp $";
 
 #include "global.h"
 #include <sys/types.h>
@@ -92,6 +92,8 @@ static const char* const RadiusStack_hxx_Version =
 #include "VRadiusException.hxx"
 #include <BugCatcher.hxx>
 #include <Sptr.hxx>
+#include <misc.hxx>
+
 
 /// Global constants
 
@@ -120,132 +122,85 @@ union BufType {
     acctHdr;
 };
 
+class RadiusStack;
 
-/**
-    RadiusStack communicates with a radius server based on
-    the radius protocol (See RFC 2139)
- 
-    This implementation is meant to work as a base class for
-    a client application. The client should define it's own
-    methods to deal with different VSA's (Vendor Specific
-    Attributes).
- 
-    NOTE: most of the work has been done on the accounting
-    functionality, there is little support for the
-    authorization functionality.
-**/
-class RadiusStack : public BugCatcher {
-public:
-   ///
-   enum PacketType {                                     ///
-      PW_AUTHENTICATION_REQUEST = 1,    ///
-      PW_AUTHENTICATION_ACK = 2,        ///
-      PW_AUTHENTICATION_REJECT = 3,     ///
-      PW_ACCOUNTING_REQUEST = 4,        ///
-      PW_ACCOUNTING_RESPONSE = 5,       ///
-      PW_ACCOUNTING_STATUS = 6,         ///
-      PW_PASSWORD_REQUEST = 7,          ///
-      PW_PASSWORD_ACK = 8,              ///
-      PW_PASSWORD_REJECT = 9,           ///
-      PW_ACCOUNTING_MESSAGE = 10,       ///
-      PW_ACCESS_CHALLENGE = 11          ///
-   };
-   ///
-   enum AttribType {
-      PW_USER_NAME = 1,                 ///
-      PW_PASSWORD = 2,                  ///
-      PW_CHAP_PASSWORD = 3,             ///
-      PW_NAS_IP_ADDRESS = 4,            ///
-      PW_NAS_PORT_ID = 5,               ///
-      
-      PW_VENDOR_SPECIFIC = 26,          ///
-      PW_CALLED_STATION_ID	= 30, ///
-      PW_CALLING_STATION_ID = 31,       ///
-      
-      PW_ACCT_STATUS_TYPE = 40,         ///
-      PW_ACCT_DELAY_TIME = 41,          ///
-      PW_ACCT_INPUT_OCTETS = 42,        ///
-      PW_ACCT_OUTPUT_OCTETS = 43,       ///
-      PW_ACCT_SESSION_ID = 44,          ///
-      PW_ACCT_AUTHENTIC = 45,           ///
-      PW_ACCT_SESSION_TIME = 46,        ///
-      PW_ACCT_INPUT_PACKETS = 47,       ///
-      PW_ACCT_OUTPUT_PACKETS = 48,      ///
-      PW_ACCT_TERMINATE_CAUSE = 49      ///
-   };
-   ///
-   enum AcctStatusType {
-      ACCT_START = 1,                   ///
-      ACCT_STOP = 2,                    ///
-      ACCT_ON = 7,                      ///
-      ACCT_OFF = 8                      ///
-   };
-
-public:
- 
-   /** local_ip can be "" if you want the default, or you can specify it
-    * to bind to a particular local interface.
-    */
-   RadiusStack(const string& local_ip);
-
-   /// Destructor
-   virtual ~RadiusStack();
-
-   /// Initialize connection with radius server
-   virtual void initialize( const string &server,
-                            const string &secretKey,
-                            const int retries ) throw(VRadiusException&);
-
-   /// Set up the values for the connection
-   void setupConnection();
+///
+enum PacketType {                                     ///
+   PW_AUTHENTICATION_REQUEST = 1,    ///
+   PW_AUTHENTICATION_ACK = 2,        ///
+   PW_AUTHENTICATION_REJECT = 3,     ///
+   PW_ACCOUNTING_REQUEST = 4,        ///
+   PW_ACCOUNTING_RESPONSE = 5,       ///
+   PW_ACCOUNTING_STATUS = 6,         ///
+   PW_PASSWORD_REQUEST = 7,          ///
+   PW_PASSWORD_ACK = 8,              ///
+   PW_PASSWORD_REJECT = 9,           ///
+   PW_ACCOUNTING_MESSAGE = 10,       ///
+   PW_ACCESS_CHALLENGE = 11          ///
+};
+///
+enum AttribType {
+   PW_USER_NAME = 1,                 ///
+   PW_PASSWORD = 2,                  ///
+   PW_CHAP_PASSWORD = 3,             ///
+   PW_NAS_IP_ADDRESS = 4,            ///
+   PW_NAS_PORT_ID = 5,               ///
    
-   /// Sent when the client starts
-   bool accountingOn();
-
-   /// Sent when the client terminates
-   bool accountingOff();
-
-   /// Sent when subscriber should be authenticated
-   bool accessRequest( const string &callId,
-                       const string &passwd );
+   PW_VENDOR_SPECIFIC = 26,          ///
+   PW_CALLED_STATION_ID	= 30, ///
+   PW_CALLING_STATION_ID = 31,       ///
    
-   /// Sent when gateway wants to start a call
-   bool accountingStartCall( const string &from,
-                             const string &to,
-                             const string &callId );
-   
-   /// Sent when the call is terminated
-   bool accountingStopCall( const string &callId );
+   PW_ACCT_STATUS_TYPE = 40,         ///
+   PW_ACCT_DELAY_TIME = 41,          ///
+   PW_ACCT_INPUT_OCTETS = 42,        ///
+   PW_ACCT_OUTPUT_OCTETS = 43,       ///
+   PW_ACCT_SESSION_ID = 44,          ///
+   PW_ACCT_AUTHENTIC = 45,           ///
+   PW_ACCT_SESSION_TIME = 46,        ///
+   PW_ACCT_INPUT_PACKETS = 47,       ///
+   PW_ACCT_OUTPUT_PACKETS = 48,      ///
+   PW_ACCT_TERMINATE_CAUSE = 49      ///
+};
+///
+enum AcctStatusType {
+   ACCT_START = 1,                   ///
+   ACCT_STOP = 2,                    ///
+   ACCT_ON = 7,                      ///
+   ACCT_OFF = 8                      ///
+};
 
 
+class RadiusMessage : public BugCatcher {
 protected:
+   int remainingRetries; // For sending
 
-   /**
-    * Process the VSA (vendor specific attributes)
-    * Called by evaluateRecvBuffer() to deal with
-    * messages from the radius server
-    */
-   virtual void processVsa( const unsigned char vsaType,
-                            unsigned char *ptr,
-                            int bufLen ) {}
+   BufType m_sendBuffer;
+   int m_sendBufferLen;
+   uint8 m_requestId;
 
-   /// Fills the m_sendBuffer with accounting ON message
-   void createAcctOnMsg();
+   RadiusStack* stack;
+   uint64 nextTx;
 
-   /// Fills the m_sendBuffer with accounting OFF message
-   void createAcctOffMsg();
+public:
+   RadiusMessage(RadiusStack* r, uint8 id, int retries);
+   virtual ~RadiusMessage() { }
 
-   /// Fills the m_sendBuffer with accounting start call message
-   void createAcctStartCallMsg( const string &from,
-                                const string &to,
-                                const string &callId );
-   
-   /// Fills the m_sendBuffer with accounting stop call message
-   void createAcctStopCallMsg( const string &callId );
+   string toString();
 
-   /// Fills the m_sendBuffer with access request  message
-   void createAccessRqstMsg( const string &callId,
-                             const string &passwd );
+   uint8 getRequestId() const { return m_requestId; }
+   bool handleResponse(BufType* msg, int ln); // Does basic sanity checks
+   bool evaluateRecvBuffer(BufType* msg); // deals with verified-sane message
+
+   uint64 getNextTx() const { return nextTx; }
+   void setNextTx(uint64 n) { nextTx = n; }
+
+   void setRetries(int i) { remainingRetries = i; }
+   int getRemainingRetries() const { return remainingRetries; }
+
+   unsigned char* getSendBuffer() { return m_sendBuffer.buffer; }
+   int getSendBufferLen() const { return m_sendBufferLen; }
+   // Be careful with this one!
+   void setSendBufferLen(int i) { m_sendBufferLen = i; }
 
    /// Fill m_sendBuffer header with data, overwrites existing data
    int addHeader( const PacketType type );
@@ -288,30 +243,113 @@ protected:
                         const int sizeOfValue,
                         const unsigned long int vendorId );
 
-   /// sends message and waits for reply
-   bool handshake();
-
-   /// Send data from m_sendBuffer. Blocks until all the data is sent
-   bool sendRadius();
-
-   /// Puts data in m_recvBuffer
-   int recvRadius();
-
-   /// evaluate attribute list in receive m_recvBuffer
-   bool evaluateRecvBuffer();
-
-   /// validate md5 sum of accounting message in m_recvBuffer
-   bool verifyAcctRecvBuffer() throw(VRadiusException&);
-
-   /// validate md5 sum of authentication message in m_recvBuffer
-   bool verifyAuthRecvBuffer() throw(VRadiusException&) {
-      return (true);
-   }
-
    /// md5Calc is used to find the md5 sum
    int md5Calc( unsigned char *output,
                 unsigned char *input,
                 unsigned inLen );
+
+};
+
+
+/**
+    RadiusStack communicates with a radius server based on
+    the radius protocol (See RFC 2139)
+ 
+    This implementation is meant to work as a base class for
+    a client application. The client should define it's own
+    methods to deal with different VSA's (Vendor Specific
+    Attributes).
+ 
+    NOTE: most of the work has been done on the accounting
+    functionality, there is little support for the
+    authorization functionality.
+**/
+class RadiusStack : public BugCatcher {
+   friend class RadiusMessage;
+public:
+ 
+   /** local_ip can be "" if you want the default, or you can specify it
+    * to bind to a particular local interface.
+    */
+   RadiusStack(const string& local_ip);
+
+   /// Destructor
+   virtual ~RadiusStack();
+
+   /// Initialize connection with radius server
+   virtual void initialize( const string &server,
+                            const string &secretKey,
+                            const int retries ) throw(VRadiusException&);
+
+   /// Set up the values for the connection
+   void setupConnection();
+   
+   /// Sent when the client starts
+   bool accountingOn();
+
+   /// Sent when the client terminates
+   bool accountingOff();
+
+   /// Sent when subscriber should be authenticated
+   bool sendAccessRequest( const string &callId,
+                           const string &passwd );
+   
+   /// Sent when gateway wants to start a call
+   bool accountingStartCall( const string &from,
+                             const string &to,
+                             const string &callId );
+   
+   /// Sent when the call is terminated
+   bool accountingStopCall( const string &callId );
+
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+
+protected:
+
+   /**
+    * Process the VSA (vendor specific attributes)
+    * Called by evaluateRecvBuffer() to deal with
+    * messages from the radius server
+    */
+   virtual void processVsa(const unsigned char vsaType,
+                           unsigned char *ptr,
+                           int bufLen ) {}
+
+   virtual void setAccountStatusType(AcctStatusType t) {
+      m_acctStatusType = t;
+   }
+
+   // Returns false if we do not have an empty slot (id)
+   bool findNextId(uint8& id);
+
+   // Sends accounting on message
+   Sptr<RadiusMessage> createAcctOnMsg();
+
+   // Sends accounting of message
+   Sptr<RadiusMessage> createAcctOffMsg();
+
+   // Sends accounting start message
+   Sptr<RadiusMessage> createAcctStartCallMsg( const string &from,
+                                               const string &to,
+                                               const string &callId );
+   
+   // Sends accounting stop message
+   Sptr<RadiusMessage> createAcctStopCallMsg( const string &callId );
+
+   // Sends access request message
+   Sptr<RadiusMessage> createAccessRqstMsg( const string &callId,
+                                            const string &passwd );
+
+   bool doSendRadius(Sptr<RadiusMessage> m);
+
+   // Deal with a received message
+   bool handleResponse(unsigned char* buf, int ln);
 
    
 protected:
@@ -319,30 +357,24 @@ protected:
    int m_retries;                        ///
 
    string m_serverName;                  ///
-
    /// network byte order
    unsigned long int m_serverAddr;       ///
    int m_serverPort;                     ///
 
    string m_clientName;                  ///
-
    /// network byte order
    unsigned long int m_clientAddr;       ///
    int m_clientPort;                     ///
 
-   unsigned char m_requestId;            ///
-   unsigned char m_responseId;           ///
    string m_secretKey;                   ///
 
    bool m_connected;                     ///
    AcctStatusType m_acctStatusType;      ///
 
-   BufType m_sendBuffer;                 ///
    BufType m_recvBuffer;                 ///
-   int m_sendBufferLen;                  ///
-   int m_recvBufferLen;                  ///
-   bool m_recvBufferValid;               ///
 
+   // 256 because that is the address range of the Radius ID (uint8)
+   Sptr<RadiusMessage> pendingMessages[256];
 
    string m_localIp;
    Sptr<NetworkAddress> m_networkAddr;        ///

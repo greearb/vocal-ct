@@ -49,7 +49,7 @@
  */
 
 static const char* const RtpTransmitter_cxx_Version =
-    "$Id: RtpTransmitter.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpTransmitter.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -99,22 +99,14 @@ RtpTransmitter::RtpTransmitter (const string& local_ip,
     // TODO:  What if the remote is not on the minimum port?  How do we
     // TODO:  deal with that???
 
-    if(  receiver )
-    {
+    if(  receiver ) {
         myStack = receiver->getUdpStack();
         myStack->setDestination(&remoteAddr);
-        // assume that RTP will always use send instead of sendto
-        // so that it can only receive from/send to the same remote port
-        //	myStack->connectPorts();
-        freeStack = false;
     }
-    else
-    {
-        myStack = new UdpStack (local_ip, local_dev_to_bind_to,
+    else {
+        myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
                                 &remoteAddr, remoteMinPort,
                                 remoteMaxPort, sendonly) ;
-        //	myStack->connectPorts();
-        freeStack = true;
     }
     constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
 }
@@ -130,59 +122,47 @@ RtpTransmitter::RtpTransmitter (const string& local_ip,
       remoteAddr(remoteHost, remotePort),
       rtp_raw_tx_pkt(1012)
 {
-    assert(remoteHost);
+   assert(remoteHost);
 
-    if(  receiver )
-    {
-        myStack = receiver->getUdpStack();
-        myStack->setDestination(&remoteAddr);
-        //	myStack->connectPorts();
-        freeStack = false;
-    }
-    else
-    {
-        myStack = new UdpStack (local_ip, local_dev_to_bind_to,
-                                &remoteAddr, remotePort,
-                                remotePort, sendonly) ;
-        //	myStack->connectPorts();
-        freeStack = true;
-    }
-    constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
+   if(  receiver ) {
+      myStack = receiver->getUdpStack();
+      myStack->setDestination(&remoteAddr);
+   }
+   else {
+      myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
+                              &remoteAddr, remotePort,
+                              remotePort, sendonly) ;
+   }
+   constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
 }
 
 
 void RtpTransmitter::constructRtpTransmitter (RtpPayloadType _format, int clockrate,
                                               int per_sample_size, int samplesize) {
-    // set format and baseSampleRate
-    format = _format;
-    clockRate = clockrate;
-    perSampleSize = per_sample_size;
-    sampleSize = samplesize;
+   // set format and baseSampleRate
+   format = _format;
+   clockRate = clockrate;
+   perSampleSize = per_sample_size;
+   sampleSize = samplesize;
 
-    // set private variables
-    ssrc = generateSRC();
-    seedNtpTime = getNtpTime();
-    seedRtpTime = generate32();
-    prevNtpTime = seedNtpTime;
-    prevRtpTime = seedRtpTime;
-    prevSequence = generate32();
+   // set private variables
+   ssrc = generateSRC();
+   seedNtpTime = getNtpTime();
+   seedRtpTime = generate32();
+   prevNtpTime = seedNtpTime;
+   prevRtpTime = seedRtpTime;
+   prevSequence = generate32();
 
-    // set counters
-    packetSent = 0;
-    payloadSent = 0;
-    codecString[0] = '\0';
+   // set counters
+   packetSent = 0;
+   payloadSent = 0;
+   codecString[0] = '\0';
 
-    cpLog(LOG_DEBUG_STACK, "Constructed ssrc = %d", ssrc);
+   cpLog(LOG_DEBUG_STACK, "Constructed ssrc = %d", ssrc);
 }
 
 
-RtpTransmitter::~RtpTransmitter ()
-{
-    if( freeStack)
-    {
-        delete myStack;
-        myStack = NULL;
-    }
+RtpTransmitter::~RtpTransmitter () {
     cpLog(LOG_DEBUG_STACK, "Closed ssrc = %d", ssrc);
 }
 
@@ -240,15 +220,7 @@ int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag )
     pkt.setSequenceSet(false);
 
     // transmit packet
-    try
-    {
-        myStack->transmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr );
-    }
-    catch( UdpStackExceptionConectionRefused& )
-    {
-        cpLog (LOG_ERR,"Connection refused");
-        return -1;
-    }
+    myStack->queueTransmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr);
 
     // update counters
     packetSent++;

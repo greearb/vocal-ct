@@ -81,7 +81,7 @@
 
 
 static const char* const RadiusStack_cxx_Version =
-    "$Id: RadiusStack.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: RadiusStack.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <sys/time.h>
@@ -99,391 +99,142 @@ static const char* const RadiusStack_cxx_Version =
 #include "UdpStack.hxx"
 #include "vmd5.h"
 #include "cpLog.h"
+#include <sstream>
 
 
-RadiusStack::RadiusStack(const string& local_ip) :
-    m_retries( 5 ),
-    m_serverName( "unknown" ),
-    m_serverAddr( 0 ),
-    m_serverPort( 0 ),
-    m_clientName( "localhost" ),
-    m_clientAddr( 0 ),
-    m_clientPort( 0 ),
-    m_requestId( 0 ),
-    m_responseId( 0 ),
-    m_secretKey( "testing123" ),
-    m_connected( false ),
-    m_acctStatusType( ACCT_OFF ),
-    m_sendBufferLen( 0 ),
-    m_recvBufferLen( 0 ),
-    m_recvBufferValid( false ),
-    m_localIp(local_ip)
-{}
+///************************************************************///
+///**********************  RadiusMessage  *********************///
+///************************************************************///
 
-RadiusStack::~RadiusStack() {
-   if (m_connected) {
-      if (!accountingOff()) {
-         cpLog(LOG_ALERT,
-               "Accounting off failed, closing connection anyways");
-      }
-   }
+RadiusMessage::RadiusMessage(RadiusStack* r, uint8 id, int retries) {
+   m_requestId = id;
+   remainingRetries = retries;
+   m_sendBufferLen = 0;
+   stack = r; //used for processVsa callbacks, among other things
 }
 
-void
-RadiusStack::setupConnection()
-{
-    // set session specific values
-
-    struct servent *svp;
-    struct hostent *hent;
-    unsigned short int svcport;  // network byte order
-    char nasname[256];
-
-    // find server port
-
-    svp = getservbyname ("radacct", "udp");
-    if (svp == 0)
-    {
-        svcport = (unsigned short int)htons(PW_ACCT_UDP_PORT);
-    }
-    else
-    {
-        svcport = svp->s_port;  // already in network byte order
-    }
-
-
-    m_serverPort = ntohs(svcport);
-
-    if (gethostname(nasname, sizeof(nasname)) == 0)
-    {
-        m_clientName = nasname;
-    }
-    else
-    {
-        string msg("Can't initialize radius connection, gethostname() failed");
-        if (errno == EINVAL)
-        {
-            msg += " due to invalid name length";
-        }
-        throw VRadiusException(msg, __FILE__, __LINE__);
-    }
-
-    if ((hent = gethostbyname(nasname)) == 0)
-    {
-        string msg("Couldn't find IP for ");
-        msg += nasname;
-        throw VRadiusException(msg, __FILE__, __LINE__);
-    }
-    else
-        m_clientAddr = *((unsigned long int*) hent->h_addr_list[0]);  // network byte order
-
-    // Get the IP address of the radius accounting server
-    if ((hent = gethostbyname(m_serverName.c_str())) == 0)
-    {
-        string msg("Couldn't find IP for ");
-        msg += m_serverName;
-        throw VRadiusException(msg, __FILE__, __LINE__);
-    }
-    else
-        m_serverAddr = *((unsigned long int*) hent->h_addr_list[0]);  // network byte order
-
-    cpLog(LOG_DEBUG_STACK, "Client Host:%s",
-          m_clientName.c_str());
-    cpLog(LOG_DEBUG_STACK, "Server Host:%s Server Port:%d",
-          m_serverName.c_str(), m_serverPort);
+string RadiusMessage::toString() {
+   ostringstream oss;
+   oss << "msg-id: " << (int)(m_requestId) << " retries: " << remainingRetries
+       << " sendLength: " << m_sendBufferLen;
+   return oss.str();
 }
 
-void
-RadiusStack::initialize( const string &server,
-                         const string &secretKey,
-                         const int retries )
-    throw(VRadiusException&)
-{
-    memset(&m_sendBuffer, 0, sizeof(m_sendBuffer));
-    memset(&m_recvBuffer, 0, sizeof(m_recvBuffer));
 
-    m_serverName = server;
-    m_secretKey = secretKey;
-    m_retries = retries;
+bool RadiusMessage::handleResponse(BufType* msg, int ln) {
+   BufType::AcctHdr *auth = &(msg->acctHdr);
+   unsigned char *ptr = msg->buffer;
+   int totalLen;
+   unsigned char reply_digest[ACCT_VECTOR_LEN];
+   unsigned char calc_digest[ACCT_VECTOR_LEN];
 
-    setupConnection();
-
-    try
-    {
-        if (m_networkAddr != 0)
-        {
-            delete m_networkAddr;
-        }
-
-        if (m_udpConnection != 0)
-        {
-            delete m_udpConnection;
-        }
-
-        m_networkAddr = new NetworkAddress(m_serverName, m_serverPort);
-        m_udpConnection = new UdpStack(m_localIp, "" /* local_dev_to_bind_to */,
-                                       m_networkAddr, m_serverPort, m_serverPort);
-
-        // this may not be necessary, depends on the radius server
-        m_udpConnection->connectPorts();
-    }
-    catch (UdpStackException &e)
-    {
-        throw VRadiusException("UdpStackException caught", __FILE__, __LINE__);
-    }
-
-    if (!accountingOn())
-    {
-        throw VRadiusException("ACCOUNTING ON message failed, Radius server not responding",
-                               __FILE__, __LINE__);
-    }
-}
-
-int RadiusStack::md5Calc( unsigned char *output,
-                          unsigned char *input, unsigned inLen )
-{
-    MD5Context context;
-    MD5Init(&context);
-    MD5Update(&context, input, inLen);
-    MD5Final(output, &context);
-
-    return 0;
-}
-
-bool
-RadiusStack::evaluateRecvBuffer()
-{
-    // evaluate attribute list in m_receiveBuffer
-
-    BufType::AcctHdr *auth = &(m_recvBuffer.acctHdr);
-    unsigned char *ptr = m_recvBuffer.buffer;
-    int totalLen;
-    int count;
-    unsigned char attribType;
-    unsigned char attribLen;
-    AttribType enumAttribType;
-    unsigned char vsaLength;
-    unsigned char vsaType;
-
-    if (!m_recvBufferValid)
-    {
-        return false;
-    }
+   BufType::AcctHdr requestHdr = m_sendBuffer.acctHdr;
     
-    totalLen = ntohs(auth->length);
-    count = sizeof(BufType::AcctHdr);
+   totalLen = ntohs(auth->length);
 
-    cpLog(LOG_DEBUG_STACK, "Received reply from radius server %s code=%d id=%d length=%d",
-          m_serverName.c_str(), auth->code, auth->id, totalLen);
-
-    // fast forward to the start of the attributes
-    ptr += count;
-
-    while (count < totalLen)
-    {
-        attribType = (unsigned char) * ptr++;
-        attribLen = (unsigned char) * ptr++;
-        count += attribLen;
-        enumAttribType = (AttribType) attribType;
-
-        // check if attribute value is empty
-        if (attribLen < 2)
-        {
-            continue;
-        }
-
-        switch (enumAttribType)
-        {
-
-            case PW_ACCT_STATUS_TYPE:
-            {
-                m_acctStatusType = (AcctStatusType)ntohl((int) * ptr);
-                cpLog(LOG_DEBUG_STACK, "Attribute PW_ACCT_STATUS_TYPE:%d",
-                      m_acctStatusType);
-                ptr += attribLen - 2;
-            }
-            break;
-
-            case PW_VENDOR_SPECIFIC:
-            {
-                ptr += 4;
-                vsaType = (unsigned char) * ptr++;
-                vsaLength = (unsigned char) * ptr++;
-                processVsa(vsaType, ptr, vsaLength);
-                ptr += vsaLength - 2;
-            }
-            break;
-
-            default:
-            {
-                cpLog(LOG_DEBUG_STACK, "Ignored attribute type:%d, length:%d",
-                      (int)enumAttribType,
-                      (int)attribLen);
-                ptr += attribLen - 2;
-            }
-            break;
-        }
-    }
-    return true;
-}
-
-bool
-RadiusStack::verifyAcctRecvBuffer() throw(VRadiusException&)
-{
-    BufType bufCopy;
-    BufType::AcctHdr *auth = &(bufCopy.acctHdr);
-    unsigned char *ptr = bufCopy.buffer;
-    int totalLen;
-    unsigned char reply_digest[ACCT_VECTOR_LEN];
-    unsigned char calc_digest[ACCT_VECTOR_LEN];
-
-    BufType::AcctHdr requestHdr = m_sendBuffer.acctHdr;
-    
-    // initialize validity of m_recvBuffer to false
-    m_recvBufferValid = false;
-
-    // make a copy of the radius message
-    memcpy(&bufCopy, &m_recvBuffer, sizeof(bufCopy));
-
-    totalLen = ntohs(auth->length);
-    m_responseId = auth->id;
-
-    if (totalLen != m_recvBufferLen)
-    {
-        char buf[64];
-        sprintf(buf,
-                "Received invalid reply length from server (want %d got %d)",
-                totalLen, m_recvBufferLen);
-        throw VRadiusException(buf, __FILE__, __LINE__);
-    }
-
-    // save the response auth vector, compare with calculated vector
-    memcpy(reply_digest, auth->authVector, ACCT_VECTOR_LEN);
-    
-    // replace the response auth vector in the message with the
-    // request auth vector in order to calculate the correct md5 sum
-    memcpy(auth->authVector, requestHdr.authVector,
-           ACCT_VECTOR_LEN);
-
-    // Verify the reply digest
-    memcpy(ptr + totalLen, m_secretKey.c_str(), m_secretKey.size());
-    md5Calc(calc_digest, (unsigned char *)auth,
-            totalLen + m_secretKey.size());
-
-    // Compare the request and response auth digests
-    if (memcmp(reply_digest, calc_digest, ACCT_VECTOR_LEN) != 0)
-    {
-        cpLog(LOG_DEBUG_STACK, "Warning: Received invalid reply digest from server");
-    }
-    else
-    {
-        // check that the packet type is PW_ACCOUNTING_RESPONSE and
-        // the identifier matches the request identifier
-        if ((PacketType)auth->code == PW_ACCOUNTING_RESPONSE &&
-                m_responseId == m_requestId)
-        {
-            m_recvBufferValid = true;
-        }
-	else
-	{
-	    char buf[64];
-	    sprintf(buf,
-		    "Warning: bad packet type or response id: %d, %d/%d.",
-		    auth->code, m_requestId, m_responseId);
-	    cpLog(LOG_DEBUG_STACK, buf);
-	    throw VRadiusException(buf, __FILE__, __LINE__);
-	}
-    }
-
-    if (m_recvBufferValid)
-    {
-        return (evaluateRecvBuffer());
-    }
-    else
-    {
-        return m_recvBufferValid;
-    }
-}
-
-bool
-RadiusStack::handshake() {
-   int result = 0;
-   int i = 0;
-   for (; i < m_retries; i++) {
-      cpLog(LOG_DEBUG_STACK, "Sending request. Attempt #%d", i + 1);
-      
-      if (!sendRadius()) {
-         return false;
-      }
-
-      if ((result = recvRadius()) > 0) {
-         cpLog(LOG_DEBUG_STACK, "Received a reply from Radius");
-         break;
-      }
-   }
-   if (result > 0 && i < m_retries) {
-      m_connected = true;
-   }
-   else {
-      m_connected = false;
-   }
-   return m_connected;
-}
-
-bool
-RadiusStack::sendRadius() {
-   int rv = m_udpConnection->transmit((char*)&(m_sendBuffer.buffer),
-                                      m_sendBufferLen);
-   if (rv != m_sendBufferLen) {
-      cpLog(LOG_ALERT, "Error occured in sendRadius(), transmit: %d, len: %d (%s)",
-            rv, m_sendBufferLen, strerror(errno));
+   if (totalLen != ln) {
+      cpLog(LOG_ERR, "ERROR:  Received invalid replay length from server, want: %d, got: %d",
+            totalLen, ln);
       return false;
    }
 
-   cpLog(LOG_DEBUG_STACK, "Transmitted bytes:%d", m_sendBufferLen);
+   // save the response auth vector, compare with calculated vector
+   memcpy(reply_digest, auth->authVector, ACCT_VECTOR_LEN);
+    
+   // replace the response auth vector in the message with the
+   // request auth vector in order to calculate the correct md5 sum
+   memcpy(auth->authVector, requestHdr.authVector,
+          ACCT_VECTOR_LEN);
+
+   // Verify the reply digest
+   memcpy(ptr + totalLen, stack->m_secretKey.c_str(), stack->m_secretKey.size());
+   md5Calc(calc_digest, (unsigned char *)auth,
+           totalLen + stack->m_secretKey.size());
+
+   // Compare the request and response auth digests
+   if (memcmp(reply_digest, calc_digest, ACCT_VECTOR_LEN) != 0) {
+      cpLog(LOG_DEBUG_STACK, "Warning: Received invalid reply digest from server");
+   }
+   else {
+      // Looks good.
+   }
+
+   // If here, we can evaluate the buffer...
+   return evaluateRecvBuffer(msg);
+}//handleResponse
+
+
+bool RadiusMessage::evaluateRecvBuffer(BufType* msg) {
+   // evaluate attribute list in m_receiveBuffer
+
+   BufType::AcctHdr *auth = &(msg->acctHdr);
+   unsigned char *ptr = msg->buffer;
+   int totalLen;
+   int count;
+   unsigned char attribType;
+   unsigned char attribLen;
+   AttribType enumAttribType;
+   unsigned char vsaLength;
+   unsigned char vsaType;
+
+   totalLen = ntohs(auth->length);
+   count = sizeof(BufType::AcctHdr);
+
+   cpLog(LOG_DEBUG_STACK, "Received reply from radius server %s code=%d id=%d length=%d",
+         stack->m_serverName.c_str(), auth->code, auth->id, totalLen);
+
+   // fast forward to the start of the attributes
+   ptr += count;
+
+   while (count < totalLen) {
+      attribType = (unsigned char) * ptr++;
+      attribLen = (unsigned char) * ptr++;
+      count += attribLen;
+      enumAttribType = (AttribType) attribType;
+
+      // check if attribute value is empty
+      if (attribLen < 2) {
+         continue;
+      }
+
+      switch (enumAttribType) {
+       case PW_ACCT_STATUS_TYPE: {
+          stack->setAccountStatusType((AcctStatusType)ntohl((int) * ptr));
+          cpLog(LOG_DEBUG_STACK, "Attribute PW_ACCT_STATUS_TYPE:%d",
+                stack->m_acctStatusType);
+          ptr += attribLen - 2;
+          break;
+       }
+       case PW_VENDOR_SPECIFIC: {
+          ptr += 4;
+          vsaType = (unsigned char) * ptr++;
+          vsaLength = (unsigned char) * ptr++;
+          stack->processVsa(vsaType, ptr, vsaLength);
+          ptr += vsaLength - 2;
+          break;
+       }
+       default: {
+          cpLog(LOG_DEBUG_STACK, "Ignored attribute type:%d, length:%d",
+                (int)enumAttribType,
+                (int)attribLen);
+          ptr += attribLen - 2;
+          break;
+       }
+      }//switch
+   }
    return true;
-}
+}//evaluateRecvBuffer
 
-#warning "This should use 'tick' strategy"
-int
-RadiusStack::recvRadius() {
-   struct timeval tv;
-   fd_set readfds;
-
-   tv.tv_sec = 5;
-   tv.tv_usec = 1;
-
-   FD_ZERO(&readfds);
-   FD_SET(m_udpConnection->getSocketFD(), &readfds);
-
-   if (select(m_udpConnection->getSocketFD() + 1, &readfds, 0, 0, &tv) == 0) {
-      return (0);
-   }
-   
-   try {
-      m_recvBufferLen = m_udpConnection->receive((char*) & (m_recvBuffer.buffer),
-                                                 sizeof(m_recvBuffer.buffer));
-   }
-   catch (UdpStackException &e) {
-      cpLog(LOG_ALERT, "Error occured in recvRadius()");
-      cpLog(LOG_ALERT, "UdpStackException caught");
-      return 0;
-   }
-
-   return (m_recvBufferLen);
-}
 
 int
-RadiusStack::addHeader( const PacketType type )
-{
+RadiusMessage::addHeader( const PacketType type ) {
     BufType::AcctHdr *auth = &(m_sendBuffer.acctHdr);
 
     memset(&m_sendBuffer, 0, sizeof(m_sendBuffer));
 
     auth->code = type;
-    auth->id = getpid() % 256;
+    auth->id = m_requestId;
 
-    m_requestId = auth->id;
     m_sendBufferLen = sizeof(BufType::AcctHdr);
 
     return m_sendBufferLen;
@@ -492,7 +243,7 @@ RadiusStack::addHeader( const PacketType type )
 // Algorithm for Request/Response authenticator:
 // MD5(code + id + length + authenticator + attributes + secretKey)
 void
-RadiusStack::addMD5()
+RadiusMessage::addMD5()
 {
     BufType::AcctHdr *auth = &(m_sendBuffer.acctHdr);
     unsigned char *ptr = m_sendBuffer.buffer;
@@ -500,8 +251,8 @@ RadiusStack::addMD5()
     ptr += m_sendBufferLen;
 
     // Secret key, used to create digest, do not send secret key
-    strcpy((char*)ptr, m_secretKey.c_str());
-    int bufSizeWithKey = m_sendBufferLen + m_secretKey.size();
+    strcpy((char*)ptr, stack->m_secretKey.c_str());
+    int bufSizeWithKey = m_sendBufferLen + stack->m_secretKey.size();
 
     // Set the length field
     auth->length = (unsigned short int)htons(m_sendBufferLen);
@@ -517,323 +268,572 @@ RadiusStack::addMD5()
 }
 
 int
-RadiusStack::addAttribute( const AttribType type,
-                           const unsigned long int value )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeof(unsigned long int) + 2;
+RadiusMessage::addAttribute( const AttribType type,
+                             const unsigned long int value ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeof(unsigned long int) + 2;
 
-    ptr += m_sendBufferLen;
-    *ptr++ = (unsigned char)type;
-    *ptr++ = length;
-    memcpy(ptr, &value, sizeof(unsigned long int));
-    m_sendBufferLen += length;
+   ptr += m_sendBufferLen;
+   *ptr++ = (unsigned char)type;
+   *ptr++ = length;
+   memcpy(ptr, &value, sizeof(unsigned long int));
+   m_sendBufferLen += length;
 
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addAttribute( const AttribType type,
-                           const unsigned short int value )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeof(unsigned short int) + 2;
+RadiusMessage::addAttribute( const AttribType type,
+                             const unsigned short int value ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeof(unsigned short int) + 2;
 
-    ptr += m_sendBufferLen;
-    *ptr++ = (unsigned char)type;
-    *ptr++ = length;
-    memcpy(ptr, &value, sizeof(unsigned short int));
-    m_sendBufferLen += length;
+   ptr += m_sendBufferLen;
+   *ptr++ = (unsigned char)type;
+   *ptr++ = length;
+   memcpy(ptr, &value, sizeof(unsigned short int));
+   m_sendBufferLen += length;
 
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addAttribute( const AttribType type,
-                           const unsigned char value )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    char length = sizeof(unsigned char) + 2;
+RadiusMessage::addAttribute( const AttribType type,
+                           const unsigned char value ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   char length = sizeof(unsigned char) + 2;
 
-    ptr += m_sendBufferLen;
-    *ptr++ = (unsigned char)type;
-    *ptr++ = length;
-    memcpy(ptr, &value, sizeof(unsigned char));
-    m_sendBufferLen += length;
+   ptr += m_sendBufferLen;
+   *ptr++ = (unsigned char)type;
+   *ptr++ = length;
+   memcpy(ptr, &value, sizeof(unsigned char));
+   m_sendBufferLen += length;
 
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addAttribute( const AttribType type,
-                           const unsigned char *value,
-                           const int sizeOfValue )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeOfValue + 2;
+RadiusMessage::addAttribute( const AttribType type,
+                             const unsigned char *value,
+                             const int sizeOfValue ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeOfValue + 2;
 
-    ptr += m_sendBufferLen;
-    *ptr++ = (unsigned char)type;
-    *ptr++ = length;
-    if (sizeOfValue > 0 && ptr)
-    {
-        memcpy(ptr, value, sizeOfValue);
-    }
-    m_sendBufferLen += length;
+   ptr += m_sendBufferLen;
+   *ptr++ = (unsigned char)type;
+   *ptr++ = length;
+   if (sizeOfValue > 0 && ptr) {
+      memcpy(ptr, value, sizeOfValue);
+   }
+   m_sendBufferLen += length;
 
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addVsaAttribute( const unsigned char vsaType,
-                              const unsigned long int value,
-                              const unsigned long int vendorId )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeof(unsigned long int) + 8;
+RadiusMessage::addVsaAttribute( const unsigned char vsaType,
+                                const unsigned long int value,
+                                const unsigned long int vendorId ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeof(unsigned long int) + 8;
 
-    ptr += m_sendBufferLen;
+   ptr += m_sendBufferLen;
+   
+   *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
+   *ptr++ = length;                                 // RAD length
+   memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
+   ptr += sizeof(unsigned long int);
+   *ptr++ = (unsigned char)vsaType;                 // Vendor Type
+   *ptr++ = sizeof(unsigned long int) + 2;          // Vendor Length
 
-    *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
-    *ptr++ = length;                                 // RAD length
-    memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
-    ptr += sizeof(unsigned long int);
-    *ptr++ = (unsigned char)vsaType;                 // Vendor Type
-    *ptr++ = sizeof(unsigned long int) + 2;          // Vendor Length
+   memcpy(ptr, &value, sizeof(unsigned long int));
+   m_sendBufferLen += length;
 
-    memcpy(ptr, &value, sizeof(unsigned long int));
-    m_sendBufferLen += length;
-
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addVsaAttribute( const unsigned char vsaType,
+RadiusMessage::addVsaAttribute( const unsigned char vsaType,
                               const unsigned short int value,
-                              const unsigned long int vendorId )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeof(unsigned short int) + 8;
+                              const unsigned long int vendorId ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeof(unsigned short int) + 8;
+   
+   ptr += m_sendBufferLen;
 
-    ptr += m_sendBufferLen;
+   *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
+   *ptr++ = length;                                 // RAD length
+   memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
+   ptr += sizeof(unsigned long int);
+   *ptr++ = (unsigned char)vsaType;                 // Vendor Type
+   *ptr++ = sizeof(unsigned short int) + 2;         // Vendor Length
 
-    *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
-    *ptr++ = length;                                 // RAD length
-    memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
-    ptr += sizeof(unsigned long int);
-    *ptr++ = (unsigned char)vsaType;                 // Vendor Type
-    *ptr++ = sizeof(unsigned short int) + 2;         // Vendor Length
+   memcpy(ptr, &value, sizeof(unsigned short int));
+   m_sendBufferLen += length;
 
-    memcpy(ptr, &value, sizeof(unsigned short int));
-    m_sendBufferLen += length;
-
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addVsaAttribute( const unsigned char vsaType,
-                              const unsigned char value,
-                              const unsigned long int vendorId )
-{
-    unsigned char *ptr = m_sendBuffer.buffer;
-    char length = sizeof(unsigned char) + 8;
+RadiusMessage::addVsaAttribute( const unsigned char vsaType,
+                                const unsigned char value,
+                                const unsigned long int vendorId ) {
+   unsigned char *ptr = m_sendBuffer.buffer;
+   char length = sizeof(unsigned char) + 8;
 
-    ptr += m_sendBufferLen;
+   ptr += m_sendBufferLen;
+   
+   *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
+   *ptr++ = length;                                 // RAD length
+   memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
+   ptr += sizeof(unsigned long int);
+   *ptr++ = (unsigned char)vsaType;                 // Vendor Type
+   *ptr++ = sizeof(unsigned char) + 2;              // Vendor Length
 
-    *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
-    *ptr++ = length;                                 // RAD length
-    memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
-    ptr += sizeof(unsigned long int);
-    *ptr++ = (unsigned char)vsaType;                 // Vendor Type
-    *ptr++ = sizeof(unsigned char) + 2;              // Vendor Length
+   memcpy(ptr, &value, sizeof(unsigned char));
+   m_sendBufferLen += length;
 
-    memcpy(ptr, &value, sizeof(unsigned char));
-    m_sendBufferLen += length;
-
-    return length;
+   return length;
 }
 
 int
-RadiusStack::addVsaAttribute( const unsigned char vsaType,
-                              const unsigned char *value,
-                              const int sizeOfValue,
-                              const unsigned long int vendorId )
+RadiusMessage::addVsaAttribute( const unsigned char vsaType,
+                                const unsigned char *value,
+                                const int sizeOfValue,
+                                const unsigned long int vendorId )
 {
-    unsigned char *ptr = m_sendBuffer.buffer;
-    unsigned char length = sizeOfValue + 8;
+   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char length = sizeOfValue + 8;
+   
+   ptr += m_sendBufferLen;
+   
+   *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
+   *ptr++ = length;                                 // RAD length
+   memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
+   ptr += sizeof(unsigned long int);
+   *ptr++ = (unsigned char)vsaType;                 // Vendor Type
+   *ptr++ = (unsigned char)sizeOfValue + 2;         // Vendor Length
 
-    ptr += m_sendBufferLen;
+   if (sizeOfValue > 0 && ptr) {
+      memcpy(ptr, value, sizeOfValue);
+   }
+   m_sendBufferLen += length;
 
-    *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;      // RAD Type
-    *ptr++ = length;                                 // RAD length
-    memcpy( ptr, &vendorId, sizeof(unsigned long int) ); // Vendor ID
-    ptr += sizeof(unsigned long int);
-    *ptr++ = (unsigned char)vsaType;                 // Vendor Type
-    *ptr++ = (unsigned char)sizeOfValue + 2;         // Vendor Length
+   return length;
+}
 
-    if (sizeOfValue > 0 && ptr)
-    {
-        memcpy(ptr, value, sizeOfValue);
+int RadiusMessage::md5Calc( unsigned char *output,
+                            unsigned char *input, unsigned inLen ) {
+   MD5Context context;
+   MD5Init(&context);
+   MD5Update(&context, input, inLen);
+   MD5Final(output, &context);
+   return 0;
+}
+
+
+
+///************************************************************///
+///***********************  RadiusStack  **********************///
+///************************************************************///
+
+RadiusStack::RadiusStack(const string& local_ip) :
+    m_retries( 5 ),
+    m_serverName( "unknown" ),
+    m_serverAddr( 0 ),
+    m_serverPort( 0 ),
+    m_clientName( "localhost" ),
+    m_clientAddr( 0 ),
+    m_clientPort( 0 ),
+    m_secretKey( "testing123" ),
+    m_connected( false ),
+    m_acctStatusType( ACCT_OFF ),
+    m_localIp(local_ip)
+{}
+
+RadiusStack::~RadiusStack() {
+   if (m_connected) {
+      if (!accountingOff()) {
+         cpLog(LOG_ALERT,
+               "Accounting off failed, closing connection anyways");
+      }
+   }
+}
+
+void RadiusStack::setupConnection() {
+   // set session specific values
+
+   struct servent *svp;
+   struct hostent *hent;
+   unsigned short int svcport;  // network byte order
+   char nasname[256];
+
+   // find server port
+
+   svp = getservbyname ("radacct", "udp");
+   if (svp == 0) {
+      svcport = (unsigned short int)htons(PW_ACCT_UDP_PORT);
+   }
+   else {
+      svcport = svp->s_port;  // already in network byte order
+   }
+
+   m_serverPort = ntohs(svcport);
+
+   if (gethostname(nasname, sizeof(nasname)) == 0) {
+      m_clientName = nasname;
+   }
+   else {
+      string msg("Can't initialize radius connection, gethostname() failed");
+      if (errno == EINVAL) {
+         msg += " due to invalid name length";
+      }
+      throw VRadiusException(msg, __FILE__, __LINE__);
+   }
+
+   if ((hent = gethostbyname(nasname)) == 0) {
+      string msg("Couldn't find IP for ");
+      msg += nasname;
+      throw VRadiusException(msg, __FILE__, __LINE__);
+   }
+   else {
+      m_clientAddr = *((unsigned long int*) hent->h_addr_list[0]);  // network byte order
+   }
+
+   // Get the IP address of the radius accounting server
+   if ((hent = gethostbyname(m_serverName.c_str())) == 0) {
+      string msg("Couldn't find IP for ");
+      msg += m_serverName;
+      throw VRadiusException(msg, __FILE__, __LINE__);
+   }
+   else {
+      m_serverAddr = *((unsigned long int*) hent->h_addr_list[0]);  // network byte order
+   }
+   cpLog(LOG_DEBUG_STACK, "Client Host:%s",
+         m_clientName.c_str());
+   cpLog(LOG_DEBUG_STACK, "Server Host:%s Server Port:%d",
+         m_serverName.c_str(), m_serverPort);
+}
+
+
+void
+RadiusStack::initialize( const string &server,
+                         const string &secretKey,
+                         const int retries )
+    throw(VRadiusException&)
+{
+    memset(&m_recvBuffer, 0, sizeof(m_recvBuffer));
+
+    m_serverName = server;
+    m_secretKey = secretKey;
+    m_retries = retries;
+
+    setupConnection();
+
+    try {
+        m_networkAddr = new NetworkAddress(m_serverName, m_serverPort);
+        string empty;
+        m_udpConnection = new UdpStack(false, m_localIp, empty, /* local_dev_to_bind_to */
+                                       m_networkAddr.getPtr(), m_serverPort, m_serverPort);
+
+        // this may not be necessary, depends on the radius server
+        m_udpConnection->connectPorts();
     }
-    m_sendBufferLen += length;
+    catch (UdpStackException &e) {
+        throw VRadiusException("UdpStackException caught", __FILE__, __LINE__);
+    }
 
-    return length;
+    // Send message to the radius server
+    accountingOn();
 }
 
-void
-RadiusStack::createAcctOnMsg()
-{
-    unsigned long int acctOn = htonl(ACCT_ON);
-    
-    addHeader(PW_ACCOUNTING_REQUEST);
-    addAttribute(PW_ACCT_STATUS_TYPE, acctOn);
-    addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
-    addMD5();
+bool RadiusStack::handleResponse(unsigned char* buf, int ln) {
+   BufType* msg = (BufType*)(buf);
+   BufType::AcctHdr *auth = &(msg->acctHdr);
+
+   uint8 respId = auth->id;
+   Sptr<RadiusMessage> m = pendingMessages[respId];
+   if (m != 0) {
+      bool rv = m->handleResponse(msg, ln);
+      pendingMessages[m->getRequestId()] = NULL; //Completed transaction
+      return rv;
+   }
+   else {
+      cpLog(LOG_ERR, "ERROR:  Could not find pending message for response id: %d",
+            (int)(respId));
+      return false;
+   }  
+}//handleResponse
+
+
+bool RadiusStack::doSendRadius(Sptr<RadiusMessage> m) {
+   int retr = m->getRemainingRetries();
+   cpLog(LOG_DEBUG_STACK, "Sending request. Retries left: %d", retr);
+
+   m->setRetries(retr - 1);
+
+   int rv = m_udpConnection->doTransmit((char*)(m->getSendBuffer()), m->getSendBufferLen());
+   if (rv != m->getSendBufferLen()) {
+      if (rv == 0) {
+         // EAGAIN, don't count this against the retries.
+         m->setRetries(retr);
+         return true;
+      }
+      else {
+         cpLog(LOG_ALERT, "Error occured in sendRadius(), transmit: %d, len: %d (%s)",
+               rv, m->getSendBufferLen(), strerror(errno));
+         return false;
+      }
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "Transmitted bytes:%d", m->getSendBufferLen());
+      return true;
+   }
+}//doSendRadius
+
+
+void RadiusStack::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                       uint64 now) {
+
+   int rv = m_udpConnection->receive((char*) & (m_recvBuffer.buffer),
+                                     sizeof(m_recvBuffer.buffer));
+   if (rv > 0) {
+      if (rv >= (int)(sizeof(m_recvBuffer.acctHdr))) {
+         handleResponse(m_recvBuffer.buffer, rv);
+      }
+      else {
+         cpLog(LOG_ERR, "ERROR:  Short message received: %d", rv);
+      }
+   }
+   else if (rv < 0) {
+      cpLog(LOG_ERR, "ERROR:  Error on UDP receive: %d", rv);
+   }
+   else {
+      // nothing to read, but no errors.... continue as normal
+   }
+   
+   // Loop through all messages...
+   for (int i = 0; i<256; i++) {
+      Sptr<RadiusMessage> m = pendingMessages[i];
+      if (m != 0) {
+         if (m->getNextTx() <= now) {
+            if (doSendRadius(m)) {
+               // Ok
+            }
+            else {
+               if (m->getRemainingRetries() <= 0) {
+                  // Give up on this guy
+                  cpLog(LOG_ERR, "ERROR:  Never received response for: %s\n",
+                        m->toString().c_str());
+                  pendingMessages[i] = NULL;
+               }
+               else {
+                  // TODO:  Verify timer, make it adjustable?  Maybe
+                  // exponential backoff?
+                  m->setNextTx(now + 500); // Try again in 1/2 second
+               }
+            }
+         }
+      }
+   }
 }
 
-void
-RadiusStack::createAcctOffMsg()
-{
-    unsigned long int acctOff = htonl(ACCT_OFF);
+int RadiusStack::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                        int& maxdesc, uint64& timeout, uint64 now) {
 
-    addHeader(PW_ACCOUNTING_REQUEST);
-    addAttribute(PW_ACCT_STATUS_TYPE, acctOff);
-    addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
-    addMD5();
+   m_udpConnection->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+
+   for (int i = 0; i<256; i++) {
+      Sptr<RadiusMessage> m = pendingMessages[i];
+      if (m != 0) {
+         if (m->getNextTx() <= now) {
+            timeout = 0;
+            m_udpConnection->addToFdSet(output_fds);
+            break; //Can't get less timeout than this so break out.
+         }
+         else {
+            timeout = min(m->getNextTx() - now, timeout);
+         }
+      }
+   }
+   return 0;
 }
 
-void
+
+bool RadiusStack::findNextId(uint8& id) {
+   static uint8 nextId = 0;
+   nextId++;
+   if (pendingMessages[nextId] == 0) {
+      id = nextId;
+      return true;
+   }
+
+   // Do exaustive search for a free slot
+   for (int i = 0; i<256; i++) {
+      if (pendingMessages[i] == 0) {
+         id = i;
+         return true;
+      }
+   }
+   return false;
+}
+      
+
+Sptr<RadiusMessage> RadiusStack::createAcctOnMsg() {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int acctOn = htonl(ACCT_ON);
+      m->addHeader(PW_ACCOUNTING_REQUEST);
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctOn);
+      m->addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
+}
+
+Sptr<RadiusMessage>
+RadiusStack::createAcctOffMsg() {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int acctOff = htonl(ACCT_OFF);
+
+      m->addHeader(PW_ACCOUNTING_REQUEST);
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctOff);
+      m->addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
+}
+
+Sptr<RadiusMessage>
 RadiusStack::createAcctStartCallMsg( const string &from,
                                      const string &to,
-                                     const string &callId )
-{
-    unsigned long int acctStart = htonl(ACCT_START);
+                                     const string &callId ) {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int acctStart = htonl(ACCT_START);
     
-    addHeader(PW_ACCOUNTING_REQUEST);
+      m->addHeader(PW_ACCOUNTING_REQUEST);
 
-    addAttribute(PW_ACCT_STATUS_TYPE, acctStart);
-    addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)callId.c_str(),
-                 callId.size());
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctStart);
+      m->addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)callId.c_str(),
+                      callId.size());
 
-    addAttribute(PW_CALLING_STATION_ID,
-                 (unsigned char*)from.c_str(),
-                 from.size());
-    addAttribute(PW_CALLED_STATION_ID,
-                 (unsigned char*)to.c_str(),
-                 to.size());
-    addAttribute(PW_USER_NAME, (unsigned char*)callId.c_str(),
-                 callId.size());
+      m->addAttribute(PW_CALLING_STATION_ID,
+                      (unsigned char*)from.c_str(),
+                      from.size());
+      m->addAttribute(PW_CALLED_STATION_ID,
+                      (unsigned char*)to.c_str(),
+                      to.size());
+      m->addAttribute(PW_USER_NAME, (unsigned char*)callId.c_str(),
+                      callId.size());
 
-    addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+      m->addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
 
-    addMD5();
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
 }
 
-void
-RadiusStack::createAcctStopCallMsg( const string &callId )
-{
-    unsigned long int acctStop = htonl(ACCT_STOP);
+Sptr<RadiusMessage>
+RadiusStack::createAcctStopCallMsg( const string &callId ) {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int acctStop = htonl(ACCT_STOP);
     
-    addHeader(PW_ACCOUNTING_REQUEST);
+      m->addHeader(PW_ACCOUNTING_REQUEST);
 
-    addAttribute(PW_ACCT_STATUS_TYPE, acctStop);
-    addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)callId.c_str(),
-                 callId.size());
-    addMD5();
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctStop);
+      m->addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)callId.c_str(),
+                      callId.size());
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
 }
 
-void
+Sptr<RadiusMessage>
 RadiusStack::createAccessRqstMsg( const string &callId,
-                                  const string &passwd )
-{
-    addHeader(PW_AUTHENTICATION_REQUEST);
+                                  const string &passwd ) {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
 
-    // TODO Password still needs to be hidden using
-    // TODO RSA message Digest Algorithm MD5
-    //
-    addAttribute(PW_PASSWORD, (unsigned char*)passwd.c_str(),
-                 passwd.size());
+      m->addHeader(PW_AUTHENTICATION_REQUEST);
 
-    addAttribute(PW_USER_NAME, (unsigned char*)callId.c_str(),
-                 callId.size());
-    addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+      // TODO Password still needs to be hidden using
+      // TODO RSA message Digest Algorithm MD5
+      //
+      m->addAttribute(PW_PASSWORD, (unsigned char*)passwd.c_str(),
+                      passwd.size());
 
-    addMD5();
+      m->addAttribute(PW_USER_NAME, (unsigned char*)callId.c_str(),
+                      callId.size());
+      m->addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
 }
 
 bool
-RadiusStack::accountingOn()
-{
-    cpLog(LOG_INFO, "Requesting Accounting On");
-    createAcctOnMsg();
-    if (handshake())
-    {
-        return verifyAcctRecvBuffer();
-    }
-    return false;
+RadiusStack::accountingOn() {
+   cpLog(LOG_INFO, "Requesting Accounting On");
+   return (createAcctOnMsg() != 0);
 }
 
 bool
-RadiusStack::accountingOff()
-{
-    cpLog(LOG_INFO, "Requesting Accounting Off");
-    createAcctOffMsg();
-    if (handshake())
-    {
-        return verifyAcctRecvBuffer();
-    }
-    return false;
+RadiusStack::accountingOff() {
+   cpLog(LOG_INFO, "Requesting Accounting Off");
+   return (createAcctOffMsg() != 0);
 }
 
 bool
 RadiusStack::accountingStartCall( const string &from,
                                   const string &to,
-                                  const string &callId )
-{
-    if (!m_connected)
-    {
-        if (!accountingOn())
-        {
-            return false;
-        }
-    }
-    cpLog(LOG_DEBUG, "Requesting Accounting Start Call");
-    createAcctStartCallMsg(from, to, callId);
-    if (handshake())
-    {
-        return verifyAcctRecvBuffer();
-    }
-    return false;
+                                  const string &callId ) {
+   if (!m_connected) {
+      if (!accountingOn()) {
+         return false;
+      }
+   }
+   cpLog(LOG_DEBUG, "Requesting Accounting Start Call");
+   return (createAcctStartCallMsg(from, to, callId) != 0);
 }
 
 bool
-RadiusStack::accountingStopCall( const string &callId )
-{
-    if (!m_connected)
-    {
-        if (!accountingOn())
-        {
-            return false;
-        }
-    }
-    cpLog(LOG_DEBUG, "Requesting Accounting Stop Call");
-    createAcctStopCallMsg(callId);
-    if (handshake())
-    {
-        return verifyAcctRecvBuffer();
-    }
-    return false;
+RadiusStack::accountingStopCall( const string &callId ) {
+   if (!m_connected) {
+      if (!accountingOn()) {
+         return false;
+      }
+   }
+   cpLog(LOG_DEBUG, "Requesting Accounting Stop Call");
+   return (createAcctStopCallMsg(callId) != 0);
 }
 
+
 bool
-RadiusStack::accessRequest( const string &callId,
-                            const string &passwd )
-{
-    cpLog(LOG_INFO, "Requesting Authentication and Access");
-    createAccessRqstMsg(callId, passwd);
-    if (handshake())
-    {
-        return verifyAuthRecvBuffer();
-    }
-    return false;
+RadiusStack::sendAccessRequest( const string &callId,
+                                const string &passwd ) {
+   cpLog(LOG_INFO, "Requesting Authentication and Access");
+   return (createAccessRqstMsg(callId, passwd) != 0);
 }

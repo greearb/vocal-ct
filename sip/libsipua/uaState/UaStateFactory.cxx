@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFactory_cxx_Version = 
-"$Id: UaStateFactory.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: UaStateFactory.cxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -64,7 +64,6 @@ static const char* const UaStateFactory_cxx_Version =
 #include "UasStateTrying.hxx"
 #include "UacStateTrying.hxx"
 #include "UaStateRedirect.hxx"
-#include "Lock.hxx"
 #include "UaStateInHold.hxx"
 
 using namespace Vocal;
@@ -72,17 +71,15 @@ using namespace UA;
 
 
 UaStateFactory* UaStateFactory::myInstance = 0;
-Mutex UaStateFactory::myMutex;
 
 
 UaStateFactory& 
 UaStateFactory::instance()
 {
-    if(myInstance == 0)
-    {
-        myInstance = new UaStateFactory();
-    }
-    return *myInstance;
+   if(myInstance == 0) {
+      myInstance = new UaStateFactory();
+   }
+   return *myInstance;
 }
 
 void
@@ -90,75 +87,56 @@ UaStateFactory::destroy()
 {
     delete UaStateFactory::myInstance;
     UaStateFactory::myInstance = 0;
-    
 }
 
-UaState* 
-UaStateFactory::getState(UStateType stateType)
-{
-    UaState* retVal;
+Sptr<UaState>
+UaStateFactory::getState(UStateType stateType) {
+   Sptr<UaState> retVal;
 
-    myMutex.lock();
-    pthread_t tId = pthread_self();
-    UaStateMap& tMap = myUaStateMap[tId];
-    UaStateMap::iterator itr  = tMap.find(stateType);
+   UaStateMap::iterator itr  = UaStateMap.find(stateType);
 
-    if(itr != tMap.end())
-    {
-        myMutex.unlock();
-        return itr->second;
-    }
-    switch(stateType)
-    {
-        case U_STATE_IDLE:
-           retVal = new UaStateIdle();
-        break;
-        case U_STATE_S_TRYING:
-           retVal = new UasStateTrying();
-        break;
-        case U_STATE_C_TRYING:
-           retVal = new UacStateTrying();
-        break;
-        case U_STATE_RINGING:
-           retVal = new UaStateRinging();
-        break;
-        case U_STATE_FAILURE:
-           retVal = new UaStateFailure();
-        break;
-        case U_STATE_INCALL:
-           retVal = new UaStateInCall();
-        break;
-        case U_STATE_END:
-           retVal = new UaStateEnd();
-        break;
-        case U_STATE_REDIRECT:
-           retVal = new UaStateRedirect();
-	break;
-        case U_STATE_HOLD:
-	    retVal = new UaStateInHold();
-	break;
-        default:
-            cpLog(LOG_WARNING, "Unsupported state" );
-            assert(0); 
-        break;
-    }
-    tMap[stateType] = retVal;
-    myMutex.unlock();
-    return retVal;
+   if (itr != UaStateMap.end()) {
+      return itr->second;
+   }
+   switch(stateType) {
+   case U_STATE_IDLE:
+      retVal = new UaStateIdle();
+      break;
+   case U_STATE_S_TRYING:
+      retVal = new UasStateTrying();
+      break;
+   case U_STATE_C_TRYING:
+      retVal = new UacStateTrying();
+      break;
+   case U_STATE_RINGING:
+      retVal = new UaStateRinging();
+      break;
+   case U_STATE_FAILURE:
+      retVal = new UaStateFailure();
+      break;
+   case U_STATE_INCALL:
+      retVal = new UaStateInCall();
+      break;
+   case U_STATE_END:
+      retVal = new UaStateEnd();
+      break;
+   case U_STATE_REDIRECT:
+      retVal = new UaStateRedirect();
+      break;
+   case U_STATE_HOLD:
+      retVal = new UaStateInHold();
+      break;
+   default:
+      cpLog(LOG_WARNING, "Unsupported state" );
+      assert(0); 
+      break;
+   }
+
+   UaStateMap[stateType] = retVal;
+   return retVal;
 }
 
 UaStateFactory::~UaStateFactory()
 {
-    for(ThreadBasedUaStateMap::iterator itr = myUaStateMap.begin();
-               itr != myUaStateMap.end(); itr++)
-    {
-        UaStateMap& tMap = itr->second;
-        for(UaStateMap::iterator itr2 = tMap.begin();
-               itr2 != tMap.end(); itr2++)
-        {
-            delete (itr2->second);
-        }
-        tMap.erase(tMap.begin(), tMap.end());
-    }
 }
 

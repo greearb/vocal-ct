@@ -52,14 +52,13 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <sys/types.h>
 #include <map>
 
 #include "Sptr.hxx"
-#include "Fifo.h"
 
 #include "rtpTypes.h"
 #include "UdpStack.hxx"
@@ -136,7 +135,7 @@ public:
                 int samplesize);
 
    /** Giving UdpStack ptr */
-   RtpReceiver (UdpStack* udp, RtpPayloadType _format,
+   RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
                 int _clockrate, int per_sample_size,
                 int samplesize);
 
@@ -227,7 +226,7 @@ public:
    RtpReceiverError receiverError;
 
    /// get ptr of my UdpStack
-   UdpStack* getUdpStack() { return myStack; }
+   Sptr<UdpStack> getUdpStack() { return myStack; }
 
    bool isSpeexFormat() const { return is_speex; }
    void setIsSpeexFormat(bool b) { is_speex = b; }
@@ -352,9 +351,7 @@ protected:
    char* silenceCodec;
 
    /// my UDP stack
-   UdpStack* myStack;
-   /// should I free my stack?
-   bool freeStack;
+   Sptr<UdpStack> myStack;
 
 
    // Indexes into our Jitter Buffer.

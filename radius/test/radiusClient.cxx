@@ -48,7 +48,7 @@
  *
  */
 static const char* const radiusClient_cxx_Version =
-    "$Id: radiusClient.cxx,v 1.1 2004/05/01 04:15:22 greear Exp $";
+    "$Id: radiusClient.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 #include <cstdio>
 
@@ -118,7 +118,7 @@ main( int argc, char* argv[] )
     }
     NetworkAddress clientAddress( hostName, config->client_port() );
 
-    UdpStack s(config->getLocalIp(), "" /* local_dev_to_bind_to */,
+    UdpStack s(false, config->getLocalIp(), "" /* local_dev_to_bind_to */,
                0, clientAddress.getPort() );
 
     int response_timeout     = config->response_timeout() * 1000; // ms to us
@@ -212,9 +212,9 @@ main( int argc, char* argv[] )
             const u_int8_t* reqAuth = accessReqMsg.getAuthenticator();
 
             cpLog( LOG_DEBUG, "Send\n[%s]", accessReqMsg.verbose().c_str() );
-            s.transmitTo( reinterpret_cast<const char *>(accessReqMsg.data().buffer),
-                          ntohs(accessReqMsg.data().msgHdr.length),
-                          &serverAddress );
+            s.queueTransmitTo( reinterpret_cast<const char *>(accessReqMsg.data().buffer),
+                               ntohs(accessReqMsg.data().msgHdr.length),
+                               &serverAddress );
             accessRequest++;
 
             packetLength = s.receiveTimeout( reinterpret_cast<char *>(rawMsg.buffer),
@@ -312,9 +312,9 @@ main( int argc, char* argv[] )
             const u_int8_t* reqAuth = acctReqMsg.getAuthenticator();
 
             cpLog( LOG_DEBUG, "Send\n[%s]", acctReqMsg.verbose().c_str() );
-            s.transmitTo( reinterpret_cast<const char *>(acctReqMsg.data().buffer),
-                          ntohs(acctReqMsg.data().msgHdr.length),
-                          &serverAccountingAddress );
+            s.queueTransmitTo( reinterpret_cast<const char *>(acctReqMsg.data().buffer),
+                               ntohs(acctReqMsg.data().msgHdr.length),
+                               &serverAccountingAddress );
 
             accountingRequest++;
 

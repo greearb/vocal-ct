@@ -52,7 +52,7 @@
  */
 
 static const char* const rtpTypes_h_Version =
-    "$Id: rtpTypes.h,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: rtpTypes.h,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -60,7 +60,7 @@ static const char* const rtpTypes_h_Version =
 #include <unistd.h>
 #include <limits.h>
 #include "vovida-endian.h"
-
+#include <BugCatcher.hxx>
 #include "NtpTime.hxx"
 
 #ifdef USE_LANFORGE
@@ -391,8 +391,8 @@ struct SDESdataStruct
 typedef struct SDESdataStruct SDESdata;
 
 /// receiver information
-struct RtpTranInfoStruct
-{
+class RtpTranInfo : public BugCatcher {
+public:
     /// SSRC number for recv
     RtpSrc ssrc;
     /// pointer to receiver for specific information
@@ -412,7 +412,6 @@ struct RtpTranInfoStruct
     NtpTime recvLastSRTimestamp;
 
 };
-typedef struct RtpTranInfoStruct RtpTranInfo;
 
 
 

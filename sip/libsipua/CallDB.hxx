@@ -53,7 +53,7 @@
 
 
 static const char* const CallDB_hxx_Version =
-    "$Id: CallDB.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallDB.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include "global.h"
 #include <map>
@@ -61,7 +61,6 @@ static const char* const CallDB_hxx_Version =
 #include "MultiLegCallData.hxx"
 #include "UaBase.hxx"
 #include "AccountingData.hxx"
-#include "Mutex.hxx"
 
 namespace Vocal {
 

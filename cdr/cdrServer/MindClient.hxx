@@ -53,7 +53,7 @@
 
 
 static const char* const MindClient_hxx_Version =
-    "$Id: MindClient.hxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: MindClient.hxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "RadiusStack.hxx"
@@ -123,7 +123,7 @@ public:
    /**
     * Sent when GW wants to start a call
     * @param CdrRadius& data record
-    * @return bool true is success
+    * @return bool true is successfully created and queued for transmit
     */
    bool accountingStartCall( const CdrRadius &ref );
 
@@ -146,23 +146,23 @@ private:
    /**
     * Fills the m_sendBuffer with accounting start call message
     * @param CdrRadius& data record
-    * @return void
+    * @return message created & sent, or null
     */
-   void createAcctStartCallMsg( const CdrRadius &ref );
+   Sptr<RadiusMessage> sendAcctStartCallMsg( const CdrRadius &ref );
 
    /**
     * Fills the m_sendBuffer with accounting stop call message
     * @param CdrRadius& data record
-    * @return void
+    * @return message created & sent, or null
     */
-   void createAcctStopCallMsg( const CdrRadius &ref );
+   Sptr<RadiusMessage> sendAcctStopCallMsg( const CdrRadius &ref );
 
    /**
     * Adds CDR to m_sendBuffer, returns number of bytes added
     * @param CdrRadius& data record
     * @return int length of Cdr buffer
     */
-   int addMindCdr( const CdrRadius &ref );
+   int addMindCdr( const CdrRadius &ref, Sptr<RadiusMessage> toThisMsg );
 
    /**
     * Process the VSA
@@ -171,9 +171,9 @@ private:
     * @param int bufLen length of this VSA
     * @return void
     */
-   void processVsa( const unsigned char vsaType,
-                    const unsigned char *ptr,
-                    const int bufLen );
+   virtual void processVsa( const unsigned char vsaType,
+                            const unsigned char *ptr,
+                            const int bufLen );
    
 private:
 

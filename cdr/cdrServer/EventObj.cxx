@@ -51,7 +51,7 @@
 
 
 static const char* const EventObj_cxx_Version =
-    "$Id: EventObj.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: EventObj.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <sys/time.h>
@@ -65,24 +65,21 @@ static const char* const EventObj_cxx_Version =
 int EventObj::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      int& maxdesc, uint64& timeout, uint64 now) {
    if (m_fileDesc >= 0) {
-      FD_SET(m_fileDesc, &input_fds);
-      FD_SET(m_fileDesc, &exc_fds);
-      if (m_fileDesc > maxdesc) {
-         maxDesc = m_fileDesc;
-      }
+      FD_SET(m_fileDesc, input_fds);
+      FD_SET(m_fileDesc, exc_fds);
+      maxdesc = max(m_fileDesc, maxdesc);
    }
 
    if (timerMs > 0) {
       uint64 nxtx = lastTime + timerMs;
       if (nxtx > now) {
-         if ((nxtx - now) < timeout) {
-            timeout = ntxt;
-         }
+         timeout = min(timeout, nxtx - now);
       }
       else {
          timeout = 0;
       }
    }
+   return 0;
 }
 
 
@@ -90,7 +87,7 @@ void EventObj::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                     uint64 now) {
 
    if (m_fileDesc >= 0) {
-      if (FD_ISSET(m_fileDesc, &rfds)) {
+      if (FD_ISSET(m_fileDesc, input_fds)) {
          onData();
          if (!m_reoccuring) {
             m_done = true;

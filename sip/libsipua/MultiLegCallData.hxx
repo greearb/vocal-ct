@@ -53,7 +53,7 @@
 
 
 static const char* const MultiLegCallData_hxx_Version =
-    "$Id: MultiLegCallData.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: MultiLegCallData.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include "global.h"
 
@@ -62,7 +62,6 @@ static const char* const MultiLegCallData_hxx_Version =
 #include "SipTransactionPeers.hxx" 
 #include "SipCallLegData.hxx" 
 #include "AccountingData.hxx" 
-#include "Mutex.hxx" 
 #include <BugCatcher.hxx>
 
 

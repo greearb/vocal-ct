@@ -53,7 +53,7 @@
 
 
 static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaBase.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include <string>
 #include <vector>
@@ -63,14 +63,10 @@ static const char* const UaBase_hxx_Version =
 #include "SipTransceiver.hxx" 
 #include "UaStateFactory.hxx" 
 #include "BaseFacade.hxx"
-#include <Mutex.hxx>
 
 namespace Vocal {
 
 namespace UA {
-
-
-using namespace Vocal::Threads;
 
 
 /** Object UaBase
@@ -87,148 +83,140 @@ class BasicAgent;
 /** Base class for Server/Client side User agents. The class maintains its
 *   own local sequence for any request generated either as UAS or UAC.
 */
-class UaBase : public SipCallLegData 
-{
-   public:
-      typedef vector <SipRoute* > RouteList;
+class UaBase : public SipCallLegData {
+public:
+   typedef vector <Sptr<SipRoute> > RouteList;
 
-      /**Constructor
-       * @param reqMsg - Message that causes its creation (UAS, msg received),
-                         (UAC, msg being sent).
-       * @param stack - Ref. to sipstack being used to send/receive SIP msgs.
-       * @param controllerAgent - Ref. to the call-controller agent, managing
-         a call.
-       * @param facade  The facade, keeper of global & config info.
-       * @param dbg_id  Identifier used for debugging purposes.
-       */
-      UaBase( const char* class_name, const Sptr<SipMsg>& reqMsg,
-              Sptr<SipTransceiver> stack,
-              BasicAgent* controllerAgent,
-              BaseFacade* facade, const char* dbg_id);
+   /**Constructor
+    * @param reqMsg - Message that causes its creation (UAS, msg received),
+    (UAC, msg being sent).
+    * @param stack - Ref. to sipstack being used to send/receive SIP msgs.
+    * @param controllerAgent - Ref. to the call-controller agent, managing
+    a call.
+    * @param facade  The facade, keeper of global & config info.
+    * @param dbg_id  Identifier used for debugging purposes.
+    */
+   UaBase( const char* class_name, const Sptr<SipMsg>& reqMsg,
+           Sptr<SipTransceiver> stack,
+           BasicAgent* controllerAgent,
+           BaseFacade* facade, const char* dbg_id);
 
-      ///
-      const string& className() { return _class_name; }
+   ///
+   const string& className() { return _class_name; }
 
-      ///
-      virtual ~UaBase();
+   ///
+   virtual ~UaBase();
 
-      ///Set the ua-agent state 
-      virtual void setState(UaState* state);
+   ///Set the ua-agent state 
+   virtual void setState(UaState* state);
 
-      /**Gets called by the application when a message is received on the
-       * calleg, the agent is representing.
-       */
-      virtual void receivedMsg(const Sptr<SipMsg>& sipMsg);
+   /**Gets called by the application when a message is received on the
+    * calleg, the agent is representing.
+    */
+   virtual void receivedMsg(const Sptr<SipMsg>& sipMsg);
 
-      /// Returns < 0 on failure
-      virtual int sendMsg(const Sptr<SipMsg>& sipMsg);
+   /// Returns < 0 on failure
+   virtual int sendMsg(const Sptr<SipMsg>& sipMsg);
 
-      ///Returns true if was UAC when created
-      virtual bool isAClient() const { return (myAgentRole == A_CLIENT); }
-      ///Returns true if was UAS when created
-      virtual bool isAServer() const { return (myAgentRole == A_SERVER); }
+   ///Returns true if was UAC when created
+   virtual bool isAClient() const { return (myAgentRole == A_CLIENT); }
+   ///Returns true if was UAS when created
+   virtual bool isAServer() const { return (myAgentRole == A_SERVER); }
 
-      /**Constructs a BYE message and sends it.
-       * Derived classes define how to construct the BYE msg.
-       */
-      virtual Sptr<SipMsg> sendBye() = 0;
+   /**Constructs a BYE message and sends it.
+    * Derived classes define how to construct the BYE msg.
+    */
+   virtual Sptr<SipMsg> sendBye() = 0;
 
-      ///Create a status message for the received request.
-      virtual  void sendReplyForRequest(const Sptr<SipMsg>& sipMsg, 
-				   int statusCode,
-					Sptr<SipContentData> contentData=0,
-					bool memorizeResponse = true);
-      ///Acknowledge a status
-      virtual void ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp = 0);
+   ///Create a status message for the received request.
+   virtual  void sendReplyForRequest(const Sptr<SipMsg>& sipMsg, 
+                                     int statusCode,
+                                     Sptr<SipContentData> contentData=0,
+                                     bool memorizeResponse = true);
+   ///Acknowledge a status
+   virtual void ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp = 0);
 
-      ///
-      static void fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp);
+   ///
+   static void fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp);
 
     
-      ///Utility function to create an invite from an invite message
-      static Sptr<InviteMsg> createInvite(const Sptr<InviteMsg>& invMsg,
-                                          bool changeCallId,
-                                          const string& _localIp,
-                                          unsigned short _sipPort,
-                                          const string& natHost, int transport,
-                                          const NetworkAddress& proxyAddress);
+   ///Utility function to create an invite from an invite message
+   static Sptr<InviteMsg> createInvite(const Sptr<InviteMsg>& invMsg,
+                                       bool changeCallId,
+                                       const string& _localIp,
+                                       unsigned short _sipPort,
+                                       const string& natHost, int transport,
+                                       const NetworkAddress& proxyAddress);
 
-      ///Constructs a re-invite message from a Invite, updates the CSEQ.
-      Sptr<InviteMsg> createReInvite(const Sptr<InviteMsg>& invMsg);
+   ///Constructs a re-invite message from a Invite, updates the CSEQ.
+   Sptr<InviteMsg> createReInvite(const Sptr<InviteMsg>& invMsg);
 
 
-      /**Keeps a copy of the route list received in a request/response.
-       * if UAC, route list is saved from the 200 OK received and order
-       * is reversed. if UAS, route list is saved from the INVITE received.
-       */
-      void saveRouteList(const Sptr<SipMsg>& msg, bool reverse); 
-      ///
-      RouteList getRouteList() const { return myRouteList; };
+   /**Keeps a copy of the route list received in a request/response.
+    * if UAC, route list is saved from the 200 OK received and order
+    * is reversed. if UAS, route list is saved from the INVITE received.
+    */
+   void saveRouteList(const Sptr<SipMsg>& msg, bool reverse); 
+   ///
+   RouteList getRouteList() const { return myRouteList; };
 
-      ///Initialize the local seq number
-      void setLocalCSeq(SipCSeq seq) { myLocalCSeq = seq; };
-      ///
-      const SipCSeq&  getLocalCSeq() const { return myLocalCSeq; };
+   ///Initialize the local seq number
+   void setLocalCSeq(SipCSeq seq) { myLocalCSeq = seq; };
+   ///
+   const SipCSeq&  getLocalCSeq() const { return myLocalCSeq; };
 
-      ///
-      Sptr<SipTransceiver> getSipTransceiver() { return myStack; }
+   ///
+   Sptr<SipTransceiver> getSipTransceiver() { return myStack; }
 
-      virtual unsigned short getMySipPort() const { return facade->getLocalSipPort(); }
-      virtual string getMyLocalIp() const { return facade->getLocalIp(); }
-      virtual NetworkAddress* getProxyAddr() { return facade->getProxyAddr(); }
-      virtual const string& getNatHost() { return facade->getNatHost(); }
-      virtual int getTransport() { return facade->getTransport(); }
+   virtual unsigned short getMySipPort() const { return facade->getLocalSipPort(); }
+   virtual string getMyLocalIp() const { return facade->getLocalIp(); }
+   virtual NetworkAddress* getProxyAddr() { return facade->getProxyAddr(); }
+   virtual const string& getNatHost() { return facade->getNatHost(); }
+   virtual int getTransport() { return facade->getTransport(); }
 
-      BasicAgent*  getControllerAgent() { return myControllerAgent; }
-      void setControllerAgent(BasicAgent* a);
+   BasicAgent*  getControllerAgent() { return myControllerAgent; }
+   void setControllerAgent(BasicAgent* a);
 
-      UaState* getState() { return myState; }
+   Sptr<UaState> getState() { return myState; }
    
-      void lock() { mutex.lock(); }
-      void unlock() { mutex.unlock(); }
+   // 26/1/04 fpi
+   // ALLOW field
+   static const string allowField;
 
-		// 26/1/04 fpi
-		// ALLOW field
-		static const string allowField;
+protected:
 
-   protected:
+   ///
+   void clearRouteList();
+   ///
+   void setRole(AgentRole role) { myAgentRole = role; };
+   ///
+   AgentRole    myAgentRole;
 
-      ///
-      void clearRouteList();
-      ///
-      void setRole(AgentRole role) { myAgentRole = role; };
-      ///
-      AgentRole    myAgentRole;
+   BaseFacade* facade; // Knows where all global info is.
 
-      BaseFacade* facade; // Knows where all global info is.
-
-      ///
-      RouteList    myRouteList;
-      ///
-      Sptr<SipTransceiver> myStack;
-      ///
-      SipCSeq myLocalCSeq;
-      ///
+   ///
+   RouteList    myRouteList;
+   ///
+   Sptr<SipTransceiver> myStack;
+   ///
+   SipCSeq myLocalCSeq;
+   ///
 
 private:
 
-      string instanceName; //Used for debugging.
-      string _class_name;
+   string instanceName; //Used for debugging.
+   string _class_name;
 
-      ///
-      UaState*     myState;
+   ///
+   Sptr<UaState>     myState;
 
-      /* Not supported */
-      UaBase();
-      UaBase( const UaBase& src );
-      UaBase& operator=(const UaBase& rhs);
+   /* Not supported */
+   UaBase();
+   UaBase( const UaBase& src );
+   UaBase& operator=(const UaBase& rhs);
 
-      BasicAgent* myControllerAgent;
-      ///
-
-      // Protect setting of controller-agent, state, at least.
-      // Is recursive mutex, by the way.
-      Mutex mutex;
+   BasicAgent* myControllerAgent;
+   ///
 };
 
 }

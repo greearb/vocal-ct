@@ -53,18 +53,15 @@
 
 
 static const char* const CallControl_hxx_Version =
-    "$Id: CallControl.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallControl.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include "global.h"
 #include <map>
 
-#include "Fifo.h"
 #include "SipProxyEvent.hxx"
 #include "SipCallLeg.hxx"
 #include "BasicAgent.hxx"
 #include "UaBase.hxx"
-#include "VThread.hxx"
-#include "Mutex.hxx"
 
 using namespace Vocal::Threads;
 

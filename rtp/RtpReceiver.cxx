@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "global.h"
@@ -96,9 +96,8 @@ RtpReceiver::RtpReceiver (const string& local_ip,
                           RtpPayloadType _format, int _clockrate,
                           int per_sample_size, int samplesize) {
     /// udp stack is a sendrecv stack
-    myStack = new UdpStack (local_ip, local_dev_to_bind_to,
+    myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
                             NULL, localMinPort, localMaxPort) ;
-    freeStack = true;
 
     constructRtpReceiver (_format, _clockrate, per_sample_size,
                           samplesize);
@@ -110,18 +109,16 @@ RtpReceiver::RtpReceiver (const string& local_ip,
                           int _clockrate, int per_sample_size,
                           int samplesize) {
     /// udp stack is a sendrecv stack
-    myStack = new UdpStack (local_ip, local_dev_to_bind_to, NULL, localPort) ;
-    freeStack = true;
+    myStack = new UdpStack (false, local_ip, local_dev_to_bind_to, NULL, localPort) ;
 
     constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
 }
 
-RtpReceiver::RtpReceiver (UdpStack* udp, RtpPayloadType _format,
+RtpReceiver::RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
                           int _clockrate, int per_sample_size,
                           int samplesize) {
     /// udp stack is a sendrecv stack
     myStack = udp;
-    freeStack = false;
     
     constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
 }
@@ -180,18 +177,12 @@ void RtpReceiver::constructRtpReceiver (RtpPayloadType _format,
 }
 
 
-RtpReceiver::~RtpReceiver ()
-{
-    if (freeStack)
-    {
-        delete myStack;
-        myStack = NULL;
-    }
-    rtcpRecv = NULL;
+RtpReceiver::~RtpReceiver () {
+   rtcpRecv = NULL;
 
-    clearBuffer();
+   clearBuffer();
 
-    cpLog (LOG_DEBUG_STACK, "Close receiver");
+   cpLog (LOG_DEBUG_STACK, "Close receiver");
 }
 
 

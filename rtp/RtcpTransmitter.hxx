@@ -52,7 +52,7 @@
  */
 
 static const char* const RtcpTransmitter_hxx_Version =
-    "$Id: RtcpTransmitter.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtcpTransmitter.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -189,9 +189,8 @@ class RtcpTransmitter
         int getSocketFD ();
 
         /// get the ptr of my UdpStack
-        UdpStack* getUdpStack()
-        {
-            return myStack;
+        Sptr<UdpStack> getUdpStack() {
+           return myStack;
         }
 
         ///
@@ -224,10 +223,7 @@ class RtcpTransmitter
         RtcpReceiver* rtcpRecv;
 
         /// my UDP stack
-        UdpStack* myStack;
-
-        ///
-        bool freeStack;
+        Sptr<UdpStack> myStack;
 
         NetworkAddress remoteAddr;
 };

@@ -53,12 +53,15 @@
 
 
 static const char* const CdrBilling_hxx_Version =
-    "$Id: CdrBilling.hxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrBilling.hxx,v 1.4 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "CdrConfig.hxx"
 #include "CdrUserCache.hxx"
 #include <misc.hxx>
+#include "CdrFileHandler.hxx"
+#include <Sptr.hxx>
+
 
 
 // Forward Declarations
@@ -82,6 +85,12 @@ protected:
    uint64 billingLockTimeLimitMs;
    string errorFileExt;
 
+   CdrConfig cdata;
+
+   Sptr<CdrFileHandler> errorFile;
+   bool errFileBusted;
+   string errFileName;
+
 public:
 
    CdrBilling();
@@ -89,12 +98,10 @@ public:
    /**
     * Read records from billing files and send to billing server,
     * return false if cannot connect to billing server
-    * @param CdrConfig& configuration data
     * @param CdrUserCache&
     * @return bool true if able to connect with billing server
     */
-   bool sendBillingRecords( const CdrConfig &cdata,
-                                   CdrUserCache &userAliases );
+   bool sendBillingRecords(CdrUserCache &userAliases);
 
    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      int& maxdesc, uint64& timeout, uint64 now);
@@ -104,9 +111,8 @@ public:
 
    /**
     * Delete files from billing directory
-    * @param CdrConfig& configuration data
     * @return void
     */
-   static void deleteOldestFiles( const CdrConfig &cdata );
+   void deleteOldestFiles();
 };
 #endif

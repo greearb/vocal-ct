@@ -51,7 +51,7 @@
 
 
 static const char* const CdrBilling_cxx_Version =
-    "$Id: CdrBilling.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: CdrBilling.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <stdio.h>
@@ -68,10 +68,11 @@ static const char* const CdrBilling_cxx_Version =
 #include "CdrFileHandler.hxx"
 #include "MindClient.hxx"
 #include "cpLog.h"
+#include <FileStackLock.hxx>
 
 
 const int BILLING_FILE_LOCK_LIMIT = 3600*6;       // 6 hours
-const long int BILLING_STORAGE_LIMIT = 3600*72;   // 72 hours
+const uint64 BILLING_STORAGE_LIMIT = 3600 * 72 * 1000;   // 72 hours
 const int BILLING_MIN_DELETE_SIZE = 1000000;      // total to delete each cycle
 const long int BILLING_MAX_TOTAL_SIZE = 20000000; // maximum space for all billing files
 
@@ -80,19 +81,20 @@ CdrBilling::CdrBilling() {
    char* envptr = getenv("BILLING_FILE_LOCK_LIMIT");
    if (envptr) {
       cpLog(LOG_INFO, "Set BILLING_FILE_LOCK_LIMIT from env:%s", envptr);
-      billingLockTimeLimit = atoi(envptr);
+      billingLockTimeLimitMs = atoi(envptr) * 1000;
    }
    else {
-      billingLockTimeLimit = BILLING_FILE_LOCK_LIMIT;
+      billingLockTimeLimitMs = BILLING_FILE_LOCK_LIMIT;
    }
 
    errorFileExt = ".error";
-
    envptr = getenv("BILLING_ERROR_FILE_EXT");
    if (envptr) {
       cpLog(LOG_INFO, "Set BILLING_ERROR_FILE_EXT from env:%s", envptr);
       errorFileExt = envptr;
    }
+
+   errFileBusted = false;
 }
 
 
@@ -107,24 +109,24 @@ int CdrBilling::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
          timeout = nxtx - now;
       }
    }
+   return 0;
 }
    
 void CdrBilling::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       uint64 now) {
 
-   if (sendBillingRecords( cdata, userAliases )) {
+   if (sendBillingRecords(userAliases)) {
       lastConnectTime = now;
    }
    else {
       if (now - lastConnectTime > BILLING_STORAGE_LIMIT) {
-         deleteOldestFiles(cdata);
+         deleteOldestFiles();
       }
    }
 }
 
 bool
-CdrBilling::sendBillingRecords( const CdrConfig &cdata,
-                                CdrUserCache &userAliases ) {
+CdrBilling::sendBillingRecords(CdrUserCache &userAliases ) {
     try {
         MindClient::initialize(cdata.m_localIp,
                                cdata.m_radiusServerHost.c_str(),
@@ -141,8 +143,9 @@ CdrBilling::sendBillingRecords( const CdrConfig &cdata,
        return false;
     }
 
+    string errFile(cdata.m_billingFileName + errorFileExt);
     string buf = cdata.m_billingDirectory + "/" + cdata.m_billingLockFile;
-    FileStackLock fsl(buf, billingLockTimeLimit);
+    FileStackLock fsl(buf, billingLockTimeLimitMs);
     if (fsl.isLocked()) {
 
        // get a listing of the billing files which need to be sent to
@@ -207,24 +210,24 @@ CdrBilling::sendBillingRecords( const CdrConfig &cdata,
                 //
 
                 // need to emulate a call by sending start and stop records
-                if (!MindClient::instance().accountingStartCall(ref) ||
-                    !MindClient::instance().accountingStopCall(ref)) {
+                if (!MindClient::instance()->accountingStartCall(ref) ||
+                    !MindClient::instance()->accountingStopCall(ref)) {
                    errCount++;
                    if ((errorFile == 0) && (!errFileBusted)) {
                       // Opening error file for call records which are rejected by
                       // Mind billing server
 
-                      string errFile(cdata.m_billingFileName + errorFileExt);
                       errorFile = new CdrFileHandler(cdata.m_billingDirectory,
                                                      errFile.c_str());
 
                       try {
-                         errorFile.open(O_WRONLY | O_CREAT | O_APPEND);
+                         errorFile->open(O_WRONLY | O_CREAT | O_APPEND);
                       }
                       catch (VCdrException &e) {
                          cpLog(LOG_ALERT, "Failed to open billing error file %s",
                                errFile.c_str());
                          errFileBusted = true;
+                         errorFile = NULL;
                       }
                    }
                    if (errorFile != 0) {
@@ -235,26 +238,26 @@ CdrBilling::sendBillingRecords( const CdrConfig &cdata,
           }//while
 
           cpLog(LOG_INFO, "Billing File %s:, Total recs:%d, Rejected recs:%d, copied to file %s",
-                (*itr).c_str(), recCount, errCount, errFile.c_str());
+                (*itr).c_str(), recCount, errCount, errFileName.c_str());
 
           bfile.close();
 
-          int pos = bfile.getFullFileName().rfind(cdata.m_unsentFileExt);
-          string newFileName = bfile.getFullFileName().erase(pos);
+          string ffname = bfile.getFullFileName();
+          int pos = ffname.rfind(cdata.m_unsentFileExt);
+          string newFileName = ffname.erase(pos);
           rename(bfile.getFullFileName().c_str(), newFileName.c_str());
        }
     }
 
-    // I see no reason to get rid of this...  --Ben
+    // I see no reason to get rid of this mind client instance...  --Ben
     //MindClient::destroy();
     
     return true;
 }
 
 void
-CdrBilling::deleteOldestFiles( const CdrConfig &cdata )
-{
-    int maxHours = BILLING_STORAGE_LIMIT / 3600;
+CdrBilling::deleteOldestFiles() {
+    int maxHours = (BILLING_STORAGE_LIMIT / 1000) / 3600;
     cpLog(LOG_ALERT, "The billing server has been unreachable for more than %d hours",
           maxHours);
 

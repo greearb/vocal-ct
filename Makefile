@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/15 00:30:10 greear Exp $
 
 
 BUILD = build
@@ -9,12 +9,15 @@ STAGING_ARGS = -R
 
 endif
 
+# NOTE:  Removing b2bua from the list below, not porting it
+#     to non-threaded model at this time. --Ben
+
 .PHONY : netMgnt proxy_agent snmp support mgcp proxy_base rtp libsoundcard\
 	 subdirs cleanall clean doc cppdoc contrib contrib_equiv mgcp_demo\
 	 rtp_demo releasedir util sdp sdp2 sip siptest co login usage\
 	 mgcp_test rtp_test sdp_test sip_test util_test tdiff_correct.log\
 	 docdir ps cdrlib pslib libpep ps cdr osp libOSP common libpdp\
-	 libpep policy ua ua_test b2bua release staging staging_notar heartbeat\
+	 libpep policy ua ua_test release staging staging_notar heartbeat\
 	 hbs snmpplusplus vme vmcp mail media_server fsvm java rpm siph323csgw\
 	 install radius radius_test loadgen vocal_gk all kitchen_sink mrtg \
 	 extras extras_broken usage_note default_target install_note \
@@ -333,9 +336,9 @@ http: util
 http_test: http
 	cd http && $(MAKE) unit_test
 
-b2bua: proxy_base sip
-	@( test -d sip/b2b/ && test -f sip/b2b/Makefile ) || ( echo; echo; echo "please check out the b2b directory first" ; echo;echo && exit -1 )
-	cd sip/b2b/; $(MAKE)
+#b2bua: proxy_base sip
+#	@( test -d sip/b2b/ && test -f sip/b2b/Makefile ) || ( echo; echo; echo "please check out the b2b directory first" ; echo;echo && exit -1 )
+#	cd sip/b2b/; $(MAKE)
 
 sipset: uagui 
 gua: proxy_base newsndfile libsoundcard rtp libmedia libsipua 
@@ -555,7 +558,9 @@ ifeq ($(OSTYPE),FreeBSD)
 SIPSET = gua
 endif
 
-all: fs rs hbs ps ms cdr b2bua radius_test vme vmcp mail media_server $(SIPSET) staging_notar 
+
+# NOTE:  b2bua was after cdr in this list.  Removing for now. --Ben
+all: fs rs hbs ps ms cdr radius_test vme vmcp mail media_server $(SIPSET) staging_notar 
 libs: sip proxy_base cdrlib rtspstack http
 
 extras: 

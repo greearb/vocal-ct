@@ -53,7 +53,7 @@
 
 
 static const char* const SipCallLegData_hxx_Version =
-    "$Id: SipCallLegData.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SipCallLegData.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include "global.h"
 #include <vector>
@@ -66,7 +66,6 @@ static const char* const SipCallLegData_hxx_Version =
 #include "SipCallLeg.hxx"
 #include <BugCatcher.hxx>
 
-using namespace Vocal::Threads;
 using Vocal::SipMsg;
 using Vocal::SipSdp;
 using Vocal::SipCallLeg;

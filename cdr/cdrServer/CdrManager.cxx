@@ -51,7 +51,7 @@
 
 
 static const char* const CdrManager_cxx_Version =
-    "$Id: CdrManager.cxx,v 1.3 2004/06/14 00:33:53 greear Exp $";
+    "$Id: CdrManager.cxx,v 1.4 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <time.h>
@@ -82,8 +82,8 @@ CdrManager::instance( const CdrConfig *cdata ) {
       m_instance = new CdrManager(*cdata);
 
       // register events
-      m_instance->registerEvent(m_instance->m_cdrServer);
-      m_instance->registerEvent(m_instance->m_cdrCache);
+      m_instance->registerEvent(m_instance->cdrServer.getPtr());
+      m_instance->registerEvent(m_instance->cdrCache.getPtr());
    }
    return *m_instance;
 }
@@ -110,7 +110,7 @@ CdrManager::destroy() {
 
 int CdrManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                        int& maxdesc, uint64& timeout, uint64 now) {
-   list < EventObj* > ::iterator itr;
+   list < Sptr<EventObj> > ::iterator itr;
    itr = m_eventList.begin();
    while (itr != m_eventList.end()) {
       Sptr<EventObj> obj = *itr;
@@ -118,12 +118,13 @@ int CdrManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
       itr++;
    }
    billing.setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   return 0;
 }
    
 void CdrManager::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       uint64 now) {
    billing.tick(input_fds, output_fds, exc_fds, now);
-   list < EventObj* > ::iterator itr;
+   list < Sptr<EventObj> > ::iterator itr;
    itr = m_eventList.begin();
    while (itr != m_eventList.end()) {
       Sptr<EventObj> obj = *itr;
@@ -140,15 +141,15 @@ void CdrManager::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 void
 CdrManager::registerEvent( Sptr<EventObj> obj ) {
-   eventList.push_back(obj);
+   m_eventList.push_back(obj);
 }
 
 void
 CdrManager::unregister( Sptr<EventObj> obj ) {
-   for (list < Sptr<EventObj> > ::iterator itr = eventList.begin();
+   for (list < Sptr<EventObj> > ::iterator itr = m_eventList.begin();
         itr != m_eventList.end(); itr++) {
       if ((*itr).getPtr() == obj.getPtr()) {
-         eventList.erase(itr);
+         m_eventList.erase(itr);
          break;
       }
    }
@@ -156,5 +157,5 @@ CdrManager::unregister( Sptr<EventObj> obj ) {
 
 void
 CdrManager::addCache( const CdrClient &msg ) {
-    m_cdrCache->add(msg);
+   cdrCache->add(msg);
 }

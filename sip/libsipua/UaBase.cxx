@@ -50,7 +50,7 @@
 
 
 static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaBase.cxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -82,8 +82,7 @@ UaBase::UaBase( const char* class_name,
         myStack(stack),
         myLocalCSeq(reqMsg->getCSeq()),
         instanceName(dbg_id),
-        myControllerAgent(controllerAgent),
-        mutex("UaBaseR", false, true)
+        myControllerAgent(controllerAgent)
 {
    cpLog(LOG_DEBUG, "Creating UaBase, this: %p  debug_id: %s\n",
          this, instanceName.c_str());
@@ -95,7 +94,6 @@ UaBase::UaBase( const char* class_name,
 void 
 UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg)
 {
-    Lock lk(mutex);
     if(sipMsg->getType() == SIP_STATUS)
     {
         cpLog(LOG_DEBUG, "(%s:%s:%p) received STATUS message %s, state: %s ",
@@ -117,7 +115,6 @@ UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg)
 int
 UaBase::sendMsg(const Sptr<SipMsg>& sipMsg)
 {
-    Lock lk(mutex);
     cpLog(LOG_DEBUG_STACK , "(%s:%s:%p) Processing message %s ",
           className().c_str(), instanceName.c_str(), this,
           sipMsg->encode().logData());
@@ -241,8 +238,6 @@ UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,
 
 Sptr<InviteMsg>
 UaBase::createReInvite(const Sptr<InviteMsg>& invMsg) {
-    Lock lk(mutex);
-    
     Sptr<InviteMsg> inviteMsg = createInvite(invMsg, false, getMyLocalIp(),
                                              getMySipPort(),
                                              getNatHost(), getTransport(),
@@ -276,7 +271,6 @@ UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode,
                             Sptr<SipContentData> contentData,
 									 bool memorizeResponse)
 {
-    Lock lk(mutex);
     assert(sipMsg->getType() != SIP_STATUS);
     //Send status message
     Sptr<SipCommand> sipCmd;
@@ -299,7 +293,6 @@ UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode,
 void
 UaBase::ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp)
 {
-    Lock lk(mutex);
     Sptr<StatusMsg> sMsg;
     sMsg.dynamicCast(msg);
     assert(sMsg != 0);
@@ -354,7 +347,6 @@ UaBase::~UaBase()
 void
 UaBase::clearRouteList()
 {
-    Lock lk(mutex);
     //cleanup the routelist
     while(myRouteList.size())
     {
@@ -368,7 +360,6 @@ UaBase::clearRouteList()
 void 
 UaBase::saveRouteList(const Sptr<SipMsg>& msg, bool reverse)
 {
-    Lock lk(mutex);
     clearRouteList();
     SipRecordRouteList rrList = msg->getrecordrouteList();
     SipRecordRouteList::iterator iter = rrList.begin();
@@ -488,7 +479,6 @@ UaBase::fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp)
 
 
 void UaBase::setState(UaState* state) {
-   Lock lk(mutex);
    string cs("NULL");
    if (myState) {
       cs = myState->toString();
@@ -511,8 +501,6 @@ void UaBase::setState(UaState* state) {
 }
 
 void UaBase::setControllerAgent(BasicAgent* a) {
-   Lock lk(mutex);
-
    // NOTE:  If the BasicAgent is deleting itself, then it will set
    // this to NULL to keep us from de-referencing stale memory.
 

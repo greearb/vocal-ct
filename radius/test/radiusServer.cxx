@@ -48,7 +48,7 @@
  *
  */
 static const char* const radiusServer_cxx_Version =
-    "$Id: radiusServer.cxx,v 1.1 2004/05/01 04:15:22 greear Exp $";
+    "$Id: radiusServer.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 #include <cstdio>
 
@@ -104,7 +104,7 @@ main( int argc, char* argv[] )
 
     int serverPort     = config->server_port();
     // int accountingPort = config->server_accounting_port();
-    UdpStack s(config->getLocalIp(), "" /* local_dev_to_bind_to */,
+    UdpStack s(false, config->getLocalIp(), "" /* local_dev_to_bind_to */,
                0, serverPort );
     // TODO: Use both ports
 
@@ -183,9 +183,9 @@ main( int argc, char* argv[] )
 
                     acctRespMsg.calcAuthenticator( secret );
 
-                    s.transmitTo( reinterpret_cast<const char *>(acctRespMsg.data().buffer),
-                                  ntohs(acctRespMsg.data().msgHdr.length),
-                                  &client );
+                    s.queueTransmitTo( reinterpret_cast<const char *>(acctRespMsg.data().buffer),
+                                       ntohs(acctRespMsg.data().msgHdr.length),
+                                       &client );
 
                     cpLog( LOG_DEBUG, "Send\n[%s]", acctRespMsg.verbose().c_str() );
                     accountingResponse++;
@@ -208,9 +208,9 @@ main( int argc, char* argv[] )
 
                     accessAcceptMsg.calcAuthenticator( secret );
 
-                    s.transmitTo( reinterpret_cast<const char *>(accessAcceptMsg.data().buffer),
-                                  ntohs(accessAcceptMsg.data().msgHdr.length),
-                                  &client );
+                    s.queueTransmitTo( reinterpret_cast<const char *>(accessAcceptMsg.data().buffer),
+                                       ntohs(accessAcceptMsg.data().msgHdr.length),
+                                       &client );
 
                     cpLog( LOG_DEBUG, "Send\n[%s]", accessAcceptMsg.verbose().c_str() );
                     accessAccept++;

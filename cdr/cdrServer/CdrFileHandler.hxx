@@ -53,7 +53,7 @@
 
 
 static const char* const CdrFileHandler_hxx_Version =
-    "$Id: CdrFileHandler.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: CdrFileHandler.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <stdio.h>
@@ -62,185 +62,178 @@ static const char* const CdrFileHandler_hxx_Version =
 
 #include "CdrData.hxx"
 #include "VCdrException.hxx"
+#include <BugCatcher.hxx>
+
 
 /**
    CdrFileHandler deals with all the file tasks
  **/
 
-class CdrFileHandler
-{
-    public:
+class CdrFileHandler : public BugCatcher {
+public:
 
-        ///
-        CdrFileHandler() {}
+   ///
+   CdrFileHandler() {}
 
-        /**
-         * Constructor
-         * @param string& directory for file
-         * @param string& filename to handle
-         */
-        CdrFileHandler( const string &directory,
-                        const string &filename )
-            throw(VCdrException&);
+   /**
+    * Constructor
+    * @param string& directory for file
+    * @param string& filename to handle
+    */
+   CdrFileHandler( const string &directory,
+                   const string &filename )
+      throw(VCdrException&);
 
-        /// Copy constructor
-        CdrFileHandler(const CdrFileHandler&);
+   /// Copy constructor
+   CdrFileHandler(const CdrFileHandler&);
 
-        /// default action is to close the file
-        virtual ~CdrFileHandler();
+   /// default action is to close the file
+   virtual ~CdrFileHandler();
 
-        /**
-         * Write record to file
-         * @param CdrRadius& data structure
-         * @return int number of bytes written
-         */
-        int writeCdr( const CdrRadius &ref );
+   /**
+    * Write record to file
+    * @param CdrRadius& data structure
+    * @return int number of bytes written
+    */
+   int writeCdr( const CdrRadius &ref );
 
-        /**
-         * Read 1 line of tokens from file
-         * @param list< string >& token list
-         * @param char delimiter for token list
-         * @return number of tokens read
-         */
-        int readTokens( list < string > &tokenList,
-                        const char delimiter = ',' )
-            throw(VCdrException& );
+   /**
+    * Read 1 line of tokens from file
+    * @param list< string >& token list
+    * @param char delimiter for token list
+    * @return number of tokens read
+    */
+   int readTokens( list < string > &tokenList,
+                   const char delimiter = ',' )
+      throw(VCdrException& );
 
-        /**
-         * Open file
-         * @param int open flags
-         * @param mode_t open mode
-         * @return void
-         */
-        void open(const int flags = O_RDONLY,
-                  const mode_t mode = 0666)
-            throw(VCdrException&);
+   /**
+    * Open file
+    * @param int open flags
+    * @param mode_t open mode
+    * @return void
+    */
+   void open(const int flags = O_RDONLY,
+             const mode_t mode = 0666)
+      throw(VCdrException&);
 
-        /// Close file
-        void close();
+   /// Close file
+   void close();
 
-        /// End of file
-        bool eof() const
-        {
-            return m_eof;
-        }
+   /// End of file
+   bool eof() const {
+      return m_eof;
+   }
 
-        /**
-         * Set working directory
-         * @param string& directory
-         * @return void
-         */
-        void setDirectory( const string &dir );
+   /**
+    * Set working directory
+    * @param string& directory
+    * @return void
+    */
+   void setDirectory( const string &dir );
 
-        /**
-         * Set working filename
-         * @param string& filename
-         * @return void
-         */
-        void setFileName( const string &fn );
+   /**
+    * Set working filename
+    * @param string& filename
+    * @return void
+    */
+   void setFileName( const string &fn );
 
-        /// Turn file size checking on
-        void setCheckFileSizeOn();
+   /// Turn file size checking on
+   void setCheckFileSizeOn();
 
-        /**
-         * Set rollover file suffix
-         * @param string& suffex
-         * @return void
-         */
-        void setFileSuffix( const string &suffix )
-        {
-            m_renameSuffix = suffix;
-        }
+   /**
+    * Set rollover file suffix
+    * @param string& suffex
+    * @return void
+    */
+   void setFileSuffix( const string &suffix ) {
+      m_renameSuffix = suffix;
+   }
 
-        /**
-         * Set rollover Size
-         * @param int size in bytes
-         * @return void
-         */
-        void setRolloverSize( const int n )
-        {
-            m_rolloverSize = n;
-        }
+   /**
+    * Set rollover Size
+    * @param int size in bytes
+    * @return void
+    */
+   void setRolloverSize( const int n ) {
+      m_rolloverSize = n;
+   }
 
-        /**
-         * Set rollover Period
-         * @param int time in seconds
-         * @return void
-         */
-        void setRolloverPeriod( const unsigned long int n )
-        {
-            m_rolloverPeriod = n;
-        }
+   /**
+    * Set rollover Period
+    * @param int time in seconds
+    * @return void
+    */
+   void setRolloverPeriod( const unsigned long int n ) {
+      m_rolloverPeriod = n;
+   }
 
-        /// return the file name, no directory included
-        string getFileName() const
-        {
-            return m_fileName;
-        }
+   /// return the file name, no directory included
+   const string& getFileName() const {
+      return m_fileName;
+   }
+   
+   /// return the fully qualified file name (includes directory path)
+   const string& getFullFileName() const {
+      return m_dirPathFileName;
+   }
 
-        /// return the fully qualified file name (includes directory path)
-        string getFullFileName() const
-        {
-            return m_dirPathFileName;
-        }
+   /// update the file size and last modified variables
+   void updateDynamicVars() throw (VCdrException&);
 
-        /// update the file size and last modified variables
-        void updateDynamicVars() throw (VCdrException&);
+   /// return the date of the file, updated by updateDynmicVars()
+   long getLastModification() const {
+      return m_lastModified;
+   }
 
-        /// return the date of the file, updated by updateDynmicVars()
-        long getLastModification() const
-        {
-            return m_lastModified;
-        }
+   /// return the size of the file, updated by updateDynmicVars()
+   long getFileSize() const {
+      return m_fileSize;
+   }
 
-        /// return the size of the file, updated by updateDynmicVars()
-        long getFileSize() const
-        {
-            return m_fileSize;
-        }
+   /**
+    * If file size is larger than m_rolloverSize or older than
+    * m_rolloverPeriod, rename it appending the date/time to
+    * the end of the file name and open a new file of m_fileName
+    */
+   void checkFileSize() throw (VCdrException&);
 
-        /**
-         * If file size is larger than m_rolloverSize or older than
-         * m_rolloverPeriod, rename it appending the date/time to
-         * the end of the file name and open a new file of m_fileName
-         */
-        void checkFileSize() throw (VCdrException&);
+   /**
+    * Get the list of filenames from directory filtered based on substrs
+    * @param list <string>& list of files found
+    * @param string& directory path to search
+    * @param string& filename substring to filter for
+    * @param string& suffix substring to filter for
+    * @return int number of files placed in list
+    */
+   static int directoryList( list < string > &fileList,
+                             const string &dirPath,
+                             const string &fileNameSubstr,
+                             const string &suffixSubstr );
 
-        /**
-         * Get the list of filenames from directory filtered based on substrs
-         * @param list <string>& list of files found
-         * @param string& directory path to search
-         * @param string& filename substring to filter for
-         * @param string& suffix substring to filter for
-         * @return int number of files placed in list
-         */
-        static int directoryList( list < string > &fileList,
-                                  const string &dirPath,
-                                  const string &fileNameSubstr,
-                                  const string &suffixSubstr );
+private:
 
-    private:
-
-        /// Manages the read buffer and returns 1 character at a time
-        char readChar();
+   /// Manages the read buffer and returns 1 character at a time
+   char readChar();
 
                                                  ///
-        string m_directory;                      ///
-        string m_fileName;                       ///
-        string m_dirPathFileName;                ///
-        string m_renameSuffix;                   ///
-        unsigned long int m_fileCheckFreq;       ///
-        int m_rolloverSize;                      ///
-        unsigned long int m_rolloverPeriod;      ///
-        int m_fileDesc;                          ///
-        bool m_eof;                              ///
-        char m_readBuffer[1024];                 ///
-        char *m_bptr;                            ///
-        int m_bytesRead;                         ///
-        int m_openFlags;                         ///
-        int m_openMode;                          ///
-        long m_timeOpened;                       ///
-        long m_fileSize;                         ///
-        long m_lastModified;                     ///
+   string m_directory;                      ///
+   string m_fileName;                       ///
+   string m_dirPathFileName;                ///
+   string m_renameSuffix;                   ///
+   unsigned long int m_fileCheckFreq;       ///
+   int m_rolloverSize;                      ///
+   unsigned long int m_rolloverPeriod;      ///
+   int m_fileDesc;                          ///
+   bool m_eof;                              ///
+   char m_readBuffer[1024];                 ///
+   char *m_bptr;                            ///
+   int m_bytesRead;                         ///
+   int m_openFlags;                         ///
+   int m_openMode;                          ///
+   long m_timeOpened;                       ///
+   long m_fileSize;                         ///
+   long m_lastModified;                     ///
 };
 #endif

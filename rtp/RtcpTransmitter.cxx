@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtcpTransmitter.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "global.h"
@@ -97,20 +97,14 @@ RtcpTransmitter::RtcpTransmitter (const string& local_ip,
 {
     assert(remoteHost);
 
-    if (receiver)
-    {
+    if (receiver) {
         myStack = receiver->getUdpStack();
         myStack->setDestination(&remoteAddr);
-        //        myStack->connectPorts();
-        freeStack = false;
     }
-    else
-    {
-        myStack = new UdpStack(local_ip, local_dev_to_bind_to,
+    else {
+        myStack = new UdpStack(false, local_ip, local_dev_to_bind_to,
                                &remoteAddr, remoteMinPort, remoteMaxPort,
                                sendonly) ;
-        //        myStack->connectPorts();
-        freeStack = true;
     }
 
     constructRtcpTransmitter ();
@@ -125,20 +119,14 @@ RtcpTransmitter::RtcpTransmitter (const string& local_ip,
 {
     assert(remoteHost);
 
-    if (receiver)
-    {
+    if (receiver) {
         myStack = receiver->getUdpStack();
         myStack->setDestination(&remoteAddr);
-        //        myStack->connectPorts();
-        freeStack = false;
     }
-    else
-    {
-        myStack = new UdpStack(local_ip, local_dev_to_bind_to,
+    else {
+        myStack = new UdpStack(false, local_ip, local_dev_to_bind_to,
                                &remoteAddr, remotePort, remotePort,
                                sendonly) ;
-        //        myStack->connectPorts();
-        freeStack = true;
     }
 
     constructRtcpTransmitter ();
@@ -160,12 +148,6 @@ void RtcpTransmitter::constructRtcpTransmitter ()
 
 RtcpTransmitter::~RtcpTransmitter ()
 {
-    if (freeStack)
-    {
-        delete myStack;
-        myStack = 0;
-    }
-
     if (SDESInfo)
     {
         delete SDESInfo;
@@ -187,9 +169,9 @@ RtcpTransmitter::setRemoteAddr (const NetworkAddress& theAddr)
 
 int RtcpTransmitter::transmit (RtcpPacket& pkt)
 {
-   return myStack->transmitTo ((char*)pkt.getPacketData(),
-                               pkt.getTotalUsage(),
-                               &remoteAddr);
+   return myStack->queueTransmitTo ((char*)pkt.getPacketData(),
+                                    pkt.getTotalUsage(),
+                                    &remoteAddr);
 }
 
 

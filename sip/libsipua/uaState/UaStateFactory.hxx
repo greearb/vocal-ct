@@ -54,15 +54,12 @@
 
 
 static const char* const UaStateFactory_hxx_Version = 
-"$Id: UaStateFactory.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: UaStateFactory.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
 
 #include <map>
 #include "CInvalidStateException.hxx"
 #include "UaState.hxx"
-#include "Mutex.hxx"
 #include "cpLog.h"
-
-using namespace Vocal::Threads;
 
 namespace Vocal {
 
@@ -122,39 +119,32 @@ typedef enum {
 
 
 class UaStateFactory {
-    public:
-         ///
-         typedef map<UStateType, UaState* > UaStateMap;
-         ///
-         typedef map<pthread_t, UaStateMap > ThreadBasedUaStateMap;
-         
-         ///
-         static UaStateFactory& instance();
-
-         ///
-         virtual string className() { return "UaStateFactory"; }
-
-
-         ///
-         UaState* getState(UStateType);
-
-         ///
-         static void destroy();
-
-    protected:
-         ///
-         UaStateFactory() { };
-
-         ///Destructor
-         virtual ~UaStateFactory();
-
-         ///
-         static UaStateFactory* myInstance;
-         ///
-         ThreadBasedUaStateMap  myUaStateMap;
-
-         ///
-         static Mutex myMutex;
+public:
+   ///
+   typedef map<UStateType, Sptr<UaState> > UaStateMap;
+   
+   ///
+   static UaStateFactory& instance();
+   
+   ///
+   virtual string className() { return "UaStateFactory"; }
+   
+   
+   ///
+   Sptr<UaState> getState(UStateType);
+   
+   ///
+   static void destroy();
+   
+protected:
+   ///
+   UaStateFactory() { };
+   
+   ///Destructor
+   virtual ~UaStateFactory();
+   
+   ///
+   static UaStateFactory* myInstance;
 };
 
 }

@@ -53,28 +53,22 @@
 
 
 static const char* const StringHash_hxx_Version =
-    "$Id: StringHash.hxx,v 1.1 2004/05/01 04:14:55 greear Exp $";
+    "$Id: StringHash.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
+using namespace std;
 
 #include <string>
-#if defined(__GNUC__) && (__GNUC__ < 3)
-#include <hash_map>
-#else
-#include <ext/hash_map>
-#endif
 
 
-class StringHash
-{
-    public:
-        ///
-        StringHash() {}
+class StringHash {
+public:
+   ///
+   StringHash() {}
     
-        ///
-        unsigned long int operator() ( const string& src ) const
-        {
-            hash < const char* > a;
-            return ( a(src.c_str()) );
-        }
+   ///
+   unsigned long int operator() ( const string& src ) const {
+      hash < const char* > a;
+      return ( a(src.c_str()) );
+   }
 };
 #endif

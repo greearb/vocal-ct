@@ -51,7 +51,7 @@
 
 
 static const char* const MindClient_cxx_Version =
-    "$Id: MindClient.cxx,v 1.2 2004/06/09 07:19:34 greear Exp $";
+    "$Id: MindClient.cxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include "VocalCommon.hxx"
@@ -171,14 +171,14 @@ MindClient::processVsa( const unsigned char vsaType,
 }//processVsa
 
 int
-MindClient::addMindCdr( const CdrRadius &ref ) {
+MindClient::addMindCdr( const CdrRadius &ref, Sptr<RadiusMessage> m ) {
    unsigned long int vendorId = htonl(VENDOR_ID);
    unsigned char mindVsaType = (unsigned char)MIND_VSA_CDR;
-   unsigned char *ptr = m_sendBuffer.buffer;
+   unsigned char *ptr = m->getSendBuffer();
    unsigned char *totalLength;
    unsigned char *vsaLength;
 
-   ptr += m_sendBufferLen;
+   ptr += m->getSendBufferLen();
 
    *ptr++ = (unsigned char)PW_VENDOR_SPECIFIC;    // RAD Type
    totalLength = ptr++;                           // RAD length
@@ -193,111 +193,127 @@ MindClient::addMindCdr( const CdrRadius &ref ) {
    *vsaLength += ref.mindCdrVsaFormat(ptr);
 
    *totalLength += *vsaLength;
-   m_sendBufferLen += *totalLength;
+   m->setSendBufferLen(m->getSendBufferLen() + *totalLength);
 
    return *totalLength;
 }
 
-void
-MindClient::createAcctStartCallMsg( const CdrRadius &ref ) {
-   unsigned long int vendorId = htonl(VENDOR_ID);
-   unsigned long int acctStart = htonl(ACCT_START);
-   unsigned char protocolNum = (unsigned char) MIND_VSA_DTMF;
-    
-   addHeader(PW_ACCOUNTING_REQUEST);
+Sptr<RadiusMessage>
+MindClient::sendAcctStartCallMsg( const CdrRadius &ref ) {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int vendorId = htonl(VENDOR_ID);
+      unsigned long int acctStart = htonl(ACCT_START);
+      unsigned char protocolNum = (unsigned char) MIND_VSA_DTMF;
+      
+      m->addHeader(PW_ACCOUNTING_REQUEST);
 
-   addAttribute(PW_ACCT_STATUS_TYPE, acctStart);
-   addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)ref.m_callId,
-                strlen(ref.m_callId));
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctStart);
+      m->addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)ref.m_callId,
+                      strlen(ref.m_callId));
    
-   if (ref.m_DTMFCalledNum[0] == 0) {
-      protocolNum = (unsigned char) MIND_VSA_E164;
-   }
+      if (ref.m_DTMFCalledNum[0] == 0) {
+         protocolNum = (unsigned char) MIND_VSA_E164;
+      }
 
-   if (protocolNum == (unsigned char) MIND_VSA_DTMF) {
-      addAttribute(PW_CALLED_STATION_ID,
-                   (unsigned char*)ref.m_DTMFCalledNum,
-                   strlen(ref.m_DTMFCalledNum));
-   }
-   else {
-      addAttribute(PW_CALLED_STATION_ID,
-                   (unsigned char*)ref.m_E164CalledNum,
-                   strlen(ref.m_E164CalledNum));
-   }
+      if (protocolNum == (unsigned char) MIND_VSA_DTMF) {
+         m->addAttribute(PW_CALLED_STATION_ID,
+                         (unsigned char*)ref.m_DTMFCalledNum,
+                         strlen(ref.m_DTMFCalledNum));
+      }
+      else {
+         m->addAttribute(PW_CALLED_STATION_ID,
+                         (unsigned char*)ref.m_E164CalledNum,
+                         strlen(ref.m_E164CalledNum));
+      }
 
-   addAttribute(PW_CALLING_STATION_ID,
-                (unsigned char*)ref.m_userId,
-                strlen(ref.m_userId));
+      m->addAttribute(PW_CALLING_STATION_ID,
+                      (unsigned char*)ref.m_userId,
+                      strlen(ref.m_userId));
+      
+      m->addVsaAttribute(MIND_VSA_PROTOCOL_NUMBER, (unsigned char)protocolNum,
+                         vendorId);
 
-   addVsaAttribute(MIND_VSA_PROTOCOL_NUMBER, (unsigned char)protocolNum,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_CALLER_ID_TYPE, (unsigned char)MIND_VSA_ANI_CODE,
+                         vendorId);
 
-   addVsaAttribute(MIND_VSA_CALLER_ID_TYPE, (unsigned char)MIND_VSA_ANI_CODE,
-                   vendorId);
+      m->addAttribute(PW_USER_NAME, (unsigned char*)ref.m_userId,
+                      strlen(ref.m_userId));
 
-   addAttribute(PW_USER_NAME, (unsigned char*)ref.m_userId,
-                strlen(ref.m_userId));
-
-   addVsaAttribute(MIND_VSA_CALL_INFO, (unsigned char)ref.m_callType,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_CALL_INFO, (unsigned char)ref.m_callType,
+                         vendorId);
     
-   addVsaAttribute(MIND_VSA_CALL_PARTIES, (unsigned char)ref.m_callParties,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_CALL_PARTIES, (unsigned char)ref.m_callParties,
+                         vendorId);
 
-   addVsaAttribute(MIND_VSA_OUTBOUND_TYPE, (unsigned char)1,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_OUTBOUND_TYPE, (unsigned char)1,
+                         vendorId);
     
-   addVsaAttribute(MIND_VSA_QUERY_REQUEST, (unsigned char)1,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_QUERY_REQUEST, (unsigned char)1,
+                         vendorId);
 
-   unsigned long int startTime = htonl(ref.m_gwStartTime);
-   addVsaAttribute(MIND_VSA_START_TIME, startTime, vendorId);
+      unsigned long int startTime = htonl(ref.m_gwStartTime);
+      m->addVsaAttribute(MIND_VSA_START_TIME, startTime, vendorId);
     
-   addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
+      m->addAttribute(PW_NAS_IP_ADDRESS, m_clientAddr);
 
-   addVsaAttribute(MIND_VSA_ORIGINATE_ADDRESS, (unsigned long int)m_clientAddr,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_ORIGINATE_ADDRESS, (unsigned long int)m_clientAddr,
+                         vendorId);
 
-   unsigned char callDirection = (unsigned char) ref.m_callDirection;
-   addVsaAttribute(MIND_VSA_CALL_DIRECTION, callDirection, vendorId);
+      unsigned char callDirection = (unsigned char) ref.m_callDirection;
+      m->addVsaAttribute(MIND_VSA_CALL_DIRECTION, callDirection, vendorId);
 
-   addMD5();
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
 }
 
-void
-MindClient::createAcctStopCallMsg( const CdrRadius &ref ) {
-   unsigned long int vendorId = htonl(VENDOR_ID);
-   unsigned long int acctStop = htonl(ACCT_STOP);
+Sptr<RadiusMessage>
+MindClient::sendAcctStopCallMsg( const CdrRadius &ref ) {
+   uint8 id;
+   if (findNextId(id)) {
+      Sptr<RadiusMessage> m = new RadiusMessage(this, id, m_retries);
+      unsigned long int vendorId = htonl(VENDOR_ID);
+      unsigned long int acctStop = htonl(ACCT_STOP);
     
-   addHeader(PW_ACCOUNTING_REQUEST);
-
-   addAttribute(PW_ACCT_STATUS_TYPE, acctStop);
+      m->addHeader(PW_ACCOUNTING_REQUEST);
+      
+      m->addAttribute(PW_ACCT_STATUS_TYPE, acctStop);
     
-   addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)ref.m_callId,
-                strlen(ref.m_callId));
+      m->addAttribute(PW_ACCT_SESSION_ID, (unsigned char*)ref.m_callId,
+                      strlen(ref.m_callId));
 
-   addAttribute(PW_CALLING_STATION_ID,
-                (unsigned char*)ref.m_userId,
-                strlen(ref.m_userId));
+      m->addAttribute(PW_CALLING_STATION_ID,
+                      (unsigned char*)ref.m_userId,
+                      strlen(ref.m_userId));
 
-   addAttribute(PW_ACCT_SESSION_TIME,
-                (unsigned long int) htonl( ref.m_gwEndTime - ref.m_gwStartTime));
+      m->addAttribute(PW_ACCT_SESSION_TIME,
+                      (unsigned long int) htonl( ref.m_gwEndTime - ref.m_gwStartTime));
 
-   addMindCdr(ref);
+      addMindCdr(ref, m);
     
-   addVsaAttribute(MIND_VSA_CALL_DIRECTION, (unsigned char)ref.m_callDirection,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_CALL_DIRECTION, (unsigned char)ref.m_callDirection,
+                         vendorId);
     
-   addVsaAttribute(MIND_VSA_CALLER_ID_TYPE, (unsigned char)MIND_VSA_ANI_CODE,
-                   vendorId);
+      m->addVsaAttribute(MIND_VSA_CALLER_ID_TYPE, (unsigned char)MIND_VSA_ANI_CODE,
+                         vendorId);
     
-   unsigned long int startTime = htonl(ref.m_gwStartTime);
-   addVsaAttribute(MIND_VSA_START_TIME, startTime, vendorId);
+      unsigned long int startTime = htonl(ref.m_gwStartTime);
+      m->addVsaAttribute(MIND_VSA_START_TIME, startTime, vendorId);
 
-   addMD5();
+      m->addMD5();
+      pendingMessages[id] = m;
+      doSendRadius(m);
+      return m;
+   }
+   return NULL;
 }
 
-// true if sent and acknowledged by server, false if any problem
+// true if queued up to send.
 bool
 MindClient::accountingStartCall( const CdrRadius &ref ) {
    if (!m_connected) {
@@ -305,14 +321,7 @@ MindClient::accountingStartCall( const CdrRadius &ref ) {
          return false;
    }
    cpLog(LOG_DEBUG_STACK, "Requesting Accounting Start Call");
-   createAcctStartCallMsg(ref);
-   if (handshake()) {
-      // don't depend on nasty VSA's for the time being - if we get a valid
-      // reply then we're good to go.  toby@caboteria.org
-      //        return (verifyAcctRecvBuffer() && m_vsaStatus == MIND_VSA_OK);
-      return verifyAcctRecvBuffer();
-   }
-   return false;
+   return (sendAcctStartCallMsg(ref) != 0);
 }
 
 // true if sent and acknowledged by server, false if any problem
@@ -324,12 +333,5 @@ MindClient::accountingStopCall( const CdrRadius &ref ) {
       }
    }
    cpLog(LOG_DEBUG_STACK, "Requesting Accounting Stop Call");
-   createAcctStopCallMsg(ref);
-   if (handshake()) {
-      // don't depend on nasty VSA's for the time being - if we get a valid
-      // reply then we're good to go.  toby@caboteria.org
-      //        return (verifyAcctRecvBuffer() && m_vsaStatus == MIND_VSA_OK);
-      return verifyAcctRecvBuffer();
-   }
-   return false;
+   return (sendAcctStopCallMsg(ref) != 0);
 }

@@ -53,13 +53,13 @@
 
 
 static const char* const CdrUserCache_hxx_Version =
-    "$Id: CdrUserCache.hxx,v 1.2 2004/06/07 08:32:19 greear Exp $";
+    "$Id: CdrUserCache.hxx,v 1.3 2004/06/15 00:30:10 greear Exp $";
 
 
 #include <string>
 #include <map>
 #include <utility>
-
+#include <BugCatcher.hxx>
 
 #if defined (__linux__) && !defined (__INTEL_COMPILER)
 
@@ -68,7 +68,9 @@ static const char* const CdrUserCache_hxx_Version =
 #if defined(__GNUC__) && (__GNUC__ < 3)
 #include <hash_map>
 #else
+using namespace __gnu_cxx;
 #include <ext/hash_map>
+
 #endif
 
 #include "StringHash.hxx"

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpTransmitter_hxx_Version =
-    "$Id: RtpTransmitter.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtpTransmitter.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
 
 #include <sys/types.h>
 #include <map>
@@ -151,7 +151,7 @@ public:
    RtpTransmitterError transmitterError;
 
    /// get ptr of my UdpStack
-   UdpStack* getUdpStack() { return myStack; }
+   Sptr<UdpStack> getUdpStack() { return myStack; }
 
    ///
    NetworkAddress* getRemoteAddr () { return &remoteAddr; }
@@ -216,9 +216,7 @@ private:
    bool markerOnce;
 
    /// my UDP stack
-   UdpStack* myStack;
-   ///
-   bool freeStack;
+   Sptr<UdpStack> myStack;
 
    NetworkAddress remoteAddr;
 
