@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/11/19 01:54:38 greear Exp $
+# $Id: Makefile,v 1.4 2004/12/07 19:55:13 greear Exp $
 
 BUILD = ../build
 
@@ -59,8 +59,8 @@ LFDIR=$(HOME)/btbits/btbits/
 INCDIRS += $(LFDIR)/include
 LIBDIRS += $(LFDIR)/lib
 MKSHLIB_INCDIRS += -L$(LFDIR)/lib
-MKSHLIB_LIBS += -lgcont -lstring2
-LDLIBS_LAST += -lgcont -lstring2
+MKSHLIB_LIBS += -lgcont
+LDLIBS_LAST += -lgcont
 endif
 
 include $(BUILD)/Makefile.post

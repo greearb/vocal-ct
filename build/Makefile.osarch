@@ -1,4 +1,4 @@
-# $Id: Makefile.osarch,v 1.4 2004/11/20 00:05:54 greear Exp $
+# $Id: Makefile.osarch,v 1.5 2004/12/07 19:55:13 greear Exp $
 
 ######################################################################
 
@@ -73,7 +73,8 @@ ifeq ($(OSTYPE),SunOS)
 
         CXXFLAGS +=
         CFLAGS   +=
-        LDLIBS_LAST_PURE   += -lnsl -lsocket -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lgcc -lm
+#        LDLIBS_LAST_PURE   += -lnsl -lsocket -nodefaultlibs -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic -lc -lgcc -lm
+        LDLIBS_LAST_PURE   += -lnsl -lsocket -nodefaultlibs -lstdc++ -lc -lgcc -lm
         LDLIBS_LAST   += -R/usr/local/lib -lnsl -lsocket
         MKSHLIB_LIBS += -lnsl -lsocket
 

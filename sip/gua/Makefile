@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2004/06/20 22:28:00 greear Exp $
+# $Id: Makefile,v 1.6 2004/12/07 19:55:13 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -7,21 +7,6 @@ LDLIBS_LAST +=  -lm
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
 MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil
-
-
-# Voice Age Codec Support !
-# 
-# Uncomment the following lines if you have the VoiceAge G729 library
-# CXXFLAGS += -DUSE_VOICE_AGE 
-# LDLIBS_LAST += -lg729 
-# NOTE: Changes are also required in libmedia/Makefile, 
-#       put the library in libmedia/obj.* 
-
-
-# Comment this out if you don't want speex codec support.
-INCDIRS += -DUSE_SPEEX
-LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
-LDLIBS_LAST += -lspeex
 
 
 include $(BUILD)/Makefile.pre
@@ -34,13 +19,27 @@ endif
 INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
            $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/gua 
 
-# Speex support.
-INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
+# Comment this out if you don't want speex codec support.
+INCDIRS += -DUSE_SPEEX $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += -lspeex
 
 
 CODE_SUBDIRS =  controlState 
+
+
+LDLIBS_LAST += -lCodecLib
+
+# Voice Age Codec Support !
+# 
+
+ifeq ($(VOCAL_USE_VOICEAGE),yes)
+#  Add new entries here if your VoiceAge files are found elsewhere.
+LIBDIRS += $(HOME)/btbits/btbits/l4libs/VoiceAge
+
+LDLIBS_LAST += -lg729 -lg729utils
+endif
+
 
 ifeq ($(USE_VM),1)
 DEFINES += USE_VM 
@@ -186,13 +185,19 @@ LIBDIRS += $(LFDIR)/lib
 # Link in the LANforge .o files needed by the helper process..
 LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/gui_msgs.o $(LFDIR)/server/eid.o \
+               $(LFDIR)/lib/string2/string2.o $(LFDIR)/lib/string2/IOBuffer.o \
                $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
 
-LDLIBS_LAST += -lstring2 -lbitfield -lgcont
+LDLIBS_LAST += -lbitfield -lgcont
 
 
 endif
 
+ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
+	LDLIBS := -Wl,-Bdynamic $(LDLIBS)
+else
+	LDLIBS := -Wl,-Bstatic $(LDLIBS)
+endif
 
 #rules for making gui front-end
 

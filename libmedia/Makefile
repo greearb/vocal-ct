@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/11/19 01:54:37 greear Exp $
+# $Id: Makefile,v 1.5 2004/12/07 19:55:13 greear Exp $
 
 BUILD = ../build
 
@@ -28,7 +28,7 @@ ifeq ($(VOCAL_USE_LANFORGE),yes)
 LFDIR=../../..
 INCDIRS += $(LFDIR)/include
 LIBDIRS += $(LFDIR)/lib
-LDLIBS_LAST += -lgcont -lstring2
+LDLIBS_LAST += -lgcont
 endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)

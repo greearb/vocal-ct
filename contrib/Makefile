@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/11/19 01:54:37 greear Exp $
+# $Id: Makefile,v 1.5 2004/12/07 19:55:13 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -138,11 +138,13 @@ libxml: ../lib.$(TARGET_NAME)/libvxml.so
 ../lib.$(TARGET_NAME)/libvxml.so: libxmlB
 	mkdir -p ../lib.$(TARGET_NAME)
 	rm -f $@
+	rm -f ../lib.$(TARGET_NAME)/libvxml.a
 	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.so.2.6.11 $@
+	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.a ../lib.$(TARGET_NAME)/libvxml.a
 
 libxmlB: libxml2.$(TARGET_NAME)
 	(cd libxml2.$(TARGET_NAME) ; CC="$(CC)" $(MAKE))
-	cd libxml2.$(TARGET_NAME)/.libs ; ln -s -f libxml2.so libvxml.so
+	(cd libxml2.$(TARGET_NAME)/.libs ; ln -s -f libxml2.so libvxml.so; ln -s -f libxml2.a libvxml.a)
 
 libxml2.$(TARGET_NAME):
 	$(LNDIR) ../libxml2-2.6.11 libxml2.$(TARGET_NAME)

@@ -80,7 +80,7 @@ int gua_running = 1;
 void dumpInstanceCount(const char* msg) {
    ostringstream oss;
    oss << "dumpInstanceCount: " << msg << "  "
-       << "  IOBuffer::string_cnt: " << IOBuffer::string_cnt
+       << "  IOBufferv::string_cnt: " << IOBufferv::string_cnt
        << "  Data: " << Data::getInstanceCount()
        << "  BasicAgent: " << BasicAgent::getInstanceCount()
        << "  CallAgent: " << CallAgent::getInstanceCount()
