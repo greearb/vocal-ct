@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.10 2004/11/08 20:39:13 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
 
 
 #include <string>
@@ -100,7 +100,8 @@ public:
     * @param local_dev_to_bind_to  If not "", we'll bind to this
     *  device with SO_BINDTODEV
     */
-   SipTransceiver(const string& local_ip,
+   SipTransceiver(uint16 tos, uint32 priority,
+                  const string& local_ip,
                   const string& local_ip_to_bind_to,
                   Data s, /* = 0 */
                   int sipPort,/* = SIP_PORT, */

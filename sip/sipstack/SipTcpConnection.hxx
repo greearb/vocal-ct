@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.9 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.10 2005/03/03 19:59:49 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
@@ -127,7 +127,8 @@ public:
 
    void createConnection(Sptr<Connection> conn);
 
-   Sptr < NTcpStuff > createOrGetPersistentConnection(const NetworkAddress& nwaddr);
+   Sptr < NTcpStuff > createOrGetPersistentConnection(uint16 tos, uint32 priority,
+                                                      const NetworkAddress& nwaddr);
 
    // Adds a mapping to this destination.
    void notifyDestination(const string& dest_key, Sptr<NTcpStuff> connInfo);
@@ -180,7 +181,8 @@ public:
    /**
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   SipTcpConnection(const string& local_ip,
+   SipTcpConnection(uint16 tos, uint32 priority,
+                    const string& local_ip,
                     const string& local_dev_to_bind_to,
                     int port /* = SIP_PORT */, bool blocking);
    ///
@@ -230,6 +232,9 @@ private:
    
    string local_ip_to_bind_to;
    string local_dev_to_bind_to;
+
+   uint16 _tos;
+   uint32 _skb_priority;
 };
 
 

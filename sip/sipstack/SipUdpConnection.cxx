@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.11 2004/11/19 01:54:38 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.12 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -76,11 +76,12 @@ int SipUdpConnection::Udpretransmittimemax = retransmitTimeMax;
 
 atomic_t SipUdpConnection::_cnt;
 
-SipUdpConnection::SipUdpConnection(const string& local_ip,
+SipUdpConnection::SipUdpConnection(uint16 tos, uint32 priority,
+                                   const string& local_ip,
                                    const string& local_dev_to_bind_to,
                                    int port)
     : randomLosePercent(0),
-      udpStack(false, local_ip, local_dev_to_bind_to, NULL, port ) {
+      udpStack(tos, priority, false, local_ip, local_dev_to_bind_to, NULL, port ) {
 
     atomic_inc(&_cnt);
 }

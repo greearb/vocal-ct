@@ -51,7 +51,7 @@
 
 
 static const char* const AgentRegister_cxx_Version =
-    "$Id: AgentRegister.cxx,v 1.5 2004/06/10 23:16:17 greear Exp $";
+    "$Id: AgentRegister.cxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "global.h"
@@ -96,7 +96,7 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
     dest.setHostName(hostname);
     dest.setPort(agentTrapPort);
 
-    regUdpStack = new UdpStack(false, "", "", &mcAddr, registerMulticastPort,
+    regUdpStack = new UdpStack(0, 0, false, "", "", &mcAddr, registerMulticastPort,
                                registerMulticastPort, sendrecv, false, true);
     if (regUdpStack == 0) {
         cpLog(LOG_ERR, "can't register udp multicast port %d", registerMulticastPort);
@@ -107,7 +107,7 @@ AgentRegister::AgentRegister(void *msg, int msgLEN)
     regUdpStack->joinMulticastGroup(mcAddr, &iface, 0);
 
     // A new stack has been created to do the transmission. Contact nismail@cisco.com
-    regTrUdpStack = new UdpStack(false, "", "", (const NetworkAddress *)&dest,
+    regTrUdpStack = new UdpStack(0, 0, false, "", "", (const NetworkAddress *)&dest,
                                  -1, -1, sendonly, false, false);
     if (regTrUdpStack == 0) {
        cpLog(LOG_ERR, "can't create a register transmit UDP stack");

@@ -50,7 +50,7 @@
 
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.6 2004/06/14 00:33:55 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.7 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "global.h"
@@ -90,23 +90,23 @@ AgentApi::AgentApi(ServerType serType /*Default Argument*/, string appName /*Def
        // register to receive the messages on the well known agent port
        // then send out the multicast message.
 #ifdef __linux__
-       udpStack = new UdpStack(false, "", "", 0, agentTrapPort, agentTrapPort,
+       udpStack = new UdpStack(0, 0, false, "", "", 0, agentTrapPort, agentTrapPort,
                                sendrecv, false);
 #else
-       udpStack = new UdpStack(false, "", "", 0, -1 , -1 , sendrecv, false);
+       udpStack = new UdpStack(0, 0, false, "", "", 0, -1 , -1 , sendrecv, false);
 #endif	
        message1.action = (actionT)Register_Req;
        udpStack->queueTransmitTo((char *)&message1, sizeof(message1), &dest);
        break;
 
     case SERVER_NetMgnt:
-       udpStack = new UdpStack(false, "", "", 0, MANAGERTRAPPORT,
+       udpStack = new UdpStack(0, 0, false, "", "", 0, MANAGERTRAPPORT,
                                MANAGERTRAPPORT, sendrecv, false);
        break;
 
     default :
 
-       udpStack = new UdpStack(false, "", "", 0, -1 , -1 , sendrecv, false);
+       udpStack = new UdpStack(0, 0, false, "", "", 0, -1 , -1 , sendrecv, false);
 
        memset(&message, 0, sizeof(message));
        message1.action = (actionT)Register;

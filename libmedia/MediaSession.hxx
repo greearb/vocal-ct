@@ -53,7 +53,7 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MediaSession.hxx,v 1.6 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
@@ -90,6 +90,7 @@ public:
     */
    MediaSession(int sessionId,
                 Sptr<NetworkRes> localRes,
+                uint16 tos, uint32 priority,
                 const string& local_dev_to_bind_to,
                 const char* debug);
 
@@ -189,6 +190,8 @@ private:
    ///
    u_int32_t mySSRC;
    string localDevToBindTo;
+   uint16 _tos;
+   uint32 _skb_priority;
 };
 
 

@@ -53,7 +53,7 @@
 
 
 static const char* const Socket_hxx_Version = 
-    "$Id: Socket.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: Socket.hxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "TransportCommon.hxx"
@@ -61,6 +61,7 @@ static const char* const Socket_hxx_Version =
 #include "AddressFamily.hxx"
 #include "SocketType.hxx"
 #include "SystemException.hxx"
+#include "misc.hxx"
 #include <string>
 
 
@@ -93,119 +94,115 @@ class SocketType;
  *  @see    Vocal::SystemException
  *  @see    Vocal::IO::file_descriptor_t
  */
-class Socket : public Vocal::IO::FileDescriptor
-{
-    protected:
+class Socket : public Vocal::IO::FileDescriptor {
+protected:
 
 
-    	/** Construct given the AddressFamily, SocketType, the optional
-	 *  name, and an optional already existing native file descriptor.
-	 *  This will create the socket and bind the socket to the next
-	 *  available port.
-	 *
-	 *  @exception	Vocal::SystemException
-	 */
-    	Socket(
-	    const AddressFamily     & 	addressFamily,
-	    const SocketType 	    &	sockType,
-	    const char      	    * 	name = 0,
-	    IO::file_descriptor_t   	fd = INVALID
-	)
-    	throw ( Vocal::SystemException );
+   /** Construct given the AddressFamily, SocketType, the optional
+    *  name, and an optional already existing native file descriptor.
+    *  This will create the socket and bind the socket to the next
+    *  available port.
+    *
+    *  @exception	Vocal::SystemException
+    */
+   Socket(uint16 tos, uint32 priority,
+          const AddressFamily& addressFamily,
+          const SocketType& sockType, const char* name = 0,
+          IO::file_descriptor_t fd = INVALID)
+      throw ( Vocal::SystemException );
 
 
-    	/** Construct given the local transport address, the SocketType
-	 *  and the optional socket name. The socket will be created and
-	 *  it will be bound to the local transport address.
-	 *
-	 *  @exception	Vocal::SystemException
-	 */
-    	Socket(
-	    const TransportAddress  & 	localAddr,
-	    const SocketType 	    & 	sockType,
-	    const char      	    * 	name = 0
-	)
-	throw ( Vocal::SystemException );
-
-    public:
+   /** Construct given the local transport address, the SocketType
+    *  and the optional socket name. The socket will be created and
+    *  it will be bound to the local transport address.
+    *
+    *  @exception	Vocal::SystemException
+    */
+   Socket(uint16 tos, uint32 priority,
+          const TransportAddress& localAddr,
+          const SocketType& sockType,
+          const char* name = 0)
+      throw ( Vocal::SystemException );
+   
+public:
     					
-    	/** Virtual destructor.
-	 */
-	virtual ~Socket();
+   /** Virtual destructor.
+    */
+   virtual ~Socket();
 
 
-    	/** Returns the local address to which the socket is bound.
-	 */
-    	const 	TransportAddress &  	getLocalAddress() const;
+   /** Returns the local address to which the socket is bound.
+    */
+   const TransportAddress& getLocalAddress() const;
 
 
-    	/** Returns the address family of the socket.
-	 */
-	const	AddressFamily &     	getAddressFamily() const;
+   /** Returns the address family of the socket.
+    */
+   const AddressFamily& getAddressFamily() const;
 
 
-    	/** Returns the socket type.
-	 */
-    	const	SocketType &	    	getSocketType() const;    
+   /** Returns the socket type.
+    */
+   const SocketType& getSocketType() const;    
+   
+
+   /** Returns the number of bytes sent on this socket.
+    */
+   unsigned long bytesSent() const;
+   
+
+   /** Returns the number of bytes received on this socket.
+    */
+   unsigned long bytesReceived() const;
 
 
-    	/** Returns the number of bytes sent on this socket.
-	 */
-    	unsigned long	    	    	bytesSent() const;
-
-
-    	/** Returns the number of bytes received on this socket.
-	 */
-	unsigned long	    	    	bytesReceived() const;
-
-
-    	/** Write this Socket to an ostream.
-	 */
-	virtual ostream &           	writeTo(ostream &) const;
+   /** Write this Socket to an ostream.
+    */
+   virtual ostream& writeTo(ostream &) const;
     
 
-    protected:
+protected:
 
 
-    	/** The local address this socket is bound to.
-	 */
-    	TransportAddress    	    *	localAddr_;
+   /** The local address this socket is bound to.
+    */
+   TransportAddress* localAddr_;
 
 
-    	/** The addressFamily of this socket.
-	 */
-	AddressFamily	    	    	addressFamily_;
+   /** The addressFamily of this socket.
+    */
+   AddressFamily addressFamily_;
 
 
-    	/** The socket type.
-	 */
-	SocketType  	    	    	socketType_;
+   /** The socket type.
+    */
+   SocketType socketType_;
 
 
-    	/** The number of bytes sent.
-	 */
-	unsigned long	    	    	totalBytesSent_;
+   /** The number of bytes sent.
+    */
+   unsigned long totalBytesSent_;
 
 
-    	/** The number of bytes received.
-	 */
-	unsigned long	    	    	totalBytesReceived_;
+   /** The number of bytes received.
+    */
+   unsigned long totalBytesReceived_;
 
 
-    	/** The name of the socket.
-	 */
-    	string	    	    	    	name_;
+   /** The name of the socket.
+    */
+   string name_;
 
-    private:
+private:
 
-    	/** Copying is suppressed.
-	 */
-	Socket(const Socket &);
+   /** Copying is suppressed.
+    */
+   Socket(const Socket &);
 	
 
-    	/** Copying is suppressed.
-	 */
-    	Socket &    	    	    	operator=(const Socket &);					
+   /** Copying is suppressed.
+    */
+   Socket& operator=(const Socket &);					
 };
 
 

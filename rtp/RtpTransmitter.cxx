@@ -49,7 +49,7 @@
  */
 
 static const char* const RtpTransmitter_cxx_Version =
-    "$Id: RtpTransmitter.cxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtpTransmitter.cxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -83,7 +83,8 @@ static const char* const RtpTransmitter_cxx_Version =
 /* --- RtpTransmitter Constructor ---------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpTransmitter::RtpTransmitter (const string& local_ip,
+RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
+                                const string& local_ip,
                                 const string& local_dev_to_bind_to,
                                 const char* remoteHost,
                                 int remoteMinPort, int remoteMaxPort,
@@ -100,19 +101,20 @@ RtpTransmitter::RtpTransmitter (const string& local_ip,
     // TODO:  deal with that???
 
     if(  receiver ) {
-        myStack = receiver->getUdpStack();
-        myStack->setDestination(&remoteAddr);
+       myStack = receiver->getUdpStack();
+       myStack->setDestination(&remoteAddr);
     }
     else {
-        myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
-                                &remoteAddr, remoteMinPort,
-                                remoteMaxPort, sendonly) ;
+       myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+                               &remoteAddr, remoteMinPort,
+                               remoteMaxPort, sendonly) ;
     }
     constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
 }
 
 
-RtpTransmitter::RtpTransmitter (const string& local_ip,
+RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
+                                const string& local_ip,
                                 const string& local_dev_to_bind_to,
                                 const char* remoteHost, int remotePort,
                                 RtpPayloadType _format, int clockrate,
@@ -129,7 +131,7 @@ RtpTransmitter::RtpTransmitter (const string& local_ip,
       myStack->setDestination(&remoteAddr);
    }
    else {
-      myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
+      myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
                               &remoteAddr, remotePort,
                               remotePort, sendonly) ;
    }

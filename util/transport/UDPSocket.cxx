@@ -50,7 +50,7 @@
 
 
 static const char* const UDPSocket_cxx_Version = 
-    "$Id: UDPSocket.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: UDPSocket.cxx,v 1.3 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "global.h"
@@ -64,27 +64,25 @@ using Vocal::Transport::IPAddress;
 using Vocal::Transport::AddressFamily;
 
 
-UDPSocket::UDPSocket(const char * name)
+UDPSocket::UDPSocket(uint16 tos, uint32 priority, const char * name)
     throw ( Vocal::SystemException )
-    :	DatagramSocket(AddressFamily(AF_INET), (name ? name : "UDP"))
+      :	DatagramSocket(tos, priority, AddressFamily(AF_INET), (name ? name : "UDP"))
 {
 }
 
 
-UDPSocket::UDPSocket(IPAddress & localAddr, const char * name)
+UDPSocket::UDPSocket(uint16 tos, uint32 priority, IPAddress& localAddr, const char* name)
     throw ( Vocal::SystemException )
-    :	DatagramSocket(localAddr, (name ? name : "UDP"))
+      :	DatagramSocket(tos, priority, localAddr, (name ? name : "UDP"))
 {
 }
 
 
-UDPSocket::UDPSocket(
-    IPAddress 	    	&   localAddr, 
-    IPAddress 	    	&   remoteAddr, 
-    const char      	*   name
+UDPSocket::UDPSocket(uint16 tos, uint32 priority,
+                     IPAddress& localAddr, IPAddress& remoteAddr, const char* name
 )
     throw ( Vocal::SystemException )
-    :	DatagramSocket(localAddr, remoteAddr, (name ? name : "UDP"))
+      :	DatagramSocket(tos, priority, localAddr, remoteAddr, (name ? name : "UDP"))
 {
 }
 

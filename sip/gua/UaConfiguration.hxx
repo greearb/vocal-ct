@@ -52,7 +52,7 @@
  */
 
 static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UaConfiguration.hxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
 
 #include <string>
 #include <list>
@@ -111,6 +111,8 @@ typedef enum
     G726_40PrioTag, // SDP priority
     G729aPrioTag,   // SDP priority
     ForceIPv6Tag,
+    IP_TOS_TAG,
+    PKT_PRIORITY_TAG,
     UaConfigurationTagMax
 } UaConfigurationTags;
 

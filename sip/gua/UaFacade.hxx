@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.6 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "global.h"
@@ -176,7 +176,8 @@ private:
    /** Create the Instance of UaFacade, to wrap up the application wide
     *  sipStack .
     */
-   UaFacade(const Data& applName, const string& _localIp,
+   UaFacade(const Data& applName, uint16 tos, uint32 priority,
+            const string& _localIp,
             unsigned short _localSipPort, const string& _natIp,
             int _transport, const NetworkAddress& proxyAddr,
             bool filteron, bool nat);

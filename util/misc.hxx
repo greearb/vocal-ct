@@ -100,6 +100,10 @@ string itoa(int i);
 string itoa(unsigned long);
 string itoa(uint16 i);
 
+/* Returns actual priority that was set, or < 0 on error */
+int vsetPriorityHelper(int sk, uint32 prio);
+int vsetTosHelper(int sk, uint16 tos);
+
 //void vusleep(int milliseconds);
 
 

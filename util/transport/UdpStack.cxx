@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.9 2004/12/11 08:30:12 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.10 2005/03/03 19:59:50 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -181,7 +181,8 @@ typedef unsigned int  uintptr_t;
 
 static const char separator[7] = "\n****\n";
 
-UdpStack::UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socket? */
+UdpStack::UdpStack ( uint16 tos, uint32 priority,
+                     bool isBlocking, /* Are we a blocking or non-blocking socket? */
                      const string& local_ip,
                      const string& device_to_bind_to,
                      const NetworkAddress* desHost
@@ -208,193 +209,200 @@ UdpStack::UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socke
 	blockingFlg(true),
         localDev(device_to_bind_to)
 {
-    initTransport(); // Does magic on winders, it seems.
-    data = new UdpStackPrivateData();
+   _tos = tos;
+   _skb_priority = priority;
 
-    mode = udpMode;
+   initTransport(); // Does magic on winders, it seems.
+   data = new UdpStackPrivateData();
 
-    data->socketFd = socket(NetworkConfig::instance().getAddrFamily(), SOCK_DGRAM, IPPROTO_UDP);
-    cpLog (LOG_DEBUG_STACK, "UdpStack socketFd = %d", data->socketFd);
-    if ( data->socketFd < 0 ) {
-       // Clean up memory before we throw the exception.
-       delete data;
-       data = NULL;
+   mode = udpMode;
 
+   data->socketFd = socket(NetworkConfig::instance().getAddrFamily(), SOCK_DGRAM, IPPROTO_UDP);
+   cpLog (LOG_DEBUG_STACK, "UdpStack socketFd = %d", data->socketFd);
+   if ( data->socketFd < 0 ) {
+      // Clean up memory before we throw the exception.
+      delete data;
+      data = NULL;
+      
 #if !defined(WIN32)
-        int err = errno;
-        strstream errMsg;
-        errMsg << "UdpStack::::UdpStack error during socket creation:";
-        errMsg << "Reason " << strerror(err) << ends;
-
-        cpLog(LOG_ERR,  errMsg.str());
-        throw UdpStackException(errMsg.str());
+      int err = errno;
+      strstream errMsg;
+      errMsg << "UdpStack::::UdpStack error during socket creation:";
+      errMsg << "Reason " << strerror(err) << ends;
+      
+      cpLog(LOG_ERR,  errMsg.str());
+      throw UdpStackException(errMsg.str());
 #else
-		int err = WSAGetLastError();
-		cpLog(LOG_ERR, "UdpStack: socket failed: %d", err);
-		assert(0);
+      int err = WSAGetLastError();
+      cpLog(LOG_ERR, "UdpStack: socket failed: %d", err);
+      assert(0);
 #endif
-    }
-
-    int buf1 = 1;
-    int len1 = sizeof(buf1);
-
-
-    int rcvbuf = 0;
-    int rcvbufnew = 240 * 1024;
-    int rcvbufnewlen = sizeof(rcvbufnew);
-    int sndbuf = 0;
-    unsigned int rcvbuflen = 1;
-    unsigned int sndbuflen = 1;
-
+   }
+   
+   int buf1 = 1;
+   int len1 = sizeof(buf1);
+   
+   
+   int rcvbuf = 0;
+   int rcvbufnew = 240 * 1024;
+   int rcvbufnewlen = sizeof(rcvbufnew);
+   int sndbuf = 0;
+   unsigned int rcvbuflen = 1;
+   unsigned int sndbuflen = 1;
+   
 #ifdef __linux__
-    struct protoent * protoent;
-    protoent = getprotobyname("icmp");
+   struct protoent * protoent;
+   protoent = getprotobyname("icmp");
 
-    if (!protoent) {
-        fprintf(stderr, "Cannot get icmp protocol\n");
-    }
-    else {
-        if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
-                       (char*)&buf1, len1) < 0) {
-           fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
-                   strerror(errno));
-        }
-
-        if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
-                       (int *)&rcvbufnew, rcvbufnewlen) < 0) {
-            fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
-                    strerror(errno));
-        }
-
-        if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
-                       (int*)&rcvbuf, &rcvbuflen) < 0) {
-            fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
-                    strerror(errno));
-        }
-        else {
-            cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
-        }
-        if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
-                       (int*)&sndbuf, &sndbuflen) < 0) {
-            fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
-                    strerror(errno));
-        }
-        else {
-            cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
-        }
-    }
+   // Set ToS and Priority
+   vsetPriorityHelper(data->socketFd, _skb_priority);
+   vsetTosHelper(data->socketFd, _tos);
+   
+   if (!protoent) {
+      fprintf(stderr, "Cannot get icmp protocol\n");
+   }
+   else {
+      if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
+                     (char*)&buf1, len1) < 0) {
+         fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
+                 strerror(errno));
+      }
+      
+      if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
+                     (int *)&rcvbufnew, rcvbufnewlen) < 0) {
+         fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
+                 strerror(errno));
+      }
+      
+      if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
+                     (int*)&rcvbuf, &rcvbuflen) < 0) {
+         fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
+                 strerror(errno));
+      }
+      else {
+         cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
+      }
+      if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
+                     (int*)&sndbuf, &sndbuflen) < 0) {
+         fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
+                 strerror(errno));
+      }
+      else {
+         cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
+      }
+   }
 
 #endif
-
-    if (isMulticast) {
-        // set option to get rid of the "Address already in use" error
-        if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEADDR,
-                       (char*)&buf1, len1) < 0) {
-           fprintf(stderr, "setsockopt error SO_REUSEADDR :%s",
-                   strerror(errno));
-        }
-
+   
+   if (isMulticast) {
+      // set option to get rid of the "Address already in use" error
+      if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEADDR,
+                     (char*)&buf1, len1) < 0) {
+         fprintf(stderr, "setsockopt error SO_REUSEADDR :%s",
+                 strerror(errno));
+      }
+      
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__FreeBSD__)
-
-        if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEPORT,
-                       (char*)&buf1, len1) < 0) {
-            fprintf(stderr, "setsockopt error SO_REUSEPORT :%s",
-                    strerror(errno));
-        }
-
+      
+      if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEPORT,
+                     (char*)&buf1, len1) < 0) {
+         fprintf(stderr, "setsockopt error SO_REUSEPORT :%s",
+                 strerror(errno));
+      }
+      
 #endif
-
+      
+   }
+   
+   setModeBlocking(isBlocking);
+   
+   switch (mode) {
+    case inactive : {
+       cpLog(LOG_INFO, "Udp stack is inactive");
+       cpLog(LOG_ERR, "desHost is saved for future use.");
+       doClient(desHost);
+       break;
     }
-
-    setModeBlocking(isBlocking);
-
-    switch (mode) {
-        case inactive : {
-            cpLog(LOG_INFO, "Udp stack is inactive");
-            cpLog(LOG_ERR, "desHost is saved for future use.");
-            doClient(desHost);
-        }
-        break;
-        case sendonly : {
-            if ( desHost ) {
-                // set the remote address
-                doClient(desHost);
-            }
-            else {
-                cpLog(LOG_DEBUG_STACK, "sendonly Udp stack, desHost is needed by using setDestination()");
-            }
-            break;
-        }
-        case recvonly : {
-            if ( desHost ) {
-                cpLog(LOG_ERR,
-                      "recvonly Udp stack, desHost is saved for future use.");
-                doClient(desHost);
-            }
-            else {
-                // only receive, do bind socket to local port
-                doServer(minPort, maxPort);
-            }
-            break;
-        }
-        case sendrecv : {
-            if ( desHost ) {
-                // receive and send,
-                // bind the socket to local port and set the remote address
-                doServer(minPort, maxPort);
-                doClient(desHost);
-            }
-            else {
-                // only receive, do bind socket to local port
-                doServer(minPort, maxPort);
-                cpLog(LOG_DEBUG_STACK, "sendrecv Udp stack, desHost is needed by using setDestination()");
-            }
-            break;
-        }
-        default :
-        cpLog(LOG_ERR, "undefined mode for udp stack");
-        break;
+    case sendonly : {
+       if ( desHost ) {
+          // set the remote address
+          doClient(desHost);
+       }
+       else {
+          cpLog(LOG_DEBUG_STACK, "sendonly Udp stack, desHost is needed by using setDestination()");
+       }
+       break;
     }
+    case recvonly : {
+       if ( desHost ) {
+          cpLog(LOG_ERR,
+                "recvonly Udp stack, desHost is saved for future use.");
+          doClient(desHost);
+       }
+       else {
+          // only receive, do bind socket to local port
+          doServer(minPort, maxPort);
+       }
+       break;
+    }
+    case sendrecv : {
+       if ( desHost ) {
+          // receive and send,
+          // bind the socket to local port and set the remote address
+          doServer(minPort, maxPort);
+          doClient(desHost);
+       }
+       else {
+          // only receive, do bind socket to local port
+          doServer(minPort, maxPort);
+          cpLog(LOG_DEBUG_STACK, "sendrecv Udp stack, desHost is needed by using setDestination()");
+       }
+       break;
+    }
+    default :
+       cpLog(LOG_ERR, "undefined mode for udp stack");
+       break;
+   }//switch
 
 
 // This is totally busted, need to set the file name somewhere!!
 #if 0
-    if (logFlag) {
-       strstream logFileNameRcv;
-       strstream logFileNameSnd;
-
-        in_log = new ofstream(logFileNameRcv.str(), ios::app);
-        if (!in_log) {
-           cerr << "Cannot open file "
-                << logFileNameRcv.str() << endl;
-           logFileNameRcv.freeze(false);
-           logFlag = false;
-        }
-        else {
-           in_log->write ("UdpRcv\n", 7);
-           strstream lcPort;
-           lcPort << "localPort: " << getTxPort() << "\n" << char(0);
-           in_log->write(lcPort.str(), strlen(lcPort.str()));
-           lcPort.freeze(false);
-           logFileNameRcv.freeze(false);
-           rcvCount = 0;
-        }
-
-        out_log = new ofstream(logFileNameSnd.str(), ios::app);
-        if (!out_log) {
-           cerr << "Cannot open file "
-                << logFileNameSnd.str() << endl;
-           logFileNameSnd.freeze(false);
-           logFlag = false;
-        }
-        else {
-           if (! logFlag)
-              logFlag = true;
-           out_log->write ("UdpSnd\n", 7);
-           logFileNameSnd.freeze(false);
-           sndCount = 0;
-        }
-    }
+   if (logFlag) {
+      strstream logFileNameRcv;
+      strstream logFileNameSnd;
+      
+      in_log = new ofstream(logFileNameRcv.str(), ios::app);
+      if (!in_log) {
+         cerr << "Cannot open file "
+              << logFileNameRcv.str() << endl;
+         logFileNameRcv.freeze(false);
+         logFlag = false;
+      }
+      else {
+         in_log->write ("UdpRcv\n", 7);
+         strstream lcPort;
+         lcPort << "localPort: " << getTxPort() << "\n" << char(0);
+         in_log->write(lcPort.str(), strlen(lcPort.str()));
+         lcPort.freeze(false);
+         logFileNameRcv.freeze(false);
+         rcvCount = 0;
+      }
+      
+      out_log = new ofstream(logFileNameSnd.str(), ios::app);
+      if (!out_log) {
+         cerr << "Cannot open file "
+              << logFileNameSnd.str() << endl;
+         logFileNameSnd.freeze(false);
+         logFlag = false;
+      }
+      else {
+         if (! logFlag)
+            logFlag = true;
+         out_log->write ("UdpSnd\n", 7);
+         logFileNameSnd.freeze(false);
+         sndCount = 0;
+      }
+   }
 #endif
 }
 

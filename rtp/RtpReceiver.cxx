@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.7 2004/11/19 01:54:38 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "global.h"
@@ -91,7 +91,7 @@ static NtpTime nowTime, pastTime;
 /* --- RtpReceiver Constructor ------------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpReceiver::RtpReceiver (const string& local_ip,
+RtpReceiver::RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localMinPort, int localMaxPort,
                           RtpPayloadType _format, int _clockrate,
@@ -99,24 +99,26 @@ RtpReceiver::RtpReceiver (const string& local_ip,
       : tmpPkt(1024)
 {
     /// udp stack is a sendrecv stack
-    myStack = new UdpStack (false, local_ip, local_dev_to_bind_to,
-                            NULL, localMinPort, localMaxPort) ;
+   myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+                           NULL, localMinPort, localMaxPort) ;
 
-    constructRtpReceiver (_format, _clockrate, per_sample_size,
-                          samplesize);
+   constructRtpReceiver (_format, _clockrate, per_sample_size,
+                         samplesize);
 }
 
-RtpReceiver::RtpReceiver (const string& local_ip,
+RtpReceiver::RtpReceiver (uint16 tos, uint32 priority,
+                          const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localPort, RtpPayloadType _format,
                           int _clockrate, int per_sample_size,
                           int samplesize)
       : tmpPkt(1024)
 {
-    /// udp stack is a sendrecv stack
-    myStack = new UdpStack (false, local_ip, local_dev_to_bind_to, NULL, localPort) ;
+   /// udp stack is a sendrecv stack
+   myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+                           NULL, localPort) ;
 
-    constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
+   constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
 }
 
 RtpReceiver::RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
@@ -124,10 +126,10 @@ RtpReceiver::RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
                           int samplesize)
       : tmpPkt(1024)
 {
-    /// udp stack is a sendrecv stack
-    myStack = udp;
+   /// udp stack is a sendrecv stack
+   myStack = udp;
     
-    constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
+   constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize);
 }
 
 

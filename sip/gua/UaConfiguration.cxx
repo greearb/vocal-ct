@@ -49,7 +49,7 @@
  */
 
 static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UaConfiguration.cxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -124,6 +124,8 @@ static const char* UaConfigurationTagString [] =
         "G726_40Prio",
         "G729aPrio",
         "Force_IPv6",
+        "IP_TOS",
+        "PKT_PRIORITY",
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -186,6 +188,8 @@ UaConfiguration::parseConfig()
     setValue(G726_40PrioTag, "0");
     setValue(G729aPrioTag, "0");
     setValue(ForceIPv6Tag, "false");
+    setValue(IP_TOS_TAG, "0");
+    setValue(PKT_PRIORITY_TAG, "0");
 
     if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) )
     {
@@ -258,7 +262,9 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "       G726_32 Priority: %s", getValue(G726_32PrioTag).c_str());
     cpLog( LOG_INFO, "       G726_40 Priority: %s", getValue(G726_40PrioTag).c_str());
     cpLog( LOG_INFO, "       G729a Priority: %s", getValue(G729aPrioTag).c_str());
-    cpLog( LOG_INFO, "       Force IPv6: %s", getValue(ForceIPv6Tag).c_str());
+    cpLog( LOG_INFO, "       Force IPv6:   %s", getValue(ForceIPv6Tag).c_str());
+    cpLog( LOG_INFO, "       IP_TOS:       %s", getValue(IP_TOS_TAG).c_str());
+    cpLog( LOG_INFO, "       PKT_PRIORITY: %s", getValue(PKT_PRIORITY_TAG).c_str());
 
 
     cpLog( LOG_INFO, "\n\n");

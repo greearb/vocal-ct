@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
 
 
 
@@ -136,7 +136,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     **/
-   RtpSession (const string& local_ip,
+   RtpSession (uint16 tos, uint32 priority, const string& local_ip,
                const string& local_dev_to_bind_to,
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort,
@@ -148,7 +148,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     **/
-   RtpSession (const string& local_ip,
+   RtpSession (uint16 tos, uint32 priority, const string& local_ip,
                const string& local_dev_to_bind_to,
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort, int portRange,
@@ -158,7 +158,8 @@ public:
    /** consturctor init (don't call this function)
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   void constructRtpSession (const string& local_ip,
+   void constructRtpSession (uint16 tos, uint32 priority,
+                             const string& local_ip,
                              const string& local_dev_to_bind_to,
                              const char* remoteHost, int remotePort,
                              int localPort, int rtcpRemotePort, int rtcpLocalPort,
@@ -172,7 +173,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int reserveRtpPort(const string& local_ip,
+   int reserveRtpPort(uint16 tos, uint32 priority, const string& local_ip,
                       const string& local_dev_to_bind_to,
                       int localMin = -1, int localMax = -1);
    /// release the rtp port
@@ -182,7 +183,8 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int reserveRtcpPort(const string& local_ip, const string& local_dev_to_bind_to,
+   int reserveRtcpPort(uint16 tos, uint32 priority,
+                       const string& local_ip, const string& local_dev_to_bind_to,
                        int localPort, int portRange = 0);
    /// release the rtcp port
    int releaseRtcpPort();
@@ -200,21 +202,23 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int setReceiver ( const string& local_ip,
-                     const string& local_dev_to_bind_to,
-                     int localMinPort, int rtcpLocalPort, int portRange,
-                     RtpPayloadType format, int clockrate, int per_sample_size,
-                     int samplesize);
+   int setReceiver (uint16 tos, uint32 priority,
+                    const string& local_ip,
+                    const string& local_dev_to_bind_to,
+                    int localMinPort, int rtcpLocalPort, int portRange,
+                    RtpPayloadType format, int clockrate, int per_sample_size,
+                    int samplesize);
 
    /** set transmitters
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int setTransmiter ( const string& local_ip,
-                       const string& local_dev_to_bind_to,
-                       const char* remoteHost, int remotePort,
-                       int rtcpRemotePort, RtpPayloadType format,
-                       int clockrate, int per_sample_size, int samplesize);
+   int setTransmiter (uint16 tos, uint32 priority,
+                      const string& local_ip,
+                      const string& local_dev_to_bind_to,
+                      const char* remoteHost, int remotePort,
+                      int rtcpRemotePort, RtpPayloadType format,
+                      int clockrate, int per_sample_size, int samplesize);
 
    ///
    void setFormat (RtpPayloadType type, int clockrate, int per_sample_size,

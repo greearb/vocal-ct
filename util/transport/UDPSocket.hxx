@@ -53,7 +53,7 @@
 
 
 static const char* const UDPSocket_hxx_Version = 
-    "$Id: UDPSocket.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: UDPSocket.hxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "DatagramSocket.hxx"
@@ -85,49 +85,45 @@ class IPAddress;
  *  @see    Vocal::Transport::TransportAddress
  *  @see    Vocal::SystemException
  */
-class UDPSocket : public Vocal::Transport::DatagramSocket
-{
-
-    public:
-
-
-    	/** Default construct with a optional name.
-	 */
-    	UDPSocket(const char * name = 0)
-    	    throw ( Vocal::SystemException );
+class UDPSocket : public Vocal::Transport::DatagramSocket {
+   
+public:
 
 
-    	/** Construct, binding to the given local address and
-	 *  with a optional name.
-	 */
-    	UDPSocket(
-	    IPAddress 	    &   localAddr, 
-	    const char      *   name = 0
-	)
-    	    throw ( Vocal::SystemException );
+   /** Default construct with a optional name.
+    */
+   UDPSocket(uint16 tos, uint32 priority, const char * name = 0)
+      throw ( Vocal::SystemException );
 
 
-    	/** Construct, binding to the given local address,
-	 *  connecting to the remote address and with a optional name.
-	 */
-    	UDPSocket(
-	    IPAddress 	    &   localAddr, 
-    	    IPAddress 	    &   remoteAddr,
-    	    const char      *   name = 0
-	)
-    	    throw ( Vocal::SystemException );
+   /** Construct, binding to the given local address and
+    *  with a optional name.
+    */
+   UDPSocket(uint16 tos, uint32 priority,
+             IPAddress& localAddr, 
+             const char* name = 0)
+      throw ( Vocal::SystemException );
+
+
+   /** Construct, binding to the given local address,
+    *  connecting to the remote address and with a optional name.
+    */
+   UDPSocket(uint16 tos, uint32 priority,
+             IPAddress& localAddr, IPAddress& remoteAddr,
+             const char* name = 0)
+      throw ( Vocal::SystemException );
     					
 
-    	/** Virtual destructor.
-	 */
-	virtual     	~UDPSocket();
+   /** Virtual destructor.
+    */
+   virtual ~UDPSocket();
 
 
 
-    	/** If connected, this will return a pointer to the remote ip address.
-	 *  Otherwise 0 will be returned.
-    	 */
-	Sptr<IPAddress>     getRemoteIPAddress() const;
+   /** If connected, this will return a pointer to the remote ip address.
+    *  Otherwise 0 will be returned.
+    */
+   Sptr<IPAddress> getRemoteIPAddress() const;
 };
 
 

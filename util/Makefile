@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2004/12/07 19:54:45 greear Exp $
+# $Id: Makefile,v 1.8 2005/03/03 19:59:49 greear Exp $
 
 BUILD = ../build
 
@@ -124,15 +124,6 @@ SRC += \
         transport/Socket.cxx \
         transport/SocketOptions.cxx \
         transport/SocketType.cxx \
-        transport/StreamClientSocket.cxx \
-        transport/StreamServerSocket.cxx \
-        transport/TCPClientSocket.cxx \
-        transport/TCPServerProtocol.cxx \
-        transport/TCPServerSocket.cxx \
-        transport/TPKTClientProtocol.cxx \
-        transport/TPKTClientSocket.cxx \
-        transport/TPKTServerProtocol.cxx \
-        transport/TPKTServerSocket.cxx \
         transport/Tcp_ClientSocket.cxx \
         transport/Tcp_ServerSocket.cxx \
         transport/TlsConnection.cxx \
@@ -142,6 +133,15 @@ SRC += \
         transport/vsock.cxx \
 	FileStackLock.cxx
 
+#        transport/TCPClientSocket.cxx \
+#        transport/TCPServerProtocol.cxx \
+#        transport/TCPServerSocket.cxx \
+#        transport/TPKTClientProtocol.cxx \
+#        transport/TPKTClientSocket.cxx \
+#        transport/TPKTServerProtocol.cxx \
+#        transport/TPKTServerSocket.cxx \
+#        transport/StreamClientSocket.cxx \
+#        transport/StreamServerSocket.cxx \
 
 ifeq ($(USE_YARROW),1)
 SRC += 	\
@@ -226,15 +226,8 @@ transport/SocketType.hxx \
 transport/StreamClientSocket.hxx \
 transport/StreamServerSocket.hxx \
 transport/Tcp_ClientSocket.hxx \
-transport/TCPClientSocket.hxx \
-transport/TCPServerProtocol.hxx \
 transport/Tcp_ServerSocket.hxx \
-transport/TCPServerSocket.hxx \
 transport/TlsConnection.hxx \
-transport/TPKTClientProtocol.hxx \
-transport/TPKTClientSocket.hxx \
-transport/TPKTServerProtocol.hxx \
-transport/TPKTServerSocket.hxx \
 transport/TransportAddress.hxx \
 transport/TransportCommon.hxx \
 transport/UDPSocket.hxx \
@@ -243,5 +236,12 @@ transport/VNetworkException.hxx \
 transport/vsock.hxx \
 transport/W32McastCfg.hxx 
  
+#transport/TCPClientSocket.hxx \
+#transport/TCPServerProtocol.hxx \
+#transport/TCPServerSocket.hxx \
+#transport/TPKTClientProtocol.hxx \
+#transport/TPKTClientSocket.hxx \
+#transport/TPKTServerProtocol.hxx \
+#transport/TPKTServerSocket.hxx \
 
 include $(BUILD)/Makefile.post

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.6 2004/11/19 01:54:38 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "global.h"
@@ -86,17 +86,20 @@ static const char* const RtcpReceiver_cxx_Version =
 /* --- rtpcReceiver Constructor ------------------------------------ */
 /* ----------------------------------------------------------------- */
 
-RtcpReceiver::RtcpReceiver (const string& local_ip, const string& local_dev_to_bind_to,
+RtcpReceiver::RtcpReceiver (uint16 tos, uint32 priority,
+                            const string& local_ip, const string& local_dev_to_bind_to,
                             int localMinPort, int localMaxPort) {
-   myStack = new UdpStack(false, local_ip, local_dev_to_bind_to, NULL,
+   myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to, NULL,
                           localMinPort, localMaxPort);
 
    constructRtcpReceiver();
 }
 
-RtcpReceiver::RtcpReceiver (const string& local_ip, const string& local_dev_to_bind_to,
+RtcpReceiver::RtcpReceiver (uint16 tos, uint32 priority,
+                            const string& local_ip, const string& local_dev_to_bind_to,
                             int localPort) {
-   myStack = new UdpStack(false, local_ip, local_dev_to_bind_to, NULL, localPort) ;
+   myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+                          NULL, localPort) ;
 
    constructRtcpReceiver();
 }

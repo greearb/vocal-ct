@@ -50,7 +50,7 @@
 
 
 static const char* const DatagramSocket_cxx_Version = 
-    "$Id: DatagramSocket.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: DatagramSocket.cxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "global.h"
@@ -71,12 +71,11 @@ using Vocal::Transport::SocketType;
 using Vocal::Logging::VLog;
 
 
-DatagramSocket::DatagramSocket(
-    const AddressFamily     	&   addressFamily,
-    const char      	    	*   name
-)
+DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
+                               const AddressFamily& addressFamily,
+                               const char* name)
 throw ( Vocal::SystemException )
-    : 	Socket( addressFamily, 
+      : 	Socket( tos, priority, addressFamily, 
     	    	SocketType(SOCK_DGRAM), 
 		(name ? name : "Datagram")),
     	remoteAddr_(0),
@@ -84,29 +83,27 @@ throw ( Vocal::SystemException )
 {
 }
 
-DatagramSocket::DatagramSocket(
-    const TransportAddress  	&   localAddr,
-    const char      	    	*   name
-)
-throw ( Vocal::SystemException )
-    : 	Socket(localAddr, 
-    	    	SocketType(SOCK_DGRAM), 
-		(name ? name : "Datagram")),
+DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
+                               const TransportAddress&   localAddr,
+                               const char*   name)
+   throw ( Vocal::SystemException )
+      : Socket(tos, priority, localAddr, 
+               SocketType(SOCK_DGRAM), 
+               (name ? name : "Datagram")),
     	remoteAddr_(0),
 	localAddrUpdated_(false)
 {
 }
 
 
-DatagramSocket::DatagramSocket(
-    const TransportAddress  	&   localAddr,
-    const TransportAddress  	&   remoteAddr,
-    const char      	    	*   name
-)
-    throw ( Vocal::SystemException )
-    : 	Socket(localAddr, 
-    	    	SocketType(SOCK_DGRAM), 
-		(name ? name : "Datagram")),
+DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
+                               const TransportAddress& localAddr,
+                               const TransportAddress& remoteAddr,
+                               const char* name)
+   throw ( Vocal::SystemException )
+      : Socket(tos, priority, localAddr, 
+               SocketType(SOCK_DGRAM), 
+               (name ? name : "Datagram")),
     	remoteAddr_(0),
 	localAddrUpdated_(false)
 {
@@ -120,32 +117,24 @@ DatagramSocket::~DatagramSocket()
 
 
 void	
-DatagramSocket::connect(
-    const TransportAddress  & 	remoteAddr
-)
-throw ( Vocal::SystemException )
-{
-    const string    fn("DatagramSocket::connect");
-    VLog    	    log(fn);
+DatagramSocket::connect(const TransportAddress& remoteAddr)
+   throw ( Vocal::SystemException ) {
+   const string    fn("DatagramSocket::connect");
+   VLog    	    log(fn);
+   
+   if ( remoteAddr_ == 0 ) {
+      remoteAddr_ = remoteAddr.clone();
+   }
     
-    if ( remoteAddr_ == 0 )
-    {
-        remoteAddr_ = remoteAddr.clone();
-    }
-    
-    if	(   ::connect(fd_, 
-    	    	     remoteAddr_->getAddress(), 
-		     remoteAddr_->getAddressLength()) < SUCCESS
-	)
-    {
-    	throw Vocal::SystemException(fn + " on connect(): " + strerror(errno), 
-	    	    	    	__FILE__, __LINE__, errno);
-    }
+   if (::connect(fd_, remoteAddr_->getAddress(), remoteAddr_->getAddressLength()) < SUCCESS) {
+      throw Vocal::SystemException(fn + " on connect(): " + strerror(errno), 
+                                   __FILE__, __LINE__, errno);
+   }
 
-    VDEBUG(log) << fn << ": fd = " << fd_ 
-    	    	<< " connected to remote address = "
-		<< *remoteAddr_ << VDEBUG_END(log);
-}    
+   VDEBUG(log) << fn << ": fd = " << fd_ 
+               << " connected to remote address = "
+               << *remoteAddr_ << VDEBUG_END(log);
+}
 
 void	
 DatagramSocket::disconnect()

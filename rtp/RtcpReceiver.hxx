@@ -53,7 +53,7 @@
  */
 
 static const char* const RtcpReceiver_hxx_Version =
-    "$Id: RtcpReceiver.hxx,v 1.4 2004/06/16 06:51:25 greear Exp $";
+    "$Id: RtcpReceiver.hxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -77,7 +77,8 @@ public:
        @param local_ip  Local IP to bind to, use "" for system default.
        * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
        **/
-   RtcpReceiver (const string& local_ip, const string& local_dev_to_bind_to,
+   RtcpReceiver (uint16 tos, uint32 priority,
+                 const string& local_ip, const string& local_dev_to_bind_to,
                  int localMinPort, int localMaxPort);
 
    /** Constructor creating incoming RTCP stack using specified port
@@ -85,16 +86,18 @@ public:
        @param local_ip  Local IP to bind to, use "" for system default.
        * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
        **/
-   RtcpReceiver (const string& local_ip, const string& local_dev_to_bind_to,
+   RtcpReceiver (uint16 tos, uint32 priority,
+                 const string& local_ip, const string& local_dev_to_bind_to,
                  int localPort);
+
    /** Constructor, using udp stack ptr **/
    RtcpReceiver (Sptr<UdpStack> udp);
 
    /// consturctor init (don't call this function)
    void constructRtcpReceiver ();
+
    ///
    virtual ~RtcpReceiver ();
-
 
    /** Receives an incoming RTCP packet
     *  @return: <= 0 means failed to read packet.

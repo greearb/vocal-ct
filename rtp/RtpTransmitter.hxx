@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpTransmitter_hxx_Version =
-    "$Id: RtpTransmitter.hxx,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: RtpTransmitter.hxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
 
 #include <sys/types.h>
 #include <map>
@@ -82,7 +82,8 @@ public:
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     * receiver can be NULL.
     */
-   RtpTransmitter (const string& local_ip,
+   RtpTransmitter (uint16 tos, uint32 priority,
+                   const string& local_ip,
                    const string& local_dev_to_bind_to,
                    const char* remoteHost, int remoteMinPort,
                    int remoteMaxPort,
@@ -96,7 +97,8 @@ public:
     * remote port used to default to 5000
     * receiver can be NULL.
     */
-   RtpTransmitter (const string& local_ip,
+   RtpTransmitter (uint16 tos, uint32 priority,
+                   const string& local_ip,
                    const string& local_dev_to_bind_to,
                    const char* remoteHost, int remotePort,
                    RtpPayloadType format, int clockrate,

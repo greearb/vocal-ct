@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.10 2004/11/05 07:25:06 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
 
 
 #include <sys/types.h>
@@ -171,18 +171,31 @@ UaFacade::initialize(const Data& applName,
 
     local_ip = UaConfiguration::instance().getMyLocalIp();
 
+    string tmp = UaConfiguration::instance().getValue(IP_TOS_TAG).c_str();
+    uint16 tos = 0;
+    if (tmp.size()) {
+       tos = atoi(tmp.c_str());
+    }
+
+    tmp = UaConfiguration::instance().getValue(PKT_PRIORITY_TAG).c_str();
+    uint32 priority = 0;
+    if (tmp.size()) {
+       priority = atoi(tmp.c_str());
+    }
+
     if (!NAT_HOST.length()){
        NAT_HOST = local_ip;
     }
     cpLog(LOG_ERR, "About to create UaFacade...\n");
-    myInstance = new UaFacade(applName, local_ip, defaultSipPort,
+    myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
                               NAT_HOST, transport, proxyAddr, filteron, nat);
 }
 
 
 // _localIp is the real local IP to use, ie pick whatever hostname resolves
 //  to even if you are not trying to bind to a specific local interface.
-UaFacade::UaFacade(const Data& applName, const string& _localIp,
+UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
+                   const string& _localIp,
                    unsigned short _localSipPort, const string& _natIp,
                    int _transport, const NetworkAddress& proxyAddr,
                    bool filteron, bool nat) :
@@ -259,7 +272,7 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
             cpLog(LOG_ERR, "Creating SipTransceiver on local_ip: %s:%d, dev: %s\n",
                   cfg_local_ip.c_str(), defaultSipPort, cfg_local_sip_dev.c_str());
             DEBUG_MEM_USAGE("Creating SipTransceiver.");
-            mySipStack = new SipTransceiver(cfg_local_ip, cfg_local_sip_dev,
+            mySipStack = new SipTransceiver(tos, priority, cfg_local_ip, cfg_local_sip_dev,
                                             applName, defaultSipPort, nat,
                                             APP_CONTEXT_GENERIC, false);
             cpLog(LOG_ERR, "Created SipTransceiver...\n");
@@ -334,8 +347,8 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
       priority_map[DTMF_TONE] = 0;
 
       DEBUG_MEM_USAGE("Initializing media controller");
-      MediaController::initialize(cfg_local_ip, cfg_local_rtp_dev, minRtpPort, maxRtpPort,
-                                  priority_map);
+      MediaController::initialize(tos, priority, cfg_local_ip, cfg_local_rtp_dev,
+                                  minRtpPort, maxRtpPort, priority_map);
 
       cpLog(LOG_DEBUG, "Initialized UaFacade");
    }

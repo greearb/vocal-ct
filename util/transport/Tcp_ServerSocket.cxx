@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
 #ifndef __vxworks
 
 
@@ -79,13 +79,16 @@ static const char* const TcpServerSocket_cxx_Version =
 #include "NetworkConfig.hxx"
 
 #define LISTENQ   15
-TcpServerSocket::TcpServerSocket(const string& _local_ip,
+TcpServerSocket::TcpServerSocket(uint16 tos, uint32 priority,
+                                 const string& _local_ip,
                                  const string& local_dev_to_bind_to,
                                  int servPort, bool blocking)
    throw (VNetworkException&)
 {
    _serverConn = new Connection(blocking);
    local_ip = _local_ip;
+   _tos = tos;
+   _skb_priority = priority;
    listenOn(local_ip, local_dev_to_bind_to, servPort);
 }
 
@@ -126,93 +129,61 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
       }
 #endif
 
+      vsetPriorityHelper(_serverConn->_connId, _skb_priority);
+      vsetTosHelper(_serverConn->_connId, _tos);
 
-         // 16/1/04 fpi		  
-         // tbr
-         // todo
-         // Win32 WorkAround
-         // Note: I think this code is not useful,
-         // binding to a specific ip binds on the device
-         // that has the ip assigned
-
-         // It's useful on Linux, but only in limited situations. --Ben
 #ifdef __linux__
-         if (local_dev_to_bind_to.size()) {
-            // Bind to specific device.
-            char dv[15 + 1];
-            strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-            if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
-                           dv, 15 + 1)) {
-               cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                     dv, strerror(errno));
-            }
+      if (local_dev_to_bind_to.size()) {
+         // Bind to specific device.
+         char dv[15 + 1];
+         strncpy(dv, local_dev_to_bind_to.c_str(), 15);
+         if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
+                        dv, 15 + 1)) {
+            cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                  dv, strerror(errno));
          }
+      }
 #endif
 
-        if (::bind(_serverConn->_connId, res->ai_addr, res->ai_addrlen) == 0)
-        {
+      if (::bind(_serverConn->_connId, res->ai_addr, res->ai_addrlen) == 0) {
+         
+         //Success
+         delete []_serverConn->_connAddr;
+         _serverConn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
+         memcpy(_serverConn->_connAddr, res->ai_addr, res->ai_addrlen);
+         
+         char tmp_addr[80];
+         struct sockaddr_in* sin = (struct sockaddr_in*)(res->ai_addr);
+         inet_ntop(res->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
+         tmp_addr[79] = 0;
+         curLocalIp = tmp_addr;
+         
+         cpLog(LOG_INFO, "(%s) TCP server locally bound to %s:%d",
+               (res->ai_family == PF_INET) ? "IPv4" : "IPv6",
+               curLocalIp.c_str(), servPort);
+         break;
+      }
+      
+      close();
+   } while((res = res->ai_next) != NULL);
 
-            //Success
-            delete []_serverConn->_connAddr;
-            _serverConn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-            memcpy(_serverConn->_connAddr, res->ai_addr, res->ai_addrlen);
+   freeaddrinfo(sRes);
+   
+   if (res == NULL) {
+      char buf[256];
+      sprintf(buf, "Failed to initialize TCP server on ip: [%s]:%d, reason: %s",
+              local_ip.c_str(), servPort, strerror(errno));
+      cpLog(LOG_ALERT, "%s", buf);
+      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   }
 
-            char tmp_addr[80];
-            struct sockaddr_in* sin = (struct sockaddr_in*)(res->ai_addr);
-            inet_ntop(res->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
-            tmp_addr[79] = 0;
-            curLocalIp = tmp_addr;
-
-            cpLog(LOG_INFO, "(%s) TCP server locally bound to %s:%d",
-                  (res->ai_family == PF_INET) ? "IPv4" : "IPv6",
-                  curLocalIp.c_str(), servPort);
-            break;
-        }
-
-        close();
-    } while((res = res->ai_next) != NULL);
-
-    freeaddrinfo(sRes);
-
-    if(res == NULL)
-    {
-        char buf[256];
-        sprintf(buf, "Failed to initialize TCP server on ip: [%s]:%d, reason: %s",
-                local_ip.c_str(), servPort, strerror(errno));
-        cpLog(LOG_ALERT, "%s", buf);
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
-
-    if (::listen(_serverConn->_connId, LISTENQ))
-    {
-        char buf[256];
-        sprintf(buf, "listen failed, reason:%s", strerror(errno));
-        cpLog(LOG_ALERT, "%s", buf);
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
+   if (::listen(_serverConn->_connId, LISTENQ)) {
+      char buf[256];
+      sprintf(buf, "listen failed, reason:%s", strerror(errno));
+      cpLog(LOG_ALERT, "%s", buf);
+      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   }
 }
-
-#if 0
-TcpServerSocket::TcpServerSocket(const TcpServerSocket& other)
-{
-    _serverConn = other._serverConn;
-    local_ip = other.local_ip;
-}
-#endif
-
-#if 0
-TcpServerSocket&
-TcpServerSocket::operator=(TcpServerSocket& other)
-{
-
-    if (this != &other)
-    {
-        local_ip = other.local_ip;
-        _serverConn = other._serverConn;
-    }
-    return *this;
-}
-#endif
 
 TcpServerSocket::~TcpServerSocket()
 {
@@ -238,6 +209,10 @@ int TcpServerSocket::acceptNB(Connection& con) {
       }
       cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
       con.setState();
+
+      vsetPriorityHelper(con._connId, _skb_priority);
+      vsetTosHelper(con._connId, _tos);
+
       return con._connId;
    }
    return 0;
@@ -273,6 +248,10 @@ TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
     }
     cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
     con.setState();
+
+    vsetPriorityHelper(con._connId, _skb_priority);
+    vsetTosHelper(con._connId, _tos);
+
     return con._connId;
 }
 

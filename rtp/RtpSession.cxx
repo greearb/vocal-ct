@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.6 2004/11/19 01:54:38 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "global.h"
@@ -76,33 +76,34 @@ static const char* const RtpSession_cxx_Version =
 /* --- rtp session Constructor ------------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpSession::RtpSession (const string& local_ip,
+RtpSession::RtpSession (uint16 tos, uint32 priority, const string& local_ip,
                         const string& local_dev_to_bind_to,
                         const char* remoteHost, int remotePort, int localPort,
                         int rtcpRemotePort, int rtcpLocalPort, int portRange,
                         RtpPayloadType format, int clockrate,
                         int per_sample_size, int samplesize)
 {
-    constructRtpSession (local_ip, local_dev_to_bind_to,
-                         remoteHost, remotePort, localPort, rtcpRemotePort,
-                         rtcpLocalPort, portRange, format,
-                         clockrate, per_sample_size, samplesize);
+   constructRtpSession (tos, priority, local_ip, local_dev_to_bind_to,
+                        remoteHost, remotePort, localPort, rtcpRemotePort,
+                        rtcpLocalPort, portRange, format,
+                        clockrate, per_sample_size, samplesize);
 }
 
-RtpSession::RtpSession (const string& local_ip,
+RtpSession::RtpSession (uint16 tos, uint32 priority, const string& local_ip,
                         const string& local_dev_to_bind_to,
                         const char* remoteHost, int remotePort, int localPort,
                         int rtcpRemotePort, int rtcpLocalPort,
                         RtpPayloadType format, int clockrate, int per_sample_size,
                         int samplesize)
 {
-    constructRtpSession (local_ip, local_dev_to_bind_to,
-                         remoteHost, remotePort, localPort, rtcpRemotePort,
-                         rtcpLocalPort, 0, format, clockrate, per_sample_size,
-                         samplesize);
+   constructRtpSession (tos, priority, local_ip, local_dev_to_bind_to,
+                        remoteHost, remotePort, localPort, rtcpRemotePort,
+                        rtcpLocalPort, 0, format, clockrate, per_sample_size,
+                        samplesize);
 }
 
-void RtpSession::constructRtpSession (const string& local_ip,
+void RtpSession::constructRtpSession (uint16 tos, uint32 priority,
+                                      const string& local_ip,
                                       const string& local_dev_to_bind_to,
                                       const char* remoteHost,
                                       int remotePort, int localPort,
@@ -124,47 +125,46 @@ void RtpSession::constructRtpSession (const string& local_ip,
     if (localPort != 0)
     {
         if (portRange != 0)
-            recv = new RtpReceiver (local_ip, local_dev_to_bind_to,
-                                    localPort, localPort + portRange,
-                                    format, clockrate, per_sample_size, samplesize);
+           recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                   localPort, localPort + portRange,
+                                   format, clockrate, per_sample_size, samplesize);
         else
-            recv = new RtpReceiver (local_ip, local_dev_to_bind_to,
-                                    localPort, format, clockrate, per_sample_size, samplesize);
+           recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                   localPort, format, clockrate, per_sample_size, samplesize);
     }
 
     if (remotePort != 0)
     {
         if (portRange != 0)
-            tran = new RtpTransmitter (local_ip, local_dev_to_bind_to,
-                                       remoteHost, remotePort,
-                                       remotePort + portRange, format,
-                                       clockrate, per_sample_size, samplesize, recv);
+           tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+                                      remoteHost, remotePort,
+                                      remotePort + portRange, format,
+                                      clockrate, per_sample_size, samplesize, recv);
         else
-            tran = new RtpTransmitter (local_ip, local_dev_to_bind_to,
-                                       remoteHost, remotePort, format,
-                                       clockrate, per_sample_size, samplesize, recv);
+           tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+                                      remoteHost, remotePort, format,
+                                      clockrate, per_sample_size, samplesize, recv);
     }
 
     if (rtcpLocalPort != 0)
     {
         if (portRange != 0)
-            rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                         rtcpLocalPort,
-                                         rtcpLocalPort + portRange);
+           rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                        rtcpLocalPort,
+                                        rtcpLocalPort + portRange);
         else
-            rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                         rtcpLocalPort);
+           rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                        rtcpLocalPort);
     }
 
-    if (rtcpRemotePort != 0)
-    {
-        if (portRange != 0)
-            rtcpTran = new RtcpTransmitter (local_ip, local_dev_to_bind_to,
-                                            remoteHost, rtcpRemotePort,
-                                            rtcpRemotePort + portRange, rtcpRecv);
+    if (rtcpRemotePort != 0) {
+       if (portRange != 0)
+          rtcpTran = new RtcpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+                                          remoteHost, rtcpRemotePort,
+                                          rtcpRemotePort + portRange, rtcpRecv);
         else
-            rtcpTran = new RtcpTransmitter (local_ip, local_dev_to_bind_to,
-                                            remoteHost, rtcpRemotePort, rtcpRecv);
+           rtcpTran = new RtcpTransmitter(tos, priority, local_ip, local_dev_to_bind_to,
+                                          remoteHost, rtcpRemotePort, rtcpRecv);
     }
 
 
@@ -247,36 +247,32 @@ RtpSession::~RtpSession ()
     }
 }
 
-int
-RtpSession::reserveRtpPort(const string& local_ip, const string& local_dev_to_bind_to,
-                           int localMin, int localMax)
-{
-    int port = 0;
-
-    if ( recv == 0 )
-    {
-        try
-        {
-            //let RtpReceiver() automatically generate a port number
-            recv = new RtpReceiver(local_ip, local_dev_to_bind_to, localMin, localMax,
-                                   rtpPayloadPCMU, 8000, 1, 160);
-            port = recv->getPort();
-        }
-        catch ( UdpStackExceptionPortsInUse& )
-        {
-            if ( localMin == localMax )
-                cpLog( LOG_ERR, "port %d is not available", localMin );
-            else
-                cpLog( LOG_ERR, "No ports between %d and %d are available", localMin, localMax);
-            recv = 0;
-        }
-    }
-    else
-    {
-        port = recv->getPort();
-    }
-
-    return port;
+int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
+                               const string& local_ip, const string& local_dev_to_bind_to,
+                               int localMin, int localMax) {
+   int port = 0;
+   
+   if ( recv == 0 ) {
+      try {
+         //let RtpReceiver() automatically generate a port number
+         recv = new RtpReceiver(tos, priority, local_ip, local_dev_to_bind_to,
+                                localMin, localMax,
+                                rtpPayloadPCMU, 8000, 1, 160);
+         port = recv->getPort();
+      }
+      catch ( UdpStackExceptionPortsInUse& ) {
+         if ( localMin == localMax )
+            cpLog( LOG_ERR, "port %d is not available", localMin );
+         else
+            cpLog( LOG_ERR, "No ports between %d and %d are available", localMin, localMax);
+         recv = 0;
+      }
+   }
+   else {
+      port = recv->getPort();
+   }
+   
+   return port;
 }
 
 int
@@ -293,43 +289,38 @@ RtpSession::releaseRtpPort()
 }
 
 int
-RtpSession::reserveRtcpPort(const string& local_ip, const string& local_dev_to_bind_to,
-                            int rtcpLocalPort, int portRange)
-{
-    int port = 0;
+RtpSession::reserveRtcpPort(uint16 tos, uint32 priority,
+                            const string& local_ip, const string& local_dev_to_bind_to,
+                            int rtcpLocalPort, int portRange) {
+   int port = 0;
 
-    if ( rtcpRecv == 0 )
-    {
-        try
-        {
-            if (rtcpLocalPort != 0)
-            {
-                if (portRange != 0)
-                    rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                                 rtcpLocalPort,
-                                                 rtcpLocalPort + portRange);
-                else
-                    rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                                 rtcpLocalPort);
-            }
-
-            port = rtcpRecv->getPort();
-        }
-        catch ( UdpStackExceptionPortsInUse& )
-        {
-            if ( portRange == 0 )
-                cpLog( LOG_ERR, "port %d is not available", rtcpLocalPort );
+   if ( rtcpRecv == 0 ) {
+      try {
+         if (rtcpLocalPort != 0) {
+            if (portRange != 0)
+               rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                            rtcpLocalPort,
+                                            rtcpLocalPort + portRange);
             else
-                cpLog( LOG_ERR, "no ports between %d and %d are available", rtcpLocalPort, rtcpLocalPort + portRange );
-            rtcpRecv = 0;
-        }
-    }
-    else
-    {
-        port = rtcpRecv->getPort();
-    }
-
-    return port;
+               rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                            rtcpLocalPort);
+            }
+         
+         port = rtcpRecv->getPort();
+      }
+      catch ( UdpStackExceptionPortsInUse& ) {
+         if ( portRange == 0 )
+            cpLog( LOG_ERR, "port %d is not available", rtcpLocalPort );
+         else
+            cpLog( LOG_ERR, "no ports between %d and %d are available", rtcpLocalPort, rtcpLocalPort + portRange );
+         rtcpRecv = 0;
+      }
+   }
+   else {
+      port = rtcpRecv->getPort();
+   }
+   
+   return port;
 }
 
 int
@@ -510,170 +501,162 @@ RtpSessionState RtpSession::getSessionState ()
 }
 
 int
-RtpSession::setReceiver ( const string& local_ip,
-                          const string& local_dev_to_bind_to,
-                          int localPort, int rtcpLocalPort, int portRange,
-                          RtpPayloadType format, int clockrate, int per_sample_size,
-                          int samplesize) {
-    if ( !(sessionState == rtp_session_sendrecv
-            || sessionState == rtp_session_recvonly) )
-    {
-        cpLog(LOG_ERR, "wrong state of RTP stack.");
-        return -1;
-    }
+RtpSession::setReceiver (uint16 tos, uint32 priority,
+                         const string& local_ip,
+                         const string& local_dev_to_bind_to,
+                         int localPort, int rtcpLocalPort, int portRange,
+                         RtpPayloadType format, int clockrate, int per_sample_size,
+                         int samplesize) {
+   if ( !(sessionState == rtp_session_sendrecv
+          || sessionState == rtp_session_recvonly) ) {
+      cpLog(LOG_ERR, "wrong state of RTP stack.");
+      return -1;
+   }
 
-    if (localPort != 0)
-    {
-        if (portRange != 0)
-        {
-            if (recv) {
-                recv->getUdpStack()->setLocal(localPort, localPort + portRange);
-            }
-            else if (tran) {
-                tran->getUdpStack()->setLocal(localPort, localPort + portRange);
-                recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
-                                       per_sample_size, samplesize);
-            }
-            else {
-                recv = new RtpReceiver (local_ip, local_dev_to_bind_to,
-                                        localPort, localPort + portRange,
-                                        format, clockrate, per_sample_size,
-                                        samplesize);
-            }
-        }
-        else {
-            if (recv) {
-                recv->getUdpStack()->setLocal(localPort, localPort + portRange);
-            }
-            else if (tran) {
-                tran->getUdpStack()->setLocal(localPort, localPort + portRange);
-                recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
-                                       per_sample_size, samplesize);
-            }
-            else {
-                recv = new RtpReceiver (local_ip, local_dev_to_bind_to,
-                                        localPort, format, clockrate, per_sample_size,
-                                        samplesize);
-            }
-        }
-    }
+   if (localPort != 0) {
+      if (portRange != 0) {
+         if (recv) {
+            recv->getUdpStack()->setLocal(localPort, localPort + portRange);
+         }
+         else if (tran) {
+            tran->getUdpStack()->setLocal(localPort, localPort + portRange);
+            recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
+                                   per_sample_size, samplesize);
+         }
+         else {
+            recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                    localPort, localPort + portRange,
+                                    format, clockrate, per_sample_size,
+                                    samplesize);
+         }
+      }
+      else {
+         if (recv) {
+            recv->getUdpStack()->setLocal(localPort, localPort + portRange);
+         }
+         else if (tran) {
+            tran->getUdpStack()->setLocal(localPort, localPort + portRange);
+            recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
+                                   per_sample_size, samplesize);
+         }
+         else {
+            recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                    localPort, format, clockrate, per_sample_size,
+                                    samplesize);
+         }
+      }
+   }
+   
+   if (rtcpLocalPort != 0) {
+      if (portRange != 0) {
+         if (rtcpRecv) {
+            rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort,
+                                              rtcpLocalPort + portRange);
+         }
+         else if (rtcpTran) {
+            rtcpTran->getUdpStack()->setLocal(rtcpLocalPort,
+                                              rtcpLocalPort + portRange);
+            rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
+         }
+         else {
+            rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                         rtcpLocalPort,
+                                         rtcpLocalPort + portRange);
+         }
+      }
+      else {
+         if (rtcpRecv) {
+            rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort);
+         }
+         else if (rtcpTran) {
+            rtcpTran->getUdpStack()->setLocal(rtcpLocalPort);
+            rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
+         }
+         else {
+            rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                         rtcpLocalPort);
+         }
+      }
+   }
+   
+   // update interlinks
+   if (rtcpTran && recv) rtcpTran->setRTPrecv (recv);
+   if (rtcpTran && rtcpRecv) rtcpTran->setRTCPrecv (rtcpRecv);
+   if (rtcpRecv && recv) recv->setRTCPrecv(rtcpRecv);
 
-    if (rtcpLocalPort != 0)
-    {
-       if (portRange != 0) {
-            if (rtcpRecv) {
-                rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort,
-                                                  rtcpLocalPort + portRange);
-            }
-            else if (rtcpTran) {
-                rtcpTran->getUdpStack()->setLocal(rtcpLocalPort,
-                                                  rtcpLocalPort + portRange);
-                rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
-            }
-            else {
-                rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                             rtcpLocalPort,
-                                             rtcpLocalPort + portRange);
-            }
-       }
-       else {
-            if (rtcpRecv) {
-                rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort);
-            }
-            else if (rtcpTran) {
-                rtcpTran->getUdpStack()->setLocal(rtcpLocalPort);
-                rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
-            }
-            else {
-                rtcpRecv = new RtcpReceiver (local_ip, local_dev_to_bind_to,
-                                             rtcpLocalPort);
-            }
-       }
-    }
+   if (recv) cpLog (LOG_DEBUG_STACK, "RTP Recv Port: %d", recv->getPort());
+   if (rtcpRecv) cpLog (LOG_DEBUG_STACK, "RTCP Recv Port: %d",
+                        rtcpRecv->getPort());
 
-    // update interlinks
-    if (rtcpTran && recv) rtcpTran->setRTPrecv (recv);
-    if (rtcpTran && rtcpRecv) rtcpTran->setRTCPrecv (rtcpRecv);
-    if (rtcpRecv && recv) recv->setRTCPrecv(rtcpRecv);
-
-    if (recv) cpLog (LOG_DEBUG_STACK, "RTP Recv Port: %d", recv->getPort());
-    if (rtcpRecv) cpLog (LOG_DEBUG_STACK, "RTCP Recv Port: %d",
-                             rtcpRecv->getPort());
-
-    return 0;
+   return 0;
 }
 
 
 int
-RtpSession::setTransmiter ( const string& local_ip,
-                            const string& local_dev_to_bind_to,
-                            const char* remoteHost, int remotePort,
-                            int rtcpRemotePort,
-                            RtpPayloadType format, int clockrate, int per_sample_size,
-                            int samplesize) {
-    if ( !(sessionState == rtp_session_sendrecv
-            || sessionState == rtp_session_sendonly) )
-    {
-        cpLog(LOG_ERR, "wrong state of RTP stack.");
-        return -1;
-    }
+RtpSession::setTransmiter(uint16 tos, uint32 priority,
+                          const string& local_ip,
+                          const string& local_dev_to_bind_to,
+                          const char* remoteHost, int remotePort,
+                          int rtcpRemotePort,
+                          RtpPayloadType format, int clockrate, int per_sample_size,
+                          int samplesize) {
+   if ( !(sessionState == rtp_session_sendrecv
+          || sessionState == rtp_session_sendonly) ) {
+      cpLog(LOG_ERR, "wrong state of RTP stack.");
+      return -1;
+   }
 
-    if (remotePort != 0)
-    {
-        if (tran)
-        {
-            assert(remoteHost);
-            tran->getUdpStack()->setDestination(remoteHost, remotePort);
-            NetworkAddress netAddress(remoteHost, remotePort);
-            tran->setRemoteAddr(netAddress);
-        }
-        else {
-            tran = new RtpTransmitter ( local_ip, local_dev_to_bind_to,
-                                        remoteHost, remotePort, format,
-                                        clockrate, per_sample_size, samplesize,
-                                        recv);
-        }
-    }
+   if (remotePort != 0) {
+      if (tran) {
+         assert(remoteHost);
+         tran->getUdpStack()->setDestination(remoteHost, remotePort);
+         NetworkAddress netAddress(remoteHost, remotePort);
+         tran->setRemoteAddr(netAddress);
+      }
+      else {
+         tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+                                    remoteHost, remotePort, format,
+                                    clockrate, per_sample_size, samplesize,
+                                    recv);
+      }
+   }
+   
+   if (rtcpRemotePort != 0) {
+      if (rtcpTran) {
+         assert(remoteHost);
+         rtcpTran->getUdpStack()->setDestination( remoteHost, rtcpRemotePort);
+         NetworkAddress netAddress1(remoteHost, rtcpRemotePort);
+         rtcpTran->setRemoteAddr(netAddress1);
+      }
+      else {
+         rtcpTran = new RtcpTransmitter(tos, priority, local_ip, local_dev_to_bind_to,
+                                        remoteHost, rtcpRemotePort, rtcpRecv);
+      }
+   }
+   
+   // update interlinks
+   if (rtcpTran && tran) rtcpTran->setRTPtran (tran);
+   if (rtcpTran && recv) rtcpTran->setRTPrecv (recv);
+   if (rtcpTran && rtcpRecv) rtcpTran->setRTCPrecv (rtcpRecv);
 
-    if (rtcpRemotePort != 0)
-    {
-        if (rtcpTran)
-        {
-            assert(remoteHost);
-            rtcpTran->getUdpStack()->setDestination( remoteHost, rtcpRemotePort);
-            NetworkAddress netAddress1(remoteHost, rtcpRemotePort);
-            rtcpTran->setRemoteAddr(netAddress1);
-        }
-        else {
-            rtcpTran = new RtcpTransmitter ( local_ip, local_dev_to_bind_to,
-                                             remoteHost, rtcpRemotePort, rtcpRecv);
-        }
-    }
+   // SDES infromation for transmitter
+   if (rtcpTran && tran) {
+      char dummy[2]= "";
+      
+      rtcpTran->setSdesCname();
+      rtcpTran->setSdesEmail(dummy);
+      rtcpTran->setSdesPhone(dummy);
+      rtcpTran->setSdesLoc(dummy);
+      rtcpTran->setSdesTool(dummy);
+      rtcpTran->setSdesNote(dummy);
+   }
 
-    // update interlinks
-    if (rtcpTran && tran) rtcpTran->setRTPtran (tran);
-    if (rtcpTran && recv) rtcpTran->setRTPrecv (recv);
-    if (rtcpTran && rtcpRecv) rtcpTran->setRTCPrecv (rtcpRecv);
-
-    // SDES infromation for transmitter
-    if (rtcpTran && tran)
-    {
-        char dummy[2]= "";
-
-        rtcpTran->setSdesCname();
-        rtcpTran->setSdesEmail(dummy);
-        rtcpTran->setSdesPhone(dummy);
-        rtcpTran->setSdesLoc(dummy);
-        rtcpTran->setSdesTool(dummy);
-        rtcpTran->setSdesNote(dummy);
-    }
-
-    if (tran) cpLog (LOG_DEBUG_STACK, "RTP Tran Port: %d",
-                         tran->getUdpStack()->getDestinationPort());
-    if (rtcpTran) cpLog (LOG_DEBUG_STACK, "RTCP Tran Port: %d",
-                             rtcpTran->getUdpStack()->getDestinationPort());
-
-    return 0;
+   if (tran) cpLog (LOG_DEBUG_STACK, "RTP Tran Port: %d",
+                    tran->getUdpStack()->getDestinationPort());
+   if (rtcpTran) cpLog (LOG_DEBUG_STACK, "RTCP Tran Port: %d",
+                        rtcpTran->getUdpStack()->getDestinationPort());
+   
+   return 0;
 }
 
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.4 2004/10/29 07:22:34 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
 
 
 #include <sys/types.h>
@@ -119,7 +119,7 @@ public:
    /** using specified port
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   RtpReceiver (const string& local_ip,
+   RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
                 const string& local_dev_to_bind_to,
                 int localPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,
@@ -128,7 +128,7 @@ public:
    /** using port range
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   RtpReceiver (const string& local_ip,
+   RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
                 const string& local_dev_to_bind_to,
                 int localMinPort, int localMaxPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,

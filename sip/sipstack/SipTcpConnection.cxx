@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.11 2004/11/19 01:54:38 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.12 2005/03/03 19:59:49 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -340,7 +340,8 @@ int NTcpConnInfo::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 
 Sptr < NTcpStuff >
-NTcpConnInfo::createOrGetPersistentConnection(const NetworkAddress& nwaddr) {
+NTcpConnInfo::createOrGetPersistentConnection(uint16 tos, uint32 priority,
+                                              const NetworkAddress& nwaddr) {
    //come here only if this is a command.
    string ipName = nwaddr.getIpName().convertString();
    string key(ipName);
@@ -357,7 +358,7 @@ NTcpConnInfo::createOrGetPersistentConnection(const NetworkAddress& nwaddr) {
    }
     
    cpLog( LOG_DEBUG_STACK, "Creating persistent connection for %s", key.c_str() );
-   TcpClientSocket clientSocket(nwaddr, sip_conn->getLocalDev(),
+   TcpClientSocket clientSocket(tos, priority, nwaddr, sip_conn->getLocalDev(),
                                 sip_conn->getLocalIp(), true, false);
 
    clientSocket.connect();
@@ -421,13 +422,16 @@ int NTcpConnInfo::tcpReadOrAccept(int tcpfd, TcpServerSocket& tcpStack) {
 }//tcpReadOrAccept
 
 
-SipTcpConnection::SipTcpConnection(const string& local_ip,
+SipTcpConnection::SipTcpConnection(uint16 tos, uint32 priority, const string& local_ip,
                                    const string& _local_dev_to_bind_to,
                                    int port, bool blocking)
-      : mytcpStack(local_ip, _local_dev_to_bind_to, port, blocking),
+      : mytcpStack(tos, priority, local_ip, _local_dev_to_bind_to, port, blocking),
         tcpConnInfo(this),
         local_ip_to_bind_to(local_ip),
         local_dev_to_bind_to(_local_dev_to_bind_to) {
+
+   _tos = tos;
+   _skb_priority = priority;
 
    // put the tcpStack into the tcpConnInfo map
 
@@ -536,7 +540,7 @@ SipTcpConnection::createRequestTransaction(Sptr < SipCommand > command) {
    }
 
    NetworkAddress nwaddr(host.convertString(), port);
-   TcpClientSocket clientSocket(nwaddr, local_dev_to_bind_to,
+   TcpClientSocket clientSocket(_tos, _skb_priority, nwaddr, local_dev_to_bind_to,
                                 local_ip_to_bind_to, true, false );
 
    // Start the connection process.  Since we are non blocking, it won't
@@ -557,9 +561,7 @@ SipTcpConnection::createRequestTransaction(Sptr < SipCommand > command) {
 }
 
 
-int
-SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
-{
+int SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg) {
    Sptr < NTcpStuff > conn;
 
    // create or use the current TCP details as appropriate
@@ -584,10 +586,12 @@ SipTcpConnection::prepareEvent(Sptr<SipMsgContainer> sipMsg)
 
       // this is a request
 #ifdef USE_PERSISTENT_TCP
-      conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->getNetworkAddr()));
+      conn = tcpConnInfo.createOrGetPersistentConnection(_tos, _skb_priority,
+                                                         *(sipMsg->getNetworkAddr()));
 #else
       if (sipCommand->nextHopIsAProxy()) {
-         conn = tcpConnInfo.createOrGetPersistentConnection(*(sipMsg->getNetworkAddr()));
+         conn = tcpConnInfo.createOrGetPersistentConnection(_tos, _skb_priority,
+                                                            *(sipMsg->getNetworkAddr()));
       }
       else {
          conn = createRequestTransaction(sipMsg);

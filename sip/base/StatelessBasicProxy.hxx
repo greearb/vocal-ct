@@ -53,7 +53,7 @@
 
 
 static const char* const StatelessBasicProxy_hxx_Version =
-    "$Id: StatelessBasicProxy.hxx,v 1.3 2004/06/20 08:44:41 greear Exp $";
+    "$Id: StatelessBasicProxy.hxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "Data.hxx"
@@ -128,14 +128,15 @@ public:
     *  to all interfaces.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   StatelessBasicProxy( const string&            local_ip,
-                        const string&            local_dev_to_bind_to,
-                        ServerType              myType,
-                        unsigned short          defaultSipPort = 5060,
-                        Data                    applName = "unknown", 
-                        bool                    filteron = true, 
-                        bool                    nat = false,
-                        SipAppContext           cContext = APP_CONTEXT_GENERIC);
+   StatelessBasicProxy(uint16 tos, uint32 priority,
+                       const string&            local_ip,
+                       const string&            local_dev_to_bind_to,
+                       ServerType              myType,
+                       unsigned short          defaultSipPort = 5060,
+                       Data                    applName = "unknown", 
+                       bool                    filteron = true, 
+                       bool                    nat = false,
+                       SipAppContext           cContext = APP_CONTEXT_GENERIC);
 
 
    /** Virtual destructor

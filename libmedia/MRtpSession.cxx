@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.8 2004/12/15 00:25:19 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.9 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -66,6 +66,7 @@ using namespace Vocal::SDP;
 
 
 MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
+                         uint16 tos, uint32 priority,
                          const string& local_dev_to_bind_to,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
@@ -79,6 +80,8 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
     myLocalAddress = new NetworkRes(local);
     myRemoteAddress = new NetworkRes(remote);
     localDevToBindTo = local_dev_to_bind_to;
+    _tos = tos;
+    _skb_priority = priority;
 
     int remotePort = myRemoteAddress->getPort();
     int localPort  = myLocalAddress->getPort();
@@ -119,15 +122,15 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
             break;
     }
 
-    rtpStack =  new RtpSession( myLocalAddress->getIpName().c_str(),
-                                localDevToBindTo,
-                                myRemoteAddress->getIpName().c_str(), 
-                                remotePort,
-                                localPort,
-                                remoteRtcpPort,
-                                localRtcpPort, (RtpPayloadType)(pType),
-                                cAdp->getClockRate(), cAdp->getPerSampleSize(),
-                                cAdp->getSampleSize());
+    rtpStack =  new RtpSession(tos, priority, myLocalAddress->getIpName().c_str(),
+                               localDevToBindTo,
+                               myRemoteAddress->getIpName().c_str(), 
+                               remotePort,
+                               localPort,
+                               remoteRtcpPort,
+                               localRtcpPort, (RtpPayloadType)(pType),
+                               cAdp->getClockRate(), cAdp->getPerSampleSize(),
+                               cAdp->getSampleSize());
 
     myDTMFInterface = new MDTMFInterface(this);
     rtpStack->setDTMFInterface(myDTMFInterface);
@@ -342,56 +345,48 @@ void MRtpSession::recvDTMF(int event) {
    }
 }
 
-void 
-MRtpSession::adopt(SdpSession& remoteSdp)
-{
-    Data rAddress;
-    int rPort = -1;
-    //Check for address in Media part if found find else use the
-    //Global address
-    list<SdpMedia*> mediaList = remoteSdp.getMediaList();
-    for(list<SdpMedia*>::iterator itr = mediaList.begin(); itr != mediaList.end(); itr++)
-    {
-        if((*itr)->getMediaType() == Vocal::SDP::MediaTypeAudio)
-        {
-            if((*itr)->getConnection())
-            {
-                cpLog(LOG_DEBUG, "Connection address found in media attribute, using it");
-                rAddress = (*itr)->getConnection()->getUnicast();
-                break;
-            }
-            rPort = (*itr)->getPort();
-        }
-    }
+void MRtpSession::adopt(SdpSession& remoteSdp) {
+   Data rAddress;
+   int rPort = -1;
+   //Check for address in Media part if found find else use the
+   //Global address
+   list<SdpMedia*> mediaList = remoteSdp.getMediaList();
+   for (list<SdpMedia*>::iterator itr = mediaList.begin(); itr != mediaList.end(); itr++) {
+      if ((*itr)->getMediaType() == Vocal::SDP::MediaTypeAudio) {
+         if ((*itr)->getConnection()) {
+            cpLog(LOG_DEBUG, "Connection address found in media attribute, using it");
+            rAddress = (*itr)->getConnection()->getUnicast();
+            break;
+         }
+         rPort = (*itr)->getPort();
+      }
+   }
 
-    if(rAddress.length() == 0)
-    {
-        //Check to see if Session-level connection address is present
-        SdpConnection* conn = remoteSdp.getConnection();
-        if(conn) rAddress = conn->getUnicast();
-        if(rAddress.length())
-        {
-            cpLog(LOG_DEBUG, "Using Top-level connection address");
-        }
-        else
-        {
-            cpLog(LOG_ERR, "Bad SDP");
-        }
-    }
-    myRemoteAddress->setHostName(rAddress);
-    myRemoteAddress->setPort(rPort);
-    /*********Rajarshi************/
-    int remotePort  = myRemoteAddress->getPort();
-    int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
-    rtpStack->setSessionState(rtp_session_sendrecv);
-
-    // TODO:  I'm guessing we should ge the protocol and other info out of
-    // the SDP thing too...  What if we're not running PCMU? --Ben
-    cpLog(LOG_ERR, "WARNING:  in MRtpSession::adopt, not sure this method works right!");
-    rtpStack->setTransmiter(  myLocalAddress->getIpName().c_str(),
-                              localDevToBindTo,
-                              myRemoteAddress->getIpName().c_str(), remotePort,
-                              remoteRtcpPort, rtpPayloadPCMU, 8000, 1, 160);
+   if (rAddress.length() == 0) {
+      //Check to see if Session-level connection address is present
+      SdpConnection* conn = remoteSdp.getConnection();
+      if (conn) rAddress = conn->getUnicast();
+      if (rAddress.length()) {
+         cpLog(LOG_DEBUG, "Using Top-level connection address");
+      }
+      else {
+         cpLog(LOG_ERR, "Bad SDP");
+      }
+   }
+   myRemoteAddress->setHostName(rAddress);
+   myRemoteAddress->setPort(rPort);
+   /*********Rajarshi************/
+   int remotePort  = myRemoteAddress->getPort();
+   int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
+   rtpStack->setSessionState(rtp_session_sendrecv);
+   
+   // TODO:  I'm guessing we should ge the protocol and other info out of
+   // the SDP thing too...  What if we're not running PCMU? --Ben
+   cpLog(LOG_ERR, "WARNING:  in MRtpSession::adopt, not sure this method works right!");
+   rtpStack->setTransmiter(_tos, _skb_priority,
+                           myLocalAddress->getIpName().c_str(), localDevToBindTo,
+                           myRemoteAddress->getIpName().c_str(), remotePort,
+                           remoteRtcpPort, rtpPayloadPCMU, 8000, 1, 160);
    /*****************************/
 
 }

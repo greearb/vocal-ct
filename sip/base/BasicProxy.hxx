@@ -53,7 +53,7 @@
 
 
 static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.7 2004/06/10 23:16:17 greear Exp $";
+    "$Id: BasicProxy.hxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "HeartbeatThread.hxx"
@@ -98,6 +98,7 @@ public:
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
    BasicProxy(const Sptr < Builder >   builder, 
+              uint16 tos, uint32 priority,
               const string&            local_ip,
               const string&            local_dev_to_bind_to,
               ServerType               myType,

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.3 2004/06/15 06:20:35 greear Exp $";
+    "$Id: RtcpTransmitter.cxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "global.h"
@@ -87,7 +87,8 @@ const int RtcpTransmitter::RTCP_INTERVAL = 5000;
 /* --- RtcpTransmitter Constructor --------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtcpTransmitter::RtcpTransmitter (const string& local_ip,
+RtcpTransmitter::RtcpTransmitter (uint16 tos, uint32 priority,
+                                  const string& local_ip,
                                   const string& local_dev_to_bind_to,
                                   const char* remoteHost,
                                   int remoteMinPort,
@@ -95,105 +96,97 @@ RtcpTransmitter::RtcpTransmitter (const string& local_ip,
                                   RtcpReceiver* receiver)
       : remoteAddr(remoteHost, remoteMinPort)
 {
-    assert(remoteHost);
+   assert(remoteHost);
 
-    if (receiver) {
-        myStack = receiver->getUdpStack();
-        myStack->setDestination(&remoteAddr);
-    }
-    else {
-        myStack = new UdpStack(false, local_ip, local_dev_to_bind_to,
-                               &remoteAddr, remoteMinPort, remoteMaxPort,
-                               sendonly) ;
-    }
-
-    constructRtcpTransmitter ();
+   if (receiver) {
+      myStack = receiver->getUdpStack();
+      myStack->setDestination(&remoteAddr);
+   }
+   else {
+      myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+                             &remoteAddr, remoteMinPort, remoteMaxPort,
+                             sendonly) ;
+   }
+   
+   constructRtcpTransmitter ();
 }
 
-RtcpTransmitter::RtcpTransmitter (const string& local_ip,
+RtcpTransmitter::RtcpTransmitter (uint16 tos, uint32 priority,
+                                  const string& local_ip,
                                   const string& local_dev_to_bind_to,
                                   const char* remoteHost,
                                   int remotePort,
                                   RtcpReceiver* receiver)
       : remoteAddr(remoteHost, remotePort)
 {
-    assert(remoteHost);
+   assert(remoteHost);
 
-    if (receiver) {
-        myStack = receiver->getUdpStack();
-        myStack->setDestination(&remoteAddr);
-    }
-    else {
-        myStack = new UdpStack(false, local_ip, local_dev_to_bind_to,
-                               &remoteAddr, remotePort, remotePort,
-                               sendonly) ;
-    }
+   if (receiver) {
+      myStack = receiver->getUdpStack();
+      myStack->setDestination(&remoteAddr);
+   }
+   else {
+      myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+                             &remoteAddr, remotePort, remotePort,
+                             sendonly) ;
+   }
 
-    constructRtcpTransmitter ();
+   constructRtcpTransmitter ();
 }
 
 
-void RtcpTransmitter::constructRtcpTransmitter ()
-{
-    tran = NULL;
-    recv = NULL;
-    rtcpRecv = NULL;
-    SDESInfo = NULL;
-
-    // prepare for rtcp timing intervals
-    nextInterval = getNtpTime();
-    updateInterval();
+void RtcpTransmitter::constructRtcpTransmitter () {
+   tran = NULL;
+   recv = NULL;
+   rtcpRecv = NULL;
+   SDESInfo = NULL;
+   
+   // prepare for rtcp timing intervals
+   nextInterval = getNtpTime();
+   updateInterval();
 }
 
 
-RtcpTransmitter::~RtcpTransmitter ()
-{
-    if (SDESInfo)
-    {
-        delete SDESInfo;
-        SDESInfo = NULL;
-    }
+RtcpTransmitter::~RtcpTransmitter () {
+   if (SDESInfo) {
+      delete SDESInfo;
+      SDESInfo = NULL;
+   }
 
-    tran = NULL;
-    recv = NULL;
-    rtcpRecv = NULL;
+   tran = NULL;
+   recv = NULL;
+   rtcpRecv = NULL;
 }
 
-void
-RtcpTransmitter::setRemoteAddr (const NetworkAddress& theAddr)
-{
-    remoteAddr = theAddr;
+void RtcpTransmitter::setRemoteAddr (const NetworkAddress& theAddr) {
+   remoteAddr = theAddr;
 }
 
 /* --- send packet functions --------------------------------------- */
 
-int RtcpTransmitter::transmit (RtcpPacket& pkt)
-{
+int RtcpTransmitter::transmit (RtcpPacket& pkt) {
    return myStack->queueTransmitTo ((char*)pkt.getPacketData(),
                                     pkt.getTotalUsage(),
                                     &remoteAddr);
 }
 
 
-void RtcpTransmitter::updateInterval ()
-{
-    // RTCP_INTERVAL random offset between (.5 to 1.5)
-    int delayMs = RTCP_INTERVAL * (500 + rand() / (RAND_MAX / 1000)) / 1000;
-    nextInterval = nextInterval + delayMs;
+void RtcpTransmitter::updateInterval () {
+   // RTCP_INTERVAL random offset between (.5 to 1.5)
+   int delayMs = RTCP_INTERVAL * (500 + rand() / (RAND_MAX / 1000)) / 1000;
+   nextInterval = nextInterval + delayMs;
 }
 
 
-int RtcpTransmitter::checkInterval ()
-{
-    if (getNtpTime() > nextInterval)
-    {
-        // prepare for next interval
-        updateInterval();
-        return 1;
-    }
+int RtcpTransmitter::checkInterval () {
+   if (getNtpTime() > nextInterval) {
+      // prepare for next interval
+      updateInterval();
+      return 1;
+   }
 
-    // time not up yet
-    return 0;
+   // time not up yet
+   return 0;
 }
 
 

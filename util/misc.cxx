@@ -21,6 +21,9 @@
 #include <iostream.h>
 #include <fstream.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
 #include <unistd.h>
 #include <Data.hxx>
 #include <sys/select.h>
@@ -87,7 +90,6 @@ void vhexDump(const char* msg, int len, string& _retval,
       for (int l = 0; l< 16-q; l++) {
          retval << ("   "); //space, where the hex would have gone.
       }
-      //VLOG << "q: " << q << " offset: " << offset << " i: " << i << endl;
       for (int j = 0; j<q; j++) {
          if (isprint(msg[j + offset])) {
             ending << msg[j + offset];
@@ -101,6 +103,36 @@ void vhexDump(const char* msg, int len, string& _retval,
 
    _retval = retval.str();
 }//hexDump
+
+
+/* Returns actual priority that was set, or < 0 on error */
+int vsetPriorityHelper(int sk, uint32 val) {
+   if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY, (char*)&val, sizeof(val)) < 0) {
+      return -errno;
+   }//if
+
+   int new_val = 0;
+   socklen_t slt = sizeof(new_val);
+   if (getsockopt(sk, SOL_SOCKET, SO_PRIORITY, (char*)(&new_val), &slt) < 0) {
+      return -errno;
+   }//if
+   return new_val;
+}//vsetPriorityHelper
+
+int vsetTosHelper(int sk, uint16 val) {
+   if (setsockopt(sk, SOL_IP, IP_TOS, (char*)&val, sizeof(val)) < 0) {
+      return -1;
+   }//if
+
+   int new_val = 0;
+   socklen_t slt = sizeof(new_val);
+   if (getsockopt(sk, SOL_IP, IP_TOS, (char*)(&new_val), &slt) < 0) {
+      return -1;
+   }//if
+   return new_val;
+}//vsetTosHelper
+
+
 
 /*
 void vusleep(int milliseconds) {
@@ -209,8 +241,6 @@ string itoa(uint16 i) {
    snprintf(buf, 30, "%hu", i);
    return buf;
 }
-
-
 
 #endif
 #endif

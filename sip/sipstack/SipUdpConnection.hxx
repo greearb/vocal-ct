@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.7 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
 
 
 
@@ -80,7 +80,8 @@ public:
    /**
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   SipUdpConnection(const string& local_ip,
+   SipUdpConnection(uint16 tos, uint32 priority,
+                    const string& local_ip,
                     const string& local_dev_to_bind_to,
                     int port = SIP_PORT);
    

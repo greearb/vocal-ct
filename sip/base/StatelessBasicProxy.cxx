@@ -50,7 +50,7 @@
 
 
 static const char* const StatelessBasicProxy_cxx_Version =
-    "$Id: StatelessBasicProxy.cxx,v 1.9 2004/06/17 06:56:51 greear Exp $";
+    "$Id: StatelessBasicProxy.cxx,v 1.10 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "CommandLine.hxx"
@@ -61,16 +61,17 @@ static const char* const StatelessBasicProxy_cxx_Version =
 using namespace Vocal;
 
 
-StatelessBasicProxy::StatelessBasicProxy( const string& local_ip,
-                                          const string& local_dev_to_bind_to,
-                                          ServerType              myType,
-                                          unsigned short defaultSipPort,
-                                          Data applName,
-                                          bool filterOn, 
-                                          bool nat,
-                                          SipAppContext aContext) {
+StatelessBasicProxy::StatelessBasicProxy(uint16 tos, uint32 priority,
+                                         const string& local_ip,
+                                         const string& local_dev_to_bind_to,
+                                         ServerType              myType,
+                                         unsigned short defaultSipPort,
+                                         Data applName,
+                                         bool filterOn, 
+                                         bool nat,
+                                         SipAppContext aContext) {
 
-   mySipStack = new SipTransceiver(local_ip,
+   mySipStack = new SipTransceiver(tos, priority, local_ip,
                                    local_dev_to_bind_to,
                                    applName, defaultSipPort, nat, aContext,
                                    false);

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.5 2004/11/05 07:25:05 greear Exp $";
+    "$Id: MediaController.hxx,v 1.6 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -97,7 +97,8 @@ public:
     * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
     *   the priority map, then it will not be used at all.
     */
-   static void initialize(const string& local_ip,
+   static void initialize(uint16 tos, uint32 priority,
+                          const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int minRtpPort, int maxRtpPort,
                           map<VCodecType, int>& prio_map);
@@ -173,7 +174,8 @@ private:
     * @param prio_map  A mapping of codec types to priorities.  If a codec is not in
     *   the priority map, then it will not be used at all.
     */
-   MediaController(const string& local_ip,
+   MediaController(uint16 tos, uint32 priority,
+                   const string& local_ip,
                    const string& local_dev_to_bind_to,
                    int minRtpPort, int maxRtpPort,
                    map<VCodecType, int>& prio_map);
@@ -209,6 +211,8 @@ private:
 
    string local_ip;
    string localDevToBindTo;
+   uint16 _tos;
+   uint32 _skb_priority;
 };
 
 }

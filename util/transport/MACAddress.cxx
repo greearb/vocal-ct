@@ -50,7 +50,7 @@
 
 
 static const char* const MACAddress_cxx_Version = 
-    "$Id: MACAddress.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: MACAddress.cxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
 
 
 #include "global.h"
@@ -72,7 +72,9 @@ MACAddress::MACAddress()
     :	high_(0),
     	low_(0)
 {
-    getMACAddress(socket(AF_INET, SOCK_DGRAM, IPPROTO_IP));
+   int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+   getMACAddress(fd);
+   close(fd);
 }
 
 
@@ -103,71 +105,59 @@ MACAddress::low()
 
 
 void	    	    	    
-MACAddress::getMACAddress(int sock)
-{
-    #if !defined(SIOCGIFHWADDR) && !defined(SIOCGENADDR)
+MACAddress::getMACAddress(int sock) {
+#if !defined(SIOCGIFHWADDR) && !defined(SIOCGENADDR)
+   return;
 
-    return;
+#else
 
-    #else
+   if ( sock < 0 ) {
+      return;
+   }
 
-    if ( sock < 0 ) 
-    {
-    	return;
-    }
+   ifconf 	ifc;
 
-    ifconf 	ifc;
+   char    	buf[1024];
 
-    char    	buf[1024];
-
-    memset(buf, 0, sizeof(buf));
-    ifc.ifc_len = sizeof(buf);
-    ifc.ifc_buf = buf;
-
-    if ( ioctl(sock, SIOCGIFCONF, (char *)&ifc) < 0) 
-    {
-	close(sock);
-    	return;
-    }
+   memset(buf, 0, sizeof(buf));
+   ifc.ifc_len = sizeof(buf);
+   ifc.ifc_buf = buf;
+   
+   if ( ioctl(sock, SIOCGIFCONF, (char *)&ifc) < 0) {
+      return;
+   }
     
-    ifreq 	ifr, *ifrp;
+   ifreq 	ifr, *ifrp;
+   
+   int size = ifc.ifc_len;
+   u_int8_t    *   a = 0;
+   
+   for (int i = 0; i < size; i += sizeof(ifreq) ) {
+      ifrp = (ifreq *)((char *)ifc.ifc_buf + i);
+      
+      strncpy(ifr.ifr_name, ifrp->ifr_name, IFNAMSIZ);
+      
+#if defined(SIOCGIFHWADDR)
+      if ( ioctl(sock, SIOCGIFHWADDR, &ifr) < 0 ) {
+         continue;
+      }
+      a = (unsigned char *)(&ifr.ifr_hwaddr.sa_data);
+      
+#elif defined(SIOCGENADDR)
+      if ( ioctl(sock, SIOCGENADDR, &ifr) < 0 ) {
+         continue;
+      }
+      a = (unsigned char *)ifr.ifr_enaddr;
+#endif
 
-    int size = ifc.ifc_len;
-    u_int8_t    *   a = 0;
-
-    for (int i = 0; i < size; i += sizeof(ifreq) ) 
-    {
-    	ifrp = (ifreq *)((char *)ifc.ifc_buf + i);
-	
-    	strncpy(ifr.ifr_name, ifrp->ifr_name, IFNAMSIZ);
-
-    	#if defined(SIOCGIFHWADDR)
-	if ( ioctl(sock, SIOCGIFHWADDR, &ifr) < 0 )
-	{
-    	    continue;
-	}
-	a = (unsigned char *)(&ifr.ifr_hwaddr.sa_data);
-
-    	#elif defined(SIOCGENADDR)
-	if ( ioctl(sock, SIOCGENADDR, &ifr) < 0 )
-	{
-    	    continue;
-	}
-	a = (unsigned char *)ifr.ifr_enaddr;
-    	#endif
-
-    	if ( !a[0] && !a[1] && !a[2] && !a[3] && !a[4] && !a[5] )
-	{   	
-	    continue;
-	}
-
-    	high_ 	=   ( a[0] << 8 )   + a[1];
-    	low_  	=   ( a[2] << 24 )  + ( a[3] << 16 )
-	      	+   ( a[4] << 8 )   + a[5];
-	
-    }
-
-    close(sock);
+      if ( !a[0] && !a[1] && !a[2] && !a[3] && !a[4] && !a[5] ) {   	
+         continue;
+      }
+      
+      high_ 	=   ( a[0] << 8 )   + a[1];
+      low_  	=   ( a[2] << 24 )  + ( a[3] << 16 )
+         +   ( a[4] << 8 )   + a[5];
+   }
 
     #endif // !defined(SIOCGIFHWADDR) || !defined(SIOCGENADDR)
 }

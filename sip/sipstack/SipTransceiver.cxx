@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.10 2004/11/08 20:39:13 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -92,7 +92,8 @@ unsigned int SipTransceiver::_cnt;
 
 SipAppContext SipTransceiver::myAppContext = APP_CONTEXT_GENERIC;
 
-SipTransceiver::SipTransceiver(const string& local_ip,
+SipTransceiver::SipTransceiver(uint16 tos, uint32 priority,
+                               const string& local_ip,
                                const string& local_dev_to_bind_to,
                                Data adata, 
                                int siplistenPort, 
@@ -116,7 +117,7 @@ SipTransceiver::SipTransceiver(const string& local_ip,
     cpLog( LOG_DEBUG_STACK, "SipStack context %s ",
            (myAppContext == APP_CONTEXT_PROXY) ? "Proxy" : "Non-Proxy" );
 
-    udpConnection = new SipUdpConnection(local_ip, local_dev_to_bind_to,
+    udpConnection = new SipUdpConnection(tos, priority, local_ip, local_dev_to_bind_to,
                                          siplistenPort );
     //debugMemUsage("Constructed SipUdpConnection", "gua_mem.txt");
 
@@ -127,7 +128,7 @@ SipTransceiver::SipTransceiver(const string& local_ip,
         cpLog(LOG_INFO, "SipTransceiver:  Created UDP connection...\n");
     }
 
-    tcpConnection = new SipTcpConnection(local_ip, local_dev_to_bind_to,
+    tcpConnection = new SipTcpConnection(tos, priority, local_ip, local_dev_to_bind_to,
                                          siplistenPort, blocking);
     //debugMemUsage("Constructed SipTcpConnection", "gua_mem.txt");
     if ( tcpConnection == 0 ) {

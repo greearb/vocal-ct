@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -101,7 +101,8 @@ public:
       * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
       @throw VNetworkException
    */
-   TcpServerSocket(const string& local_ip,
+   TcpServerSocket(uint16 tos, uint32 priority,
+                   const string& local_ip,
                    const string& local_dev_to_bind_to,
                    int servPort, bool blocking) throw (VNetworkException&);
    
@@ -149,7 +150,9 @@ public:
 protected:
    string local_ip; // May be "", desired local IP address, or "" for default.
    string curLocalIp; // What we really bound to (if we did)
-   
+   uint16 _tos;
+   uint32 _skb_priority;
+
 private:
    ///
    void listenOn(const string& local_ip, const string& local_dev_to_bind_to,

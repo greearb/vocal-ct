@@ -52,7 +52,7 @@
  */
 
 static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.6 2004/06/07 08:32:20 greear Exp $";
+    "$Id: Tcp_ClientSocket.hxx,v 1.7 2005/03/03 19:59:50 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -93,7 +93,8 @@ public:
       @param local_dev_to_bind_to  If specified, we'll bind tightly to this interface.
       @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
    */
-   TcpClientSocket(const string& hostName,
+   TcpClientSocket(uint16 tos, uint32 priority,
+                   const string& hostName,
                    const string& local_dev_to_bind_to,
                    const string& local_ip_to_bind_to,
                    bool closeCon, bool blocking);
@@ -109,7 +110,8 @@ public:
       @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
       
    */
-   TcpClientSocket(const string& hostName, int servPort,
+   TcpClientSocket(uint16 tos, uint32 priority,
+                   const string& hostName, int servPort,
                    const string& local_dev_to_bind_to,
                    const string& local_ip_to_bind_to,
                    bool closeCon, bool blocking);
@@ -124,7 +126,8 @@ public:
       @param local_ip_to_bind_to  If specified, we'll use this for a source IP.
       
    */
-   TcpClientSocket(const NetworkAddress& server,
+   TcpClientSocket(uint16 tos, uint32 priority,
+                   const NetworkAddress& server,
                    const string& local_dev_to_bind_to,
                    const string& local_ip_to_bind_to,
                    bool closeCon, bool blocking);
@@ -180,7 +183,8 @@ private:
    int _serverPort;
    bool _closeCon;
    bool _blocking;
-
+   uint16 _tos;
+   uint32 _skb_priority;
    
    // These are not implemented (and should not be)
    TcpClientSocket(const TcpClientSocket&);

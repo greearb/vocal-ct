@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.6 2004/11/05 07:25:05 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -92,6 +92,7 @@ public:
     *               the Speex codec requires it.
     */
    MRtpSession(int sessionId, NetworkRes& local, 
+               uint16 tos, uint32 priority,
                const string& local_dev_to_bind_to,
                NetworkRes& remote ,
                Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
@@ -171,7 +172,8 @@ private:
    ///
    NetworkRes* myLocalAddress;
    string localDevToBindTo;
-
+   uint16 _tos;
+   uint32 _skb_priority;
    RtpPacket rtp_rx_packet;
 };
 

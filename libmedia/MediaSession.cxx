@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.6 2004/12/15 00:25:19 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -77,11 +77,13 @@ int MediaSession::_cnt = 0;
 
 MediaSession::MediaSession(int sessionId, 
                            Sptr<NetworkRes> localRes,
+                           uint16 tos, uint32 priority,
                            const string& local_dev_to_bind_to,
                            const char* debug) 
       : mySessionId(sessionId),
         myRtpSession(NULL),
-        localDevToBindTo(local_dev_to_bind_to) {
+        localDevToBindTo(local_dev_to_bind_to),
+        _tos(tos), _skb_priority(priority) {
    _cnt++;
 
    cpLog(LOG_ERR, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
@@ -300,6 +302,7 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
         NetworkRes localRes(lAddr, lPort);
         NetworkRes remoteRes(rAddr, rPort);
         myRtpSession = new MRtpSession(mySessionId, localRes,
+                                       _tos, _skb_priority,
                                        localDevToBindTo,
                                        remoteRes,
                                        cAdp, fmt, mySSRC);

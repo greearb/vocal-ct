@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.6 2004/11/05 07:25:05 greear Exp $";
+    "$Id: MediaController.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
 
 
 #include "MediaController.hxx"
@@ -80,24 +80,27 @@ void MediaController::destroy() {
    myInstance = NULL;
 }
 
-void MediaController::initialize(const string& local_ip,
+void MediaController::initialize(uint16 tos, uint32 priority,
+                                 const string& local_ip,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map)
 {
    assert(myInstance == 0);
    if (myInstance == 0) {
-      myInstance = new MediaController(local_ip, local_dev_to_bind_to,
+      myInstance = new MediaController(tos, priority, local_ip, local_dev_to_bind_to,
                                        minRtpPort, maxRtpPort, prio_map);
    }
 }
 
-MediaController::MediaController(const string& _local_ip,
+MediaController::MediaController(uint16 tos, uint32 priority,
+                                 const string& _local_ip,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map)
       : local_ip(_local_ip),
-        localDevToBindTo(local_dev_to_bind_to)
+        localDevToBindTo(local_dev_to_bind_to),
+        _tos(tos), _skb_priority(priority)
 {
    cpLog(LOG_DEBUG, "MediaController::MediaController");
    myRollingSessionId = 1;
@@ -105,7 +108,7 @@ MediaController::MediaController(const string& _local_ip,
    for(int i = minRtpPort; i < maxRtpPort; i = i+2) {
       //Check to see if port is free
       try {
-         UdpStack uStack(false, local_ip, localDevToBindTo, 0, i , i );
+         UdpStack uStack(_tos, _skb_priority, false, local_ip, localDevToBindTo, 0, i , i );
          Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
          myNetworkResList.push_back(res);
       }
@@ -271,7 +274,8 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
 
    //TODO:  There is still a race here, cause another process could jump in
    // and steal the port! --Ben
-   Sptr<MediaSession> mSession = new MediaSession(sId, localRes, localDevToBindTo, debug);
+   Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,
+                                                  localDevToBindTo, debug);
 
    assert(myMediaSessionMap.count(sId) == 0);
    myMediaSessionMap[sId] = mSession;

@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.7 2004/06/07 08:32:20 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.8 2005/03/03 19:59:50 greear Exp $";
 
 #ifndef __vxworks
 
@@ -73,7 +73,8 @@ static const char* const TcpClientSocket_cxx_Version =
 #include "NetworkConfig.hxx"
 #include "cpLog.h"
 
-TcpClientSocket::TcpClientSocket(const string& hostName,
+TcpClientSocket::TcpClientSocket(uint16 tos, uint32 priority,
+                                 const string& hostName,
                                  const string& _local_dev_to_bind_to,
                                  const string& _local_ip_to_bind_to,
                                  bool closeCon, bool blocking)
@@ -83,12 +84,14 @@ TcpClientSocket::TcpClientSocket(const string& hostName,
     _hostName(hostName),
     _serverPort( -1),
     _closeCon(closeCon),
-    _blocking(blocking)
+    _blocking(blocking),
+    _tos(tos), _skb_priority(priority)
 {
     initalize();
 }
 
-TcpClientSocket::TcpClientSocket(const string& hostName, int servPort,
+TcpClientSocket::TcpClientSocket(uint16 tos, uint32 priority,
+                                 const string& hostName, int servPort,
                                  const string& _local_dev_to_bind_to,
                                  const string& _local_ip_to_bind_to,
                                  bool closeCon, bool blocking)
@@ -98,12 +101,14 @@ TcpClientSocket::TcpClientSocket(const string& hostName, int servPort,
     _hostName(hostName),
     _serverPort(servPort),
     _closeCon(closeCon),
-    _blocking(blocking)
+    _blocking(blocking),
+    _tos(tos), _skb_priority(priority)
 {
     initalize();
 }
 
-TcpClientSocket::TcpClientSocket(const NetworkAddress& server,
+TcpClientSocket::TcpClientSocket(uint16 tos, uint32 priority,
+                                 const NetworkAddress& server,
                                  const string& _local_dev_to_bind_to,
                                  const string& _local_ip_to_bind_to,
                                  bool closeCon, bool blocking)
@@ -111,7 +116,8 @@ TcpClientSocket::TcpClientSocket(const NetworkAddress& server,
     local_dev_to_bind_to(_local_dev_to_bind_to),
     local_ip_to_bind_to(_local_ip_to_bind_to),
     _closeCon(closeCon),
-    _blocking(blocking)
+    _blocking(blocking),
+    _tos(tos), _skb_priority(priority)
 {
     _hostName = server.getHostName();
     _serverPort = server.getPort();
@@ -164,13 +170,12 @@ TcpClientSocket::operator=(TcpClientSocket& other)
 */
 
 
-void
-TcpClientSocket::initalize() {
-    _conn = new Connection(_blocking);
+void TcpClientSocket::initalize() {
+   _conn = new Connection(_blocking);
 }
 
 TcpClientSocket::~TcpClientSocket() {
-    close();
+   close();
 }
 
 
@@ -228,15 +233,6 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
       // Set it to be non-blocking, etc.
       _conn->setState();
       
-      // 16/1/04 fpi		  
-      // tbr
-      // todo
-      // Win32 WorkAround
-      // Note: I think this code is not useful,
-      // binding to a specific ip binds on the device
-      // that has the ip assigned
-      
-      // It is useful in some cases on Linux, at least. --Ben
 #ifdef __linux__
       // Optionally, bind this to the local interface.
       if (local_dev_to_bind_to.size()) {
@@ -276,6 +272,10 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
          }
       }
       
+      // Set ToS and Priority
+      vsetPriorityHelper(_conn->_connId, _skb_priority);
+      vsetTosHelper(_conn->_connId, _tos);
+
       int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
       if (rv >= 0) {
          ///Success

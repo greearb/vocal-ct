@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.8 2004/12/11 08:30:12 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.9 2005/03/03 19:59:50 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -208,7 +208,8 @@ public:
     * If device_to_bind_to is not "",  then we'll attempt to bind to it
     * with SO_BINDTODEVICE
     */
-   UdpStack ( bool isBlocking, /* Are we a blocking or non-blocking socket? */
+   UdpStack ( uint16 tos, uint32 priority,
+              bool isBlocking, /* Are we a blocking or non-blocking socket? */
               const string& desired_local_ip,
               const string& device_to_bind_to, 
               const NetworkAddress* destinationHost = NULL,
@@ -492,6 +493,9 @@ private:
     * system, will be used.
     */
    string desiredLocalIp;
+
+   uint16 _tos;
+   uint32 _skb_priority;
 
    bool boundLocal; /* Have we bound ourselves to the local IP yet */
 
