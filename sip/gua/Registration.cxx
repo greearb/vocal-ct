@@ -50,7 +50,7 @@
  */
 
 static const char* const Registration_cxx_Version =
-    "$Id: Registration.cxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
+    "$Id: Registration.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -153,25 +153,22 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
     if ( 200 == status ) {
         SipContact myContact = findMyContact(msg);
         Data expires = myContact.getExpires().getDelta();
-#if 0
-        if ( expires == "" )
-            expires = myContact.getExpires().getDate().get();
-#endif
         if ( expires == "" ) {
             //normally we need to get Delta not Date, but
             //for now the parse is not working correctly
             //so we will use this work around for now and
             //fix it later.
             expires == msg.getExpires().getDelta();
-#if 0     
-            if ( expires == "" )
-                expires = msg.getExpires().getDate().get();
-#endif     
+            cpLog(LOG_DEBUG, "Could not get expires for myContact, will use msg's Expires: %s",
+                  expires.c_str());
             if ( expires != "" ) {
                 SipExpires sipexpires("", registerMsg->getLocalIp());
                 sipexpires.setDelta(expires);
                 registerMsg->setExpires(sipexpires);
             }
+        }
+        else {
+           cpLog(LOG_DEBUG, "Found expires in myContact: %s", expires.c_str());
         }
 
         if ( expires != "" ) {

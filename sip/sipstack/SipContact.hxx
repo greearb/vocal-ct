@@ -53,7 +53,7 @@
 
 #include "global.h"
 static const char* const SipContactVersion =
-    "$Id: SipContact.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipContact.hxx,v 1.3 2004/10/25 23:21:14 greear Exp $";
 
 #include <iostream>
 
@@ -159,6 +159,7 @@ class SipContact : public SipHeader
         void setExpires( const SipExpires& item);
         ///
         SipExpires getExpires() const;
+        bool isExpiresSet() const { return bexpires; }
 
         /*** return the encoded string version of this. This call
              should only be used inside the stack and is not part of

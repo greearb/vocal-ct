@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCallLeg_cxx_Version =
-    "$Id: SipCallLeg.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: SipCallLeg.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
 
 #include "global.h"
 #include "symbols.hxx"
@@ -123,23 +123,91 @@ SipCallLeg::setFrom( const SipFrom& newfrom )
 
 bool
 SipCallLeg::operator == (const SipCallLeg& src) const {
-    cpLog(LOG_DEBUG, "in SipCallLeg::operator == ");
-    if ( getCallId() == src.getCallId() && cseq == src.cseq) {
-        if ( to == src.to && from == src.from ) {
+   cpLog(LOG_DEBUG, "in SipCallLeg::operator == ");
+   if ( getCallId() == src.getCallId()) {
+      if (cseq == src.cseq) {
+         // If the to or from ends in :5060, ignore it, because that is
+         // the default, and other stacks may not put it on...
+         char cooked_to[to.size() + 1];
+         char cooked_from[from.size() + 1];
+         char cooked_src_to[src.to.size() + 1];
+         char cooked_src_from[src.from.size() + 1];
+         
+         if ((to.size() > 5) &&
+             (strcmp((to.c_str() + (to.size() - 5)), ":5060") == 0)) {
+            strncpy(cooked_to, to.c_str(), to.size() - 5);
+            cooked_to[to.size()-5] = 0; //Null terminate
+         }
+         else {
+            strcpy(cooked_to, to.c_str());
+         }
+         
+         if ((src.to.size() > 5) &&
+             (strcmp((src.to.c_str() + (src.to.size() - 5)), ":5060") == 0)) {
+            strncpy(cooked_src_to, src.to.c_str(), src.to.size() - 5);
+            cooked_src_to[src.to.size()-5] = 0; //Null terminate
+         }
+         else {
+            strcpy(cooked_src_to, src.to.c_str());
+         }
+         
+         if ((from.size() > 5) &&
+             (strcmp((from.c_str() + (from.size() - 5)), ":5060") == 0)) {
+            strncpy(cooked_from, from.c_str(), from.size() - 5);
+            cooked_from[from.size()-5] = 0; //Null terminate
+         }
+         else {
+            strcpy(cooked_from, from.c_str());
+         }
+         
+         if ((src.from.size() > 5) &&
+             (strcmp((src.from.c_str() + (src.from.size() - 5)), ":5060") == 0)) {
+            strncpy(cooked_src_from, src.from.c_str(), src.from.size() - 5);
+            cooked_src_from[src.from.size()-5] = 0; //Null terminate
+         }
+         else {
+            strcpy(cooked_src_from, src.from.c_str());
+         }
+         
+         if ((strcasecmp(cooked_to, cooked_src_to) == 0) &&
+             (strcasecmp(cooked_from, cooked_src_from) == 0)) {
             cpLog( LOG_DEBUG_STACK, "Exact Match" );
             return true;
-        }
-        else {
-            if ( to == src.from && from == src.to ) {
-                cpLog( LOG_DEBUG_STACK, "To-From cross match" );
-                return true;
+         }
+         else {
+            if ((strcasecmp(cooked_to, cooked_src_from) == 0) &&
+                (strcasecmp(cooked_from, cooked_src_to) == 0)) {
+               cpLog( LOG_DEBUG_STACK, "To-From cross match" );
+               return true;
             }
-	    else{
-		cpLog(LOG_DEBUG_STACK, "NOT matched !!!!");
-	    }
-        }
-    }
-    return false;
+            else{
+               // Hack to make us match when the peer sets to/from to be the
+               // same.  This is really ugly..I think VOCAL should match on Call-ID
+               // and quit worrying so much about the call-leg, at least for
+               // matching responses, etc.
+               if ((strcasecmp(cooked_to, cooked_src_to) == 0) &&
+                   (strcasecmp(cooked_src_to, cooked_src_from) == 0)) {
+                  cpLog(LOG_DEBUG_STACK, "To-To-From match, gateway is funny??");
+                  return true;
+               }
+               else {
+                  cpLog(LOG_DEBUG_STACK, "NOT matched, to: %s  src.to: %s  from: %s  src.from: %s  cto: %s cfrom: %s  scto: %s scfrom: %s",
+                        to.c_str(), src.to.c_str(), from.c_str(), src.from.c_str(),
+                        cooked_to, cooked_from, cooked_src_to, cooked_src_from);
+               }
+            }
+         }
+      }
+      else {
+         cpLog(LOG_DEBUG_STACK, "cseq don't match, cseq: %s  src.cseq: %s",
+               cseq.encode().c_str(), src.cseq.encode().c_str());
+      }
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "call ids do not match, callId: %s  src: %s\n",
+            getCallId().encode().c_str(), src.getCallId().encode().c_str());
+   }
+   return false;
 }
 
 bool

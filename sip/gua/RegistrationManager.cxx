@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.5 2004/10/25 23:21:14 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -136,6 +136,20 @@ RegistrationManager::findRegistration(const StatusMsg& statusMsg)
          registration = (*iter);
          break;
       }
+      else {
+         // So, match on Call-ID instead.  But this will be a backup.
+         if (regMsg->getCallId() == statusMsg.getCallId()) {
+            registration = *iter;
+            cpLog(LOG_DEBUG, "Call-IDs matched, will use this for backup.");
+            // Continue, will prefer the original matching logic, just in case that
+            // is a good idea! --Ben
+         }
+         else {
+            cpLog(LOG_DEBUG, "regMsg callLeg: %s  statusMsg callLeg: %s  didn't match.\n",
+                  regMsg->computeCallLeg().toString().c_str(),
+                  statusMsg.computeCallLeg().toString().c_str());
+         }
+      }
       iter++;
    }
 
@@ -160,6 +174,7 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
    Sptr<Registration> registration = findRegistration(statusMsg);
 
    if (registration == 0) {
+      cpLog(LOG_DEBUG, "Could not find registration for statusMsg\n");
       return false;
    }
 

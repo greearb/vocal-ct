@@ -49,7 +49,7 @@
  */
 
 static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.3 2004/06/02 20:23:10 greear Exp $";
+    "$Id: SipMsg.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -671,6 +671,19 @@ SipMsg::getExpires() const
 {
     Sptr<SipExpires> expires;
     myHeaderList.getParsedHeader(expires, SIP_EXPIRES_HDR, getLocalIp());
+
+    // Hack:  Prefer the expires in contact if it is there.
+    Sptr<SipContact> c;
+    myHeaderList.getParsedHeader(c, SIP_CONTACT_HDR, getLocalIp());
+    if (c->isExpiresSet()) {
+        cpLog(LOG_DEBUG, "SipContact had expires set, orig: %s  new: %s\n",
+              expires->encode().c_str(), c->getExpires().encode().c_str());
+        *expires = c->getExpires(); // Copy it
+    }
+    else {
+        cpLog(LOG_DEBUG, "SipContact did not have expires set, using orig: %s\n",
+              expires->encode().c_str());
+    }
     return *expires;
 }
 

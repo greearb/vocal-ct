@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.6 2004/06/22 02:24:04 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.7 2004/10/25 23:21:14 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -153,6 +153,10 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
                     statusMsg.dynamicCast(sipMsg);
                     if(statusMsg->getStatusLine().getStatusCode() == 200)
                     {
+                       cpLog(LOG_DEBUG, "Expires for statusMsg: %s\n",
+                             statusMsg->getExpires().encode().c_str());
+                       cpLog(LOG_DEBUG, "Contact for statusMsg: %s\n",
+                             statusMsg->getContact().encode().c_str());
                        if((statusMsg->getExpires().getDelta().convertInt()))
                        {
                           UaFacade::instance().postMsg("REGISTERED ");
@@ -161,6 +165,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
                           UaFacade::instance().postMsg("REGISTRATIONEXPIRED ");
                        }
                     }
+                    cpLog(LOG_DEBUG, "Sending registration response to RegManager.\n");
                     UaFacade::instance().getRegistrationManager()->handleRegistrationResponse(*statusMsg);
                }
                else if (sipMsg->getCSeq().getMethod() == CANCEL_METHOD)
