@@ -37,7 +37,7 @@ configure:2424: checking for strip
 configure:2526: gcc -c -g -O2  conftest.c 1>&5
 configure:2681: checking for objdir
 configure:2708: checking for gcc option to produce PIC
-configure:2856: checking if gcc PIC flag                              -fPIC works
+configure:2856: checking if gcc PIC flag                                       -fPIC works
 configure:2922: checking if gcc static flag -static works
 configure:2964: checking if gcc supports -c -o file.o
 configure:3012: checking if gcc supports -c -o file.lo

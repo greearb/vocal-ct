@@ -142,5 +142,4 @@
 @prefix@/bin/lib/libdbmanager.so
 @prefix@/bin/lib/librecords.so
 @prefix@/bin/lib/libsndfile.so.1
-@prefix@/bin/lib/libxml.so.2
 @prefix@/bin/lib/libspeex.so.1

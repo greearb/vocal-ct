@@ -52,7 +52,7 @@
  */
 
 static const char* const SessionTimer_hxx_version =
-    "$Id: SessionTimer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SessionTimer.hxx,v 1.3 2004/08/20 07:29:37 greear Exp $";
     
 #include "global.h"
 #include <map>
@@ -62,42 +62,53 @@ static const char* const SessionTimer_hxx_version =
 #include "InviteMsg.hxx"
 #include "SipCallLeg.hxx"
 #include "SipTransceiver.hxx"
+#include <misc.hxx>
+#include <vector>
+
 
 using Vocal::TimeAndDate::TimerEntryId;
 
 namespace Vocal
 {
 
-enum VSessionContext 
-{
+enum VSessionContext {
     VS_NONE=0,
     VS_SEND,
     VS_RECV
 };
 
-class VSessionData: public BugCatcher {
+class VSessionData: public RCObject {
     public:
         long myDelta;
         long myStartTime;
+        uint64 timerExpires; // time, in ms, when timer expires.
         TimerEntryId          myTimerId;
         VSessionContext       mySessionContext;
         Sptr<InviteMsg> myInviteMsg;
 
-        VSessionData(): myDelta(0), myStartTime(0) {};
+        VSessionData(): myDelta(0), myStartTime(0), timerExpires(0) {};
         virtual ~VSessionData() { }
 };
 
 typedef void (*VSessionCallBack)(SipCallLeg arg);
 
+// We want the lower time to be first in the heap, used to sort
+// the transmit heap.
+struct VSessionDataComparitor {
+   bool operator()(Sptr<VSessionData> a, Sptr<VSessionData> b) {
+      return (b->timerExpires < a->timerExpires);
+   }
+};
 
-/// Singelton clas to support SessionTimers
-class SessionTimer
-{
+
+
+/// Singelton class to support SessionTimers
+class SessionTimer {
 public:
-    /// Create one with default values
+
     static SessionTimer& instance();
-    ///
-    static SessionTimer& instance(Sptr<SipTransceiver> tranceiver);
+
+    static SessionTimer& initialize(Sptr<SipTransceiver> tranceiver);
 
     ///
     static  void destroy();
@@ -111,7 +122,8 @@ public:
     /**Start a timer for Invite message with given sessionInterval
      * To be called when not a refresher
      */
-    void startTimerFor(const InviteMsg& iMsg, long  sessionInterval, VSessionContext ct=VS_RECV);
+    void startTimerFor(const InviteMsg& iMsg, long  sessionInterval,
+                       VSessionContext ct=VS_RECV);
 
     ///Interface to start the SessionTimer by refresher when received status msg
     // local_ip cannot be "" here, must be the local IP we are bound to locally
@@ -120,6 +132,13 @@ public:
 
     ///
     void processResponse(StatusMsg& sMsg);
+
+
+    void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+              uint64 now);
+    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+               int& maxdesc, uint64& timeout, uint64 now);
+
 private:
     ///
     void startTimerFor(const InviteMsg& iMsg, Sptr<VSessionData> sData);
@@ -132,24 +151,18 @@ private:
     static void* processThreadWrapper(void *p);
     ///
     virtual ~SessionTimer() ;
-
+        
     static SessionTimer* mInstance;
-    typedef list<Sptr<VSessionData> > SessionDataFifo;
-    SessionDataFifo mSessionDataFifo;
+
+    // This will be treated like a heap.
+    vector <Sptr <VSessionData> > mSessionDataQ;
+
     typedef map<SipCallLeg, Sptr<VSessionData> > SessionDataMap;
     SessionDataMap mSessionDataMap;
     Sptr<SipTransceiver> mTransceiver;
     VSessionCallBack myCallbackFunc;
-    bool mShutdown;
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

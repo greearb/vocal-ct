@@ -1,4 +1,4 @@
-# $Id: Makefile.pkg,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile.pkg,v 1.2 2004/08/20 07:29:33 greear Exp $
 
 # this file defines packages which reside in the contrib directory.
 # it is included from the $(BUILD)/Makefile.pkg file.  
@@ -100,29 +100,29 @@ endif
 #                         libxml
 
 ifeq ($(VOCAL_USE_SYSTEM_LIBXML),true)
-  LIBXML_INCLUDEDIRS := /usr/local/include/libxml2 /usr/local/include/libxml2/libxml /usr/local/include
+  LIBXML_INCLUDEDIRS := /usr/include/libxml2 /usr/include/libxml2/libxml /usr/include
   LIBXML_LIBDIRS := /usr/local/lib
   LIBXML_LDLIBS_LAST := -lxml
 else
-  LIBXML_INCLUDEDIRS := $(ROOT)/contrib/libxml2.$(OS_ARCH) $(ROOT)/contrib/libxml2.$(OS_ARCH)/include/libxml $(ROOT)/contrib/libxml2.$(OS_ARCH)/include
-  LIBXML_LIBDIRS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs 
+  LIBXML_INCLUDEDIRS := $(ROOT)/contrib/libxml2.$(TARGET_NAME)/include
+  LIBXML_LIBDIRS := $(ROOT)/contrib/libxml2.$(TARGET_NAME)/.libs 
   ifeq ($(OSTYPE),Linux)
-    LIBXML_LIBNAME :=
+    LIBXML_LIBNAME := vxml
   endif
   ifeq ($(OSTYPE),Darwin)
     LIBXML_LDLIBS_LAST := $(LD_STATIC) -lxml2 -lz $(LD_DYNAMIC)
   else
     ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
-      LIBXML_LDLIBS_LAST := -lxml
+      LIBXML_LDLIBS_LAST := -lvxml
     else
-      LIBXML_LDLIBS_LAST := $(LD_STATIC) -lxml $(LD_DYNAMIC)
+      LIBXML_LDLIBS_LAST := $(LD_STATIC) -lvxml $(LD_DYNAMIC)
     endif
   endif
 
 ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
-  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs/libxml.so
+  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(TARGET_NAME)/.libs/libxml.so
 else
-  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(OS_ARCH)/.libs/libxml.a
+  LIBXML_DEPENDS := $(ROOT)/contrib/libxml2.$(TARGET_NAME)/.libs/libxml.a
 endif
 
 $(LIBXML_DEPENDS):

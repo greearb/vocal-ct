@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/08/13 07:33:33 greear Exp $
+# $Id: Makefile,v 1.3 2004/08/20 07:29:33 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -133,19 +133,20 @@ ifeq ($(VOCAL_USE_SYSTEM_LIBXML),true)
 libxml:
 	@echo "using system libxml2"
 else
-libxml: ../lib.$(TARGET_NAME)/libxml.so.2
+libxml: ../lib.$(TARGET_NAME)/libvxml.so
 
-../lib.$(TARGET_NAME)/libxml.so.2: libxmlB
+../lib.$(TARGET_NAME)/libvxml.so: libxmlB
 	mkdir -p ../lib.$(TARGET_NAME)
 	rm -f $@
-	ln -s -f $(shell pwd)/libxml2.$(OS_ARCH)/.libs/libxml.so.2 $@
+	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.so.2.6.11 $@
 
-libxmlB: libxml2.$(OS_ARCH)
-	cd libxml2.$(OS_ARCH) ; env CC=$(CC) $(MAKE)
+libxmlB: libxml2.$(TARGET_NAME)
+	cd libxml2.$(TARGET_NAME) ; env CC=$(CC) $(MAKE)
+	cd libxml2.$(TARGET_NAME)/.libs ; ln -s -f libxml2.so libvxml.so
 
-libxml2.$(OS_ARCH):
-	$(LNDIR) ../libxml-2.x libxml2.$(OS_ARCH)
-	cd libxml2.$(OS_ARCH) ; env CC=$(CC) $(CONFIGURE)
+libxml2.$(TARGET_NAME):
+	$(LNDIR) ../libxml2-2.6.11 libxml2.$(TARGET_NAME)
+	cd libxml2.$(TARGET_NAME) ; env CC=$(CC) $(CONFIGURE) --without-threads
 endif
 
 libcext: libcext_bsd libcext_lgpl
@@ -252,17 +253,17 @@ doc:
 cleanall: clean
 
 clean:
-	rm -rf xerces-c-src1_4_0.$(OS_ARCH)
-	rm -rf libxml2.$(OS_ARCH)
-	rm -rf Equivalence.$(OS_ARCH)
-	rm -rf yarrow.$(OS_ARCH)
-	rm -rf newsndfile.$(OS_ARCH)
-	rm -rf speex.*
-	rm -rf imap.$(OS_ARCH)
-	if [ -d yarrow ]; then cd yarrow ; $(MAKE) clean; fi
-	if [ -d quicknet ]; then cd quicknet; $(MAKE) clean; fi
-	if [ -d speex/speex-1.0.3 ]; then cd speex/speex-1.0.3; $(MAKE) clean; fi
-	rm -fr speex/speex-1.0.3/build
-	if [ -d andreasen ]; then cd andreasen ; $(MAKE) clean; fi
+	-rm -rf xerces-c-src1_4_0.$(OS_ARCH)
+	-rm -rf libxml2.$(OS_ARCH)
+	-rm -rf Equivalence.$(OS_ARCH)
+	-rm -rf yarrow.$(OS_ARCH)
+	-rm -rf newsndfile.$(OS_ARCH)
+	-rm -rf speex.*
+	-rm -rf imap.$(OS_ARCH)
+	-if [ -d yarrow ]; then cd yarrow ; $(MAKE) clean; fi
+	-if [ -d quicknet ]; then cd quicknet; $(MAKE) clean; fi
+	-if [ -d speex/speex-1.0.3 ]; then cd speex/speex-1.0.3; $(MAKE) clean; fi
+	-rm -fr speex/speex-1.0.3/build
+	-if [ -d andreasen ]; then cd andreasen ; $(MAKE) clean; fi
 
 
