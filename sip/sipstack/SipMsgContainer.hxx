@@ -171,26 +171,14 @@ public:
 
    virtual ~SipCallContainer() { }
 
-   void addMsgPair(Sptr<SipMsgPair> m) {
-      msgs.push_back(m);
-   }
-
-   Sptr<SipMsgPair> peekTopMsg() {
-      if (msgs.size()) {
-         return msgs.front();
-      }
-      return NULL;
-   }
+   void addMsgPair(Sptr<SipMsgPair> m);
 
    Sptr<SipMsgPair> findMsgPair(const SipTransactionId& id);
    Sptr<SipMsgPair> findMsgPair(Method method);
 
-   void popMsg() {
-      assert(msgs.size());
-      msgs.pop_front();
-   }
-   
-   void clear();
+   void stopAllRetrans();
+
+   void clear(const char* debug);
 
    list<Sptr<SipMsgPair> >& getMsgList() { return msgs; }
 

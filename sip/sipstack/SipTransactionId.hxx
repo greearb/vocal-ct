@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionId_hxx_version =
-    "$Id: SipTransactionId.hxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
+    "$Id: SipTransactionId.hxx,v 1.5 2004/11/04 07:51:18 greear Exp $";
 
 #include "Data.hxx"
 #include <BugCatcher.hxx>
@@ -123,7 +123,7 @@ public:
 
    virtual void clear();
 
-   virtual string toString();
+   virtual string toString() const;
 
 protected:
    SipTransactionId();

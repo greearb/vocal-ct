@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipMsgContainer.cxx,v 1.1 2004/09/30 23:17:43 greear Exp $";
+    "$Id: SipMsgContainer.cxx,v 1.2 2004/11/04 07:51:18 greear Exp $";
 
 #include "global.h"
 #include "SipMsgContainer.hxx"
@@ -84,8 +84,11 @@ void SipMsgContainer::clear() {
 }//clear
 
 bool SipMsgContainer::matches(const SipTransactionId& id) {
-   return (id == trans_id);
-}
+   bool v = (id == trans_id);
+   cpLog(LOG_DEBUG, "matches: %d, id: %s  trans_id: %s\n",
+         (int)(v), id.toString().c_str(), trans_id.toString().c_str());
+   return v;
+}//matches
 
 void SipMsgContainer::cleanup() {
     in = NULL;
@@ -136,7 +139,7 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
     while (i != msgs.end()) {
         Sptr<SipMsgPair> mp = *i;
         if ((mp->request != 0) && mp->request->matches(id)) {
-            return (*i);
+           return (*i);
         }
         if ((mp->response != 0) && mp->response->matches(id)) {
             return (*i);
@@ -144,8 +147,19 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
         i++;
     }
     return NULL;
-}
+}//findMsgPair
 
+void SipCallContainer::stopAllRetrans() {
+   list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+   while (i != msgs.end()) {
+      Sptr<SipMsgPair> mp = *i;
+      if ((mp->request != 0) && (mp->request->getRetransmitMax() != 0)) {
+         cpLog(LOG_DEBUG, "Stopping retransmit of msg due to stopAllRetrans\n");
+         mp->request->setRetransmitMax(0);
+      }
+      i++;
+   }
+}//stopAllRetrans
 
 Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
     list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
@@ -167,7 +181,17 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
 }
 
 
-void SipCallContainer::clear() {
+void SipCallContainer::addMsgPair(Sptr<SipMsgPair> m) {
+   msgs.push_back(m);
+   cpLog(LOG_DEBUG, "Added msg-pair: %p to SipCallContainer, this: %p, size: %d\n",
+         m.getPtr(), this, msgs.size());
+}
+
+
+
+void SipCallContainer::clear(const char* debug) {
+   cpLog(LOG_DEBUG, "Clearing SipCallContainer: %p, debug: %s\n",
+         this, debug);
    msgs.clear();
    setSeq = false;
    curSeqNum = 0;

@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.3 2004/10/29 07:22:34 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.4 2004/11/04 07:51:18 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -157,13 +157,11 @@ CallAgent::doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp
    return statusMsg;
 }
 
-void 
-CallAgent::placeCall()
-{
-    cpLog(LOG_DEBUG, "CallAgent::placeCall()");
-    Sptr<SipMsg> sipMsg = myInvokee->getRequest();
-    myInvokee->sendMsg(sipMsg);
-    facade->postInfo(sipMsg);
+void CallAgent::placeCall() {
+   cpLog(LOG_DEBUG, "CallAgent::placeCall()");
+   Sptr<SipMsg> sipMsg = myInvokee->getRequest();
+   myInvokee->sendMsg(sipMsg);
+   facade->postInfo(sipMsg);
 }
 
 

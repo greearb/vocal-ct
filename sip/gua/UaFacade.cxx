@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.8 2004/06/22 02:24:04 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.9 2004/11/04 07:51:18 greear Exp $";
 
 
 #include <sys/types.h>
@@ -486,11 +486,10 @@ void UaFacade::notifyCallEnded() {
 }
 
 
-void
-UaFacade::postInfo(Sptr<SipMsg> sMsg) {
+void UaFacade::postInfo(Sptr<SipMsg> sMsg) {
    assert(sMsg != 0);
    strstream s;
-   s << "RCVD " << sMsg->encode().logData() << endl << ends;
+   s << sMsg->encode().logData() << endl << ends;
    postMsg(s.str());
    s.freeze(false);
 }

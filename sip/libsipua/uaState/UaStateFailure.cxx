@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFailure_cxx_Version =
-    "$Id: UaStateFailure.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaStateFailure.cxx,v 1.4 2004/11/04 07:51:18 greear Exp $";
 
 #include "UaStateFailure.hxx"
 #include "UaBase.hxx"
@@ -90,51 +90,47 @@ UaStateFailure::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 
 void 
 UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    cpLog(LOG_DEBUG, "UaStateFailure::recvStatus");
-    assert(agent.isAClient());
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(msg);
-    assert(statusMsg != 0);
-    int statusCode = statusMsg->getStatusLine().getStatusCode();
-    if(statusCode > 200)
-    {
-        //Transit to Idle
-        if(statusCode == 487)
-        {
-            //Create the ACK msg of the original Invite and send
-            Sptr<InviteMsg> invMsg;
-            invMsg.dynamicCast(agent.getRequest());
-            assert(invMsg != 0);
-            Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
-            ackMsg->flushViaList();
+                 throw (CInvalidStateException&) {
+   cpLog(LOG_DEBUG, "UaStateFailure::recvStatus");
+   assert(agent.isAClient());
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(msg);
+   assert(statusMsg != 0);
+   int statusCode = statusMsg->getStatusLine().getStatusCode();
+   if (statusCode > 200) {
+      //Transit to Idle
+      if (statusCode == 487) {
+         //Create the ACK msg of the original Invite and send
+         Sptr<InviteMsg> invMsg;
+         invMsg.dynamicCast(agent.getRequest());
+         assert(invMsg != 0);
+         Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
+         ackMsg->flushViaList();
 
-            SipVia via = invMsg->getVia(0);
-            ackMsg->setVia(via, 0);
+         SipVia via = invMsg->getVia(0);
+         ackMsg->setVia(via, 0);
+         
+         Sptr<SipUrl> sUrl;
+         sUrl.dynamicCast(invMsg->getRequestLine().getUrl());
+         SipRequestLine rLine(SIP_ACK, sUrl.getPtr(), agent.getMyLocalIp());
+         ackMsg->setRequestLine(rLine);
+         
+         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+      }
+      //Notify CC
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg);
+         ba->callFailed();
+      }
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+   }
+}//recvStatus
 
-            Sptr<SipUrl> sUrl;
-            sUrl.dynamicCast(invMsg->getRequestLine().getUrl());
-            SipRequestLine rLine(SIP_ACK, sUrl.getPtr(), agent.getMyLocalIp());
-            ackMsg->setRequestLine(rLine);
 
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
-        }
-        //Notify CC
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->receivedStatus(agent, msg);
-           ba->callFailed();
-        }
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-    }
-}
-
-int
-UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    //DO nothing
+int UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+   //DO nothing
    return -1;
 }
 

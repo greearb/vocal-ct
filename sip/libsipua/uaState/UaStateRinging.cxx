@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateRinging_cxx_Version =
-    "$Id: UaStateRinging.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
+    "$Id: UaStateRinging.cxx,v 1.4 2004/11/04 07:51:18 greear Exp $";
 
 #include "UaStateRinging.hxx"
 #include "UaStateFactory.hxx"
@@ -286,22 +286,21 @@ UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 
-int
-UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-     if((msg->getType() == SIP_CANCEL) ||
-        (msg->getType() == SIP_BYE))  //Some UAs may send BYE instead of CANCEL in Ringing
-     {
-         Sptr<SipCommand> sipCmd;
-         agent.setCallLegState(CLS_NONE);
-         sipCmd.dynamicCast(agent.getRequest());
-         Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
-         cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-         agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
-         //Transit to Failure
-         changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
-         return 0;
-     }
-     return -EINVAL;
-}
+int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+
+   //Some UAs may send BYE instead of CANCEL in Ringing
+   if ((msg->getType() == SIP_CANCEL) ||
+       (msg->getType() == SIP_BYE)) {
+      Sptr<SipCommand> sipCmd;
+      agent.setCallLegState(CLS_NONE);
+      sipCmd.dynamicCast(agent.getRequest());
+      Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
+      cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
+      agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+      //Transit to Failure
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
+      return 0;
+   }
+   return -EINVAL;
+}//sendRequest

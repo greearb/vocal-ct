@@ -50,7 +50,7 @@
 
 
 static const char* const CallControl_cxx_Version =
-    "$Id: CallControl.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
+    "$Id: CallControl.cxx,v 1.5 2004/11/04 07:51:18 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -64,40 +64,40 @@ using namespace UA;
 
 bool 
 CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
-    cpLog(LOG_DEBUG, "CallControl::processEvent");
-    bool eventHandled = false;
-    //Lets handle the sip-event here, other custom events can 
-    //be handled in the derived classes
-    Sptr<SipEvent> sipEvent;
-    sipEvent.dynamicCast(event);
-    if(sipEvent != 0) {
-        cpLog(LOG_DEBUG, "Handling SIP event");
-        //get the callleg and lookup in the Call database to
-        //see if callleg already exists.If so get the UserAgent and
-        //invoke the action on it.
-        Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
-        assert(sipMsg != 0);
-        SipCallLeg cLeg(sipMsg->getFrom(), sipMsg->getTo(), sipMsg->getCallId(),
-                        sipMsg->getLocalIp());
-        Sptr<MultiLegCallData> mData = CallDB::instance().getMultiLegCallData(cLeg);
-        if (mData != 0) {
-            mData->assertNotDeleted();
-            //Call Data found
-            Sptr<UaBase> agent;
-            agent.dynamicCast(mData->getCallLeg(cLeg));
-            if (agent != 0) {
-                agent->assertNotDeleted();
-                agent->receivedMsg(sipMsg);
-            }
-            eventHandled = true;
-        }
-        else {
-           cpLog(LOG_DEBUG_STACK, "Could not find MultiLegCallData, cLen: %s\n",
-                 cLeg.toString().c_str());
-        }
-    }
-    cpLog(LOG_DEBUG, "CallControl::processEvent returns");
-    return eventHandled;
+   cpLog(LOG_DEBUG, "CallControl::processEvent");
+   bool eventHandled = false;
+   //Lets handle the sip-event here, other custom events can 
+   //be handled in the derived classes
+   Sptr<SipEvent> sipEvent;
+   sipEvent.dynamicCast(event);
+   if (sipEvent != 0) {
+      cpLog(LOG_DEBUG, "Handling SIP event");
+      //get the callleg and lookup in the Call database to
+      //see if callleg already exists.If so get the UserAgent and
+      //invoke the action on it.
+      Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
+      assert(sipMsg != 0);
+      SipCallLeg cLeg(sipMsg->getFrom(), sipMsg->getTo(), sipMsg->getCallId(),
+                      sipMsg->getLocalIp());
+      Sptr<MultiLegCallData> mData = CallDB::instance().getMultiLegCallData(cLeg);
+      if (mData != 0) {
+         mData->assertNotDeleted();
+         //Call Data found
+         Sptr<UaBase> agent;
+         agent.dynamicCast(mData->getCallLeg(cLeg));
+         if (agent != 0) {
+            agent->assertNotDeleted();
+            agent->receivedMsg(sipMsg);
+         }
+         eventHandled = true;
+      }
+      else {
+         cpLog(LOG_DEBUG_STACK, "Could not find MultiLegCallData, cLen: %s\n",
+               cLeg.toString().c_str());
+      }
+   }
+   cpLog(LOG_DEBUG, "CallControl::processEvent returns");
+   return eventHandled;
 }
 
 

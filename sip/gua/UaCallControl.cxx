@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.9 2004/11/04 05:16:41 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.10 2004/11/04 07:51:18 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -523,24 +523,20 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
 }//handleGuiEvents
 
 
-UaCallControl& 
-UaCallControl::instance() {
+UaCallControl& UaCallControl::instance() {
    if (myInstance == 0) {
       myInstance = new UaCallControl();
    }
    return *myInstance;
 }
 
-void
-UaCallControl::destroy(void) {
+void UaCallControl::destroy(void) {
    cpLog(LOG_DEBUG, "UaCallControl::destroy");
    delete UaCallControl::myInstance;
    UaCallControl::myInstance = 0;
 }
 
-void
-UaCallControl::initiateInvite(const string& to)
-{
+void UaCallControl::initiateInvite(const string& to) {
     //Parse the to string
     //1000-> sip:1000@proxy.com;user=phone
     //xvz->  sip:xyz@proxy.com;
@@ -550,27 +546,23 @@ UaCallControl::initiateInvite(const string& to)
     //Case 1: sip:user@...
     string::size_type pos = to.find_first_of(":@");
     Sptr<BaseUrl> toUrl; 
-    if(pos != string::npos)
-    {
+    if (pos != string::npos) {
         toUrl = parseUrl(to);
-        if(toUrl == 0)
-        {
+        if (toUrl == 0) {
            //Case 2
            //user@xyz.com
            //Assume it to be a SIP url
            string mTo("sip:");
            mTo += to;
            toUrl = parseUrl(mTo);
-           if(toUrl == 0)
-           {
+           if (toUrl == 0) {
                //Give-up, url is not the right type
                UaFacade::instance().postMsg("ERROR Invalid URL");
                return;
            }
         }
     }
-    else
-    {
+    else {
         //Only user part
         toUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
         Sptr<SipUrl> sUrl;
@@ -600,8 +592,7 @@ UaCallControl::initiateInvite(const string& to)
     unsigned char tempTag[NUM_TAG_RANDOMNESS];
     int len = random.getRandom(tempTag, NUM_TAG_RANDOMNESS);
     Data fromTag;
-    if (len > 0)
-    {
+    if (len > 0) {
         fromTag = convertToHex(tempTag, NUM_TAG_RANDOMNESS);
     }
     from.setTag(fromTag);
@@ -625,12 +616,9 @@ UaCallControl::initiateInvite(const string& to)
     Sptr< SipUrl > myUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
     myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
     SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
-    if( UaConfiguration::instance().getValue(NATAddressIPTag).length())
-    {
+    if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
        myUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
-
-    } else
-    {
+    } else {
        myUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
     }
     myUrl->setPort( UaConfiguration::instance().getValue(LocalSipPortTag) );
@@ -649,8 +637,7 @@ UaCallControl::initiateInvite(const string& to)
     int video  = atoi(UaConfiguration::instance().getValue(VideoTag).c_str()); 
     //Even if video mode is on, when running in command line mode force the
     //non-video option
-    if(video && (!UaCommandLine::instance()->getIntOpt("cmdline")))
-    {
+    if (video && (!UaCommandLine::instance()->getIntOpt("cmdline"))) {
         Data sdpData;
         Sptr<VideoDevice> vDevice;
         vDevice.dynamicCast(UaFacade::instance().peekMediaDevice());
@@ -659,8 +646,7 @@ UaCallControl::initiateInvite(const string& to)
         localSdp.flushMediaList();
         vDevice->generateSdpData(localSdp);
     }
-    else
-    {
+    else {
         SdpSession localSdp = MediaController::instance().createSession();
         if(NAT_HOST.length())
         {
@@ -670,10 +656,8 @@ UaCallControl::initiateInvite(const string& to)
     }
 #else
     SdpSession localSdp = MediaController::instance().createSession("UaCallControll::initiateInvite");
-    if(NAT_HOST.length())
-    {
+    if (NAT_HOST.length()) {
        setHost(localSdp, NAT_HOST);
-
     }
     sipSdp->setSdpDescriptor(localSdp);
 #endif

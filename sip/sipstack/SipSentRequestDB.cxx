@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.7 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.8 2004/11/04 07:51:18 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -112,7 +112,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
 
 	// if this is a CANCEL then cancel all the active retranses...
 	if (msg->getType() == SIP_CANCEL) {
-            call->clear();
+           call->stopAllRetrans();
 	}
 
         Sptr<SipMsgPair> mp = new SipMsgPair();
