@@ -52,13 +52,13 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Connection.hxx,v 1.5 2004/05/29 01:10:34 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
 #include <string.h>
 #include <BugCatcher.hxx>
-
+#include <IOBuffer.hxx>
 #include <string>
 
 #include <sys/types.h>
@@ -95,39 +95,11 @@ class TcpServerSocket;
 class TcpClientSocket;
 
 typedef struct sockaddr SA;
-#define MAXLINE   256
 
-/**
-   A stream based Connection object.  Network connections are
-   represented by these objects.<p>
 
-   <b>Usage</b>
-
-   assume for the moment that you have a valid Connection named conn
-   (see TcpClientSocket or TcpServerSocket for details on how to
-   create a valid Connection).<p>
-
-   <pre>
-   
-   // to write
-   // note -- this does NOT write the trailing NULL
-   conn.writeData("test\n", 5);
-   
-   // to read
-   
-   char buf[256];
-   int n;
-
-   // this reads a line as opposed to a certain number of bytes.
-   int err = conn.readLine(buf, 255, n);
-   
-   </pre>
-
-*/
-class Connection: public BugCatcher
-{
+class Connection: public BugCatcher {
     public:
-
+        
         /**
            Construct a connection.
            @param blocking  create a blocking object, or non-blocking if false.
@@ -173,13 +145,20 @@ class Connection: public BugCatcher
         virtual void setCloseOnDestruct(bool b) { closeOnDestruct = b; }
         virtual bool shouldCloseOnDestruct() const { return closeOnDestruct; }
 
+        virtual bool needsToWrite() { return outBuf.getCurLen() > 0; }
+        virtual int getSendQueueSize() { return outBuf.getCurLen(); }
+        virtual void consumeRcvdBytes(int cnt) { rcvBuf.dropFromTail(cnt); }
+
+        // Returns the number of bytes actually peeked, and
+        // buf will be null-terminated.
+        int peekRcvdBytes(unsigned char* buf, int mx_buf_len);
+
         /**
            this is true if the two Connection objects have the same
            fd, false otherwise.
         */
 
-        bool operator==(const Connection& other)
-        {
+        bool operator==(const Connection& other) {
             return (_connId == other._connId);
         }
 
@@ -188,177 +167,85 @@ class Connection: public BugCatcher
            fd, true otherwise.
         */
 
-        bool operator!=(const Connection& other)
-        {
+        bool operator!=(const Connection& other) {
             return (_connId != other._connId);
         }
-
-        /**
-           Reads line until '\n' is encountered or data ends.
-           **** Inefficient, reads one char at a time!!
-
-           @param data buffer to read data into
-           @param maxlen  maximum number of bytes to read into buffer
-           @param bytesRead  set to number of bytes read.
-
-           @return 0 if no more data, or number of bytes read, or -1
-           if connection is already closed
-
-           @throw VNetworkException
-         */
-        int readLine(void* data, size_t maxlen, int &bytesRead) throw (VNetworkException&);
-
-
-        /**
-           Reads into internal buffer.  Can use getLine() to grab lines from
-           the buffer after calling this.
-           Should be called on a non-blocking socket, and may not read an entire
-           line each call (and it may read more than one line)
-
-           @return >= 0 if read was ok, < 0 if there is an error
-
-           @throw VNetworkException
-         */
-        int readNB() throw (VNetworkException&);
 
 
         /** Returns >= 0 if we received a newline, OR if the entire buffer is full
          * but there is no newline.  RsltBuf will be null terminated.  Maxlen specifies
          * the memory allocated for rsltBuf and is uses to ensure we do not over-run
-         * the buffer.  maxlen MUST be > MAXLINE.
+         * the buffer.
          * In general, call this method repeatedly untill it returns < 0
-         *  Used with readNB for non-blocking readLind like behaviour.
          */
         int getLine(char* rsltBuf, int maxlen);
-
-        /**
-           Reads bytes from the connection.
-
-           @param data buffer to read data into
-           @param nchar  maximum number of bytes to read into buffer
-           @param bytesRead  set to number of bytes read.
-
-           @return 0 if no more data, or number of bytes read, or -1
-           if connection is closed
-
-           @throw VNetworkException
-         */
-        int readn(void* data, size_t nchar, int &bytesRead) throw (VNetworkException&);
-
-
-
-        /**
-           Reads bytes from the connection.
-
-           @param data buffer to read data into
-           @param nchar  maximum number of bytes to read into buffer
-
-           @return 0 if no more data, or number of bytes read, or -1
-           if connection is closed
-
-           @throw VNetworkException
-         */
-        int readn(void *data, size_t nchar) throw (VNetworkException&);
-
-
-        /** 
-            Writes bytes to the connection.
-
-            @param data buffer to write data from
-            @param n  number of bytes to write.
-
-            @throw VNetworkException
-        */
-        void writeData(void* data, size_t n) throw (VNetworkException&);
-
-
-        /** 
-            Writes bytes to the connection.
-
-            @param string string to write to the network.
-
-            @throw VNetworkException
-        */
-        void writeData(string& data) throw (VNetworkException&);
 
 
         /** 
             Gets the connection description.
-
             @return connection description (far end) in the format
             IP_ADDRESSS:Port.
         */
         string getDescription() const;
 
         /** 
-            Gets the IP of the destination.
-            
+            Gets the IP of the peer machine (destination).
             @return IP of the destination.
         */
-        string getIp() const;
+        string getPeerIp() const;
 
-        ///Gets the port of the destination 
-        int getPort() const;
+        //Gets the port of the destination 
+        int getPeerPort() const;
 
 
         /// Still connected?  true if so.
-        bool isLive() const
-        {
+        bool isLive() const {
             return (_live);
         }
 
-        /// close connection.
+        // close connection.
         int close();
 
-
-        /** 
-            Check if data is ready to be read.
-
-            @param seconds number of seconds to wait for data to be read.
-            @param mSeconds number of microseconds to wait for data to be read.
-
-            @return true if data is ready to be read, or false otherwise.
-        */
-        bool isReadReady(int seconds, int mSeconds) const;
-
-        /// initialize the SIGPIPE signal handler (for broken pipes)
+        // initialize the SIGPIPE signal handler (for broken pipes)
         void initialize();
 
-        /// handler for SIGPIPE signal
+        // handler for SIGPIPE signal
         static void signalHandler(int signo);
-
-        /// @deprecated
-        void deepCopy(const Connection& src, char** bufPtr, int* bufLenPtr);
 
         void setConnectInProgress(bool v) { _inProgress = true; }
         bool isConnectInProgress() const { return _inProgress; }
 
-        /// Get the file descriptor for the socket - use with care or not at all
+        // Get the file descriptor for the socket - use with care or not at all
         int getSocketFD () { return getConnId(); }
 
-        /// Add this stacks file descriptors to the the fdSet
+        // Add this stacks file descriptors to the the fdSet
         void addToFdSet ( fd_set* set );
 
-        /// Find the max of any file descripts in this stack and the passed value
+        // Find the max of any file descripts in this stack and the passed value
         int getMaxFD ( int prevMax);
 
-        /// Check and see if this stacks file descriptor is set in fd_set
+        // Check and see if this stacks file descriptor is set in fd_set
         bool checkIfSet ( fd_set* set );
 
         bool isBlocking() { return _blocking; }
 
-    protected:
-        // Inefficient, reads one char at a time!!
-        ssize_t effRead(char* ptr);
+        virtual int read();
 
-        virtual int iclose();
-        virtual ssize_t iread(char* buf, size_t count);
-        virtual ssize_t iwrite(char* buf, size_t count);
+        virtual int write();
+
+        // Queue it for send.  It will be written as soon as possible.
+        virtual int queueSendData(const char* data, int len);
+
+    protected:
 
         /**Sets the connection state to be blocking or non-blocking
            based on the type of the connection.
          */
         void setState();
+
+        virtual int iclose();
+        virtual int iread();
+        virtual int iwrite();
 
         friend class TcpServerSocket;
         friend class TcpClientSocket;
@@ -368,28 +255,18 @@ class Connection: public BugCatcher
         struct sockaddr* _connAddr;
         bool _blocking;
         bool _inProgress; // Doing a non-blocking connect
-        static bool _init;  /// Set to true if signal handler initialized
+        static bool _init;  // Set to true if signal handler initialized
         bool _isClient; //  set if it is the client
         bool closeOnDestruct; /* Should we close our socket on destruct, or not.
                                * Helps with shared sockets. */
 
-        char buf[MAXLINE];
-        int sofar;
+        IOBuffer outBuf;
+        IOBuffer rcvBuf;
 
     private:
         // Don't use this, makes it a total PITA to figure out how to
         // safely close file descriptors.
         Connection(const Connection& other);
-
-
 };
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

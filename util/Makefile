@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2004/05/04 07:31:15 greear Exp $
+# $Id: Makefile,v 1.3 2004/05/29 01:10:33 greear Exp $
 
 BUILD = ../build
 
@@ -87,6 +87,7 @@ SRC += \
         io/Serialize.cxx \
         io/VFile.cxx \
         io/Writer.cxx \
+        IOBuffer.cxx \
         logging/CpPriorityLog.cxx \
         logging/Log.cxx \
         logging/PriorityLog.cxx \

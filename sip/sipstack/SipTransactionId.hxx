@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTransactionId_hxx_version =
-    "$Id: SipTransactionId.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionId.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
 
 #include "Data.hxx"
 
@@ -61,8 +61,7 @@ namespace Vocal
 
 class SipMsg;
     
-class SipTransactionId
-{
+class SipTransactionId {
     public:
 	/**
 	 * the first level key type - it's been chosen to be Data
@@ -132,12 +131,4 @@ class SipTransactionId
 };
  
 } // namespace Vocal
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

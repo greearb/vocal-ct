@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.3 2004/05/29 01:10:34 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -814,75 +814,67 @@ UdpStack::setLocal (const int minPort, int maxPort )
     cpLog (LOG_DEBUG_STACK, "UdpStack::setLocal");
     cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
 
-    if ((mode == sendonly) || (mode == inactive))
-    {
+    if ((mode == sendonly) || (mode == inactive)) {
         cpLog(LOG_ERR, "The UdpStack is sendonly or inactive.");
         return ;
     }
+
     // To reopen a new socket, since after sendto(), bind() will fail
-    //    if (localPort != -1)
-    {
-        int newFd;
-        newFd = socket(NetworkConfig::instance().getAddrFamily(), 
-                       SOCK_DGRAM, IPPROTO_UDP);
-        if(NetworkConfig::instance().getAddrFamily() == AF_INET6)
-        {
-            //Set the sockoption so that we get get source IP
-            //when running on the same host
-            int on=1;
 
-				// 25/11/03 fpi
-				// WorkAround Win32
-				// ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
-				setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
-        }
-#ifndef WIN32
-        if ( close (data->socketFd) != 0 )
-#else
-	if ( closesocket(data->socketFd) )
-#endif
-	{
-            cpLog(LOG_ERR, "close socketFd error!");
-	}
-        data->socketFd = newFd;
-        if ( data->socketFd < 0 )
-        {
-            int err = errno;
-            strstream errMsg;
-            errMsg << "UdpStack<" /* << getLclName() */
-            << ">::UdpStack error during socket creation: ";
-            errMsg << strerror(err);
-            errMsg << char(0);
+    int newFd;
+    newFd = socket(NetworkConfig::instance().getAddrFamily(), 
+                   SOCK_DGRAM, IPPROTO_UDP);
+    if (NetworkConfig::instance().getAddrFamily() == AF_INET6) {
+       //Set the sockoption so that we get get source IP
+       //when running on the same host
+       int on=1;
 
-            cpLog(LOG_ERR,  errMsg.str());
-            throw UdpStackException(errMsg.str());
-            errMsg.freeze(false);
-            assert(0);
-        }
-#ifdef __linux__
-        int buf1 = 1;
-        int len1 = sizeof(buf1);
-        struct protoent * protoent;
-        protoent = getprotobyname("icmp");
-
-        if (!protoent)
-        {
-            fprintf(stderr, "Cannot get icmp protocol\n");
-        }
-        else
-        {
-            if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
-                           (char*)&buf1, len1)
-                    == -1)
-            {
-                fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s",
-                        strerror(errno));
-            }
-        }
-#endif
-
-
+       // 25/11/03 fpi
+       // WorkAround Win32
+       // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
+       setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
     }
+#ifndef WIN32
+    if ( close (data->socketFd) != 0 )
+#else
+    if ( closesocket(data->socketFd) )
+#endif 
+    {
+       cpLog(LOG_ERR, "close socketFd error!");
+    }
+    data->socketFd = newFd;
+    if ( data->socketFd < 0 ) {
+       int err = errno;
+       strstream errMsg;
+       errMsg << "UdpStack<" /* << getLclName() */
+              << ">::UdpStack error during socket creation: ";
+       errMsg << strerror(err);
+       errMsg << char(0);
+       
+       cpLog(LOG_ERR,  errMsg.str());
+       throw UdpStackException(errMsg.str());
+       errMsg.freeze(false);
+       assert(0);
+    }
+#ifdef __linux__
+    int buf1 = 1;
+    int len1 = sizeof(buf1);
+    struct protoent * protoent;
+    protoent = getprotobyname("icmp");
+
+    if (!protoent) {
+       fprintf(stderr, "Cannot get icmp protocol\n");
+    }
+    else {
+       if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
+                      (char*)&buf1, len1) == -1) {
+          fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s",
+                  strerror(errno));
+       }
+    }
+#endif
+
+    doSyncBlockingMode();
     doServer(minPort, maxPort);
 }
 
@@ -945,7 +937,6 @@ UdpStack::getDestinationHost () const
 int
 UdpStack::getSocketFD ()
 {
-    assert(data);
     return data->socketFd;
 }
 
@@ -1073,26 +1064,25 @@ UdpStack::receiveFrom ( const char* buffer,
     struct in6_pktinfo pktinfo;
     if(NetworkConfig::instance().getAddrFamily() == AF_INET)
     {
-		#ifdef WIN32
-			 do
-			 {
-				  len = recvfrom( data->socketFd,
-											 (char *)buffer,
-											 bufSize,
-											 0, // flags
-											 (sockaddr*) &xSrc,
-											 (socklen_t*) &srcLen);
-			 } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
-		
-		#else
+#ifdef WIN32
+       do {
+          len = recvfrom( data->socketFd,
+                          (char *)buffer,
+                          bufSize,
+                          0, // flags
+                          (sockaddr*) &xSrc,
+                          (socklen_t*) &srcLen);
+       } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
+       
+#else
 
-        len = recvfrom( data->socketFd,
-                        (char *)buffer,
-                        bufSize,
-                        flags,
-                        (struct sockaddr*) &xSrc,
-                        (socklen_t*) &srcLen);
-		#endif
+       len = recvfrom( data->socketFd,
+                       (char *)buffer,
+                       bufSize,
+                       flags,
+                       (struct sockaddr*) &xSrc,
+                       (socklen_t*) &srcLen);
+#endif
     }
     else
     {
@@ -1957,69 +1947,66 @@ next header
     return(n);
 }
 
-int
-UdpStack::setModeBlocking(bool flg)
-{
-    if(blockingFlg != flg)
-    {
-        blockingFlg = flg;
-        if(blockingFlg)
-        {
-			  int fd;
-			  fd = getSocketFD();
-
-// 25/11/03 fpi
-// WorkAraound Win32
-#ifndef WIN32
-				int flags;
-            if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
-            {
-                cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
-                return -1;
-            }
-            flags &= ~O_NONBLOCK;
-            if (fcntl(fd, F_SETFL, flags) < 0)
-            {
-                cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
-                return -1;
-            }
-#else
-    unsigned long non_blocking = 0;
-    if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
-           cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
-                return -1;
-     	 }
-#endif
-        }
-        else
-        {
-			  int fd;
-			  fd = getSocketFD();
-
-// 25/11/03 fpi
-// WorkAround Win32
-#ifndef WIN32
-			   int flags;
-            if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
-            {
-                cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
-                return -1;
-            }
-            flags |= O_NONBLOCK;
-            if (fcntl(fd, F_SETFL, flags) < 0)
-            {
-                cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
-                return -1;
-            }
-#else
-   unsigned long non_blocking = 1;
-    if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
-           cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
-                return -1;
-     	 }
-#endif
-        }
-    }
-    return 0;
+int UdpStack::setModeBlocking(bool flg){
+   if (blockingFlg != flg) {
+      blockingFlg = flg;
+      doSyncBlockingMode();
+   }
+   return 0;
 }
+
+int UdpStack::doSyncBlockingMode() {
+   int fd = getSocketFD();
+   if (fd < 0) {
+      return -1;
+   }
+   if (blockingFlg) {
+
+      // 25/11/03 fpi
+      // WorkAraound Win32
+#ifndef WIN32
+      int flags;
+      if ((flags = fcntl(fd, F_GETFL, 0)) < 0) {
+         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
+         return -1;
+      }
+      flags &= ~O_NONBLOCK;
+      if (fcntl(fd, F_SETFL, flags) < 0) {
+         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
+         return -1;
+      }
+#else
+      unsigned long non_blocking = 0;
+      if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
+         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
+         return -1;
+      }
+#endif
+   }
+   else {
+      int fd = getSocketFD();
+
+      // 25/11/03 fpi
+      // WorkAround Win32
+#ifndef WIN32
+      int flags;
+      if ((flags = fcntl(fd, F_GETFL, 0)) < 0) {
+         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
+         return -1;
+      }
+      flags |= O_NONBLOCK;
+      if (fcntl(fd, F_SETFL, flags) < 0) {
+         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
+         return -1;
+      }
+#else
+      unsigned long non_blocking = 1;
+      if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
+         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
+         return -1;
+      }
+#endif
+   }
+   return 0;
+}//doSyncBlockingMode
 

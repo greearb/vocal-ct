@@ -52,7 +52,7 @@
  */
 
 static const char* const SipSentRequestDB_hxx_version =
-    "$Id: SipSentRequestDB.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSentRequestDB.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
 
 #include "SipTransactionDB.hxx"
 
@@ -64,8 +64,7 @@ class SipSentRequestDB : public SipTransactionDB
 public:
     // local_ip cannot be "" here, must be the local IP we are bound to locally
     // or 'hostaddress' if we are not specifically bound.
-    // Size is the number of buckets to initialize the hash-table with.
-    SipSentRequestDB(int size, const string& _local_ip);
+    SipSentRequestDB(const string& _local_ip);
     virtual ~SipSentRequestDB();
 
 private:
@@ -75,23 +74,13 @@ private:
     bool operator==(const SipSentRequestDB&);
 
 public:
-    virtual SipMsgContainer* processSend(const Sptr<SipMsg>& msg);
+    virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg);
 
-    virtual SipMsgQueue* processRecv(SipMsgContainer* msgContainer);
+    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now);
 
-protected:
-    virtual SipTransLevel1Node* getTopNode(const SipTransactionId& id,
-				   const Sptr<SipMsg>& msg);
 };
  
 } // namespace Vocal
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

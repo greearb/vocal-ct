@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentResponseDB_cxx_version =
-    "$Id: SipSentResponseDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipSentResponseDB.cxx,v 1.3 2004/05/29 01:10:33 greear Exp $";
 
 #include "global.h"
 #include "SipTransceiver.hxx"
@@ -123,22 +123,19 @@ SipSentResponseDB::processSend(const Sptr<SipMsg>& msg)
 		      level3Node->val->msgs.response->msg.out.logData(),
 		      retVal->msg.out.logData());
 	    }
-	    else
-	    {
+	    else {
 		level3Node->val->msgs.response = retVal;
-		retVal->level3Ptr = level3Node->val;
+		retVal->setLevel3Ptr(level3Node->val);
 
 		/// make the transport retrans it repeatedly
-		if((level3Node->val->myKey == INVITE_METHOD) &&
-                   (SipTransceiver::myAppContext != APP_CONTEXT_PROXY))
-                {
+		if ((level3Node->val->myKey == INVITE_METHOD) &&
+                   (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
                     cpLog( LOG_DEBUG_STACK, "Set UA INVITE final response retransmission" );
-		    retVal->retransCount = MAX_RETRANS_COUNT;
+		    retVal->setRetransCount(MAX_RETRANS_COUNT);
                 }
-                cpLog( LOG_DEBUG_STACK, "Retransmission count %d", retVal->retransCount );
+                cpLog( LOG_DEBUG_STACK, "Retransmission count %d", retVal->getRetransCount() );
 
-                if(level3Node->val->myKey == INVITE_METHOD)
-                {
+                if (level3Node->val->myKey == INVITE_METHOD) {
                     SipTransactionGC::instance()->
                         collect(level3Node->val->msgs.request,
                                 INVITE_CLEANUP_DELAY);
@@ -208,7 +205,7 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
                     = nodePtr->val->msgs.response->msg.transport;
 		msgContainer->msg.netAddr 
                     = nodePtr->val->msgs.response->msg.netAddr;
-		msgContainer->retransCount = FILTER_RETRANS_COUNT;
+		msgContainer->setRetransCount(FILTER_RETRANS_COUNT);
 	    }
 	    else
 	    {
@@ -218,7 +215,7 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
 		/// and hence just drop this duplicate
 		msgContainer->msg.in = 0;
 		msgContainer->msg.out = "";
-		msgContainer->retransCount = 0;
+		msgContainer->setRetransCount(0);
 	    }
 	}
 	else
@@ -263,7 +260,7 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
                             msgContainer->msg.transport = statusMsg->getVia(0).getTransport();
 
                             msgContainer->msg.out = "";
-                            msgContainer->retransCount = 1;
+                            msgContainer->setRetransCount(1);
                      
                             processSend(statusMsg.getPtr());
                             return 0;
@@ -281,7 +278,7 @@ SipSentResponseDB::processRecv(SipMsgContainer* msgContainer)
 #endif
 
 	    nodePtr->val->msgs.request = msgContainer;
-	    nodePtr->val->msgs.request->level3Ptr = nodePtr->val;
+	    nodePtr->val->msgs.request->setLevel3Ptr(nodePtr->val);
 
 	    /// construct the msg queue to be sent up to application
 	    retVal = new SipMsgQueue;

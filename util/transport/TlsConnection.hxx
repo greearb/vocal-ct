@@ -52,7 +52,7 @@
  */
 
 static const char* const TlsConnection_hxx_version =
-    "$Id: TlsConnection.hxx,v 1.2 2004/05/07 17:30:46 greear Exp $";
+    "$Id: TlsConnection.hxx,v 1.3 2004/05/29 01:10:34 greear Exp $";
 
 #include "Connection.hxx"
 
@@ -181,8 +181,8 @@ class TlsConnection : public Connection
 
     protected:
         virtual int iclose();
-        virtual ssize_t iread(char* buf, size_t count);
-        virtual ssize_t iwrite(char* buf, size_t count);
+        virtual ssize_t iread();
+        virtual ssize_t iwrite();
 
         SSL_CTX* ctx;
         SSL*     ssl;

@@ -52,11 +52,9 @@
  */
 
 static const char* const SipTransactionDB_hxx_version =
-    "$Id: SipTransactionDB.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionDB.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
 
 #include "SipTransactionId.hxx"
-#include "SipTransHashTable.hxx"
-#include "SipTransactionList.hxx"
 #include "SipTransactionLevels.hxx"
 #include "SipTransactionGC.hxx"
 #include "SipMsgQueue.hxx"
@@ -68,80 +66,59 @@ namespace Vocal
 #define FILTER_RETRANS_COUNT 1
 #define MAX_RETRANS_COUNT    7
 
-class SipTransactionDB
-{
+class SipTransactionDB : public BugCatcher {
 public:
-    // local_ip cannot be "" here, must be the local IP we are bound to locally
-    // or 'hostaddress' if we are not specifically bound.
-    // Size is the size of the underlying hash-table (buckets).
-    SipTransactionDB(int size, const string& _local_ip);
-    virtual ~SipTransactionDB();
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   SipTransactionDB(const string& _local_ip);
+   virtual ~SipTransactionDB();
 
 private:
-    SipTransactionDB();
-    SipTransactionDB(const SipTransactionDB&);
-    SipTransactionDB& operator= (const SipTransactionDB&);
-    bool operator==(const SipTransactionDB&) const;
+   SipTransactionDB();
+   SipTransactionDB(const SipTransactionDB&);
+   SipTransactionDB& operator= (const SipTransactionDB&);
+   bool operator==(const SipTransactionDB&) const;
 
 public:
-    /// entry point for transceiver functionality
-/**
- * it will be passed the Sptr reference from worker thread, and will return
- * a pointer to a newly created Sip message container that needs to be passed
- * to the transport layer
- */
-    virtual SipMsgContainer* processSend(const Sptr<SipMsg>& msg) = 0;
+   // entry point for transceiver functionality
+   /**
+    * it will be passed the Sptr reference from worker thread, and will return
+    * a pointer to a newly created Sip message container that needs to be passed
+    * to the transport layer
+    */
+   virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg) = 0;
 
-    /// entry point for filter functionality
-/**
- * it will be given the Sip message container received from transport layer,
- * and either will return the transaction queue, or will return null and modify
- * the Sip message container w/ the old message to be retransmitted
- *
- * (if the message is droped then msg queue AND the reference to msg in the
- * container will both be 0) 
- */
-    virtual SipMsgQueue* processRecv(SipMsgContainer* msgContainer) = 0;
+   // entry point for filter functionality
+   /**
+    * it will be given the Sip message container received from transport layer,
+    * and either will return the transaction queue, or will return null and modify
+    * the Sip message container w/ the old message to be retransmitted
+    *
+    * (if the message is droped then msg queue AND the reference to msg in the
+    * container will both be 0) 
+    */
+   virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer) = 0;
 
-  /**
-   * this will return all the messages corresponding to the call leg of
-   * the sip message in argument
-   */
-  typedef vector<Sptr <SipMsg> > CallLegVector;
-  virtual CallLegVector getCallLegMsgs(Sptr <SipMsg>& sipMsg);
+#if 0
+   /**
+    * this will return all the messages corresponding to the call leg of
+    * the sip message in argument
+    */
+   typedef vector<Sptr <SipMsg> > CallLegVector;
+   virtual CallLegVector getCallLegMsgs(Sptr <SipMsg>& sipMsg);
+#endif
 
-  Data getDetails();
+   string toString();
+
+   Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
 
 protected:
-/**
- * this is NOT private, 'coz want to lock the Bucket node from find/insert
- * during the whole operation using RWHelper. hence, it all has to be in
- * a single scope
- */
-    SipTransHashTable table;
 
-/**
- * cancel the retrans of the given message...
- */
-    void cancel(SipMsgContainer* msg);
+   map <KeyTypeI, Sptr<SipCallContainer> > table;
 
-/**
- * get the top node and update state info specific to DB type
- * (needed here 'coz of getCallLegMsgs)
- */
-    virtual SipTransLevel1Node* getTopNode(const SipTransactionId& id,
-				   const Sptr<SipMsg>& msg) = 0;
-
-        string local_ip;
+   string local_ip;
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -50,7 +50,7 @@
 
 
 static const char* const NetworkAddress_cxx_Version =
-"$Id: NetworkAddress.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+"$Id: NetworkAddress.cxx,v 1.2 2004/05/29 01:10:34 greear Exp $";
 
 #include <string>
 #if defined(__FreeBSD__) || defined (__APPLE__)
@@ -93,15 +93,6 @@ NetworkAddress::UnresolvedException::UnresolvedException(const string& reason,
    VException(reason, file, line)
 {
 }
-
-
-//NetworkAddress::NetworkAddress ( int port /* = -1 */)
-//    : aPort(port),
-//      ipAddressSet(false),
-//      sockAddrSet(false)
-//{ 
-//    hostName = getLocalHostName();
-//}
 
 
 NetworkAddress::NetworkAddress ( const Data& hostname, int port /* = -1 */)
@@ -220,10 +211,11 @@ const Data&
 NetworkAddress::getIpName () const
 {
     //cpLog(LOG_DEBUG_STACK, "NetworkAddress::getIpName()");
-   if(!ipAddressSet) initIpAddress();
-   //cpLog(LOG_DEBUG_STACK, "returning: %s", ipAddress.logData());
-   //assert(ipAddress != "127.0.0.1");
-   return ipAddress;
+    if (!ipAddressSet)
+        initIpAddress();
+    //cpLog(LOG_DEBUG_STACK, "returning: %s", ipAddress.logData());
+    //assert(ipAddress != "127.0.0.1");
+    return ipAddress;
 }
 
 
@@ -244,94 +236,83 @@ NetworkAddress::getIp4Address () const
 
 
 void
-NetworkAddress::getSockAddr (struct sockaddr_storage * socka, struct addrinfo* uhints /* default 0 */) const
-{
+NetworkAddress::getSockAddr (struct sockaddr_storage * socka,
+                             struct addrinfo* uhints /* default 0 */) const {
    //cpLog(LOG_DEBUG_STACK, "NetworkAddress::getSockAddr()");
 
-   if(sockAddrSet) {
-	memcpy((void *)socka, (void *)&sa_cache, sizeof(sa_cache));
-        return ;
+   if (sockAddrSet) {
+       memcpy(socka, &sa_cache, sizeof(sa_cache));
+       return;
    }
 
-   char* port = 0;
+   char port_stor[56];
+   char* port = NULL;
+   port_stor[0] = 0;
+   
    // Check port isnt -1
-   if(aPort==-1)
-   {
+   if (aPort == -1) {
        cpLog(LOG_DEBUG, "No port for host name:%s", hostName.c_str());
-       port = 0;
    }
-   else
-   {
-       port = new char[56];
-       sprintf(port, "%u", aPort);
+   else {
+       port = port_stor;
+       snprintf(port, 55, "%u", aPort);
    }
-
-   if(!ipAddressSet || !is_valid_ip_addr(ipAddress)) initIpAddress();
-
-   if(ipAddress.length()==0 && port==NULL)
-   {
-        cpLog(LOG_ERR, "Failed to get address info");
-        return; // Nothing for us to do
+   
+   if ((!ipAddressSet) || (!is_valid_ip_addr(ipAddress))) {
+       initIpAddress();
    }
-
+   
+   if ((ipAddress.length() == 0) && (port == NULL)) {
+       cpLog(LOG_ERR, "Failed to get address info, hostname: %s",
+             hostName.c_str());
+       return; // Nothing for us to do
+   }
+   
    //cpLog(LOG_DEBUG_STACK, "ipAddress: %s", ipAddress.logData());
-
-	struct addrinfo hints;
-	struct addrinfo *res = 0; // xxx workaround for glibc ambiguity
-	
-	// Setup structures
-	memset(&hints, 0, sizeof(hints));
-        //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
-	int error;
-        if(uhints != 0)
-        {
-            //Use the hints caller has provide
-            memcpy(&hints, uhints, sizeof(hints));
-            if(hints.ai_flags == AI_PASSIVE)
-            {
-	         error = getaddrinfo(0, port, &hints, &res);
-            }
-            else
-            {
-	         error = getaddrinfo(ipAddress.logData(), port, &hints, &res);
-            }
-        }
-        else
-        {
-	    hints.ai_flags = AI_NUMERICHOST;
-	    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-	    hints.ai_socktype = SOCK_DGRAM;
-            if(ipAddress.length())
-            {
-	       error = getaddrinfo(ipAddress.logData(), port, &hints, &res);
-            }
-            else
-            {
-	       error = getaddrinfo(0, port, &hints, &res);
-            }
-        }
-
-	if (error) 
-        {
-            cpLog(LOG_ERR, gai_strerror(error));
-            cpLog(LOG_ERR, "IP Address: %s, port: %s\n", ipAddress.logData(), port);
-
-            if(res != 0)
-            {
-                freeAddrInfo(res);
-            }
-	} 
-        else 
-        {
-	    memcpy((void *)socka, (void *)res->ai_addr, res->ai_addrlen);
-
-       	    // Cache it
-    	    memcpy((void *)&sa_cache, (void *)res->ai_addr, res->ai_addrlen);
-    	    sockAddrSet = true;
-	    freeAddrInfo(res);
-	}
-
-    delete[] port;
+   
+   struct addrinfo hints;
+   struct addrinfo *res = 0; // xxx workaround for glibc ambiguity
+   
+   // Setup structures
+   memset(&hints, 0, sizeof(hints));
+   //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
+   int error;
+   if (uhints != 0) {
+       //Use the hints caller has provide
+       memcpy(&hints, uhints, sizeof(hints));
+       if(hints.ai_flags == AI_PASSIVE) {
+           error = getaddrinfo(0, port, &hints, &res);
+       }
+       else {
+           error = getaddrinfo(ipAddress.logData(), port, &hints, &res);
+       }
+   }
+   else {
+       hints.ai_flags = AI_NUMERICHOST;
+       hints.ai_family = NetworkConfig::instance().getAddrFamily();
+       hints.ai_socktype = SOCK_DGRAM;
+       if (ipAddress.length()) {
+           error = getaddrinfo(ipAddress.logData(), port, &hints, &res);
+       }
+       else {
+           error = getaddrinfo(0, port, &hints, &res);
+       }
+   }
+   
+   if (error) {
+       cpLog(LOG_ERR, gai_strerror(error));
+       cpLog(LOG_ERR, "IP Address: %s, port: %s\n", ipAddress.logData(), port_stor);
+   } 
+   else {
+       memcpy(socka, res->ai_addr, res->ai_addrlen);
+       // Cache it
+       memcpy(&sa_cache, res->ai_addr, res->ai_addrlen);
+       sockAddrSet = true;
+   }
+   
+   if (res != 0) {
+       freeAddrInfo(res);
+   }
 }
 
 
@@ -376,10 +357,10 @@ NetworkAddress::operator=( const NetworkAddress& x )
     {
 	aPort = x.getPort();
 	ipAddress = x.getIpName();
-	ipAddressSet = x.ipAddressSet;
-	x.getSockAddr(&(sa_cache));
+	ipAddressSet = false; // Will re-cache next time we are asked.
+        sockAddrSet = false;
 	hostName = x.hostName;
-        memcpy(&sa_cache, &(x.sa_cache), sizeof(sa_cache));
+        memset(&sa_cache, 0, sizeof(sa_cache));
     }
     return ( *this );
 }
@@ -450,90 +431,86 @@ NetworkAddress::initIpAddress() const
 {
     //cpLog(LOG_DEBUG_STACK, "initIpAddress() for hostName %s", hostName.c_str());
            
-	if (ipAddressSet) return;
+    if (ipAddressSet)
+        return;
           
-	struct addrinfo hints;
-	struct addrinfo *res = 0;
+    struct addrinfo hints;
+    struct addrinfo *res = 0;
 
-	// Setup structures
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_socktype = SOCK_STREAM;
+    // Setup structures
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_socktype = SOCK_STREAM;
 
-	Data the_host = hostName;
+    Data the_host = hostName;
 
-	if(the_host.find("[", 0) != Data::npos)
-		the_host = the_host.substr(1, the_host.length()-2);
+    if(the_host.find("[", 0) != Data::npos)
+        the_host = the_host.substr(1, the_host.length()-2);
 
-        bool nameIsAddress = false;
-	hints.ai_family = NetworkConfig::instance().getAddrFamily();
-	if (is_valid_ip6_addr(the_host)) 
-        {
-            hints.ai_family = PF_INET6;
-            nameIsAddress = true;
-        }
-	else if (is_valid_ip4_addr(the_host)) 
-        {
-            hints.ai_family = PF_INET;
-            nameIsAddress = true;
-        }
+    bool nameIsAddress = false;
+    hints.ai_family = NetworkConfig::instance().getAddrFamily();
+    if (is_valid_ip6_addr(the_host)) {
+        hints.ai_family = PF_INET6;
+        nameIsAddress = true;
+    }
+    else if (is_valid_ip4_addr(the_host)) 
+    {
+        hints.ai_family = PF_INET;
+        nameIsAddress = true;
+    }
 
-        //if nameIsAddress, we are done
-        if(nameIsAddress)
-        {
-	    ipAddress = the_host;
-	    //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
-            ipAddressSet = true;
-            return;
-        }
+    //if nameIsAddress, we are done
+    if(nameIsAddress) {
+        ipAddress = the_host;
+        //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
+        ipAddressSet = true;
+        return;
+    }
 
-        //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
-        //it is a host name to do nslookup to get the IP address
-	int error = getaddrinfo(the_host.c_str(), NULL, &hints, &res);
-	if (error) {
-		cpLog(LOG_ERR, "Failed to resolve %s, reason:%s", the_host.c_str(), gai_strerror(error));
-                return;
-	}
+    //cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
+    //it is a host name to do nslookup to get the IP address
+    int error = getaddrinfo(the_host.c_str(), NULL, &hints, &res);
+    if (error) {
+        cpLog(LOG_ERR, "Failed to resolve %s, reason:%s", the_host.c_str(), gai_strerror(error));
+        return;
+    }
 
-	char ip[256];
-        //cpLog(LOG_DEBUG_STACK, "getnameinfo()");
-	error = getnameinfo(res->ai_addr, res->ai_addrlen, ip, 256, NULL, 0, NI_NUMERICHOST );
-        if (error) 
-        {
-	    cpLog(LOG_ERR, "Failed to getnameinfo %s, reason:%s", the_host.c_str(), gai_strerror(error));
-	    freeAddrInfo(res);
-            return;
-        }
+    char ip[256];
+    //cpLog(LOG_DEBUG_STACK, "getnameinfo()");
+    error = getnameinfo(res->ai_addr, res->ai_addrlen, ip, 256, NULL, 0, NI_NUMERICHOST );
+    if (error) {
+        cpLog(LOG_ERR, "Failed to getnameinfo %s, reason:%s", the_host.c_str(), gai_strerror(error));
+        freeAddrInfo(res);
+        return;
+    }
         
 #if 0  
-        //Do not set the hostname unless someone asks for it
-        //Host name will get set when someone asks the name using getHostName() interface
-        if(nameIsAddress)
-        {
-            char hName[256];
-            //Get the host name of the address
-	    error = getnameinfo(res->ai_addr, res->ai_addrlen, hName, 256, NULL, 0, NI_NAMEREQD );
-             if (error)
-             {
-                  cpLog(LOG_ERR, "Failed to resolve address %s to a name", ip);
-                  hostName = ip;
-             }
-             else hostName = hName;
+    //Do not set the hostname unless someone asks for it
+    //Host name will get set when someone asks the name using getHostName() interface
+    if(nameIsAddress) {
+        char hName[256];
+        //Get the host name of the address
+        error = getnameinfo(res->ai_addr, res->ai_addrlen, hName, 256, NULL, 0, NI_NAMEREQD );
+        if (error) {
+            cpLog(LOG_ERR, "Failed to resolve address %s to a name", ip);
+            hostName = ip;
         }
+        else hostName = hName;
+    }
 #endif
-	freeAddrInfo(res);
-	ipAddress = ip;
-	//cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
-        ipAddressSet = true;
+    freeAddrInfo(res);
+    ipAddress = ip;
+    //cpLog(LOG_DEBUG_STACK, "Set ipAddress to %s", ipAddress.c_str());
+    ipAddressSet = true;
 }
 
 NetworkAddress::NetworkAddress( const NetworkAddress& x)
 {
     aPort = x.aPort;
     ipAddress = x.getIpName();
-    ipAddressSet = x.ipAddressSet;
+    ipAddressSet = false;
     hostName = x.hostName;
-    x.getSockAddr(&(this->sa_cache));
-    sockAddrSet = x.sockAddrSet;
+    sockAddrSet = false;
+    initIpAddress();
 }
 
 

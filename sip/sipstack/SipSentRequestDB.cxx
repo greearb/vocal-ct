@@ -49,7 +49,7 @@
  */
 
 static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipSentRequestDB.cxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"
@@ -60,16 +60,8 @@ static const char* const SipSentRequestDB_cxx_version =
 
 using namespace Vocal;
 
-/*
 SipSentRequestDB::SipSentRequestDB(const string& _local_ip)
-    : SipTransactionDB(_local_ip)
-{
-}
-*/
-
-
-SipSentRequestDB::SipSentRequestDB(int size, const string& _local_ip)
-    : SipTransactionDB(size, _local_ip)
+    : SipTransactionDB(local_ip)
 {
 }
 
@@ -80,14 +72,13 @@ SipSentRequestDB::~SipSentRequestDB()
 }
 
 
-SipMsgContainer*
-SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
-{
+Sptr<SipMsgContainer>
+SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
     // the only send in THIS db can be of the requests
     assert(dynamic_cast<SipCommand*>(msg.getPtr()));
 
     SipTransactionId id(*msg);
-    SipMsgContainer * retVal = new SipMsgContainer();
+    Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
     retVal->msg.in = msg;
     retVal->msg.type = msg->getType();
 
@@ -95,7 +86,7 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
 
     if ( command != 0 ) {
         Sptr<SipUrl> dest((SipUrl*)(command->getRequestLine().getUrl().getPtr()));
-        if(dest != 0) {
+        if (dest != 0) {
             cpLog(LOG_DEBUG_STACK, "Setting transport %s", dest->getTransportParam().logData());
             retVal->msg.transport = dest->getTransportParam();
         }
@@ -105,281 +96,95 @@ SipSentRequestDB::processSend(const Sptr<SipMsg>& msg)
         retVal->setRetransCount(MAX_RETRANS_COUNT);
     }
 
-    SipTransLevel1Node * topNode = getTopNode(id,msg);
-    SipTransactionList<SipTransLevel3Node *>::SipTransListNode *nodePtr =
-	topNode->findOrInsert(id)->val->findOrInsert(id);
-
-    if (nodePtr->val->msgs.request) {
+    Sptr<SipCallContainer> call = getCallContainer(id);
+    Sptr<SipMsg> mold;
+    if ((call != 0) && ((mold = call->findMsg(id)) != 0)) {
 	cpLog(LOG_ERR,"two identical requests from application...");
 	cpLog(DEBUG_NEW_STACK,"Old...\n%s\n\nNew...\n%s",
-	      nodePtr->val->msgs.request->msg.out.logData(),
-	      retVal->msg.out.logData());
+	      mold.toString().c_str(), msg.toString().c_str());
     }
     else {
-	// insert the request into data base
-	nodePtr->val->msgs.request = retVal;
-	retVal->setLevel3Ptr(nodePtr->val);
+        if (call == 0) {
+            // Create us a new call container
+            call = new SipCallContainer(id);
+            addCallContainer(call);
+        }
 
 	// if this is a CANCEL then cancel all the active retranses...
 	if (msg->getType() == SIP_CANCEL) {
-	    SipTransLevel2Node * level2Node = topNode->find(id)->val;
-	    
-	    SipTransactionList<SipTransLevel3Node *>::SipTransListNode *curr =
-		level2Node->level3.getLast();
-	    while (curr) {
-		// we don't want to cancel the yet to be sent CANCEL
-		if(curr != nodePtr) {
-		    cpLog(DEBUG_NEW_STACK,"Canceling request %s",
-			  curr->val->msgs.request->msg.out.logData());
-		    cancel(curr->val->msgs.request);
-		}
-		curr = level2Node->level3.getPrev(curr);
-	    }
+            call->clear();
 	}
+
+	// insert the request into data base
+        call->addMsg(retval);
     }
-
-    // the transport will actually insert this msgs for cleanup, after the
-    // retrans
-   
     return retVal;
-}
+}//processSend
 
 
-// TODO:  Looks like a good place for smart pointers!!!
-SipMsgQueue*
-SipSentRequestDB::processRecv(SipMsgContainer* msgContainer)
-{
+Sptr<SipMsgQueue>
+SipSentRequestDB::processRecv(Sptr<SipMsgContainer> msgContainer, uint64& now) {
     // the only receive in THIS db can be of the responses
-    StatusMsg * response = dynamic_cast<StatusMsg*>(msgContainer->msg.in.getPtr());
-    assert(response);
+    Sptr<StatusMsg > response;
+    response.dynamic_cast(msgContainer->msg.in);
+    assert(response != 0);
 
-    SipMsgQueue * retVal = 0;
+    Sptr<SipMsgQueue> retVal;
 
     SipTransactionId id(*(msgContainer->msg.in));
-    SipTransactionList<SipTransLevel3Node *>::SipTransListNode *
-        level3Node=0;
-    SipTransactionList<SipTransLevel2Node *>::SipTransListNode *
-        level2Node=0;
-    SipTransLevel1Node * topNode = getTopNode(id,msgContainer->msg.in);
 
-    if(topNode)
-    {
-        level2Node = topNode->find(id);
-        if(level2Node)
-        {
-            level3Node = level2Node->val->find(id);
-        }
-        else
-        {
-		cpLog(DEBUG_NEW_STACK,
-		      "ERROR, no Level2[%s] entry for incoming response...",
-		      id.getLevel2().logData());
-        }
-    }
-    if(!level3Node)
-    {
+    Sptr<SipCallContainer> call = getCallContainer(id);
+    if (call == 0) {
         // there's no transaction for this response message
-        retVal = new SipMsgQueue;
-        retVal->push_back(msgContainer->msg.in);
         cpLog(LOG_DEBUG_STACK,"No transaction for %s",
               msgContainer->msg.in->encode().logData());
-        msgContainer->msg.in = 0;
-        
-	    // leak fixed 04/11 @ 1240
-        SipTransactionGC::instance()->
-            collect(msgContainer,
-                    ORPHAN_CLEANUP_DELAY);
     }
-    else
-    {
-        // and cancel all the retrans of request
-        cancel(level3Node->val->msgs.request);
-        cpLog(DEBUG_NEW_STACK,"Stopping retrans of request[%s]",
-              level3Node->val->myKey.logData());
-
-        // If appContext is a proxy and a 200 or any provisional
-        // response of INVITE do not filter it and give it to proxy
-
-        int statusCode = response->getStatusLine().getStatusCode();
-        if((statusCode < 200)  ||
-           ((SipTransceiver::myAppContext == APP_CONTEXT_PROXY) && 
-           (statusCode == 200) &&
-           (response->getCSeq().getMethod() == INVITE_METHOD) ) )
-        {
-            // simply forward this response up to application
-            //hack:
-            retVal = new SipMsgQueue;
-            retVal->push_back(msgContainer->msg.in);
-            msgContainer->msg.in = 0;
-            if ((statusCode == 200)&&
-                (level3Node->val->myKey == INVITE_METHOD))
-            {
-		//Once 200 is received, why we need to keep it any longer ?? , changing it to 
-		//be cleanup right away - SP
-                SipTransactionGC::instance()->
-                    collect(level3Node->val->msgs.request,
-				    SipTransactionGC::invCleanupDelay);
-                SipTransactionGC::instance()->
-                    collect(msgContainer, SipTransactionGC::invCleanupDelay);
-		SipTransactionGC::instance()->
-		    collect(level3Node->val->msgs.response,
-			    MESSAGE_CLEANUP_DELAY);
-            }
-            else
-	    {
-                SipTransactionGC::instance()->
-                    collect(msgContainer, ORPHAN_CLEANUP_DELAY);
-            }
+    else {
+        Sptr<SipMsgPair> msgPair = call->findMsgPair(response);
+        if (msgPair == 0) {
+            // Response to something we didn't send??
+            cpLog(LOG_ERR, "ERROR:  Could not find request for response: %s\n",
+                  response->toString().c_str());
         }
-        else if(response->getStatusLine().getStatusCode() >= 200)
-        {
-            // if it is a final response, then process the transaction
-            // there's a transaction, hence check for filtering
-            
-	    // fix to take care if 408 is recvd from udp sender, while
-	    // there's also a response received by udp receiver. hence
-	    // in case of BYE, this was going to else and overwriting
-	    if(level3Node->val->msgs.response)
-	    {
-                cpLog(LOG_DEBUG_STACK, "msgs.reponse is true\n");
-		SipTransactionList<SipTransLevel3Node *>::SipTransListNode *
-		    curr = 0;
-	       if(level3Node->val->myKey == INVITE_METHOD)
-	       {
-		   curr = level2Node->val->level3.getLast();
-		   while(curr)
-		   {
-		       // look for the ACK message
-		       if(curr->val->myKey == ACK_METHOD &&
-			  curr->val->msgs.request)
-		       {
-			   cpLog(LOG_DEBUG_STACK,"duplicate message: %s",
-				 msgContainer->msg.out.logData());
+        else {
+            if (msgPair->request != 0) {
+                msgPair->request->setRetransCount(0); // Cancel it's retransmission
+            }
 
-                           msgContainer->msg.in = 0;
-			   msgContainer->msg.out =
-			       curr->val->msgs.request->msg.out;
-                           msgContainer->msg.type 
-                               = curr->val->msgs.request->msg.type;
-                           msgContainer->msg.transport =  
-                               curr->val->msgs.request->msg.transport;
-                           msgContainer->msg.netAddr =  
-                               curr->val->msgs.request->msg.netAddr;
-			   
-			   msgContainer->setRetransCount(FILTER_RETRANS_COUNT);
-			   
-			   break;
-		       }
-		       curr = level2Node->val->level3.getPrev(curr);
-		   }
-	       }
-	       if(!curr)
-	       {
-                   // NOTE:  The grandstream seems to get
-                   // to this case, but I think it's a bug in it's stack. --Ben
-                   //cpLog(LOG_DEBUG_STACK, "Didn't find ack, going to publish (hack)...\n");
-                   //goto hack;
-
-
-                   // we didn't find an ACK in our transaction, but
-                   // since there's a response, lets assume the
-                   // application is processing it, hence just drop
-                   // the response
-		   msgContainer->msg.in = 0;
-                   msgContainer->msg.out = "";
-		   msgContainer->setRetransCount(0);
-	       }
-	    }
-	    else
-	    {
-                cpLog(LOG_DEBUG_STACK, "msgs.response is false.\n");
-		level3Node->val->msgs.response = msgContainer;
-		level3Node->val->msgs.response->setLevel3Ptr(level3Node->val);
-		
-		retVal = new SipMsgQueue;
-		if (level3Node->val->msgs.request) {
-		    retVal->push_back(level3Node->val->msgs.request->msg.in);
-                    level3Node->val->msgs.request->msg.in = 0;
+            // If appContext is a proxy and a 200 or any provisional
+            // response of INVITE do not filter it and give it to proxy
+            int statusCode = response->getStatusLine().getStatusCode();
+            if ((statusCode < 200)  ||
+                ((SipTransceiver::myAppContext == APP_CONTEXT_PROXY) && 
+                 (statusCode == 200) &&
+                 (response->getCSeq().getMethod() == INVITE_METHOD))) {
+                // simply forward this response up to application
+                retVal = new SipMsgQueue();
+                retVal->push_back(msgContainer->msg.in);
+            }
+            else if (response->getStatusLine().getStatusCode() >= 200) {
+                // if it is a final response, then process the transaction
+                // there's a transaction, hence check for filtering
+                if (msgPair->response != 0) {
+                    // Already had a response!
+                    cpLog(LOG_ERR, "WARNING:  Received duplicate response, initial: %s\nnew: %s\n",
+                          msgPair->response->toString().c_str, response->toString().c_str());
+                    // Ignore this later response
                 }
-		retVal->push_back(msgContainer->msg.in);
-
-                //Clean up Object leave the raw data
-                if(!msgContainer->msg.out.length())
-                {
-                    msgContainer->msg.out = msgContainer->msg.in->encode(); 
+                else {
+                    msgPair->response = response;
+                    
+                    retVal = new SipMsgQueue();
+                    retval->push_back(msgPair->request->msg.in); //TODO:  Why?
+                    retVal->push_back(msgContainer->msg.in);
+                    
+                    //Clean up Object leave the raw data
+                    if (!msgContainer->msg.out.length()) {
+                        msgContainer->msg.out = msgContainer->msg.in->encode(); 
+                    }
                 }
-                msgContainer->msg.in = 0;
-
-		// also inform the cleanup
-                if (level3Node->val->myKey == INVITE_METHOD)
-                {
-                    SipTransactionGC::instance()->
-                        collect(level3Node->val->msgs.request,
-                        INVITE_CLEANUP_DELAY);
-                }
-		else
-		{
-                    SipTransactionGC::instance()->
-                        collect(level3Node->val->msgs.request,
-                        MESSAGE_CLEANUP_DELAY);
-		}
-
-		SipTransactionGC::instance()->
-		    collect(level3Node->val->msgs.response,
-			    MESSAGE_CLEANUP_DELAY);
-	    }
+            }
         }
     }
     return retVal;
 }
-
-SipTransLevel1Node*
-SipSentRequestDB::getTopNode(const SipTransactionId& id, 
-                             const Sptr<SipMsg>& msg)
-{
-    SipTransHashTable::Node * bktNode;
-
-    if(msg->getType()==SIP_STATUS)
-    {
-	// this finds if there's a transaction
-	bktNode = table.find(id.getLevel1());
-
-	// if there's a transaction, then check the from tag
-	if(bktNode && bktNode->myNode->fromTag != msg->getFrom().getTag())
-	{
-            cpLog(LOG_DEBUG,
-                  "From tag of incoming response[%s] %s [%s] is incorrect",
-                  msg->getFrom().getTag().logData(),
-                  "in existing transaction",
-                  bktNode->myNode->fromTag.logData());
-	}
-    }
-    else
-    {
-	// this creats a new transaction, if none exists
-	bktNode = table.findOrInsert(id.getLevel1());
-	if(bktNode->myNode == 0)
-	{
-	    bktNode->myNode = new SipTransLevel1Node();
-	    bktNode->myNode->fromTag = msg->getFrom().getTag();
-	    bktNode->myNode->bucketNode = bktNode;
-	}
-    }
-
-    if(bktNode)
-    {
-	return bktNode->myNode;
-    }
-    else
-    {
-	return 0;
-    }
-}
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipTcpConnection_hxx_Version =
-    "$Id: SipTcpConnection.hxx,v 1.4 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipTcpConnection.hxx,v 1.5 2004/05/29 01:10:33 greear Exp $";
 
 #include "SipMsg.hxx"
 #include "Sptr.hxx"
@@ -87,7 +87,7 @@ class NTcpStuff: public BugCatcher {
                     other.tcpConnection->getConnId());
         }
 
-        bool needsToWrite() { return outputList.size() > 0; }
+        bool needsToWrite();
 
         // This will consume all of d as long as we are within the limits
         // of the amount of data we will buffer.  If the socket is not immediately
@@ -95,22 +95,24 @@ class NTcpStuff: public BugCatcher {
         // that if the message is accepted, it will be transmitted if at all possible.
         int writeData(const Data& d);
 
-        ///
+        Sptr<Connection> getConnection() { return tcpConnection; }
+        void setConnection(Sptr<Connection> c) { tcpConnection = c; }
+        void setPeerPort(int pp) { peer_port = pp; }
+        void setPeerIp(const char* pip) { peer_ip = pip; }
+        void setPeerIp(const string& pip) { peer_ip = pip; }
+        const string& getPeerIp() { return peer_ip; }
+
+        bool isLive() { return tcpConnection->isLive(); }
+
+        int tryWrite(fd_set* output_fds);
+
+    protected:
+        //  Connection holds all the needed send and receive buffers.
         Sptr < Connection > tcpConnection;
 
-        //
-        Data tcpBuf;
-
-        // This is just used as a target for the read.  It will
-        // then be coppied into the tcpBuf string.
-        char rcvBuf[MAX_SIP_TCP_RCV_BUF + 1];
-
-        // Holds stuff we are trying to write out to the socket.
-        list<Data> outputList;
-        
         // For receiving.
-        Data sender_ip;
-        int sender_port;
+        string peer_ip;
+        int peer_port;
 };
 
 
@@ -123,9 +125,14 @@ class NTcpConnInfo {
         ///
         virtual ~NTcpConnInfo();
         ///
-        void setConnNSenderIp(int fd, Sptr < Connection > conn, const Data& ip);
+        Sptr<NTcpStuff> setConnNPeerIp(int fd, Sptr < Connection > conn, const Data& ip);
 
         void createConnection(Sptr<Connection> conn);
+
+        Sptr < NTcpStuff > createOrGetPersistentConnection(const NetworkAddress& nwaddr);
+
+        // Adds a mapping to this destination.
+        void notifyDestination(const string& dest_key, Sptr<NTcpStuff> connInfo);
 
         ///
         Sptr < NTcpStuff > getStatusMsgConn(Sptr < SipMsg > msg);
@@ -144,6 +151,8 @@ class NTcpConnInfo {
         
         int tcpReadOrAccept(int tcpfd, TcpServerSocket& tcpStack);
 
+        virtual void writeTick(fd_set* output_fds);
+
         virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                           uint64 now);
 
@@ -153,12 +162,13 @@ class NTcpConnInfo {
     private:
         ///
         Sptr < NTcpStuff > getCurrent(int fd);
-        ///
+        
+        // Keep various fast-lookup maps.
         map < int, Sptr < NTcpStuff > > myMap;
-        ///
         map < SipTransactionId, Sptr < NTcpStuff > > idMap;
+        map < string, Sptr < NTcpStuff > > myDestinationMap;
 
-        ///
+
         list<int>  myCleanupList;
 
         Data nullData;
@@ -194,19 +204,21 @@ class SipTcpConnection: public BugCatcher
         virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                            int& maxdesc, uint64& timeout, uint64 now);
 
+        TcpServerSocket& getTcpStack() { return mytcpStack; }
+
+        void processMsgsIfReady(Sptr<NTcpStuff> conn);
+
+        const string& getLocalDev() { return local_dev_to_bind_to; }
+        const string& getLocalIp() { return local_ip_to_bind_to; }
+
     protected:
         // Read from socket.
         Sptr<SipMsgContainer> receiveMessage();
 
     private:
 
-        Sptr < Connection > 
-        createRequestTransaction(Sptr<SipCommand> command);
+        Sptr < NTcpStuff > createRequestTransaction(Sptr<SipCommand> command);
 
-        Sptr < Connection > 
-        createOrGetPersistentConnection(NetworkAddress);
-
-        void processMsgsIfReady(int fd);
         int prepareEvent(Sptr<SipMsgContainer> sipMsg);
 
         int sendMain(uint64& now);
@@ -215,13 +227,9 @@ class SipTcpConnection: public BugCatcher
         TcpServerSocket mytcpStack;
         NTcpConnInfo tcpConnInfo;
 
-        priority_queue < Sptr <SipMsgContainer>,
-                         vector< Sptr<SipMsgContainer> >,
-                         RetransContentsComparitor > sendQ;
+        list < Sptr <SipMsgContainer> > sendQ;
         list <int > processFifo;
         list < Sptr <SipMsgContainer> > rcvFifo;
-
-        map <string, Sptr < Connection > > myDestinationMap;
 
         string local_ip_to_bind_to;
         string local_dev_to_bind_to;
@@ -231,12 +239,5 @@ class SipTcpConnection: public BugCatcher
 int isFullMsg(const string& str);
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

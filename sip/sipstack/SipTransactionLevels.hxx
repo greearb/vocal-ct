@@ -52,135 +52,29 @@
  */
 
 static const char* const SipTransactionLevels_hxx_version =
-    "$Id: SipTransactionLevels.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipTransactionLevels.hxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
 
 #include "SipTransactionId.hxx"
-#include "SipTransactionList.hxx"
-#include "SipTransHashTable.hxx"
 #include "SipMsg.hxx"
 #include "NetworkAddress.h"
 #include "cpLog.h"
-
+#include <misc.hxx>
 
 namespace Vocal
 {
     
 #define DEBUG_NEW_STACK LOG_DEBUG_STACK
 
-struct SipTransLevel1Node;
-struct SipTransLevel2Node;
-struct SipTransLevel3Node;
-struct SipMsgPair;
 class SipMsgContainer;
 
 static const char * const NOVAL = "";
 
-/**
- * this is top level node that'll be accessible from the hash table. hence,
- * we'll not keep the key value here (it's uniquely accessible)
- */
-struct SipTransLevel1Node
-{
-    /// state specific data
-    Data toTag;
-    Data fromTag;
-    int  msgCount;
 
-    /// next level list
-    SipTransactionList<SipTransLevel2Node*> level2;
-
-    /// back reference into hashtable (needed by cleanup thread)
-    SipTransHashTable::Node* bucketNode;
-
-    SipTransLevel1Node()
-	: toTag(NOVAL), fromTag(NOVAL), msgCount(0),level2(),
-	  bucketNode(0)
-	{}
-    SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
-    findOrInsert(const SipTransactionId& id);
-
-    SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
-    find(const SipTransactionId& id);
-
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-    findLevel3AckInvite(const SipTransactionId& id);
-};
-
-struct SipTransLevel2Node
-{
-    /// the 2nd level key
-    SipTransactionId::KeyTypeII myKey;
-    bool seqSet;
-    int seqNumber;
-
-    /// next level list
-    SipTransactionList<SipTransLevel3Node*> level3;
-
-      /************ TO DO **************\
-       * either put a ref to self's container in list of prev level*
-       * or some thing to get the ref to self's container *
-       * (in level2 and level3 nodes) *
-       * modify transaction GC and sent res/req DBs *
-      \*********************************/
-    /// back reference to the top level node
-    SipTransLevel1Node * topNode;
-    SipTransactionList<SipTransLevel2Node*>::SipTransListNode *myPtr;
-
-    SipTransLevel2Node() : myKey(), seqSet(false), seqNumber(-1), level3(), topNode(0), myPtr(0)
-	{}
-
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-    findOrInsert(const SipTransactionId& id);
-
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-    find(const SipTransactionId& id);
-
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-    findInvite();
-};
-
-
-struct SipMsgPair
-{
+class SipMsgPair : public BugCatcher {
     /// the request
-    SipMsgContainer *request;
+    Sptr<SipMsgContainer> request;
     /// and the response
-    SipMsgContainer *response;
-
-    SipMsgPair() : request(0), response(0)
-	{}
-
-    ~SipMsgPair()
-	{
-	    /// these are deleted explicitly by the cleanup
-	}
-};
-
-struct SipTransLevel3Node
-{
-    /// the 3rd level key
-    SipTransactionId::KeyTypeIII myKey;
-
-    /// message sequence. we don't want to keep a msg queue here 'coz
-    /// on every recieve a copy of msg queue is constructed anyway.
-    /// atleast keep the operations fast by direct lookup.
-    ///
-    /// NOTE: the msg queue for ACK's will be constructed by combining
-    /// it w/ level3 node of INVITE
-    SipMsgPair msgs;
-
-      /************ TO DO **************\
-       * either put a ref to self's container in list of prev level *
-       * or some thing to get the ref to self's container *
-       * (in level2 and level3 nodes) *
-       * modify transaction GC and sent res/req DBs *
-      \*********************************/
-    /// back reference to level2 node
-    SipTransLevel2Node *level2Ptr;
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode *myPtr;
-
-    SipTransLevel3Node() : myKey(), msgs(), level2Ptr(0), myPtr(0)
-	{}
+    Sptr<SipMsgContainer> response;
 };
 
 
@@ -199,42 +93,63 @@ public:
       Data  transport;
    } msg;
 
-   /// constructed with default value for stateless mode
-   SipMsgContainer()
-         : msg(),
-           retransCount(1),
-           collected(false),
-           level3Ptr(0)
-      {}
+   // constructed with default value for stateless mode
+   SipMsgContainer(const SipTransactionId& id);
+
+   void cleanup();
 
    string toString() const;
 
    void setRetransCount(int i) { retransCount = i; }
    int getRetransCount() { return retransCount; }
 
-   SipTransLevel3Node * getLevel3Ptr() { return level3Ptr; }
-   void setLevel3Ptr(SipTransLevel3Node* n) { level3Ptr = n; }
+   uint64 getGcAt() { return shouldGcAt; }
+   void setGcAt(uint64 v) { shouldGcAt = v; }
+
+   bool hasBeenCollected() { return collected; }
+   void setCollected(bool v) { collected = v; }
 
 protected:
    // transport specific data
+   uint64 shouldGcAt; //When should we garbage-collect this thing.  Used by SipTransactionGC
    int retransCount;
    bool collected;
    int prepareCount; /** How many times have we tried to send this
                       * message.  Used by SipTcpStack at least.
                       */
-
-   /************ TO DO **************\
-    * either put a ref to self's container in list of prev level *
-    * or some thing to get the ref to self's container *
-    * (in level2 and level3 nodes) *
-    * modify transaction GC and sent res/req DBs *
-    *********************************/
-   // back reference to level3 node
-   SipTransLevel3Node *level3Ptr;
-
+   SipTransactionId trans_id;
 
 }; //class SipMsgContainer
 
+
+class SipCallContainer : public BugCatcher {
+public:
+
+   void addMsg(Sptr<SipMsgPair> m) {
+      msgs.push_back(m);
+   }
+
+   Sptr<SipMsgPair> peekTopMsg() {
+      if (msgs.size()) {
+         return msgs.front();
+      }
+      return NULL;
+   }
+
+   Sptr<SipPairContainer> findMsg(const SipTransactionId& id);
+
+   void popMsg() {
+      assert(msgs.size());
+      msgs.pop();
+   }
+   
+   void clear() { msgs.clear(); }
+
+   list<Sptr<SipMsgPair> >& getMsgList() { return msgs; }
+
+protected:
+   list<Sptr<SipMsgPair> > msgs;
+};//SipCallContainer
  
 } // namespace Vocal
 

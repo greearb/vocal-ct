@@ -49,57 +49,44 @@
  */
 
 static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipTransactionDB.cxx,v 1.3 2004/05/29 01:10:33 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
 
 using namespace Vocal;
 
-/*
-SipTransactionDB::SipTransactionDB(const string& _local_ip)
-    : table()
-{
-    local_ip = _local_ip;
-}
-*/
 
-SipTransactionDB::SipTransactionDB(int size, const string& _local_ip)
-    : table(size)
-{
+SipTransactionDB::SipTransactionDB(const string& _local_ip) {
     local_ip = _local_ip;
 }
 
 
-SipTransactionDB::~SipTransactionDB()
-{
-    /// clean up the table...
-
-    /// TODO: GC all the items...
+SipTransactionDB::~SipTransactionDB() {
+    // Nothing to do at this point.
 }
 
 
-Data
-SipTransactionDB::getDetails()
-{
-    return table.giveDetails();
+string SipTransactionDB::toString() {
+    // TODO:
+    return "BUG";
 }
 
 
-void
-SipTransactionDB::cancel(SipMsgContainer *msg)
-{
-    if(!msg) 
-    {
-        return;
+Sptr<SipMsgContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
+    map <KeyTypeI, Sptr<SipMsgContainer> >::iterator i = table.find(id.getLevel1());
+    if (i != table.end()) {
+        return i->second;
     }
-
-    /// just set the retrans count to 0, and the transport stack will
-    /// feed it to cleanup thread
-    msg->retransCount = 0;
+    return NULL;
 }
 
+void SipTransationDB::addCallContainer(Sptr<SipCallContainer> m) {
+    table.put(m->getTransactionId().getLevel1(), m);
+}
 
+#warning "WTF is this supposed to do???"
+#if 0
 SipTransactionDB::CallLegVector
 SipTransactionDB::getCallLegMsgs(Sptr<SipMsg>& sipMsg)
 {
@@ -140,11 +127,4 @@ SipTransactionDB::getCallLegMsgs(Sptr<SipMsg>& sipMsg)
 
     return retVal;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
+#endif

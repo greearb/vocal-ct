@@ -49,7 +49,7 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.3 2004/05/07 17:30:46 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.4 2004/05/29 01:10:34 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
@@ -160,21 +160,17 @@ TlsConnection::iclose()
 }
 
 
-ssize_t 
-TlsConnection::iread(char* buf, size_t count)
-{
-    if(ssl)
-    {
+#warning "Make this non-blocking."
+//TODO:  Make this non-blocking.
+int TlsConnection::iread() {
+    if(ssl) {
 #ifdef VOCAL_HAS_OPENSSL
-        while(1)
-        {
+        while (1) {
             ssize_t t = SSL_read(ssl, buf, count);
-            if(t == -1) 
-            {
+            if(t == -1) {
                 ERR_print_errors_fp(stderr);
                 int myerr = SSL_get_error(ssl, t);
-                if(myerr == SSL_ERROR_WANT_READ)
-                {
+                if(myerr == SSL_ERROR_WANT_READ) {
                     // select here to wait for the right bits but keep
                     // from looping relentlessly.  this only will work
                     // on UNIX.
@@ -216,14 +212,12 @@ TlsConnection::iread(char* buf, size_t count)
         }
 #endif
     }
-    return Connection::iread(buf, count);
+    return Connection::iread();
 }
 
 
-ssize_t TlsConnection::iwrite(char* buf, size_t count)
-{
-    if(ssl)
-    {
+int TlsConnection::iwrite() {
+    if(ssl) {
 #ifdef VOCAL_HAS_OPENSSL
         ssize_t t = SSL_write(ssl, buf, count);
 	if(t == -1) 
@@ -238,7 +232,7 @@ ssize_t TlsConnection::iwrite(char* buf, size_t count)
 	return t;
 #endif
     }
-    return Connection::iwrite(buf, count);
+    return Connection::iwrite();
 }
 
 

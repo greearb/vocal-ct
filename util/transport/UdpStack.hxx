@@ -52,7 +52,7 @@
  */
 
 static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: UdpStack.hxx,v 1.4 2004/05/29 01:10:34 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -376,43 +376,46 @@ class UdpStack: public RCObject
 
         /** This can be used to eulate network packet loss by throwing
             out a certain percentage of the tranmitted packets */
-        void emulatePacketLoss ( float probabilityOfLoss )
-        {
+        void emulatePacketLoss ( float probabilityOfLoss ) {
             packetLossProbability = probabilityOfLoss;
         };
 
-	/**Set the mode to be blocking or non-blocking
-	  *flg=true (blocking)
-	  *flg=false (non-blocking), default beaviour is blocking
-          */
-	int setModeBlocking(bool flg);
+   /**Set the mode to be blocking or non-blocking
+    *flg=true (blocking)
+    *flg=false (non-blocking), default beaviour is blocking
+    *  Calls doSyncBlockingMode as needed.
+    */
+   int setModeBlocking(bool flg);
 
-        // This can be "" if was not specified during creation...just means we bind
-        // to all interfaces.
-        const string& getSpecifiedLocalIp() const { return desiredLocalIp; }
+   // Set the bits on the socket.
+   // This can be "" if was not specified during creation...just means we bind
+   int doSyncBlockingMode();
 
-        string toString(); // Used for debugging.
+   // to all interfaces.
+   const string& getSpecifiedLocalIp() const { return desiredLocalIp; }
 
-    private:
-        UdpStack& operator= ( const UdpStack& x );
-        UdpStack( const UdpStack& );
-        UdpStack();
+   string toString(); // Used for debugging.
 
-        void doServer ( int minPort,
-                        int maxPort);
+private:
+   UdpStack& operator= ( const UdpStack& x );
+   UdpStack( const UdpStack& );
+   UdpStack();
 
-        void doClient ( const NetworkAddress* desName);
+   void doServer ( int minPort,
+                   int maxPort);
 
-        int recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
-                     struct sockaddr *sa, socklen_t *salenptr, struct in6_pktinfo *pktp);
-        /// name of receiver
-        string lclName;
+   void doClient ( const NetworkAddress* desName);
+   
+   int recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
+                      struct sockaddr *sa, socklen_t *salenptr, struct in6_pktinfo *pktp);
+   /// name of receiver
+   string lclName;
 
-        /// name of transmitter
-        string rmtName;
+   /// name of transmitter
+   string rmtName;
 
-        /// probability of a given packet being thrown out by the stack
-        float packetLossProbability;
+   /// probability of a given packet being thrown out by the stack
+   float packetLossProbability;
 
         /// number of bytes the stack has received
         int numBytesReceived;

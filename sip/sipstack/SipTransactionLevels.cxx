@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipTransactionLevels.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipTransactionLevels.cxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionLevels.hxx"
@@ -57,137 +57,20 @@ static const char* const SipTransactionLevels_cxx_version =
 
 using namespace Vocal;
 
-SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
-SipTransLevel1Node::findOrInsert(const SipTransactionId& id)
-{
-    SipTransactionList<SipTransLevel2Node*>::SipTransListNode * curr =
-	level2.getFirst();
-    while(curr)
-    {
-	if(curr->val->myKey == id.getLevel2())
-	    break;
-	curr = level2.getNext(curr);
-    }
-    if(!curr)
-    {
-	cpLog(DEBUG_NEW_STACK,"inserting a New Level2 Node [%s]",
-	      id.getLevel2().logData());
 
-	SipTransLevel2Node * newNode = new SipTransLevel2Node;
-	newNode->myKey = id.getLevel2();
-	curr = level2.insert(newNode);
-	newNode->topNode = this;
-	newNode->myPtr = curr;
-    }
-    else
-    {
-	cpLog(DEBUG_NEW_STACK,"Level2 Node [%s] already exists as %s",
-	      id.getLevel2().logData(),
-	      curr->val->myKey.logData());
-    }
-	
-    return curr;
+SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
+    : retransCount(1),
+      collected(false),
+      trans_id(id)
+{
+    // Nothing to do
 }
 
-SipTransactionList<SipTransLevel2Node*>::SipTransListNode *
-SipTransLevel1Node::find(const SipTransactionId& id)
-{
-    SipTransactionList<SipTransLevel2Node*>::SipTransListNode * curr =
-	level2.getFirst();
-    while(curr)
-    {
-	if(curr->val->myKey == id.getLevel2())
-	    break;
-	curr = level2.getNext(curr);
-    }
-    if(curr)
-	return curr;
-    else
-	return 0;
-}
 
-SipTransactionList<SipTransLevel3Node *>::SipTransListNode *
-SipTransLevel1Node::findLevel3AckInvite( const SipTransactionId& id )
-{
-    SipTransactionList<SipTransLevel2Node *>::SipTransListNode * level2Node =
-	level2.getLast();
-    SipTransactionList<SipTransLevel3Node *>::SipTransListNode * level3Node =
-	0;
-    while( level2Node )
-    {
-	if( level2Node->val->myKey.matchChar("V") == id.getLevel2().matchChar("V") )
-        {
-	    cpLog( LOG_DEBUG_STACK, "CSeq number matched" );
-            level3Node = level2Node->val->findInvite();
-	    if( level3Node )
-	        break;
-	}
-	level2Node = level2.getPrev( level2Node );
-    }
-    return level3Node;
+void SipMsgContainer::cleanup() {
+    msg.in = NULL;
+    msg.netAddr = NULL;
 }
-
-SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-SipTransLevel2Node::findOrInsert(const SipTransactionId& id)
-{
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode * curr =
-	level3.getFirst();
-    while(curr)
-    {
-	if(curr->val->myKey == id.getLevel3())
-	    break;
-	curr = level3.getNext(curr);
-    }
-    if(!curr)
-    {
-	cpLog(DEBUG_NEW_STACK,"inserting a New Level3 Node [%s]",
-	      id.getLevel3().logData());
-	SipTransLevel3Node * newNode = new SipTransLevel3Node;
-	newNode->myKey = id.getLevel3();
-	curr = level3.insert(newNode);
-	newNode->level2Ptr = this;
-	newNode->myPtr = curr;
-    }
-    return curr;
-}
-
-SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-SipTransLevel2Node::find(const SipTransactionId& id)
-{
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode * curr =
-	level3.getFirst();
-    while(curr)
-    {
-	if(curr->val->myKey == id.getLevel3())
-	    break;
-	curr = level3.getNext(curr);
-    }
-    if(curr)
-	return curr;
-    else
-	return 0;
-}
-
-SipTransactionList<SipTransLevel3Node*>::SipTransListNode *
-SipTransLevel2Node::findInvite()
-{
-    SipTransactionList<SipTransLevel3Node*>::SipTransListNode * curr =
-	level3.getFirst();
-    while(curr)
-    {
-	if(curr->val->myKey == INVITE_METHOD)
-	{
-	    cpLog( LOG_DEBUG_STACK, "Found INVITE" );
-	    break;
-	}
-	curr = level3.getNext(curr);
-    }
-    if(curr)
-	return curr;
-    else
-	return 0;
-}
-
 
 string SipMsgContainer::toString() const {
     ostringstream oss;
@@ -216,9 +99,18 @@ string SipMsgContainer::toString() const {
     return oss.str();
 }
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
+
+Sptr<SipMsgPair> SipCallContainer::findMsg(const SipTransactionId& id) {
+    list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+    while (i != msgs.end()) {
+        Sptr<SipMsgPair> mp = *i;
+        if ((mp->request != 0) && mp->request->matches(id)) {
+            return (*i);
+        }
+        if ((mp->response != 0) && mp->response->matches(id)) {
+            return (*i);
+        }
+        i++;
+    }
+    return NULL;
+}

@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.4 2004/05/07 17:30:46 greear Exp $";
+    "$Id: Connection.cxx,v 1.5 2004/05/29 01:10:34 greear Exp $";
 
 #ifndef __vxworks
 
@@ -97,6 +97,7 @@ Connection::Connection(int conId, bool blocking)
     initialize();
 }
 
+// TODO:  I don't like this, should remove it.
 Connection::Connection(const Connection& other, bool on_purpose) {
     _connId = other._connId;
     _live = other._live;
@@ -121,6 +122,7 @@ Connection::~Connection() {
 }
 
 
+// TODO:  I don't like this, should remove it.
 Connection& Connection::operator=(const Connection& other) {
     if (this != &other) {
 	_connId = other._connId;
@@ -158,28 +160,28 @@ Connection::initialize() {
     memset(_connAddr, 0, _connAddrLen);
 }
 
-
+// Call readNB first to fill buffer.
 int Connection::getLine(char* rbuf, int maxlen) {
-    assert(maxlen > MAXLINE); // Force calling code to give us an appropriately large buffer.
     int i;
-    for (i = 0; i<sofar; i++) {
-        if (buf[i] == '\n') {
-            memcpy(rbuf, buf, i);
-            buf[i] = 0; // Terminate string, overwriting the newline
-            memmove(buf, buf + i + 1, MAXLINE - (i + 1));
-            sofar -= (i + 1);
+    int mx = min(maxlen, rcvBuf.getCurLen());
+    for (i = 0; i<mx; i++) {
+        unsigned char c = rcvBuf.charAt(i);
+        if (c == '\n') {
+            rcvBuf.dropFromTail(i);
+            rbuf[i] = 0;
             return i;
         }
+        else {
+            rbuf[i] = (char)(c);
+        }   
     }
 
     // No newline found, but maybe our buffer is full anyway?
-    assert(sofar <= MAXLINE);
 
-    if (sofar == MAXLINE) {
-        memcpy(rbuf, buf, sofar);
-        rbuf[sofar] = 0;
-        sofar = 0; // Clear entire buffer
-        return sofar;
+    if (i == maxlen) {
+        rcvBuf.dropFromTail(i);
+        rbuf[i] = 0;
+        return i;
     }
 
     // Buffer is not full, and we have no newline, so return -1 indicating
@@ -188,188 +190,16 @@ int Connection::getLine(char* rbuf, int maxlen) {
     return -1;
 }
 
-int Connection::readNB() throw (VNetworkException&) {
-    int rc;
 
-    rc = readn(buf + sofar, MAXLINE - sofar);
-    if (rc < 0) {
-        if ((errno == EINTR) || (errno == EAGAIN)) {
-            // Not a problem.
-        }
-        else {
-            return -errno; // Read failure
-        }
-    }
-    else if (rc == 0) {
-        // EOF reached, return what we have.
-        buf[sofar] = 0; //Terminate string
-        return sofar;
-    }
-    else {
-        sofar += rc;
-    }
-
-    // If here, we MAY have a complete line (or even multiple lines)
-    return sofar;
+int Connection::read() {
+    return iread();
 }
 
-
-int
-Connection::readLine(void* dataRead, size_t maxlen, int& bytesRead) throw (VNetworkException&)
-{
-    char c;
-    int rc, i;
-    char* ptr = (char*)dataRead;
-
-    bytesRead = 0;
-    for (i = 1; i <= (int)maxlen; i++)
-    {
-        if ((rc = effRead(&c)) == 1)
-        {
-            *ptr++ = c;
-            bytesRead++;
-            if (c == '\n') break;
-        }
-        else if (rc == 0)
-        {
-            if ( i == 1) return 0;
-            else break;
-        }
-        else
-        {
-            return -1;
-        }
-    }
-    *ptr = 0;
-    dataRead = ptr;
-    return ((i == 1) ? 0 : i);
+int Connection::write() {
+    return iwrite();
 }
 
-int
-Connection::readn(void *dataRead, size_t nchar, int & bRead) throw (VNetworkException&)
-{
-    size_t nleft;
-    ssize_t nread;
-    char *ptr = (char*)dataRead;
-
-    nleft = nchar;
-
-    while (nleft > 0)
-    {
-        if ((nread = iread(ptr, nleft)) < 0)
-        {
-            if ((errno == EINTR) || (errno == EAGAIN))
-            {
-                //cpLog(LOG_DEBUG, "Received EINTR or EAGAIN, keep trying");
-                nread = 0;
-            }
-            else
-            {
-                return -1;
-            }
-        }
-        else if (nread == 0)
-        {
-            //NO more data
-            return 0;
-        }
-        nleft -= nread;
-        ptr += nread;
-        bRead += nread;
-    }
-    return (1);
-}
-
-int
-Connection::readn(void *dataRead, size_t nchar) throw (VNetworkException&)
-{
-    if (dataRead == 0)
-        return -1;
-    return (iread(static_cast < char* > (dataRead), nchar));
-}
-
-void
-Connection::writeData(string& data) throw (VNetworkException&)
-{
-    char *ptr = (char*)data.c_str();
-    size_t nleft = data.size();
-    writeData(ptr, nleft);
-}
-
-void
-Connection::writeData(void* data, size_t n) throw (VNetworkException&)
-{
-    size_t nleft;
-    ssize_t nwritten;
-    char *ptr = (char*)data;
-    nleft = n;
-
-    while (nleft > 0)
-    {
-        if ((nwritten = iwrite(ptr, nleft)) <= 0)
-        {
-            if ((errno == EINTR) || (errno == EAGAIN))
-            {
-                //cpLog(LOG_DEBUG, "Received EINTR or EAGAIN, keep trying");
-                nwritten = 0;   //Write again
-            }
-
-            else
-            {
-                char buf[256];
-                sprintf(buf, "Failed to write data,reason:%s", strerror(errno));
-                cpLog(LOG_ALERT, buf);
-                throw VNetworkException(buf, __FILE__, __LINE__, errno);
-            }
-        }
-        nleft -= nwritten;
-        ptr += nwritten;
-    }
-    //cpLog(LOG_DEBUG, "Bytes written:%d" , nwritten);
-}
-
-
-// Inefficient, reads one char at a time!!
-ssize_t
-Connection::effRead(char* ptr)
-{
-    int readCnt = 0;
-    char* readPtr;
-    char readBuf[1];
-    if (readCnt <= 0)
-    {
-        while (1)
-        {
-            if ((readCnt = iread(readBuf, sizeof(readBuf))) < 0)
-            {
-                if ((errno == EINTR) || (errno == EAGAIN))
-                {
-                    //cpLog(LOG_DEBUG, "Received EINTR or EAGAIN, keep trying");
-                    usleep(20);
-                    continue;
-                }
-                char buf[256];
-                sprintf(buf, "Failed to read data, reason:%s", strerror(errno));
-                cpLog(LOG_ERR, buf);
-                return -1 ;
-            }
-            else if (readCnt == 0)
-            {
-                return 0;
-            }
-            readPtr = readBuf;
-            break;
-        }
-    }
-    readCnt--;
-    *ptr = *readPtr++;
-    return 1;
-}
-
-
-int
-Connection::iclose()
-{
+int Connection::iclose() {
     assert(!shouldCloseOnDestruct());
 #ifndef WIN32
     return ::close(_connId);
@@ -379,25 +209,13 @@ Connection::iclose()
 }
 
 
-ssize_t
-Connection::iread(char* buf, size_t count)
-{
-#ifndef WIN32
-    return ::read(_connId, buf, count);
-#else
-    return ::recv(_connId, buf, count, 0);
-#endif
+int Connection::iread() {
+    return rcvBuf.read(_connId, 65536, NULL);
 }
 
 
-ssize_t
-Connection::iwrite(char* buf, size_t count)
-{
-#ifndef WIN32
-    return ::write(_connId, buf, count);
-#else
-    return ::send(_connId, buf, count, 0);
-#endif
+int Connection::iwrite() {
+    return outBuf.write(_connId);
 }
 
 #ifdef _WIN32
@@ -451,9 +269,7 @@ Connection::getDescription() const
     return retStr;
 }
 
-string
-Connection::getIp() const
-{
+string Connection::getPeerIp() const {
     string retStr;
     char hName[256];
     SA* sa = (SA*) _connAddr;
@@ -492,21 +308,16 @@ Connection::getIp() const
     return retStr;
 }
 
-int
-Connection::getPort() const
-{
+int Connection::getPeerPort() const {
     int retPort = -1;
     SA* sa = (SA*)  _connAddr;
-    switch (sa->sa_family)
-    {
-        case AF_INET:
-        {
+    switch (sa->sa_family) {
+        case AF_INET: {
             struct sockaddr_in* sin = (struct sockaddr_in*) sa;
             retPort = (ntohs(sin->sin_port));
         }
         break;
-        case AF_INET6:
-        {
+        case AF_INET6: {
             struct sockaddr_in6* sin = (struct sockaddr_in6*) sa;
             retPort = (ntohs(sin->sin6_port));
         } 
@@ -515,16 +326,31 @@ Connection::getPort() const
     return retPort;
 }
 
-int
-Connection::close()
-{
+// Queue it for send.  It will be written as soon as possible.
+int Connection::queueSendData(const char* data, int len) {
+    //TODO:  Consider putting a max limit on this (4-8MB?) so that
+    //    we are sure not to blow memory on a backed up TCP connection?
+    outBuf.append((const unsigned char*)(data), len);
+    write(); // Flush if we can
+    return len;
+}
+
+
+// Returns the number of bytes actually peeked, and
+// buf will be null-terminated.
+int Connection::peekRcvdBytes(unsigned char* buf, int mx_buf_len) {
+    int mx = min(rcvBuf.getCurLen(), mx_buf_len - 1);
+    rcvBuf.peekBytes(buf, mx);
+    buf[mx] = 0;
+    return mx;
+}
+
+int Connection::close() {
     cpLog(LOG_DEBUG_STACK, "Closing connection %d", _connId);
     int err = 0;
-    if(_connId > 2)
-    {
+    if (_connId > 2) {
         err = iclose();
-        if (err)
-        {
+        if (err) {
             cpLog(LOG_ERR, "Error closing connection %d", _connId);
         }
     }
@@ -533,9 +359,7 @@ Connection::close()
     return err;
 }
 
-void
-Connection::setState()
-{
+void Connection::setState() {
     if (_connId) {
 #ifndef WIN32
         if (!_blocking) {
@@ -570,47 +394,4 @@ bool Connection::checkIfSet ( fd_set* set ) {
 }
 
 
-bool
-Connection::isReadReady(int seconds, int mSecconds) const
-{
-    fd_set rfds;
-    struct timeval tv;
-    int retval;
-
-    //cpLog(LOG_DEBUG, "Checking connection %s", getDescription().c_str());
-    FD_ZERO(&rfds);
-    FD_SET(getConnId(), &rfds);
-    tv.tv_sec = seconds;
-    tv.tv_usec = mSecconds;
-    int connId = getConnId();
-    int maxFd = connId;
-    retval = select(maxFd + 1, &rfds, NULL, NULL, &tv);
-    if (retval > 0 && FD_ISSET(connId, &rfds))
-    {
-        cpLog(LOG_DEBUG_STACK, "Data is ready on fd %d : %s", connId, getDescription().c_str());
-        return true;
-    }
-    return false;
-}
-
-void
-Connection::deepCopy(const Connection& src, char** bufPtr, int* bufLenPtr)
-{
-    _connId = src._connId;
-    _live = src._live;
-    _connAddrLen = src._connAddrLen;
-    _connAddr = src._connAddr;
-    _blocking = src._blocking;
-    _init = src._init;
-    _connAddr = (struct sockaddr*) new char[_connAddrLen];
-    memcpy((void*)_connAddr, (void*)src._connAddr, _connAddrLen);
-
-}
-
 #endif
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipSentResponseDB_hxx_version =
-    "$Id: SipSentResponseDB.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
+    "$Id: SipSentResponseDB.hxx,v 1.2 2004/05/29 01:10:33 greear Exp $";
 
 #include "SipTransactionDB.hxx"
 
@@ -75,22 +75,11 @@ private:
     bool operator==(const SipSentResponseDB&);
 
 public:
-    virtual SipMsgContainer* processSend(const Sptr<SipMsg>& msg);
+    virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg);
 
-    virtual SipMsgQueue* processRecv(SipMsgContainer* msgContainer);
-
-protected:
-    virtual SipTransLevel1Node* getTopNode(const SipTransactionId& id,
-				   const Sptr<SipMsg>& msg);
+    virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer);
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -99,9 +99,10 @@ class RetransmitContents: public BugCatcher {
         int wait_period;
 };
 
+// We want the lower time to be first in the heap.
 struct RetransContentsComparitor {
         bool operator()(Sptr<RetransmitContents> a, Sptr<RetransmitContents> b) {
-            return (a->getNextTx() < b->getNextTx());
+            return (b->getNextTx() < a->getNextTx());
         }
 };
 

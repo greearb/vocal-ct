@@ -52,7 +52,7 @@
  */
 
 static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipUdpConnection.hxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
 
 
 
@@ -77,71 +77,73 @@ class SipMsgContainer;
 
 ///
 class SipUdpConnection: public BugCatcher {
-    public:
-        /**
-         * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-         */
-        SipUdpConnection(const string& local_ip,
-                         const string& local_dev_to_bind_to,
-                         int port = SIP_PORT);
-        
-        virtual ~SipUdpConnection();
-        
-        void send(Sptr<SipMsgContainer> msg, const Data& host,
-                  const Data& port);
+public:
+   /**
+    * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
+    */
+   SipUdpConnection(const string& local_ip,
+                    const string& local_dev_to_bind_to,
+                    int port = SIP_PORT);
+   
+   virtual ~SipUdpConnection();
+   
+   void send(Sptr<SipMsgContainer> msg, const Data& host,
+             const Data& port);
+   
+   int udpSend(Sptr<SipMsgContainer> msg);
+   
+   // Returns the configured IP, if it is not "", otherwise, returns
+   // default system IP address.
+   const string getLocalIp() const;
+   
+   static void reTransOn();
+   
+   static void reTransOff();
+   
+   static void setRetransTime(int initial = retransmitTimeInitial,
+                              int max = retransmitTimeMax /* default values from TransceiverSymbols.hxx */);
+   
+   void setRandomLosePercent(int percent);
+   
+   void printSize() const;
+   
+   Data getDetails() const;
+   
+   
+   int receiveMain();
+   // May pull from incomming fifo
+   Sptr<SipMsgContainer> getNextMessage();
+   
+   int sendMain(uint64& now);
+   
+   void getHostPort(Sptr<SipMsg> sipMessage, Data& host, int& port);
+   
 
-        int udpSend(Sptr<SipMsgContainer> msg);
+   static int getInstanceCount() { return atomic_read(&_cnt); }
 
-        // Returns the configured IP, if it is not "", otherwise, returns
-        // default system IP address.
-        const string getLocalIp() const;
-
-        static void reTransOn();
-        
-        static void reTransOff();
-        
-        static void setRetransTime(int initial = retransmitTimeInitial,
-                                   int max = retransmitTimeMax /* default values from TransceiverSymbols.hxx */);
-        
-        void setRandomLosePercent(int percent);
-        
-        void printSize() const;
-        
-        Data getDetails() const;
-
-        
-        int receiveMain();
-        // May pull from incomming fifo
-        Sptr<SipMsgContainer> getNextMessage();
-
-        int sendMain(uint64& now);
-        
-        void getHostPort(Sptr<SipMsg> sipMessage, Data& host, int& port);
-
-
-        static int getInstanceCount() { return atomic_read(&_cnt); }
-
-    protected:
-        // Read from socket.
-        Sptr<SipMsgContainer> receiveMessage();
-
-    private:
-        ///
-        SipUdpConnection();
-        SipUdpConnection(const SipUdpConnection& src);
-        SipUdpConnection& operator = (const SipUdpConnection& src) const;
-
-        static bool Udpretransmitoff;
-        static int  Udpretransmitimeinitial;
-        static int Udpretransmittimemax;
-        int randomLosePercent;
-
-        UdpStack udpStack;
-        priority_queue <Sptr <RetransmitContents> > sendQ;
-        list <Sptr <SipMsgContainer> > rcvFifo;
-        char rcvBuf[MAX_UDP_RCV_BUF];
-
-        static atomic_t _cnt;
+protected:
+   // Read from socket.
+   Sptr<SipMsgContainer> receiveMessage();
+   
+private:
+   ///
+   SipUdpConnection();
+   SipUdpConnection(const SipUdpConnection& src);
+   SipUdpConnection& operator = (const SipUdpConnection& src) const;
+   
+   static bool Udpretransmitoff;
+   static int  Udpretransmitimeinitial;
+   static int Udpretransmittimemax;
+   int randomLosePercent;
+   
+   UdpStack udpStack;
+   priority_queue <Sptr <RetransmitContents>,
+                   vector< Sptr<SipMsgContainer> >,
+                   RetransContentsComparitor > sendQ;
+   list <Sptr <SipMsgContainer> > rcvFifo;
+   char rcvBuf[MAX_UDP_RCV_BUF];
+   
+   static atomic_t _cnt;
 };
  
 } // namespace Vocal

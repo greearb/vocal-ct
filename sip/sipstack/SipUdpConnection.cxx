@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.3 2004/05/27 04:32:18 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.4 2004/05/29 01:10:33 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -509,11 +509,3 @@ Data SipUdpConnection::getDetails() const
              udpStack.getPacketsTransmitted());
     return buf;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
