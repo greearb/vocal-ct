@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.5 2004/10/29 07:22:34 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.6 2004/10/29 19:47:53 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -177,11 +177,13 @@ void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                              * will not block. */
 
     // Only drain jitter buffer every XXX miliseconds.
-    uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                 rtpStack->getCurMaxPktsInQueue());
-    if ((lastRtpRetrieve + pref) <= now) {
-        retrieveRtpSample();
-        lastRtpRetrieve = now;
+    if (mySession.getPtr()) {
+        uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
+                                                     rtpStack->getCurMaxPktsInQueue());
+        if ((lastRtpRetrieve + pref) <= now) {
+            retrieveRtpSample();
+            lastRtpRetrieve = now;
+        }
     }
 }//tick
 
