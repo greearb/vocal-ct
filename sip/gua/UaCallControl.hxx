@@ -53,7 +53,7 @@
 
 
 static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCallControl.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 #include "global.h"
 #include <list>
@@ -68,53 +68,52 @@ namespace Vocal {
 namespace UA {
 
 /// Main interface to handle requests in UA
-class UaCallControl : public CallControl
-{
-   public:
-      /// Create one with default values
-      static UaCallControl& instance();
-
-      ///
-      string className() { return "UaCallControl"; }
-
-      /**
-         Frees the memory associated with singelton instance.
-         gets register to atexit() function at the time of creation.
-      */
-      static void destroy(void);
-
-      ///
-      void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
-      ///
-      void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
-
-      ///
-      bool processEvent(const Sptr<SipProxyEvent>& event);
-
-      ///
-      void handleGuiEvents(Sptr<GuiEvent> gEvent);
-
-   private:
-      ///
-      bool busy(Sptr<SipCommand> sipMsg);
-
-      ///
-      Sptr<BaseUrl> parseUrl(const string& to);
-
-      ///
-      Sptr<CallAgent> getActiveCall(Sptr<SipMsg> sipMsg=0);
-
-      ///
-      void initiateInvite(const string& to);
-
-      ///
-      bool handleAlchemEvent(Sptr<SipProxyEvent> event);
-
-      ///
-      UaCallControl() : CallControl() { };
-
-      ///
-      static UaCallControl* myInstance;
+class UaCallControl : public CallControl {
+public:
+   /// Create one with default values
+   static UaCallControl& instance();
+   
+   ///
+   string className() { return "UaCallControl"; }
+   
+   /**
+      Frees the memory associated with singelton instance.
+      gets register to atexit() function at the time of creation.
+   */
+   static void destroy(void);
+   
+   ///
+   void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
+   ///
+   void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
+   
+   ///
+   bool processEvent(const Sptr<SipProxyEvent>& event);
+   
+   ///
+   void handleGuiEvents(Sptr<GuiEvent> gEvent);
+   
+private:
+   ///
+   bool busy(Sptr<SipCommand> sipMsg);
+   
+   ///
+   Sptr<BaseUrl> parseUrl(const string& to);
+   
+   ///
+   Sptr<CallAgent> getActiveCall(Sptr<SipMsg> sipMsg=0);
+   
+   ///
+   void initiateInvite(const string& to);
+   
+   ///
+   bool handleAlchemEvent(Sptr<SipProxyEvent> event);
+   
+   ///
+   UaCallControl() : CallControl() { };
+   
+   ///
+   static UaCallControl* myInstance;
 };
 
 }

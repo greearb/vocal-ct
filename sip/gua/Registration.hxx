@@ -52,9 +52,8 @@
  */
 
 static const char* const Registration_hxx_Version =
-    "$Id: Registration.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Registration.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 #include <Data.hxx>
-#include <Fifo.h> 
 #include <RegisterMsg.hxx>
 #include <StatusMsg.hxx>
 
@@ -66,46 +65,38 @@ static const char* const Registration_hxx_Version =
 namespace Vocal
 {
 
-class Registration
-{
-    public:
-        Registration(const string& local_ip); // local_ip cannot be ""
-        Registration(const RegisterMsg& srcMsg);
-        Registration(const Registration& src);
+class Registration {
+public:
+   Registration(const string& local_ip); // local_ip cannot be ""
+   Registration(const RegisterMsg& srcMsg);
+   Registration(const Registration& src);
 
-        ~Registration();
+   ~Registration();
 
-        RegisterMsg getNextRegistrationMsg();
-        RegisterMsg getNextRegistrationCancel();
-        RegisterMsg getRegistrationMsg()
-        {
-            return registerMsg;
-        };
-        int updateRegistrationMsg(const StatusMsg& msg);
-        void setRegistrationMsg(const RegisterMsg& msg);
-        Registration& operator =(const Registration&);
-        bool operator ==( Registration& src ) const;
-        int getStatusCode() const
-        {
-            return status;
-        };
-        int getDelay();
+   RegisterMsg getNextRegistrationMsg();
+   RegisterMsg getNextRegistrationCancel();
+   RegisterMsg getRegistrationMsg() {
+      return registerMsg;
+   };
 
-        FifoEventId getTimerId() const { return timerId; } 
+   int updateRegistrationMsg(const StatusMsg& msg);
+   void setRegistrationMsg(const RegisterMsg& msg);
+   Registration& operator =(const Registration&);
+   bool operator ==( Registration& src ) const;
+   int getStatusCode() const {
+      return status;
+   };
+   int getDelay();
 
-        void setTimerId(FifoEventId tId ) { timerId = tId; } 
+private:
 
-    private:
+   SipContact findMyContact(const StatusMsg& msg) const;
 
-        SipContact findMyContact(const StatusMsg& msg) const;
+   int status;
+   unsigned int seqNum;
+   RegisterMsg registerMsg;
 
-        int status;
-        unsigned int seqNum;
-        RegisterMsg registerMsg;
-        ///
-        FifoEventId  timerId;
-
-        Registration();
+   Registration();
 };
  
 }

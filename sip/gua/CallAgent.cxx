@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -142,7 +142,7 @@ CallAgent::doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp
    myUrl->setHost(myInvokee->getMyLocalIp());
    myUrl->setPort(Data(myInvokee->getMySipPort()));
    SipContact myContact("", myInvokee->getMyLocalIp());
-   myContact.setUrl( myUrl );
+   myContact.setUrl( myUrl.getPtr() );
    statusMsg->setNumContact( 0 );    // Clear old contact
    statusMsg->setContact( myContact );
    SipServer lServer("Vovida-SIP-SoftPhone/0.1", myInvokee->getMyLocalIp());
@@ -346,15 +346,14 @@ CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)
           SipContactList::iterator iter = contactList.begin();
           Sptr < SipUrl > iterSipUrl;
           iterSipUrl.dynamicCast( ( *iter )->getUrl() );
-          reqLine.setUrl(iterSipUrl);
+          reqLine.setUrl(iterSipUrl.getPtr());
           SipCSeq localseq = agent.getLocalCSeq();
           localseq.incrCSeq();
           agent.setLocalCSeq(localseq);
           inviteMsg->setCSeq(localseq);
-          agent.getSipTransceiver()->sendAsync(inviteMsg);
+          agent.getSipTransceiver()->sendAsync(inviteMsg.getPtr());
        }
-       else if (statusMsg->getStatusLine().getStatusCode() == 480)
-       {
+       else if (statusMsg->getStatusLine().getStatusCode() == 480) {
           freeMedia();
        }
 
@@ -378,8 +377,8 @@ CallAgent::sendCancel()
     Sptr<SipCommand> sCommand;
     sCommand.dynamicCast(myInvokee->getRequest());
     Sptr<CancelMsg> cMsg = new CancelMsg(*sCommand);
-    rv = myInvokee->sendMsg(cMsg);
-    facade->postInfo(cMsg);
+    rv = myInvokee->sendMsg(cMsg.getPtr());
+    facade->postInfo(cMsg.getPtr());
     return rv;
 }
 
@@ -387,9 +386,10 @@ void
 CallAgent::acceptCall()
 {
     //Can only accept call when I am server
-    if(myRole != A_SERVER) return;
-    try 
-    {
+    if (myRole != A_SERVER)
+       return;
+
+    try {
         myState->acceptCall(*this);
         Sptr<StatusMsg> statusMsg;
         Sptr<SipCommand> sCommand;
@@ -403,7 +403,7 @@ CallAgent::acceptCall()
         myUrl->setHost(myInvokee->getMyLocalIp());
         myUrl->setPort(Data(myInvokee->getMySipPort()));
         SipContact myContact("", myInvokee->getMyLocalIp());
-        myContact.setUrl( myUrl );
+        myContact.setUrl( myUrl.getPtr() );
         statusMsg->setNumContact( 0 );    // Clear old contact
         statusMsg->setContact( myContact );
 
@@ -413,13 +413,11 @@ CallAgent::acceptCall()
         Sptr<SipSdp> remoteSdp;
         remoteSdp.dynamicCast(sCommand->getContentData(0));
 
-	if(remoteSdp == 0)
-	{
+	if (remoteSdp == 0) {
 	    // do something safe
 	    return;
 	}
 
-        assert(remoteSdp != 0);
         Data S_host = myInvokee->getNatHost();
 
         //Create a session
@@ -449,11 +447,10 @@ CallAgent::acceptCall()
 #endif
 
         statusMsg->setContentData(&localSdp, 0);
-        myInvokee->sendMsg(statusMsg);
-        facade->postInfo(statusMsg);
+        myInvokee->sendMsg(statusMsg.getPtr());
+        facade->postInfo(statusMsg.getPtr());
     }
-    catch(CInvalidStateException& e)
-    {
+    catch(CInvalidStateException& e) {
         cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
     }
 }
@@ -473,12 +470,13 @@ CallAgent::stopCall()
 }
 
 void
-CallAgent::setDeleted()
-{
-    myActiveFlg = false;
-    cpLog(LOG_ERR, "CallAgent::setDeleted:%d", getId());
-    CallDB::instance().removeCallData(*myInvokee);
-    UaCallControl::instance().removeAgent(getId(), 1000);
+CallAgent::setDeleted() {
+   myActiveFlg = false;
+   cpLog(LOG_ERR, "CallAgent::setDeleted:%d", getId());
+   CallDB::instance().removeCallData(*myInvokee);
+
+   // TODO:  Needed??
+   //UaCallControl::instance().removeAgent(getId(), 1000);
 }
 
 int
@@ -487,8 +485,8 @@ CallAgent::sendBusy()
     Sptr<SipCommand> sCommand;
     sCommand.dynamicCast(myInvokee->getRequest());
     Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 486);
-    myInvokee->sendMsg(sMsg);
-    facade->postInfo(sMsg);
+    myInvokee->sendMsg(sMsg.getPtr());
+    facade->postInfo(sMsg.getPtr());
     myState->cancel(*this);
 
     // Ughhh, kill a recursive loop
@@ -552,7 +550,7 @@ CallAgent::processHold()
 	mUrl.dynamicCast(bUrl);
 	assert(mUrl != 0);
 	cpLog(LOG_DEBUG, "CallAgent::processHold() From url  is %s", mUrl->encode().logData());
-	from.setUrl(mUrl);
+	from.setUrl(mUrl.getPtr());
 	inviteMsg->setFrom(from);
 
 	// To
@@ -563,7 +561,7 @@ CallAgent::processHold()
 	Sptr<SipUrl> mUrl1;
 	mUrl1.dynamicCast(bUrl1);
 	assert(mUrl1 != 0);
-	to.setUrl(mUrl1);
+	to.setUrl(mUrl1.getPtr());
 	inviteMsg->setTo(to);
 	cpLog(LOG_DEBUG, "CallAgent::processHold() To  is %s", to.encode().logData());
 	cpLog(LOG_DEBUG, "CallAgent::processHold() From is %s", from.encode().logData());
@@ -588,7 +586,7 @@ CallAgent::processHold()
     sipSdp->setSdpDescriptor(localSdp);
 
     cpLog(LOG_DEBUG, "CallAgent::processHold() is Sending re-invite %s",inviteMsg->encode().logData());
-    myInvokee->sendMsg(inviteMsg);
+    myInvokee->sendMsg(inviteMsg.getPtr());
     
 }
 void
@@ -611,9 +609,7 @@ CallAgent::processResume()
     sipSdp->setSdpDescriptor(localSdp);
 
     cpLog(LOG_DEBUG, "Sending InviteMsg %s",inviteMsg->encode().logData() );
-    myInvokee->sendMsg(inviteMsg);
-    //placeCall();
-    
+    myInvokee->sendMsg(inviteMsg.getPtr());
 }
 
 void
@@ -655,7 +651,7 @@ CallAgent::requestResume(Sptr<SipMsg>& msg)
        remoteSdp.dynamicCast(sCommand->getContentData(0));
        assert(remoteSdp != 0);
        Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg, remoteSdp->getSdpDescriptor());
-       myInvokee->sendMsg(statusMsg);
+       myInvokee->sendMsg(statusMsg.getPtr());
        int sessionId =
           myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
        MediaController::instance().resumeSession(sessionId, remoteSdp->getSdpDescriptor());
@@ -680,7 +676,7 @@ CallAgent::reqResume(Sptr<SipMsg>& msg)
        assert(remoteSdp != 0);
        Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                           remoteSdp->getSdpDescriptor());
-       myInvokee->sendMsg(statusMsg);
+       myInvokee->sendMsg(statusMsg.getPtr());
        int sessionId =
           myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
        MediaController::instance().resumeSession(sessionId, remoteSdp->getSdpDescriptor());
@@ -709,14 +705,14 @@ CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg)
         assert(remoteSdp != 0);
         Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                            remoteSdp->getSdpDescriptor());
-        myInvokee->sendMsg(statusMsg);
+        myInvokee->sendMsg(statusMsg.getPtr());
    
         unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();	
 	MediaController::instance().suspendSession(sId);
         strstream str;
         str << "R_HOLD " << ends;
         facade->postMsg(str.str());
-        facade->postInfo(statusMsg);
+        facade->postInfo(statusMsg.getPtr());
 	myState->inHold(*this);
      }
 

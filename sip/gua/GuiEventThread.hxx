@@ -53,17 +53,14 @@
 
 
 static const char* const GuiEventThread_hxx_Version = 
-    "$Id: GuiEventThread.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: GuiEventThread.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include <string>
-#include "Fifo.h"
 #include "Sptr.hxx"
-#include "ThreadIf.hxx"
 #include "SipEvent.hxx"
 #include "UaCallControl.hxx"
 
-using Vocal::Fifo;
 using Vocal::SipProxyEvent;
 using std::string;
 
@@ -77,47 +74,32 @@ namespace UA
  *  The thread waits for a GuiEvent on a named pipe and dispatches 
  *  to the worker thread when received one.
  */
-class GuiEventThread: public ThreadIf
-{
-    public:
-        /** Create the Gui thread given fifo to put the events into
-         */
-        GuiEventThread( Sptr < Fifo < Sptr < SipProxyEvent > > > inputFifo, int readFd) ;
+class GuiEventThread: public BugCatcher {
+public:
+   /** Create the Gui thread given fifo to put the events into
+    */
+   GuiEventThread(int readFd) ;
 
 
-        /** Virtual destructor
-         */
-        virtual ~GuiEventThread() { };
+   /** Virtual destructor
+    */
+   virtual ~GuiEventThread() { };
 
 
-        /** Indicates to the thread that it needs to cease processing.
-         */
-        virtual void shutdown();
+protected:
 
-    protected:
-        /** The method that does the work of distributing the sip events
-         *  to the builder.
-         */
-        virtual void thread();
+   ///
+   int myReadFd;
 
-
-    private:
-        /** Incoming sip events will come through this fifo. They will then
-         *  be distributed to the builder.
-         */
-        Sptr < Fifo < Sptr < SipProxyEvent > > > myFifo;
-        ///
-        int myReadFd;
-
-
-        /** Suppress copying
-         */
-        GuiEventThread(const GuiEventThread &);
+private:
+   /** Suppress copying
+    */
+   GuiEventThread(const GuiEventThread &);
         
         
-        /** Suppress copying
-         */
-        const GuiEventThread & operator=(const GuiEventThread &);
+   /** Suppress copying
+    */
+   const GuiEventThread & operator=(const GuiEventThread &);
 };
 
 }

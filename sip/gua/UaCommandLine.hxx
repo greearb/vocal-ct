@@ -56,7 +56,7 @@
 #include "Sptr.hxx"
 
 static const char* const UaCommandLineVersion =
-    "$Id: UaCommandLine.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCommandLine.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 static const char* const appUsage = "[-dhqr] [-v[<log-level>]] [-f <config-file>]";
@@ -70,7 +70,7 @@ namespace UA
 /**
  *  Processes command line input and runtime options
  */
-class UaCommandLine
+class UaCommandLine : public BugCatcher
 {
     public:
 

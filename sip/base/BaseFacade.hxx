@@ -53,16 +53,21 @@
 
 
 static const char* const BaseFacade_hxx_Version = 
-    "$Id: BaseFacade.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: BaseFacade.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include <string>
 #include "NetworkAddress.h"
+#include <BaseProxy.hxx>
+
+
+namespace Vocal
+{
 
 /** Facade is a wrapper, that wraps all the components needed
     for UA.
 */
-class BaseFacade : public BugCatcher {
+class BaseFacade : public BaseProxy {
 public:
    
    virtual string className() = 0;
@@ -111,5 +116,7 @@ protected:
    bool fixSdpForNat;
 
 };
+
+}//namespace VOCAL
 
 #endif

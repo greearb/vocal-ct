@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2004/05/01 04:15:25 greear Exp $
+# $Id: Makefile,v 1.2 2004/06/17 06:56:51 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -6,7 +6,7 @@ CXXFLAGS += -I../../libmedia
 LDLIBS_LAST +=  -lm
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lpthread -lstdc++ -lm -lgcc_s -lvutil
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil
 
 
 # Voice Age Codec Support !
@@ -26,9 +26,9 @@ LDLIBS_LAST += -lspeex
 
 include $(BUILD)/Makefile.pre
 ifeq ($(OSTYPE),SunOS)
-PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 RTP PTHREAD UTIL LIBCEXT LIBXML HEARTBEAT
+PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 RTP UTIL LIBCEXT LIBXML HEARTBEAT
 else
-PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 NEWSNDFILE LIBSNDCARD RTP PTHREAD UTIL LIBCEXT OPENSSL PSLIB PSUTILIB LIBXML HEARTBEAT
+PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 NEWSNDFILE LIBSNDCARD RTP UTIL LIBCEXT OPENSSL PSLIB PSUTILIB LIBXML HEARTBEAT
 endif
 
 INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
@@ -125,7 +125,6 @@ TESTPROGRAMS = \
 
 SRC = \
 CallAgent.cxx \
-UaWorkerThread.cxx \
 UaFacade.cxx \
 UaCallControl.cxx \
 GuiEventThread.cxx \

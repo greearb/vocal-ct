@@ -53,7 +53,7 @@
 
 
 static const char* const CallControl_hxx_Version =
-    "$Id: CallControl.hxx,v 1.2 2004/06/15 00:30:11 greear Exp $";
+    "$Id: CallControl.hxx,v 1.3 2004/06/17 06:56:51 greear Exp $";
 
 #include "global.h"
 #include <map>
@@ -62,8 +62,6 @@ static const char* const CallControl_hxx_Version =
 #include "SipCallLeg.hxx"
 #include "BasicAgent.hxx"
 #include "UaBase.hxx"
-
-using namespace Vocal::Threads;
 
 namespace Vocal {
 
@@ -94,14 +92,13 @@ class CallControl
        */
       virtual bool processEvent(const Sptr<SipProxyEvent>& event);
 
-      ///Thread to garbage collect call-agents when done with a call
-      static void* cleanupThread(void*);
-
+#if 0
       /**Application calls to schedule a call-agent for collection
        * @param id - Indentifies the agent in callDB
        * @param timeInMs - Time after which agent will be collected
        */
       virtual void removeAgent(unsigned long id, int timeInMs=5000);
+#endif
 
    protected:
       ///
@@ -112,14 +109,6 @@ class CallControl
       ///
       CallMap     myCallMap;
       ///
-      VThread    myCleanupThread;
-      ///
-      bool       myShutdownFlag;
-      ///
-      Fifo<unsigned long> myFriedFifo;
-
-      ///
-      Mutex     myMutex;
 };
 
 }

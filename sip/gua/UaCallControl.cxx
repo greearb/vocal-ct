@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -156,7 +156,7 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
               sCommand.dynamicCast(sipMsg);
               Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
               UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-              UaFacade::instance().postInfo(sMsg);
+              UaFacade::instance().postInfo(sMsg.getPtr());
               cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
                     sMsg->encode().logData());
               return true;
@@ -216,7 +216,7 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
                Sptr< SipUrl > contactUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
                contactUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
                contactUrl->setPort(Data(_myPort));
-               myContact.setUrl( contactUrl );
+               myContact.setUrl( contactUrl.getPtr() );
                nMsg->setContact(myContact);
                SipUserAgent uAgent("Vovida-SIP-SoftPhone/1.5.0 (www.vovida.org)",
                                    UaConfiguration::instance().getMyLocalIp());
@@ -261,7 +261,7 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
                nMsg->setContentData(&Txt);
 
                // Send Notify Message to whoever SUBSCRIBED
-               UaFacade::instance().getSipTransceiver()->sendAsync(nMsg);
+               UaFacade::instance().getSipTransceiver()->sendAsync(nMsg.getPtr());
 
             }
             else if (sipMsg->getType() == SIP_BYE)
@@ -322,7 +322,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
 	     return true;
 	}
 
-        myMutex.lock();
         int callId = myCallMap.size();
 
         //Create the CallAgent to control UaServer
@@ -331,7 +330,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
 
         //Persist the agent for the duration of the call
         myCallMap[cAgent->getId()] = cAgent;
-        myMutex.unlock();
 
         //Post message to the GUI
         strstream s;
@@ -376,7 +374,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
         cpLog(LOG_ERR, "Got HardwareEvent...\n");
         int id = hEvent->myId;
         Sptr<CallAgent> cAgent;
-        myMutex.lock();
         if(myCallMap.count(id))
         {
             cAgent.dynamicCast(myCallMap[id]);
@@ -403,7 +400,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
         {
             cpLog(LOG_ERR, "Did not find agent for id:%d" ,id);
         }
-        myMutex.unlock();
         return true;
     }
 
@@ -415,7 +411,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
         //Get the event id
         int id = dEvent->id;
         Sptr<CallAgent> cAgent;
-        myMutex.lock();
         if(myCallMap.count(id))
         {
             cAgent.dynamicCast(myCallMap[id]);
@@ -437,7 +432,6 @@ UaCallControl::processEvent(const Sptr<SipProxyEvent>& event)
         {
             cpLog(LOG_DEBUG, "Did not find agent for id:%d" ,id);
         }
-        myMutex.unlock();
         return true;
     }
 #endif
@@ -535,7 +529,7 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent)
        case G_DOSUBSCRIBE:
        {
            UaConfiguration::instance().parseConfig();
-            if(UaFacade::instance().getRegistrationManager() != 0)
+            if(UaFacade::instance().getRegistrationManager() != NULL)
             {
                 UaFacade::instance().getRegistrationManager()->addRegistration(1);
                 UaFacade::instance().getRegistrationManager()->startRegistration();
@@ -548,7 +542,7 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent)
             //Preferences changed, do the regsitration
             //Parse the configuration data
             UaConfiguration::instance().parseConfig();
-            if(UaFacade::instance().getRegistrationManager() != 0)
+            if(UaFacade::instance().getRegistrationManager() != NULL)
             {
                 UaFacade::instance().getRegistrationManager()->addRegistration(1);
                 UaFacade::instance().getRegistrationManager()->startRegistration();
@@ -752,7 +746,6 @@ UaCallControl::initiateInvite(const string& to)
     sipSdp->setSdpDescriptor(localSdp);
 #endif
 
-    myMutex.lock();
     int callId = myCallMap.size();
 
     //Create call-agent to handle the call from now on
@@ -761,7 +754,6 @@ UaCallControl::initiateInvite(const string& to)
 
     //Persist the agent for the duration of the call
     myCallMap[cAgent->getId()] = cAgent;
-    myMutex.unlock();
     //UaClient state-machine will take the call from here
 }
 
@@ -783,7 +775,6 @@ Sptr<CallAgent>
 UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg)
 {
     cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
-    myMutex.lock();
     if(myCallMap.size())
     {
         cpLog(LOG_DEBUG, "UaCallControl::getActiveCall");
@@ -810,7 +801,6 @@ UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg)
                     {
                         //Same request coming again
                         //do Nothing
-                        myMutex.unlock();
                         return 0;
                     }
                     else
@@ -819,12 +809,10 @@ UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg)
                         continue;
                     }
                 }
-                myMutex.unlock();
                 return cAgent;
             }
         }
     }    
-    myMutex.unlock();
     return 0;
 }
 

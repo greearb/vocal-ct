@@ -50,7 +50,7 @@
 
 
 static const char* const StatelessBasicProxy_cxx_Version =
-    "$Id: StatelessBasicProxy.cxx,v 1.8 2004/06/14 00:33:54 greear Exp $";
+    "$Id: StatelessBasicProxy.cxx,v 1.9 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "CommandLine.hxx"
@@ -127,7 +127,7 @@ void StatelessBasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* ex
 
 
 void
-StatelessBasicProxy::process(const Sptr < SipProxyEvent > event) const {
+StatelessBasicProxy::process(Sptr < SipProxyEvent > event) {
    assert ( event != 0 );
 
    cpLog( LOG_DEBUG, "StatelessBasicProxy::process event...\n");

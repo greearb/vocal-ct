@@ -53,16 +53,14 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "global.h"
 #include <map>
 #include "Sptr.hxx"
-#include "Fifo.h"
 #include "StatusMsg.hxx"
 #include "GuiEventThread.hxx"
-#include "UaWorkerThread.hxx"
 #include "SipThread.hxx"
 #include "RegistrationManager.hxx"
 #include "SipTransceiver.hxx"
@@ -99,154 +97,149 @@ class UaCli;
 /** UaFacade is the Facade wrapper, that wraps all the components needed
     for UA.
  */
-class UaFacade : public BaseFacade
-{
-    public:
-      ///
-      static UaFacade& instance();
+class UaFacade : public BaseFacade {
+public:
+   ///
+   static UaFacade& instance();
 
-      ///Constructor to initialze UaFacade global instance.Should be called only once
-      static void initialize(const Data& applName,
-                             unsigned short  defaultSipPort,
-                             bool filteron, bool nat);
-
-
-      ///
-      string className() { return "UaFacade"; }
+   ///Constructor to initialze UaFacade global instance.Should be called only once
+   static void initialize(const Data& applName,
+                          unsigned short  defaultSipPort,
+                          bool filteron, bool nat);
 
 
-      /**
-         Frees the memory associated with singelton instance.
-         gets register to atexit() function at the time of creation.
-      */
-      static void destroy(void);
+   ///
+   string className() { return "UaFacade"; }
 
-      /** Virtual destructor
-       */
-      virtual ~UaFacade();
 
-      ///
-      void run();
+   /**
+      Frees the memory associated with singelton instance.
+      gets register to atexit() function at the time of creation.
+   */
+   static void destroy(void);
 
-      ///
-      Sptr<SipTransceiver> getSipTransceiver() { return mySipStack; };
+   /** Virtual destructor
+    */
+   virtual ~UaFacade();
 
-      ///
-      Sptr< Fifo < Sptr < SipProxyEvent > > > getEventFifo() 
-      { 
-          return myInputEventFifo; 
-      };
+   ///
+   Sptr<SipTransceiver> getSipTransceiver() { return mySipStack; };
 
-      // Returns **OR CREATES*** device with specified ID.  If you just want to
-      // get a handle to the last thing created, try peekMediaDevice.
-      Sptr<MediaDevice> getMediaDevice(int id);
+   // Returns **OR CREATES*** device with specified ID.  If you just want to
+   // get a handle to the last thing created, try peekMediaDevice.
+   Sptr<MediaDevice> getMediaDevice(int id);
 
-      Sptr<MediaDevice> peekMediaDevice() { return myMediaDevice; }   
+   Sptr<MediaDevice> peekMediaDevice() { return myMediaDevice; }   
 
-      ///
-      void releaseMediaDevice(int id);
+   ///
+   void releaseMediaDevice(int id);
 
-      ///
-      Sptr<RegistrationManager> getRegistrationManager() const { return myRegistrationManager; };
+   ///
+   Sptr<RegistrationManager> getRegistrationManager() const { return myRegistrationManager; };
 
-      ///
-      void postMsg(Sptr<SipMsg> sMsg);
+   // Received from the stack
+   virtual void process(Sptr < SipProxyEvent > event);
 
-      ///
-      void postMsg(const string& msg);
+   ///
+   void postMsg(Sptr<SipMsg> sMsg);
 
-      ///
-      void postInfo(Sptr<SipMsg> sMsg);
+   ///
+   void postMsg(const string& msg);
 
-      void notifyCallEnded();
+   ///
+   void postInfo(Sptr<SipMsg> sMsg);
 
-      ///
-      void shutdown(bool join_worker_too);
+   void notifyCallEnded();
 
-      ///
-      CallControlMode getMode() const { return myMode; }
+   // Add the event to our queue.  Will process it next tick()
+   void queueEvent(Sptr <SipProxyEvent> event);
+
+   // Act on the event
+   void handleEvent(Sptr<SipProxyEvent> event);
+
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
+
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
+
+
+   ///
+   CallControlMode getMode() const { return myMode; }
       
-      /**Set the mode of the user agent i.e. a phone, an announcement
-       * server or interface to VoiceMail server.
-       */
+   /**Set the mode of the user agent i.e. a phone, an announcement
+    * server or interface to VoiceMail server.
+    */
    //void setMode(CallControlMode mode) { myMode = mode; };
 
-
 #ifdef USE_LANFORGE
-
-#define LANFORGE_SOCKET_FACADE (socketPairFds[0]) /* Facade's end of the socketpair */
-#define LANFORGE_SOCKET_LANFORGE (socketPairFds[1]) /* LANforge's end of the socketpair */
-
-        void setLFThread(LFVoipThread* lft);
-        int getFarEndOfSocketPair() { return LANFORGE_SOCKET_LANFORGE; }
-        void closeLanforgeSocketpair();
+   void setLFThread(LFVoipThread* lft);
 #endif
 
-    private:
-        ///
-        void setUpGuiEventThread();
+private:
+   ///
+   void setUpGuiEventThread();
 
-        /** Create the Instance of UaFacade, to wrap up the application wide
-         *  sipStack .
-         */
-        UaFacade(const Data& applName, const string& _localIp,
-                 unsigned short _localSipPort, const string& _natIp,
-                 int _transport, const NetworkAddress& proxyAddr,
-                 bool filteron, bool nat);
+   /** Create the Instance of UaFacade, to wrap up the application wide
+    *  sipStack .
+    */
+   UaFacade(const Data& applName, const string& _localIp,
+            unsigned short _localSipPort, const string& _natIp,
+            int _transport, const NetworkAddress& proxyAddr,
+            bool filteron, bool nat);
 
-        ///
-        static UaFacade* myInstance;
-        ///
-        Sptr<SipThread> mySipThread;
-        ///
-        Sptr<UaWorkerThread> myWorkerThread;
-        ///
-        Sptr<GuiEventThread> myGuiEventThread;
+   ///
+   static UaFacade* myInstance;
+   ///
+   Sptr<SipThread> mySipThread;
+   ///
+   Sptr<GuiEventThread> myGuiEventThread;
 
 #ifdef USE_LANFORGE
-        LFVoipThread* myLFThread;
+   LFVoipThread* myLFThread;
 #endif
-        int socketPairFds[2];
 
-        ///
-        Sptr<SipTransceiver> mySipStack;
+   ///
+   Sptr<SipTransceiver> mySipStack;
 
-        ///
-        Sptr< Fifo < Sptr < SipProxyEvent > > > myInputEventFifo;
-        ///
-        Sptr<RegistrationManager> myRegistrationManager;
+   ///
+   Sptr<RegistrationManager> myRegistrationManager;
 
-        ///
-        Sptr<MediaDevice> myMediaDevice;
+   // Queue incomming events, handle them all in the tick() method.
+   list<Sptr<SipProxyEvent> > eventList;
 
-        ///
-        int myReadFd;
-        ///
-        int myWriteFd;
+   ///
+   Sptr<MediaDevice> myMediaDevice;
 
-        ///
-        Sptr<UaCli>  myUaCli;
+   ///
+   int myReadFd;
 
-        /** Suppress copying
-         */
-        UaFacade(const UaFacade &);
+   ///
+   int myWriteFd;
+
+   ///
+   Sptr<UaCli>  myUaCli;
+
+   /** Suppress copying
+    */
+   UaFacade(const UaFacade &);
         
-        /** Suppress copying
-         */
-        const UaFacade & operator=(const UaFacade &);
-        ///
-        CallControlMode myMode;
+   /** Suppress copying
+    */
+   const UaFacade & operator=(const UaFacade &);
+   
+   ///
+   CallControlMode myMode;
 
-        ///Mapping from device Id to MediaDevice
-        typedef map< int, Sptr<MediaDevice> > MediaDeviceMap;
-        ///
-        MediaDeviceMap myMediaDeviceMap;
-        ///
-        string myReadPath;
-        ///
-        string myWritePath;
-        ///
-        Mutex myMutex;
+   ///Mapping from device Id to MediaDevice
+   typedef map< int, Sptr<MediaDevice> > MediaDeviceMap;
+
+   ///
+   MediaDeviceMap myMediaDeviceMap;
+   ///
+   string myReadPath;
+   ///
+   string myWritePath;
 };
 
 }

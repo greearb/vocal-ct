@@ -52,7 +52,7 @@
  */
 
 static const char* const SipProxyEvent_hxx_Version = 
-"$Id: SipProxyEvent.hxx,v 1.5 2004/06/03 07:28:15 greear Exp $";
+"$Id: SipProxyEvent.hxx,v 1.6 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -62,34 +62,9 @@ static const char* const SipProxyEvent_hxx_Version =
 namespace Vocal
 {
 
-class SipProxyEvent;
 class SipTransceiver;
 class CallContainer;
 class CallInfo;
-
-/** Object SipProxyEvent
-<pre>
-<br> Usage of this Class </br>
-
-     It has an output fifo and callinfo.
-     A event can post itself to its output fifo
-
-   FooDosomthing()
-   {
-
-      Sptr < Fifo < Sptr < SipProxyEvent > > > myOutputFifo;
-      Sptr < SipEvent > nextEvent = new SipEvent(myOutputFifo);
-      if ( nextEvent != 0 )
-       {
-         nextEvent->setSipReceive(sipRcv);
-         nextEvent->setSipStack(mySipStack);
-         if(myCallLegHistory) nextEvent->setCallLeg();
-         myOutputFifo->add(nextEvent);
-      }
-    }
-
-</pre>
-*/
 
 class SipProxyEvent: public BugCatcher {
 public:
@@ -98,11 +73,6 @@ public:
 
    ///
    virtual ~SipProxyEvent();
-
-   /** Post the given event to the fifo associated with this event.
-    *  This only really makes sense if this event is newEvent.
-    */
-   virtual void postEvent(const Sptr < SipProxyEvent > newEvent);
 
    /// Set the call info and the call container associated with this event.
    void setCallInfo(const Sptr < CallInfo > callInfo, 
@@ -135,8 +105,6 @@ public:
    virtual string toString();
 
 protected:
-   /// The fifo associated with this event.
-   list < Sptr < SipProxyEvent > > myFifo;
 
    /// The call info associated with this event.
    Sptr < CallInfo > myCallInfo;

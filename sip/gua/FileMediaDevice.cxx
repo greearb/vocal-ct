@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 
@@ -97,7 +97,6 @@ FileMediaDevice::FileMediaDevice(int id)
 FileMediaDevice::~FileMediaDevice(void)
 {
     player.stop();
-    myTFifo.addDelayMs(0, 0);
 } // end FileMediaDevice::~FileMediaDevice()
 
 
@@ -135,7 +134,7 @@ FileMediaDevice::processAudio ()
                  new UaHardwareEvent( myId );
          signal->type = HardwareAudioType;
          signal->request.type = AudioStop;
-         UaFacade::instance().getEventFifo()->add( signal );
+         UaFacade::instance().queueEvent(signal);
     }
     Sptr<CodecAdaptor> nll;
     processRaw((char*)buffer, networkPktSize*8, G711U, nll, false);

@@ -53,7 +53,7 @@
 
 
 static const char* const SipThread_hxx_Version = 
-    "$Id: SipThread.hxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipThread.hxx,v 1.5 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "Sptr.hxx"
@@ -90,7 +90,7 @@ class SipThread : public BugCatcher
 {
 public:
 
-   /** Create the sip thread given the sip transceiver and the fifo.
+   /** Create the sip thread given the sip transceiver and the proxy.
     *  The incoming messages from the sip transceiver will be queued on 
     *  the given fifo.
     *  For Marshal and RS proxies, no CallLegHistory is required

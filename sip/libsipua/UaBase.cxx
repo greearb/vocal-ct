@@ -50,7 +50,7 @@
 
 
 static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UaBase.cxx,v 1.4 2004/06/17 06:56:51 greear Exp $";
 
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
@@ -112,21 +112,17 @@ UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg)
     }
 }
 
-int
-UaBase::sendMsg(const Sptr<SipMsg>& sipMsg)
-{
-    cpLog(LOG_DEBUG_STACK , "(%s:%s:%p) Processing message %s ",
-          className().c_str(), instanceName.c_str(), this,
-          sipMsg->encode().logData());
-    if(sipMsg->getType() == SIP_STATUS)
-    {
-       return myState->sendStatus(*this, sipMsg);
-    }
-    else
-    {
-       return myState->sendRequest(*this, sipMsg);
-    }
-}
+int UaBase::sendMsg(Sptr<SipMsg> sipMsg) {
+   cpLog(LOG_DEBUG_STACK , "(%s:%s:%p) Processing message %s ",
+         className().c_str(), instanceName.c_str(), this,
+         sipMsg->encode().logData());
+   if (sipMsg->getType() == SIP_STATUS) {
+      return myState->sendStatus(*this, sipMsg);
+   }
+   else {
+      return myState->sendRequest(*this, sipMsg);
+   }
+}//sendMsg
 
 Sptr<InviteMsg>
 UaBase::createInvite(const Sptr<InviteMsg>& invMsg, bool changeCallId,

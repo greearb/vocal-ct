@@ -53,16 +53,16 @@
 
 
 static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
+    "$Id: UaBase.hxx,v 1.4 2004/06/17 06:56:51 greear Exp $";
 
 #include <string>
 #include <vector>
+#include "BaseFacade.hxx"
 #include "InviteMsg.hxx" 
 #include "SipCallLegData.hxx" 
 #include "SipProxyEvent.hxx" 
 #include "SipTransceiver.hxx" 
 #include "UaStateFactory.hxx" 
-#include "BaseFacade.hxx"
 
 namespace Vocal {
 
@@ -116,7 +116,7 @@ public:
    virtual void receivedMsg(const Sptr<SipMsg>& sipMsg);
 
    /// Returns < 0 on failure
-   virtual int sendMsg(const Sptr<SipMsg>& sipMsg);
+   virtual int sendMsg(Sptr<SipMsg> sipMsg);
 
    ///Returns true if was UAC when created
    virtual bool isAClient() const { return (myAgentRole == A_CLIENT); }

@@ -49,7 +49,7 @@
  */
 
 static const char* const SipProxyEvent_cxx_Version =
-    "$Id: SipProxyEvent.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
+    "$Id: SipProxyEvent.cxx,v 1.5 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "global.h"
@@ -81,15 +81,6 @@ string SipProxyEvent::toString() {
    rv += name();
    return rv;
 }
-
-
-void
-SipProxyEvent::postEvent(const Sptr < SipProxyEvent > newEvent)
-{
-    assert( newEvent != 0 );
-    myFifo.push_back(newEvent);
-}
-
 
 
 void

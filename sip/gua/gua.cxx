@@ -57,7 +57,6 @@
 #include "gua.hxx"
 #include <sstream>
 
-#include <SipUdp_impl.hxx>
 #include <SipUdpConnection.hxx>
 
 #ifdef USE_LANFORGE
@@ -67,76 +66,117 @@
 using namespace Vocal;
 using namespace Vocal::UA;
 
+int gua_running = 1;
+
 int
-main(const int argc, const char**argv)
-{
-    INIT_DEBUG_MEM_USAGE;
-    DEBUG_MEM_USAGE("beginning of main");
+main(const int argc, const char**argv) {
+   INIT_DEBUG_MEM_USAGE;
+   DEBUG_MEM_USAGE("beginning of main");
 
-    try
-    {
-        UaCommandLine::instance( (int)argc, (const char**)argv );
-        //Set the default log file size to be 3MB
-        DEBUG_MEM_USAGE("after argc");
-        cpLogSetFileSize (3000000);
-        //Set the num of backup files to be 2
-        cpLogSetNumOfBackupFiles (2);
+   try {
+      UaCommandLine::instance( (int)argc, (const char**)argv );
+      //Set the default log file size to be 3MB
+      DEBUG_MEM_USAGE("after argc");
+      cpLogSetFileSize (3000000);
+      //Set the num of backup files to be 2
+      cpLogSetNumOfBackupFiles (2);
 
-        DEBUG_MEM_USAGE("log has been set up");
-        Data applName("gua");
-        cpLogSetLabel( applName.logData() );
+      DEBUG_MEM_USAGE("log has been set up");
 
-        UaConfiguration::instance(UaCommandLine::instance()->getStringOpt("cfgfile"));
+      cpLogSetLabel("gua");
+
+      UaConfiguration::instance(UaCommandLine::instance()->getStringOpt("cfgfile"));
    
-        DEBUG_MEM_USAGE("UaConfiguraiton has been set up");
-        string lFileName = UaConfiguration::instance().getValue(LogFileNameTag).c_str();
-        if(lFileName.length())
-        {
-            cpLogOpen(lFileName.c_str());
-        }
-        cpLogSetPriority(cpLogStrToPriority(UaConfiguration::instance().getValue(LogLevelTag).c_str()));
+      DEBUG_MEM_USAGE("UaConfiguraiton has been set up");
+      string lFileName = UaConfiguration::instance().getValue(LogFileNameTag).c_str();
+      if (lFileName.length()) {
+         cpLogOpen(lFileName.c_str());
+      }
+      cpLogSetPriority(cpLogStrToPriority(UaConfiguration::instance().getValue(LogLevelTag).c_str()));
 
-        int localSipPort = 
-          atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());
+      int localSipPort = 
+         atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());
 
-        cpLog(LOG_INFO, "Trying to use port %d for SIP", localSipPort);
+      cpLog(LOG_INFO, "Trying to use port %d for SIP", localSipPort);
 
-
-        DEBUG_MEM_USAGE("About to init facade");
-        cpLog(LOG_ERR, "About to initialize UaFacade...\n");
-        UaFacade::initialize(applName, localSipPort, true, true);
+      DEBUG_MEM_USAGE("About to init facade");
+      cpLog(LOG_ERR, "About to initialize UaFacade...\n");
+      UaFacade::initialize("gua", localSipPort, true, true);
 
 #ifdef USE_LANFORGE
-        cpLog(LOG_ERR, "About to initialize LANforge thread...\n");
-        LFVoipThread* lf_thread = new LFVoipThread(&(UaFacade::instance()), argv, argc);
-        UaFacade::instance().setLFThread(lf_thread);
+      cpLog(LOG_ERR, "About to initialize LANforge thread...\n");
+      LFVoipThread* lf_thread = new LFVoipThread(&(UaFacade::instance()), argv, argc);
+      UaFacade::instance().setLFThread(lf_thread);
 #endif
 
-        DEBUG_MEM_USAGE("About to run facade");
+      DEBUG_MEM_USAGE("About to run facade");
 
-        cpLog(LOG_ERR, "About to 'run' the UaFacade...\n");
-        UaFacade::instance().run();
-#ifdef USE_LANFORGE
-        UaFacade::instance().setLFThread(NULL);
-        delete lf_thread;
-#endif
+      // Drop into our main loop
+      fd_set input_set;
+      fd_set output_set;
+      fd_set exc_set;
+
+      uint64 sleep_for;
+      int maxdesc;
+      uint64 now;
+      struct timeval timeout_tv;
+
+      while (gua_running) {
+         sleep_for = 60 * 1000;
+
+         FD_ZERO(&input_set);
+         FD_ZERO(&output_set);
+         FD_ZERO(&exc_set);
+
+         maxdesc = 0;
+
+         now = vgetCurMs();
+
+         UaFacade::instance().setFds(&input_set, &output_set, &exc_set,
+                                     maxdesc, sleep_for, now);
+
+         timeout_tv = vms_to_tv(sleep_for);
+
+         int fds = select(maxdesc + 1, &input_set, &output_set, &exc_set, &timeout_tv);
+         if (fds < 0) {
+            if (errno == EBADF) {
+               cpLog(LOG_ERR, "ERROR:  bad file desc. given in a set to select.\n");
+               break;
+            }//if
+            else if (errno == EINTR) {
+               cpLog(LOG_WARNING, "ERROR:  A non blocked signal was caught (EINTR).\n");
+               // Clear all the FD-sets
+               FD_ZERO(&input_set);
+               FD_ZERO(&output_set);
+               FD_ZERO(&exc_set);
+            }//if
+         }
+
+         now = vgetCurMs();
+
+         // Either we timed out, or a file descriptor is readable.
+         UaFacade::instance().tick(&input_set, &output_set, &exc_set, now);
+
+    }//while
+
+
+
     }
-    catch(VException& e)
-    {
-        cpLog(LOG_ERR, "Caught exception, termination application. Reason:%s",
-                        e.getDescription().c_str());
-        cerr << "Caught exception, termination application. Reason ";
-        cerr << e.getDescription().c_str() << endl;
+    catch(VException& e) {
+       cpLog(LOG_ERR, "Caught exception, termination application. Reason:%s",
+             e.getDescription().c_str());
+       cerr << "Caught exception, termination application. Reason ";
+       cerr << e.getDescription().c_str() << endl;
     }
 
-    cpLog(LOG_ERR, "Exiting gua...\n");
-    cerr << "Exiting gua..." << endl;
-}
+   cpLog(LOG_ERR, "Exiting gua...\n");
+   cerr << "Exiting gua..." << endl;
+}//main
+
 
 void debugMemUsage(const char* msg, const char* file, int line) {
    ostringstream oss;
    oss << file << ":" << line << "  " << msg << endl
-       << " SipUdpImpl::_cnt: " << SipUdp_impl::getInstanceCount() << endl
        << " SipUdpConnection::_cnt: " << SipUdpConnection::getInstanceCount() << endl
        << " SipTransceiver::_cnt: " << SipTransceiver::getInstanceCount() << endl;
 

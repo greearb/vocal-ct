@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -58,309 +58,245 @@ static const char* const RegistrationManager_cxx_Version =
 #include "RegistrationManager.hxx"
 #include "UaConfiguration.hxx"
 #include "UaFacade.hxx"
-#include "Lock.hxx"
 #include "NetworkConfig.hxx"
 
 using namespace Vocal;
 using namespace Vocal::UA;
-using Vocal::Threads::Lock;
 
 ///
 RegistrationManager::RegistrationManager( Sptr < SipTransceiver > sipstack )
 {
     sipStack = sipstack;
-    shutdown = false;
 
     cpLog(LOG_DEBUG, "Starting Registration Mananger");
-    //start the registration thread
-    registrationThread.spawn(registrationThreadWrapper, this);
-    cpLog( LOG_DEBUG, "Spawning the registration thread");
+
+    // TODO:  Start registration.
 
     addRegistration();
 }
 
 ///
-RegistrationManager::~RegistrationManager()
-{
-    shutdown = true;
-    registrationFifo.add(0);
-    registrationThread.join();
+RegistrationManager::~RegistrationManager() {
     flushRegistrationList();
 }
 
-///
-void*
-RegistrationManager::registrationThreadWrapper(void *regSession)
-{
-    assert( regSession );
 
-    RegistrationManager* regManager = static_cast < RegistrationManager* > (regSession);
-    regManager->registrationMain();
-    return 0;
+void RegistrationManager::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                               uint64 now) {
+   RegistrationList::iterator i;
+   for (i = registrationList.begin(); i != registrationList.end(); i++) {
+      Sptr<Registration> r = *i;
+      if (r->getNextRegister() <= now) {
+         doRegistration(r, now);
+      }
+   }
+}
+
+int RegistrationManager::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                                int& maxdesc, uint64& timeout, uint64 now) {
+   RegistrationList::iterator i;
+   for (i = registrationList.begin(); i != registrationList.end(); i++) {
+      Sptr<Registration> r = *i;
+      uint64 nextRegister = r->getNextRegister();
+      if (nextRegister < now + timeout) {
+         if (nextRegister <= now) {
+            timeout = 0;
+         }
+         else {
+            timeout = nextRegister - now;
+         }
+      }
+   }
+   return 0;
+}
+
+
+int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 now) {
+
+   Sptr<RegisterMsg> registerMsg = registration->getNextRegistrationMsg();
+
+   if ( 0 != sipStack ) {
+      cpLog(LOG_DEBUG, "sending register message");
+      sipStack->sendAsync( registerMsg.getPtr() );
+      UaFacade::instance().postInfo(registerMsg.getPtr());
+   }
+
+   registration->setNextRegister(now + registration->getDelay());
 }
 
 ///
-void
-RegistrationManager::registrationMain()
-{
-    cpLog(LOG_DEBUG, "RegistrationManager::registrationMain: starting registrationMain");
-
-    while (1)
-    {
-        cpLog(LOG_DEBUG, "RegistrationManager::registrationMain: getting next registration event");
-
-        Registration* registration = registrationFifo.getNext();
-        if(shutdown) break;
-        if ( 0 == registration )
-            continue;
-
-        Lock lock(registrationMutex);
-        RegisterMsg registerMsg = registration->getNextRegistrationMsg();
-
-        if ( 0 != sipStack )
-        {
-            cpLog(LOG_DEBUG, "sending register message");
-            sipStack->sendAsync( registerMsg );
-            Sptr<RegisterMsg> rMsg = new RegisterMsg(registerMsg);
-            UaFacade::instance().postInfo(rMsg);
-        }
-
-        //add another to the fifo in the event that response never came
-        int delay = registration->getDelay();
-	if(delay){
-	    FifoEventId eventId = registrationFifo.addDelayMs(registration, delay);
-	    registration->setTimerId(eventId);
-	}
-    }
-}
-
-///
-Registration*
+Sptr<Registration>
 RegistrationManager::findRegistration(const StatusMsg& statusMsg)
 {
-    Registration* registration = 0;
+   Sptr<Registration> registration;
 
-    RegistrationList::iterator iter = registrationList.begin();
-    while ( iter != registrationList.end() )
-    {
-        RegisterMsg regMsg = (*iter)->getRegistrationMsg();
-        if ( regMsg.computeCallLeg() == statusMsg.computeCallLeg() )
-        {
-            registration = (*iter);
-            break;
-        }
-        iter++;
-    }
+   RegistrationList::iterator iter = registrationList.begin();
+   while ( iter != registrationList.end() ) {
+      Sptr<RegisterMsg> regMsg = (*iter)->getRegistrationMsg();
+      if ( regMsg->computeCallLeg() == statusMsg.computeCallLeg() ) {
+         registration = (*iter);
+         break;
+      }
+      iter++;
+   }
 
-    return registration;
+   return registration;
+}
+
+///
+void RegistrationManager::addRegistration(Sptr<Registration> item) {
+   registrationList.push_back(registration);
 }
 
 ///
 void
-RegistrationManager::addRegistration(const Registration& item)
-{
-    Registration* registration = new Registration(item);
-
-    if ( 0 != registration )
-        registrationList.push_back(registration);
-}
-
-///
-void
-RegistrationManager::flushRegistrationList()
-{
-    RegistrationList::iterator iter = registrationList.begin();
-    while ( iter != registrationList.end() )
-    {
-        if ( *iter )
-        {
-            registrationFifo.cancel((*iter)->getTimerId());
-            delete (*iter);
-        }
-        iter++;
-    }
+RegistrationManager::flushRegistrationList() {
     registrationList.clear();
 }
 
 ///
 bool
-RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg)
-{
-    Lock lock(registrationMutex);
+RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
 
-    Registration* registration = findRegistration(statusMsg);
+   Sptr<Registration> registration = findRegistration(statusMsg);
 
-    if ( !registration )
-        return false;
+   if (registration == 0) {
+      return false;
+   }
 
+   cpLog(LOG_DEBUG, "RegistrationManager::updating registration information");
+   int delay = registration->updateRegistrationMsg(statusMsg);
 
-    bool ret = true;
+   if ( registration->getStatusCode() == 100 ) {
+      delay = DEFAULT_DELAY;
+   }
 
-    cpLog(LOG_DEBUG, "RegistrationManager::handling response to a register message");
-    //Cancel the timer
-    registrationFifo.cancel(registration->getTimerId());
+   if ((registration->getStatusCode()  == 401) ||
+       (registration->getStatusCode()  == 407)) {
+      delay = 0;
+      cpLog(LOG_DEBUG, "The new delay is %d, status code: %d",
+            delay, registration->getStatusCode());
+      registration->setNextRegister(vgetCurMs());
+   }
+   else if (delay) {
+      registration->setNextRegister(vgetCurMs());
+   }
+   else {
+      // Register again in a day, ie basically wait forever.
+      registration->setNextRegister(vgetCurMs() + (60 * 60 * 24 * 1000));
+      ret = true;
+   }
+   return true;
+}//handleRegistrationResponse
 
-    cpLog(LOG_DEBUG, "RegistrationManager::updating registration information");
-    int delay = registration->updateRegistrationMsg(statusMsg);
-
-    if( registration->getStatusCode() == 100 )
-    {
-	const int DEFAULT_DELAY = 60000;   // 60 sec.
-	delay = DEFAULT_DELAY;
-    }
-
-    if((registration->getStatusCode()  == 401) ||
-      (registration->getStatusCode()  == 407))
-    {
-	delay = 0;
-        cpLog(LOG_DEBUG, "The new delay is %d", delay);
-	FifoEventId eventId = registrationFifo.addDelayMs(registration, delay);
-	registration->setTimerId(eventId);
-    }
-    else if(delay){
-	FifoEventId eventId = registrationFifo.addDelayMs(registration, delay);
-	registration->setTimerId(eventId);
-    } else {
-	ret = true;
-    }
-    
-    return ret;
-}
-
-///
-void
-RegistrationManager::startRegistration()
-{
-    Lock lock(registrationMutex);
-    RegistrationList::iterator iter = registrationList.begin();
-
-    while ( iter != registrationList.end() )
-    {
-        FifoEventId eventId = registrationFifo.addDelayMs((*iter), 0);
-        (*iter)->setTimerId(eventId);
-        iter++;
-    }
-}
 
 void
-RegistrationManager::addRegistration(int check)
-{
-    Lock lock(registrationMutex);
-    flushRegistrationList();
-    UaConfiguration& config = UaConfiguration::instance();
+RegistrationManager::addRegistration(int check) {
+   flushRegistrationList();
+   UaConfiguration& config = UaConfiguration::instance();
 
-    string regOn = config.getValue(RegisterOnTag);
-    if((regOn == "false") || (regOn == "False"))
-    {
-        cpLog(LOG_INFO, "Registration is turned off");
-        return;
-    }
+   string regOn = config.getValue(RegisterOnTag);
+   if (strcasecmp(regOn.c_str(), "FALSE") == 0) {
+      cpLog(LOG_INFO, "Registration is turned off");
+      return;
+   }
 
-    string toAddress = config.getValue(RegisterToTag);
-    if(toAddress.length() == 0)
-    {
-        cpLog(LOG_ERR, "No registration server found, using Proxy server as registrar");
-        //Use Proxy Address
-        toAddress = config.getValue(ProxyServerTag);
-        if(toAddress.length() == 0)
-        {
-            cpLog(LOG_ERR, "No Proxy server found, giving up registration.");
-            config.show();
-            return;
-        }
-    }
+   string toAddress = config.getValue(RegisterToTag);
+   if (toAddress.length() == 0) {
+      cpLog(LOG_ERR, "No registration server found, using Proxy server as registrar");
+      //Use Proxy Address
+      toAddress = config.getValue(ProxyServerTag);
+      if (toAddress.length() == 0) {
+         cpLog(LOG_ERR, "No Proxy server found, giving up registration.");
+         config.show();
+         return;
+      }
+   }
 
-    NetworkAddress rs(toAddress);
+   NetworkAddress rs(toAddress);
 
-    // The first REGISTER message
-    RegisterMsg registerMsg(config.getMyLocalIp());
+   // The first REGISTER message
+   Sptr<RegisterMsg> = new RegisterMsg(registerMsg(config.getMyLocalIp()));
 
-    // Set Request line
-    Data reqUrlString;
-    SipRequestLine& reqLine = registerMsg.getMutableRequestLine();
-    if(NetworkConfig::instance().isDualStack() && 
-       NetworkAddress::is_valid_ip6_addr(toAddress))
-    {
-        reqUrlString = Data( string("sip:[") + toAddress + "]");
-    }
-    else
-    {
-        reqUrlString = Data( string("sip:") + toAddress );
-    }
-    if(config.getValue(SipTransportTag) == "TCP")
-    {
-        reqUrlString += ";transport=tcp;";
-    }
-    Sptr< SipUrl > reqUrl = new SipUrl( reqUrlString, config.getMyLocalIp() );
+   // Set Request line
+   Data reqUrlString;
+   SipRequestLine& reqLine = registerMsg.getMutableRequestLine();
+   if (NetworkConfig::instance().isDualStack() && 
+       NetworkAddress::is_valid_ip6_addr(toAddress)) {
+      reqUrlString = Data( string("sip:[") + toAddress + "]");
+   }
+   else {
+      reqUrlString = Data( string("sip:") + toAddress );
+   }
+   if (strcasecmp(config.getValue(SipTransportTag).c_str(), "TCP") == 0) {
+      reqUrlString += ";transport=tcp;";
+   }
+   Sptr< SipUrl > reqUrl = new SipUrl( reqUrlString, config.getMyLocalIp() );
 
-    assert( reqUrl != 0 );
-    reqLine.setUrl( reqUrl );
+   reqLine.setUrl( reqUrl.getPtr());
 
-    // Set From header
-    string port = config.getValue(LocalSipPortTag);
+   // Set From header
+   string port = config.getValue(LocalSipPortTag);
     
-    SipFrom sipfrom = registerMsg.getFrom();
-    sipfrom.setDisplayName( config.getValue(DisplayNameTag) );
-    sipfrom.setUser( config.getValue(UserNameTag) );
-    sipfrom.setHost( config.getMyLocalIp() );
-    sipfrom.setPort( port );
-    registerMsg.setFrom( sipfrom );
+   SipFrom sipfrom = registerMsg.getFrom();
+   sipfrom.setDisplayName( config.getValue(DisplayNameTag) );
+   sipfrom.setUser( config.getValue(UserNameTag) );
+   sipfrom.setHost( config.getMyLocalIp() );
+   sipfrom.setPort( port );
+   registerMsg.setFrom( sipfrom );
 
-    // Set To header
-    const Data regToUrlStr = reqUrlString;
-    SipUrl regToUrl( regToUrlStr, config.getMyLocalIp() );
-    SipTo sipto = registerMsg.getTo();
-    sipto.setDisplayName( config.getValue(DisplayNameTag) );
-    sipto.setUser( config.getValue(UserNameTag) );
-    sipto.setHost( regToUrl.getHost() );
-    sipto.setPortData( regToUrl.getPort() );
-    registerMsg.setTo( sipto );
+   // Set To header
+   const Data regToUrlStr = reqUrlString;
+   SipUrl regToUrl( regToUrlStr, config.getMyLocalIp() );
+   SipTo sipto = registerMsg.getTo();
+   sipto.setDisplayName( config.getValue(DisplayNameTag) );
+   sipto.setUser( config.getValue(UserNameTag) );
+   sipto.setHost( regToUrl.getHost() );
+   sipto.setPortData( regToUrl.getPort() );
+   registerMsg.setTo( sipto );
 
-    // Set Via header
-    SipVia sipvia = registerMsg.getVia();
-    sipvia.setPort( Data(port).convertInt() );
-    sipvia.setTransport(  Data(config.getValue(SipTransportTag)) );
+   // Set Via header
+   SipVia sipvia = registerMsg.getVia();
+   sipvia.setPort(port);
+   sipvia.setTransport(config.getValue(SipTransportTag));
 
-    registerMsg.removeVia();
-    registerMsg.setVia( sipvia );
+   registerMsg.removeVia();
+   registerMsg.setVia( sipvia );
 
-    // Set Contact header
-    Sptr< SipUrl > contactUrl = new SipUrl("", config.getMyLocalIp());
-    SipContact myContact("", config.getMyLocalIp());
-    if(!check)
-    {
-	contactUrl->setUserValue( config.getValue(UserNameTag), "phone" );
-        if( UaConfiguration::instance().getValue(NATAddressIPTag).length())
-        {
-           contactUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
+   // Set Contact header
+   Sptr< SipUrl > contactUrl = new SipUrl("", config.getMyLocalIp());
+   SipContact myContact("", config.getMyLocalIp());
+   if (!check) {
+      contactUrl->setUserValue( config.getValue(UserNameTag), "phone" );
+      if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
+         contactUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
+      }
+      else {
+         contactUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
+      }
 
-        } else
-        {
-           contactUrl->setHost( Data( UaConfiguration::instance().getMyLocalIp() ) );
-        }
-
-	contactUrl->setPort( port );
-	if(config.getValue(SipTransportTag) == "TCP")
-	{
-	    contactUrl->setTransportParam( Data("tcp") );
-	} 
+      contactUrl->setPort( port );
+      if (strcasecmp(config.getValue(SipTransportTag).c_str(), "TCP") == 0) {
+         contactUrl->setTransportParam( Data("tcp") );
+      } 
     
-	myContact.setUrl( contactUrl );
-    } else {
-	myContact.setNullContact();
-    }
-    registerMsg.setNumContact( 0 );
-    registerMsg.setContact(myContact);
+      myContact.setUrl( contactUrl );
+   }
+   else {
+      myContact.setNullContact();
+   }
+   registerMsg.setNumContact( 0 );
+   registerMsg.setContact(myContact);
 
-    // Set Expires header
-    SipExpires sipExpires("", config.getMyLocalIp());
-    if(!check){
-	sipExpires.setDelta( config.getValue(RegisterExpiresTag) );
-    } else {
-	sipExpires.setDelta(0);
-    }
-    registerMsg.setExpires( sipExpires );
+   // Set Expires header
+   SipExpires sipExpires("", config.getMyLocalIp());
+   if (!check){
+      sipExpires.setDelta( config.getValue(RegisterExpiresTag) );
+   } else {
+      sipExpires.setDelta(0);
+   }
+   registerMsg.setExpires( sipExpires );
 
-    Registration registration( registerMsg );
-    addRegistration( registration );
+   Sptr<Registration> registration = new Registration( registerMsg );
+   addRegistration( registration );
 }

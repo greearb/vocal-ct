@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include <sys/types.h>
@@ -69,7 +69,6 @@ static const char* const UaFacade_cxx_Version =
 #include <fcntl.h>
 #include <iostream.h>
 #include <unistd.h>
-#include "Fifo.h"
 #include "UaFacade.hxx"
 #include "SipThread.hxx"
 #include "SipTransceiver.hxx"
@@ -78,7 +77,6 @@ static const char* const UaFacade_cxx_Version =
 #include "UaCommandLine.hxx"
 #include "UaCallControl.hxx"
 #include "UaCli.hxx"
-#include "Lock.hxx"
 #include <misc.hxx>
 #include "gua.hxx"
 
@@ -102,9 +100,6 @@ static const char* const UaFacade_cxx_Version =
 #include "NetworkConfig.hxx"
 
 
-using Vocal::Threads::Lock;
-
-
 #ifdef USE_VM
 #include "VmcpDevice.hxx"
 #endif
@@ -120,14 +115,6 @@ using Vocal::Threads::Lock;
 using namespace Vocal;
 using namespace Vocal::UA;
 
-extern "C" {
-    void UaFacade_destroy(void)
-    {
-        UaFacade::destroy();
-    }
-};
-
-
 
 UaFacade* UaFacade::myInstance = 0;
 
@@ -135,8 +122,6 @@ void
 UaFacade::destroy()
 {
    if (myInstance) {
-      myInstance->shutdown(true);
-
       UaCallControl::destroy();
       cpLog(LOG_DEBUG, "UaFacade::destroy()");
 
@@ -146,9 +131,7 @@ UaFacade::destroy()
 }
 
 UaFacade&
-UaFacade::instance()
-{
-    assert(myInstance != 0);
+UaFacade::instance() {
     return *myInstance;
 }
 
@@ -174,7 +157,7 @@ UaFacade::initialize(const Data& applName,
     string NAT_HOST = UaConfiguration::instance().getValue(NATAddressIPTag).c_str();
     int transport = 1;
     string tp = UaConfiguration::instance().getValue(SipTransportTag).c_str();
-    if (tp == "TCP") {
+    if (strcasecmp(tp.c_str(), "TCP") == 0) {
        transport = 2;
     }
 
@@ -206,13 +189,10 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
       , myLFThread(NULL)
 #endif
 {
-   socketPairFds[0] = -1;
-   socketPairFds[1] = -1;
-
    DEBUG_MEM_USAGE("Beginning Facade constructor");
    try {
       myMode = CALL_MODE_UA;
-      if(UaCommandLine::instance()->getIntOpt("speech")) {
+      if (UaCommandLine::instance()->getIntOpt("speech")) {
 #ifdef VOCAL_USE_SPHINX
          cpLog(LOG_INFO, "Agent running in speech rec mode");
          myMode = CALL_MODE_SPEECH;
@@ -220,11 +200,11 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
          cpLog(LOG_INFO, "Speech mode not supported in this version");
 #endif
       }
-      else if(UaCommandLine::instance()->getIntOpt("annon")) {
+      else if (UaCommandLine::instance()->getIntOpt("annon")) {
          cpLog(LOG_INFO, "Agent running in announcement mode");
          myMode = CALL_MODE_ANNON;
       }
-      else if(UaCommandLine::instance()->getIntOpt("voicemail")) {
+      else if (UaCommandLine::instance()->getIntOpt("voicemail")) {
          cpLog(LOG_INFO, "Agent running in Voice Mail mode");
          myMode = CALL_MODE_VMAIL;
          UaConfiguration::instance().setValue(RegisterOnTag,  "false");
@@ -233,12 +213,6 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
       if (UaConfiguration::instance().getValue(UseLANforgeDeviceTag) != "0") {
          cpLog(LOG_INFO, "Agent running in LANforge mode");
          myMode = CALL_MODE_LANFORGE;
-
-         if (socketpair(AF_UNIX, SOCK_DGRAM, 0, socketPairFds) < 0) {
-            cpLog(LOG_ERR, "ERROR:  Failed to open socketpair, error: %s\n",
-                  strerror(errno));
-            assert("failed to open socketpair" == "that be fatal");
-         }
       }
       
       string cfg_local_ip = UaConfiguration::instance().getConfiguredLocalIp();
@@ -248,8 +222,7 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
 
       string cfg_force_ipv6 = UaConfiguration::instance().getValue(ForceIPv6Tag);
 
-      if(cfg_force_ipv6 == "true") 
-      {
+      if(cfg_force_ipv6 == "true") {
 	  // change the network configuration by force
 	  NetworkConfig::instance().setAddrFamily(PF_INET6);
       }
@@ -276,25 +249,19 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
       //   cpLog(LOG_ALERT, "Failed to register with atexit()");
       //};
       
-      DEBUG_MEM_USAGE("Before creating fifo");
-      cpLog(LOG_ERR, "UaFacade:  About to create InputEvent FIFO.\n");
-      myInputEventFifo = new Fifo < Sptr < SipProxyEvent > >;
-      assert( myInputEventFifo != 0 );
-      myWorkerThread = new UaWorkerThread(myInputEventFifo);
-
       DEBUG_MEM_USAGE("Before setting up GUI thread.");
       //Setup the GUI event thread
       setUpGuiEventThread();
 
       DEBUG_MEM_USAGE("After GUI thread.");
-      while(true) {
+      while (true) {
          try {
             cpLog(LOG_ERR, "Creating SipTransceiver on local_ip: %s:%d, dev: %s\n",
                   cfg_local_ip.c_str(), defaultSipPort, cfg_local_sip_dev.c_str());
             DEBUG_MEM_USAGE("Creating SipTransceiver.");
-            mySipStack = new SipTransceiver(7, /* hashTableSize, only handle one call */
-                                            cfg_local_ip, cfg_local_sip_dev,
-                                            applName, defaultSipPort, nat);
+            mySipStack = new SipTransceiver(cfg_local_ip, cfg_local_sip_dev,
+                                            applName, defaultSipPort, nat,
+                                            APP_CONTEXT_GENERIC, false);
             cpLog(LOG_ERR, "Created SipTransceiver...\n");
             DEBUG_MEM_USAGE("Created SipTransceiver.");
             UaConfiguration::instance().setValue(LocalSipPortTag, Data(defaultSipPort).logData());
@@ -302,15 +269,14 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
 
             cpLog(LOG_ERR, "Listening on port %d for SIP", defaultSipPort);
             char buf[256];
-            sprintf(buf, "INFO Listening on port %d for SIP", defaultSipPort);
+            snprintf(buf, 255, "INFO Listening on port %d for SIP", defaultSipPort);
             postMsg(buf);
-            assert( mySipStack != 0 );
             SipTransceiver::reTransOn();
          
    
             DEBUG_MEM_USAGE("Creating sipThread.");
             cpLog(LOG_ERR, "UaFacade:  About to create SIP thread.\n");
-            mySipThread = new SipThread(mySipStack, myInputEventFifo, false);
+            mySipThread = new SipThread(mySipStack, this, false);
             
             //Start the registration manager to handle the registration 
             DEBUG_MEM_USAGE("Creating RegistrationManager.");
@@ -324,13 +290,15 @@ UaFacade::UaFacade(const Data& applName, const string& _localIp,
                   defaultSipPort);
             if ((defaultSipPort > startPort+9) || !guessSipPort) {
                char buf[256];
-               sprintf(buf, "ERROR Port in range %d->%d are not available", startPort, defaultSipPort);
+               snprintf(buf, 255, "ERROR Port in range %d->%d are not available",
+                        startPort, defaultSipPort);
                postMsg(buf);
                exit(-1);
             }
             defaultSipPort++;
             //Leave port 5061 as it is reserved for TLS
-            if(defaultSipPort == 5061) defaultSipPort++;
+            if (defaultSipPort == 5061)
+               defaultSipPort++;
          }
       }
 
@@ -392,65 +360,60 @@ UaFacade::setUpGuiEventThread()
     Data LocalDirectory = NamedDir;
     LocalDirectory += uId;
     
-    LocalScopeAllocator lo;
-
-    mkdir(LocalDirectory.getData(lo), 0700);
-    chmod(LocalDirectory.getData(lo), 0700);
+    mkdir(LocalDirectory.c_str(), 0700);
+    chmod(LocalDirectory.c_str(), 0700);
 
     struct stat statbuf;
-
-    int err = lstat(LocalDirectory.getData(lo), &statbuf);
-    if(err)
-    {
-	cpLog(LOG_ERR, "Cannot continue, failed to stat directory: %s",
-	      strerror(errno));
-	exit(-1);
+    int err = lstat(LocalDirectory.c_str(), &statbuf);
+    if (err) {
+       cpLog(LOG_ERR, "Cannot continue, failed to stat directory: %s",
+             strerror(errno));
+       exit(-1);
     }
 
-    if(statbuf.st_uid != getuid() ||
-       statbuf.st_mode != 0040700)
-    {
-	cpLog(LOG_ERR, 
-	      "Cannot continue, directory %s does not have right permissions", 
-	      LocalDirectory.getData(lo));
-	exit(-1);
+    if (statbuf.st_uid != getuid() ||
+        statbuf.st_mode != 0040700) {
+       cpLog(LOG_ERR, 
+             "Cannot continue, directory %s does not have right permissions", 
+             LocalDirectory.c_str());
+       exit(-1);
     }
 
-    myReadPath = LocalDirectory.getData(lo);
+    myReadPath = LocalDirectory.c_str();
     myReadPath += "/";
     myReadPath += NamedReadFile;
-    myReadPath += pId.getData(lo);
+    myReadPath += pId.c_str();
 
-    myWritePath = LocalDirectory.getData(lo);
+    myWritePath = LocalDirectory.c_str();
     myWritePath += "/";
     myWritePath += NamedWriteFile;
-    myWritePath += pId.getData(lo);
+    myWritePath += pId.c_str();
 
     int retVal = mkfifo(myReadPath.c_str(), 0600);
-    if(retVal < 0 && errno != EEXIST)
-    {
-        cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s", strerror(errno));
-        exit(-1);
+    if (retVal < 0 && errno != EEXIST) {
+       cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s",
+             strerror(errno));
+       exit(-1);
     }
 
     retVal = mkfifo(myWritePath.c_str(), 0600);
-    if(retVal < 0 && errno != EEXIST)
-    {
-        cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s", strerror(errno));
-        exit(-1);
+    if (retVal < 0 && errno != EEXIST) {
+       cpLog(LOG_ERR, "Can not continute, failed to create the named pipes, reason %s",
+             strerror(errno));
+       exit(-1);
     }
 
-    if((myReadFd = open(myReadPath.c_str(), O_RDWR)) < 0)
-    {
-        cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s", strerror(errno));
-        exit(-1);
+    if ((myReadFd = open(myReadPath.c_str(), O_RDWR)) < 0) {
+       cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s",
+             strerror(errno));
+       exit(-1);
     }
 
 
-    if((myWriteFd = open(myWritePath.c_str(), O_RDWR)) < 0)
-    {
-        cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s", strerror(errno));
-        exit(-1);
+    if ((myWriteFd = open(myWritePath.c_str(), O_RDWR)) < 0) {
+       cpLog(LOG_ERR, "Can not continute, failed to open the named pipes, reason %s",
+             strerror(errno));
+       exit(-1);
     }
 
 #ifndef __FreeBSD__
@@ -461,9 +424,8 @@ UaFacade::setUpGuiEventThread()
     //if (! UaCommandLine::instance()->getIntOpt("cmdline")) {
     //Create the GuiEventThread to receive GUI events
 
-    myGuiEventThread = new GuiEventThread(myInputEventFifo, myReadFd);
-    myGuiEventThread->run();
-    cpLog(LOG_INFO, "GuiEventThread started...");
+    myGuiEventThread = new GuiEventThread(myReadFd);
+    cpLog(LOG_INFO, "GuiEventThread created...");
 
     //}
     //else {
@@ -471,42 +433,9 @@ UaFacade::setUpGuiEventThread()
     //}
 }
 
-void
-UaFacade::run()
-{
-    assert( myWorkerThread != 0 );
-    assert( mySipThread != 0 );
-    myWorkerThread->run();
-    mySipThread->run();
-    myRegistrationManager->startRegistration();
-#ifdef USE_LANFORGE
-    myLFThread->run();
-#endif
-
-    if(mySipThread != 0) mySipThread->join();
-    if(myWorkerThread != 0) myWorkerThread->join();
-    if(myGuiEventThread != 0) myGuiEventThread->join();
-
-#ifdef USE_LANFORGE
-    if (myLFThread) {
-       myLFThread->shutdown();
-       myLFThread->join();
-    }
-#endif
-
-}
-
 #ifdef USE_LANFORGE
 void UaFacade::setLFThread(LFVoipThread* lft) {
-   Lock lk(myMutex);
    myLFThread = lft;
-}
-
-void UaFacade::closeLanforgeSocketpair() {
-   close(LANFORGE_SOCKET_FACADE);
-   close(LANFORGE_SOCKET_LANFORGE);
-   LANFORGE_SOCKET_FACADE = -1;
-   LANFORGE_SOCKET_LANFORGE = -1;
 }
 
 #endif
@@ -516,136 +445,124 @@ UaFacade::~UaFacade()
     if(myReadPath.size()) unlink(myReadPath.c_str());
     if(myWritePath.size()) unlink(myWritePath.c_str());
 
-    if (socketPairFds[0] > -1) {
-       close(socketPairFds[0]);
-    }
-    if (socketPairFds[1] > -1) {
-       close(socketPairFds[1]);
-    }
 }
 
+// Received from the stack
+void UaFacade::process(Sptr < SipProxyEvent > event) {
+   Sptr<SipEvent> se;
+   se.dynamicCast(event);
+   if (se != 0) {
+      postMsg(se->getSipMsg());
+   }
+   else {
+      cpLog(LOG_ERR, "ERROR:  Received unhandled event: %s\n",
+            event->toString().c_str());
+   }
+}//process
+
+
 void
-UaFacade::postMsg(Sptr<SipMsg> sMsg)
-{
+UaFacade::postMsg(Sptr<SipMsg> sMsg) {
     assert(sMsg != 0);
     strstream s;
 
     cpLog(LOG_DEBUG,  "MSG :%s" , sMsg->encode().logData());
-    if(sMsg->getType() == SIP_STATUS)
-    { 
+    if (sMsg->getType() == SIP_STATUS) { 
         Sptr<StatusMsg> statusMsg;
         statusMsg.dynamicCast(sMsg); 
         assert(statusMsg != 0);
         int statusCode = statusMsg->getStatusLine().getStatusCode();
-        if((statusMsg->getCSeq().getMethod() != INVITE_METHOD) &&
-           (statusMsg->getCSeq().getMethod() != CANCEL_METHOD))
-        {
-             s << "INFO ";
+        if ((statusMsg->getCSeq().getMethod() != INVITE_METHOD) &&
+            (statusMsg->getCSeq().getMethod() != CANCEL_METHOD)) {
+           s << "INFO ";
         }
-        else
-        {
-            switch(statusCode)
-            {
-                case 100:
-                {
-                    s << "TRYING ";
-                }
-                break;
-                case 180:
-                case 183:
-                {
-                   //cerr << "RINGING:" << endl;
-                    s << "RINGING ";
-                }
-                break;
-                case 200:
-                {
-                    s << "INCALL ";
-                }
-                break;
-               case 302:
-               {
-                  cerr << "In REDIRECT:" << endl;
-                  s << "REDIRECT ";
-               }
-               break;
-                case 480:
-                case 486:
-                {
-                    s << "BUSY ";
-                }
-                break;
-                case 404:
-                {
-                    strstream s2;
-                    s2 << "ERROR " << "User not found" << endl;
-                    s2 << endl << ends;
-                    postMsg(s2.str());
-                    s2.freeze(false);
-                    s << "INFO ";
-                }
-                break;
-                case 403:
-                {
-                    strstream s2;
-                    s2 << "ERROR " << "Host unreachable or connection refused";
-                    s2 << endl << ends;
-                    postMsg(s2.str());
-                    s2.freeze(false);
-                    s << "INFO ";
-                }
-                break;
-                case 408:
-                {
-                    strstream s2; 
-                    s2 << "ERROR " << "Request timed out, check if Proxy_Server/URL is reachable";
-                    s2 << endl << ends;
-                    postMsg(s2.str());
-                    s2.freeze(false);
-                    s << "INFO ";
-                }
-                break;
-                case 407:
-                case 487:
-                {
-                    s << "INFO ";
-                }
-                break;
-                case 401:
-                {
-                    s << "UNAUTHORIZED ";
-                }
-                break;
-                case 603:
-                {
-                    strstream s2; 
-                    s2 << "ERROR  " << "Request declined by the callee";
-                    s2 << endl << ends;
-                    postMsg(s2.str());
-                    s2.freeze(false);
-                    s << "INFO ";
-                }
-                break;
-                default:
-                {
-                    s << "ERROR ";
-                }
-                break;
-            }
+        else {
+           switch(statusCode) {
+           case 100: {
+              s << "TRYING ";
+              break;
+           }
+           case 180:
+           case 183: {
+              //cerr << "RINGING:" << endl;
+              s << "RINGING ";
+              break;
+           }
+           case 200: {
+              s << "INCALL ";
+              break;
+           }
+           case 302: {
+              cerr << "In REDIRECT:" << endl;
+              s << "REDIRECT ";
+              break;
+           }
+           case 480:
+           case 486: {
+              s << "BUSY ";
+              break;
+           }
+           case 404: {
+              strstream s2;
+              s2 << "ERROR " << "User not found" << endl;
+              s2 << endl << ends;
+              postMsg(s2.str());
+              s2.freeze(false);
+              s << "INFO ";
+              break;
+           }
+           case 403: {
+              strstream s2;
+              s2 << "ERROR " << "Host unreachable or connection refused";
+              s2 << endl << ends;
+              postMsg(s2.str());
+              s2.freeze(false);
+              s << "INFO ";
+              break;
+           }
+           case 408: {
+              strstream s2; 
+              s2 << "ERROR " << "Request timed out, check if Proxy_Server/URL is reachable";
+              s2 << endl << ends;
+              postMsg(s2.str());
+              s2.freeze(false);
+              s << "INFO ";
+              break;
+           }
+           case 407:
+           case 487: {
+              s << "INFO ";
+              break;
+           }
+           case 401: {
+              s << "UNAUTHORIZED ";
+              break;
+           }
+           case 603: {
+              strstream s2; 
+              s2 << "ERROR  " << "Request declined by the callee";
+              s2 << endl << ends;
+              postMsg(s2.str());
+              s2.freeze(false);
+              s << "INFO ";
+              break;
+           }
+           default: {
+              s << "ERROR ";
+              break;
+           }
+           }//switch
         }
         s << sMsg->encode().logData() << endl << ends;
     }
-    else
-    {
-        if((sMsg->getType() == SIP_BYE) ||
-                (sMsg->getType() == SIP_CANCEL))
-        {
-            s << "R_HANGUP " << sMsg->encode().logData() << endl << ends;
-        }
-        else
-        {
-            s << "INFO " << sMsg->encode().logData() << endl << ends;
-        }
+    else {
+       if ((sMsg->getType() == SIP_BYE) ||
+           (sMsg->getType() == SIP_CANCEL)) {
+          s << "R_HANGUP " << sMsg->encode().logData() << endl << ends;
+       }
+       else {
+          s << "INFO " << sMsg->encode().logData() << endl << ends;
+       }
     }
     postMsg(s.str());
     s.freeze(false);
@@ -659,195 +576,159 @@ void UaFacade::notifyCallEnded() {
 
 
 void
-UaFacade::postInfo(Sptr<SipMsg> sMsg)
-{
-    assert(sMsg != 0);
-    strstream s;
-    s << "INFO " << sMsg->encode().logData() << endl << ends;
-    postMsg(s.str());
-    s.freeze(false);
+UaFacade::postInfo(Sptr<SipMsg> sMsg) {
+   assert(sMsg != 0);
+   strstream s;
+   s << "INFO " << sMsg->encode().logData() << endl << ends;
+   postMsg(s.str());
+   s.freeze(false);
 }
 
 void
-UaFacade::postMsg(const string& msg)
-{
-    cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());
-    if ((myMode == CALL_MODE_UA) || (myMode == CALL_MODE_LANFORGE))
-    {
-        string lstr(msg);
-        lstr += "|";
-        cpLog(LOG_DEBUG, "Posting to GUI:[%s]", lstr.c_str());
-        if(write(myWriteFd, lstr.c_str(), lstr.size()) < 0)
-        {
-            cpLog(LOG_ERR, "Failed to write data to named pipe");
-        }
-    }
-
-    if (myMode == CALL_MODE_LANFORGE) {
-#ifdef USE_LANFORGE
-       if (LANFORGE_SOCKET_FACADE >= 0) {
-          if (write(LANFORGE_SOCKET_FACADE, msg.c_str(), msg.size()) < 0) {
-             cpLog(LOG_ERR, "Failed to write data to LANforge socket, error: %s",
-                   strerror(errno));
-          }
-          else {
-             cpLog(LOG_DEBUG, "Successfully wrote to the LANforge socket..\n");
-          }
-       }
-       else {
-          cpLog(LOG_DEBUG, "PostMsg, LANforge socket is closed: %d\n",
-                LANFORGE_SOCKET_FACADE);
-       }
-#endif
-    }
-}
-
-void
-UaFacade::shutdown(bool join_worker_too)
-{
-   myMutex.lock();
-
-   assertNotDeleted();
-   
-   if (mySipThread != 0)
-      mySipThread->shutdown();
-
-   if (myWorkerThread != 0)
-      myWorkerThread->shutdown();
-
-   if (myGuiEventThread != 0)
-      myGuiEventThread->shutdown();
-   
-   if (myMediaDevice != 0)
-      myMediaDevice->shutdownThreads();
-
-#ifdef USE_LANFORGE
-   if (myLFThread) {
-      myLFThread->shutdown();
+UaFacade::postMsg(const string& msg) {
+   cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());
+   if ((myMode == CALL_MODE_UA) || (myMode == CALL_MODE_LANFORGE)) {
+      string lstr(msg);
+      lstr += "|";
+      cpLog(LOG_DEBUG, "Posting to GUI:[%s]", lstr.c_str());
+      if (write(myWriteFd, lstr.c_str(), lstr.size()) < 0) {
+         cpLog(LOG_ERR, "Failed to write data to named pipe");
+      }
    }
-#endif
 
-   mySipStack = 0;
-   myMutex.unlock();
+   if (myMode == CALL_MODE_LANFORGE) {
+#ifdef USE_LANFORGE
+      if (myLFThread) {
+         myLFThread->postMsg(msg);
+      }
+#endif
+   }
 }
 
 
 // Return existing, or create new media device with specified id.
 Sptr<MediaDevice> 
-UaFacade::getMediaDevice(int id) 
-{ 
+UaFacade::getMediaDevice(int id) { 
    
    cpLog(LOG_DEBUG, "getMediaDevice, id: %d  myMode: %d\n", id, myMode);
 
-   if((myMode == CALL_MODE_ANNON) ||
-      (myMode == CALL_MODE_VMAIL) ||
-      (myMode == CALL_MODE_LANFORGE) ||
-      (myMode == CALL_MODE_SPEECH)
-       )
-   {
-        //Devices are created/destroyed per call basis
-        Sptr<MediaDevice> retDev = 0;
-        Lock lock(myMutex);
-        MediaDeviceMap::iterator itr = myMediaDeviceMap.find(id);
-        if(itr != myMediaDeviceMap.end())
-        {
-            return (itr->second);
-        }
+   if ((myMode == CALL_MODE_ANNON) ||
+       (myMode == CALL_MODE_VMAIL) ||
+       (myMode == CALL_MODE_LANFORGE) ||
+       (myMode == CALL_MODE_SPEECH)) {
+      //Devices are created/destroyed per call basis
+      Sptr<MediaDevice> retDev = 0;
+      MediaDeviceMap::iterator itr = myMediaDeviceMap.find(id);
+      if (itr != myMediaDeviceMap.end()) {
+         return (itr->second);
+      }
 
-        if(myMode == CALL_MODE_ANNON)
-        {
-            retDev = new FileMediaDevice(id);
-        }
+      if (myMode == CALL_MODE_ANNON) {
+         retDev = new FileMediaDevice(id);
+      }
 #ifdef USE_LANFORGE
-        else if(myMode == CALL_MODE_LANFORGE)
-        {
-            retDev = new LANforgeCustomDevice(id);
-        }
+      else if (myMode == CALL_MODE_LANFORGE) {
+         retDev = new LANforgeCustomDevice(id);
+      }
 #endif
-        else if(myMode == CALL_MODE_SPEECH)
-        {
+      else if (myMode == CALL_MODE_SPEECH) {
 #ifdef VOCAL_USE_SPHINX
-            retDev = new SpeechDevice(id);
+         retDev = new SpeechDevice(id);
 #else
-	    cerr << "Speech is not supported in this application" << endl;
-	    exit(0);
+         cerr << "Speech is not supported in this application" << endl;
+         exit(0);
 #endif
-        }
+      }
 #ifdef USE_VM
-        else if(myMode == CALL_MODE_VMAIL)
-        {
-            cpLog(LOG_DEBUG, "Creating new VoiceMail device");
-            retDev = new VmcpDevice(id);
-        }
+      else if (myMode == CALL_MODE_VMAIL) {
+         cpLog(LOG_DEBUG, "Creating new VoiceMail device");
+         retDev = new VmcpDevice(id);
+      }
 #endif
-        assert(retDev != 0);
-        myMediaDeviceMap[id] = retDev;
-        myMediaDevice = retDev; // Cache last created.  Will we ever have more than one???
-        return retDev;
+      assert(retDev != 0);
+      myMediaDeviceMap[id] = retDev;
+      myMediaDevice = retDev; // Cache last created.  Will we ever have more than one???
+      return retDev;
    }
+
    //For UA mode, myMediaDevice should have been initialised
    //to a sound card
 
-    bool cmdLineMode = false;
-    if(UaCommandLine::instance()->getIntOpt("cmdline"))
-    {
-        cmdLineMode = true;
-    }
+   bool cmdLineMode = false;
+   if (UaCommandLine::instance()->getIntOpt("cmdline")) {
+      cmdLineMode = true;
+   }
 
 #ifdef USE_MPEGLIB
    int video  = atoi(UaConfiguration::instance().getValue(VideoTag).c_str());
-   if(video && (!cmdLineMode) && (myMediaDevice == 0))
-   {
-       myMediaDevice = new VideoDevice(0);
+   if (video && (!cmdLineMode) && (myMediaDevice == 0)) {
+      myMediaDevice = new VideoDevice(0);
    }
 #endif
 
    //set the sound-card media device
    string devName = UaConfiguration::instance().getValue(DeviceNameTag);
-   if(myMediaDevice ==0)
-   {
-        if (cmdLineMode)
-           cerr << "Opening audio device " << devName.c_str() << endl;
-        cpLog(LOG_INFO, "Using sound device [%s]", devName.c_str());
-	if(devName == "/dev/null") 
-	{
-            cpLog(LOG_INFO, "Opening NULL device");
-            myMediaDevice = new NullDevice();
-	}
-	else
-	{
+   if (myMediaDevice ==0) {
+      if (cmdLineMode)
+         cerr << "Opening audio device " << devName.c_str() << endl;
+      cpLog(LOG_INFO, "Using sound device [%s]", devName.c_str());
+      if (devName == "/dev/null") {
+         cpLog(LOG_INFO, "Opening NULL device");
+         myMediaDevice = new NullDevice();
+      }
+      else {
 #if defined(__linux__)
-            myMediaDevice = new LinAudioDevice( devName.c_str());
+         myMediaDevice = new LinAudioDevice( devName.c_str());
 #endif
-	}
+      }
    }
    cpLog(LOG_DEBUG, "returning MediaDevice");
    return myMediaDevice; 
 }
 
 void
-UaFacade::releaseMediaDevice(int id)
-{
-    Lock lock(myMutex);
-    MediaDeviceMap::iterator itr = myMediaDeviceMap.find(id);
-    if(itr != myMediaDeviceMap.end())
-    {
-        cpLog(LOG_DEBUG, "Releasing media device with Id:%d", id);
-	if(itr->second != 0)
-	{
-           (itr->second)->stop();
-           (itr->second)->shutdownThreads();
-	}
+UaFacade::releaseMediaDevice(int id) {
+   MediaDeviceMap::iterator itr = myMediaDeviceMap.find(id);
+   if (itr != myMediaDeviceMap.end()) {
+      cpLog(LOG_DEBUG, "Releasing media device with Id:%d", id);
+      
+      if ((myMediaDevice != 0)
+          && ((itr->second)->getSessionId() == myMediaDevice->getSessionId())) {
+         myMediaDevice = NULL;
+      }
 
-        if ((myMediaDevice != 0)
-            && ((itr->second)->getSessionId() == myMediaDevice->getSessionId())) {
-           myMediaDevice = NULL;
-        }
+      myMediaDeviceMap.erase(itr);
+   }
+   else {
+      cpLog(LOG_DEBUG, "WARNING:  Could not find media device: %d to release it!\n", id);
+   }
+}//releaseMediaDevice
 
-        myMediaDeviceMap.erase(itr);
-    }
-    else {
-       cpLog(LOG_DEBUG, "WARNING:  Could not find media device: %d to release it!\n", id);
-    }
+void UaFacade::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                    uint64 now) {
+   mySipThread->tick(input_fds, output_fds, exc_fds, now);
+   myRegistrationManager->tick(input_fds, output_fds, exc_fds, now);
+#ifdef USE_LANFORGE
+   myLFThread->tick(input_fds, output_fds, exc_fds, now);
+#endif
+
+   // Queue incomming events, handle them all in the tick() method.
+   while (eventList.size()) {
+      list<Sptr<SipProxyEvent> >::iterator i = eventList.begin();
+      handleEvent(*i);
+      eventList.pop_front();
+   }
 }
 
+int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     int& maxdesc, uint64& timeout, uint64 now) {
+   mySipThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   myRegistrationManager->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+#ifdef USE_LANFORGE
+   myLFThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+#endif
+
+   if (eventList.size()) {
+      timeout = 0;
+   }
+}

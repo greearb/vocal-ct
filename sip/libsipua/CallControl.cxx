@@ -50,7 +50,7 @@
 
 
 static const char* const CallControl_cxx_Version =
-    "$Id: CallControl.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+    "$Id: CallControl.cxx,v 1.3 2004/06/17 06:56:51 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -63,16 +63,14 @@ using namespace Vocal;
 using namespace UA;
 
 bool 
-CallControl::processEvent(const Sptr<SipProxyEvent>& event)
-{
+CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
     cpLog(LOG_DEBUG, "CallControl::processEvent");
     bool eventHandled = false;
     //Lets handle the sip-event here, other custom events can 
     //be handled in the derived classes
     Sptr<SipEvent> sipEvent;
     sipEvent.dynamicCast(event);
-    if(sipEvent != 0)
-    {
+    if(sipEvent != 0) {
         cpLog(LOG_DEBUG, "Handling SIP event");
         //get the callleg and lookup in the Call database to
         //see if callleg already exists.If so get the UserAgent and
@@ -112,6 +110,7 @@ CallControl::CallControl() {
    // Nothing to do
 }
 
+#if 0
 void*
 CallControl::cleanupThread(void* args)
 {
@@ -135,10 +134,12 @@ CallControl::cleanupThread(void* args)
     }
     return 0;
 }
+#endif
 
-
+#if 0
 void 
 CallControl::removeAgent(unsigned long id, int ms)
 {
     myFriedFifo.addDelayMs(id, ms);
 }
+#endif

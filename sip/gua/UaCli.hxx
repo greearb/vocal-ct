@@ -53,13 +53,8 @@
 
 
 static const char* const UaCli_hxx_Version = 
-    "$Id: UaCli.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCli.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
-
-#include "VThread.hxx"
-#include "Mutex.hxx"
-
-using namespace Vocal::Threads;
 
 namespace Vocal
 {
@@ -73,60 +68,43 @@ namespace UA
  *  the controller.It also reads the controller output and presents
  *  status at the command-line.
  */
-class UaCli
-{
-    public:
-      ///
-      UaCli(int readFd, int writeFd);
+class UaCli : public BugCatcher {
+public:
+   ///
+   UaCli(int readFd, int writeFd);
+   
+   ///
+   string className() { return "UaCli"; }
+   
+   ///
+   ~UaCli();
+   
+   void parseInput(const string& input);
 
-      ///
-      string className() { return "UaCli"; }
+private:
 
-      ///
-      ~UaCli();
+   ///
+   void help();
+   ///
+   void printConfig();
 
-      // Protected by mutex, so can be called from where-ever.
-      void parseInput(const string& input);
+   ///
+   void writeToController(string txt);
 
-    private:
-      ///
-      static void* readerThrWrapper(void* args);
-      ///
-      static void* keyinThrWrapper(void* args);
-      ///
-      void readThr();
-      ///
-      void keyinThr();
+   ///
+   int myReadFd;
+   ///
+   int myWriteFd;
 
-      ///
-      void help();
-      ///
-      void printConfig();
 
-      ///
-      void writeToController(string txt);
-
-      ///
-      int myReadFd;
-      ///
-      int myWriteFd;
-      ///
-      bool shutdown; 
-
-      ///
-      VThread  myReadThread;
-      ///
-      VThread  myKeyinThread;
-
-      Mutex lock;
-
-      /// Suppress copying
-      UaCli(const UaCli &);
+   /// Suppress copying
+   UaCli(const UaCli &);
         
-      /// Suppress copying
-      const UaCli & operator=(const UaCli &);
-      ///
-      bool  inCall;
+   /// Suppress copying
+   const UaCli & operator=(const UaCli &);
+
+   ///
+   bool  inCall;
 };
 
 }

@@ -52,12 +52,10 @@
  */
 
 static const char* const RegistrationManager_hxx_Version =
-    "$Id: RegistrationManager.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: RegistrationManager.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 #include <vector>
 #include <map>
 
-#include <Fifo.h>
-#include "VThread.hxx"
 #include <StatusMsg.hxx>
 #include "SipTransceiver.hxx"
 #include "Registration.hxx"
@@ -68,43 +66,42 @@ namespace Vocal
 namespace UA
 {
 
+#define DEFAULT_DELAY  60000  /* 60 sec. */
+
+
 /**
  * RegistrationManager implements the registration of User agent.
 */
-class RegistrationManager
-{
-    public:
-        RegistrationManager( Sptr < SipTransceiver > sipstack );
-        ~RegistrationManager();
+class RegistrationManager : public BugCatcher {
+public:
+   RegistrationManager( Sptr < SipTransceiver > sipstack );
+   virtual ~RegistrationManager();
 
-        ///
-        void startRegistration();
-        ///
-        void addRegistration(const Registration& item);
+   ///
+   void addRegistration(Sptr<Registration> item);
 
-        //this function return false if the input StatusMsg is not
-        //a response to a register message; otherwise, true is returned
-        bool handleRegistrationResponse(const StatusMsg& msg);
+   //this function return false if the input StatusMsg is not
+   //a response to a register message; otherwise, true is returned
+   bool handleRegistrationResponse(const StatusMsg& msg);
 
-        ///
-        void addRegistration(int check = 0);
+   int doRegistration(Sptr<Registration> registration, uint64 now);
 
-    private:
-        typedef vector < Registration* > RegistrationList;
-        RegistrationList registrationList;
+   virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                     uint64 now);
 
-        Registration* findRegistration(const StatusMsg& msg);
-        void flushRegistrationList();
+   virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
+                      int& maxdesc, uint64& timeout, uint64 now);
 
-        void registrationMain();
-        VThread registrationThread;
-        static void* registrationThreadWrapper(void* session);
-        Fifo < Registration* > registrationFifo;
+private:
+   typedef vector < Sptr<Registration> > RegistrationList;
+   RegistrationList registrationList;
+   
+   Sptr<Registration> findRegistration(const StatusMsg& msg);
+   void flushRegistrationList();
 
-        Mutex registrationMutex;
+   void registrationMain();
 
-        Sptr < SipTransceiver > sipStack;
-        bool shutdown;
+   Sptr < SipTransceiver > sipStack;
 };
  
 }

@@ -52,16 +52,16 @@
  */
 
 
-#include "Data.hxx"
-#include "Operator.hxx"
-#include "SipTransceiver.hxx"
-#include "cpLog.h"
-#include "SipProxyEvent.hxx"
-
+#include <Sptr.hxx>
+#include <BugCatcher.hxx>
+#include <SipProxyEvent.hxx>
 
 namespace Vocal
 {
 
+/** Used to handle callbacks from the SIP stack.  Classes should
+ * over-ride the process() method to do useful things.
+ */
 class BaseProxy : public BugCatcher {
 public:
 
@@ -69,7 +69,7 @@ public:
    virtual ~BaseProxy() { }
 
    //
-   virtual void process(const Sptr < SipProxyEvent > event) const = 0;
+   virtual void process(Sptr < SipProxyEvent > event) = 0;
 
 };
  

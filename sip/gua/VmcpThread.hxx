@@ -51,9 +51,8 @@
  *
  */
 
-#include <ThreadIf.hxx>
 static const char* const VmcpThreadVersion =
-    "$Id: VmcpThread.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: VmcpThread.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 namespace Vocal
@@ -67,20 +66,17 @@ class VmcpDevice;
 /**
  * Thread driver for the VmcpDevice for VoiceMail processing.
  */
-class VmcpThread : public ThreadIf
-{
-    public:
-        ///
-        VmcpThread(VmcpDevice* device )
-              : ThreadIf(0, VTHREAD_PRIORITY_DEFAULT, VTHREAD_STACK_SIZE_DEFAULT),
-                myDevice(device) { };
-        ///
-        virtual ~VmcpThread() { };
-    protected:
-        ///
-        void thread();
-        ///
-        VmcpDevice*  myDevice;
+class VmcpThread : public BugCatcher {
+public:
+   ///
+   VmcpThread(Sptr<VmcpDevice> device )
+         : myDevice(device) { };
+   ///
+   virtual ~VmcpThread() { };
+protected:
+
+   ///
+   Sptr<VmcpDevice>  myDevice;
 };
  
 }

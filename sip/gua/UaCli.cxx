@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaCli.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: UaCli.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 
 #include <unistd.h>
@@ -59,7 +59,6 @@ static const char* const UaFacade_cxx_Version =
 #include "UaConfiguration.hxx"
 #include "cpLog.h"
 #include <Data.hxx>
-#include <Lock.hxx>
 #include "GuiEvent.hxx"
 
 using namespace Vocal;
@@ -74,42 +73,22 @@ void showDebug() {
 UaCli::UaCli(int readFd, int writeFd)
    : myReadFd(readFd),
      myWriteFd(writeFd),
-     shutdown(false),
      inCall(false)
 {
     cpLog(LOG_DEBUG, "Reading on (%d), writing on (%d)",
                       readFd, writeFd);
-    myReadThread.spawn(readerThrWrapper, this);
 
     // Don't start this guy if we're embedded in LANforge...
     if (UaConfiguration::instance().getValue(ReadStdinTag) != "0") {
-       myKeyinThread.spawn(keyinThrWrapper, this);
+       // TODO:
+       //myKeyinThread.spawn(keyinThrWrapper, this);
     }
 }
 
-void*
-UaCli::readerThrWrapper(void* args)
-{
-    UaCli* self = static_cast<UaCli*>(args);
-    self->readThr();
-    return 0;
+
+UaCli::~UaCli() {
 }
 
-void*
-UaCli::keyinThrWrapper(void* args)
-{
-    UaCli* self = static_cast<UaCli*>(args);
-    self->keyinThr();
-    return 0;
-}
-
-UaCli::~UaCli()
-{
-    shutdown = true;
-    write(myReadFd, "X", 1);
-    myReadThread.join();
-    myKeyinThread.join();
-}
 
 void 
 UaCli::readThr()
@@ -188,8 +167,6 @@ UaCli::keyinThr()
 void 
 UaCli::parseInput(const string& input)
 {
-    Lock lck(lock); //Stack lock, only let one thing in here at a time.
-
     // Don't handle anything if we're embedded in LANforge...
     if (UaConfiguration::instance().getValue(ReadStdinTag) == "0") {
        return;

@@ -51,7 +51,7 @@
  *
  */
 static const char* const FileMediaDevice_hxx_Version =
-    "$Id: FileMediaDevice.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: FileMediaDevice.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 #include "RtpSession.hxx"
 #include "UaHardwareEvent.hxx"
@@ -127,19 +127,11 @@ class FileMediaDevice : public MediaDevice
         int networkPktSize;
         ///
         int myId;
-        Fifo<int> myTFifo;
 };
  
 }
 
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -51,7 +51,7 @@
  *
  */
 static const char* const NullDeviceVersion =
-    "$Id: NullDevice.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: NullDevice.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 #include "MediaDevice.hxx"
 #include <iostream>
@@ -70,33 +70,30 @@ namespace UA
  * the call signalling.
  */
 
-class NullDevice : public MediaDevice
-{
-    public:
-        ///Just create a dummy soundcard device
-        NullDevice():
-           MediaDevice(SOUNDCARD, AUDIO)
-        { };
-
-        ///
-        void processAudio() { };
+class NullDevice : public MediaDevice {
+public:
+   ///Just create a dummy soundcard device
+   NullDevice():
+         MediaDevice(SOUNDCARD, AUDIO)
+      { };
+   
+   ///
+   void processAudio() { };
  
-        ///Returns 0 if successfully started
-        int start(VCodecType codec_type) { cerr << "Connected" << endl; return 0; }
-        ///Returns 0 if successfully stopped
-        int stop() { MediaDevice::stop(); cerr << "Disconnected" << endl; return 0; };
-        ///Returns 0 if successfully suspended
-        int suspend() { return 0; }
-        ///Returns 0 if successfully resumed
-        int resume() { return 0; };
+   ///Returns 0 if successfully started
+   int start(VCodecType codec_type) { cerr << "Connected" << endl; return 0; }
+   ///Returns 0 if successfully stopped
+   int stop() { MediaDevice::stop(); cerr << "Disconnected" << endl; return 0; };
+   ///Returns 0 if successfully suspended
+   int suspend() { return 0; }
+   ///Returns 0 if successfully resumed
+   int resume() { return 0; };
 
-        ///
-        void sinkData(char* data, int length, VCodecType type,
-                      Sptr<CodecAdaptor> codec, bool silence_pkt) {
-           vusleep(20000);
-        };
-
-    private:
+   ///
+   void sinkData(char* data, int length, VCodecType type,
+                 Sptr<CodecAdaptor> codec, bool silence_pkt) {
+      //vusleep(20000);
+   };
 };
  
 }

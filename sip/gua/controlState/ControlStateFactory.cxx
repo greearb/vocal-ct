@@ -51,7 +51,7 @@
 
 
 static const char* const ControlStateFactory_cxx_Version = 
-"$Id: ControlStateFactory.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+"$Id: ControlStateFactory.cxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
 
 #include "ControlStateFactory.hxx"
 #include "StateTrying.hxx"
@@ -66,7 +66,6 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 ControlStateFactory* ControlStateFactory::myInstance = 0;
-Mutex ControlStateFactory::myMutex;
 
 
 ControlStateFactory& 
@@ -92,14 +91,12 @@ ControlStateFactory::getState(CStateType stateType)
 {
     ControlState* retVal;
 
-    myMutex.lock();
     pthread_t tId = pthread_self();
     ControlStateMap& tMap = myControlStateMap[tId];
 
     ControlStateMap::iterator itr  = tMap.find(stateType);
     if(itr != tMap.end())
     {
-        myMutex.unlock();
         return itr->second;
     }
     switch(stateType)
@@ -130,7 +127,6 @@ ControlStateFactory::getState(CStateType stateType)
         break;
     }
     tMap[stateType] = retVal;
-    myMutex.unlock();
     return retVal;
 }
 
