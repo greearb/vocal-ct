@@ -49,7 +49,7 @@
  */
 
 static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.10 2005/03/03 19:59:50 greear Exp $";
+    "$Id: UdpStack.cxx,v 1.11 2005/03/04 01:29:39 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -249,50 +249,38 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
    int sndbuf = 0;
    unsigned int rcvbuflen = 1;
    unsigned int sndbuflen = 1;
-   
-#ifdef __linux__
-   struct protoent * protoent;
-   protoent = getprotobyname("icmp");
+
+   char dbg[128];
+   snprintf(dbg, 128, "UdpStack: %s:%i-%i",
+            local_ip.c_str(), minPort, maxPort);
 
    // Set ToS and Priority
-   vsetPriorityHelper(data->socketFd, _skb_priority);
-   vsetTosHelper(data->socketFd, _tos);
+   vsetPrio(data->socketFd, _tos, _skb_priority, dbg);
    
-   if (!protoent) {
-      fprintf(stderr, "Cannot get icmp protocol\n");
+   if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
+                  (int *)&rcvbufnew, rcvbufnewlen) < 0) {
+      fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
+              strerror(errno));
+   }
+      
+   if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
+                  (int*)&rcvbuf, &rcvbuflen) < 0) {
+      fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
+              strerror(errno));
    }
    else {
-      if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
-                     (char*)&buf1, len1) < 0) {
-         fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s\n",
-                 strerror(errno));
-      }
-      
-      if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
-                     (int *)&rcvbufnew, rcvbufnewlen) < 0) {
-         fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
-                 strerror(errno));
-      }
-      
-      if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
-                     (int*)&rcvbuf, &rcvbuflen) < 0) {
-         fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
-                 strerror(errno));
-      }
-      else {
-         cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
-      }
-      if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
-                     (int*)&sndbuf, &sndbuflen) < 0) {
-         fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
-                 strerror(errno));
-      }
-      else {
-         cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
-      }
+      cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
    }
-
-#endif
+   
+   if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
+                  (int*)&sndbuf, &sndbuflen) < 0) {
+      fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
+              strerror(errno));
+   }
+   else {
+      cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
+   }
+   
    
    if (isMulticast) {
       // set option to get rid of the "Address already in use" error
@@ -776,78 +764,74 @@ UdpStack::disconnectPorts()
     }
 }
 
-/// set the local ports
-/// The first time change from inactive to recvonly/sendrecv or
-/// change the local ports, this method needs to be called.
-void
-UdpStack::setLocal (const int minPort, int maxPort )
-{
-    cpLog (LOG_DEBUG_STACK, "UdpStack::setLocal");
-    cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
 
-    if ((mode == sendonly) || (mode == inactive)) {
-        cpLog(LOG_ERR, "The UdpStack is sendonly or inactive.");
-        return ;
-    }
+#if 0
+// This looks quite strange to me.  Am hoping it's not
+// really needed. --Ben
 
-    // To reopen a new socket, since after sendto(), bind() will fail
+// set the local ports
+// The first time change from inactive to recvonly/sendrecv or
+// change the local ports, this method needs to be called.
+void UdpStack::setLocal (const int minPort, int maxPort ) {
+   cpLog (LOG_DEBUG_STACK, "UdpStack::setLocal");
+   cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
 
-    int newFd;
-    newFd = socket(NetworkConfig::instance().getAddrFamily(), 
-                   SOCK_DGRAM, IPPROTO_UDP);
-    if (NetworkConfig::instance().getAddrFamily() == AF_INET6) {
-       //Set the sockoption so that we get get source IP
-       //when running on the same host
-       int on=1;
+   if ((mode == sendonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The UdpStack is sendonly or inactive.");
+      return ;
+   }
 
-       // 25/11/03 fpi
-       // WorkAround Win32
-       // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
-       setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
-    }
+   // To reopen a new socket, since after sendto(), bind() will fail
+
+   int newFd;
+   newFd = socket(NetworkConfig::instance().getAddrFamily(), 
+                  SOCK_DGRAM, IPPROTO_UDP);
+   if (NetworkConfig::instance().getAddrFamily() == AF_INET6) {
+      //Set the sockoption so that we get get source IP
+      //when running on the same host
+      int on=1;
+      
+      // 25/11/03 fpi
+      // WorkAround Win32
+      // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
+      setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
+   }
 #ifndef WIN32
-    if ( close (data->socketFd) != 0 )
+   if ( close (data->socketFd) != 0 )
 #else
-    if ( closesocket(data->socketFd) )
+   if ( closesocket(data->socketFd) )
 #endif 
-    {
-       cpLog(LOG_ERR, "close socketFd error!");
-    }
-    data->socketFd = newFd;
-    if ( data->socketFd < 0 ) {
-       int err = errno;
-       strstream errMsg;
-       errMsg << "UdpStack<" /* << getLclName() */
-              << ">::UdpStack error during socket creation: ";
-       errMsg << strerror(err);
-       errMsg << char(0);
-       
-       cpLog(LOG_ERR,  errMsg.str());
-       throw UdpStackException(errMsg.str());
-       errMsg.freeze(false);
-       assert(0);
-    }
-#ifdef __linux__
-    int buf1 = 1;
-    int len1 = sizeof(buf1);
-    struct protoent * protoent;
-    protoent = getprotobyname("icmp");
+   {
+      cpLog(LOG_ERR, "close socketFd error!");
+   }
+   data->socketFd = newFd;
+   if ( data->socketFd < 0 ) {
+      int err = errno;
+      strstream errMsg;
+      errMsg << "UdpStack<" /* << getLclName() */
+             << ">::UdpStack error during socket creation: ";
+      errMsg << strerror(err);
+      errMsg << char(0);
+      
+      cpLog(LOG_ERR,  errMsg.str());
+      throw UdpStackException(errMsg.str());
+      errMsg.freeze(false);
+      assert(0);
+   }
 
-    if (!protoent) {
-       fprintf(stderr, "Cannot get icmp protocol\n");
-    }
-    else {
-       if (setsockopt(data->socketFd, protoent->p_proto, SO_BSDCOMPAT,
-                      (char*)&buf1, len1) == -1) {
-          fprintf(stderr, "setsockopt error SO_BSDCOMPAT :%s",
-                  strerror(errno));
-       }
-    }
+   char dbg[128];
+   snprintf(dbg, 128, "UdpStack:setLocal %s:%i-%i",
+            local_ip.c_str(), minPort, maxPort);
+   
+   // Set ToS and Priority
+   vsetPrio(data->socketFd, _tos, _skb_priority, dbg);
+
+   doSyncBlockingMode();
+   doServer(minPort, maxPort);
+}
+
 #endif
 
-    doSyncBlockingMode();
-    doServer(minPort, maxPort);
-}
 
 /// set the default destination
 void
@@ -1316,9 +1300,8 @@ UdpStack::queueTransmit ( const char* buf, const int length ) {
 
 
 int UdpStack::doTransmit(const char* buf, int ln) {
-   int count = send( data->socketFd,
-                     (char *)buf, ln,
-                     0 /* flags */ );
+
+   int count = send(data->socketFd, (char *)buf, ln, 0 /* flags */ );
 
    if ( count != ln ) {
       int err = errno;
@@ -1492,10 +1475,10 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
 
         int ret;
         ret = setsockopt (getSocketFD(),
-                      IPPROTO_IP,
-                      IP_ADD_MEMBERSHIP,
-                      (char*) & mreqn,
-                      sizeof(struct ip_mreqn));
+                          IPPROTO_IP,
+                          IP_ADD_MEMBERSHIP,
+                          (char*) & mreqn,
+                          sizeof(struct ip_mreqn));
         if(ret < 0)
         {
             cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(), strerror(errno));
@@ -1528,10 +1511,10 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
         }
         int ret;
         ret = setsockopt (getSocketFD(),
-                      IPPROTO_IPV6,
-                      IPV6_ADD_MEMBERSHIP,
-                      (char*) & mreq6,
-                      sizeof(mreq6));
+                          IPPROTO_IPV6,
+                          IPV6_ADD_MEMBERSHIP,
+                          (char*) & mreq6,
+                          sizeof(mreq6));
         if(ret < 0)
         {
             cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(), strerror(errno));

@@ -50,7 +50,7 @@
 
 
 static const char* const Socket_cxx_Version = 
-    "$Id: Socket.cxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
+    "$Id: Socket.cxx,v 1.3 2005/03/04 01:29:39 greear Exp $";
 
 
 #include "global.h"
@@ -115,9 +115,8 @@ throw ( Vocal::SystemException )
                                        __FILE__, __LINE__, errno);
        }
 
-       // Set TOS & Priority
-       vsetPriorityHelper(fd_, priority);
-       vsetTosHelper(fd_, tos);
+       // Set ToS and Priority
+       vsetPrio(fd_, tos, priority, name_.c_str());
     }
         
     // Update the transport address. Don't catch the exception, let it pass.
@@ -131,10 +130,9 @@ throw ( Vocal::SystemException )
 
 
 Socket::Socket(uint16 tos, uint32 priority,
-               const TransportAddress  &   localAddr,
-               const SocketType 	    &   socketType,
-               const char	    	    *	name
-   )   	
+               const TransportAddress& localAddr,
+               const SocketType& socketType,
+               const char*	name)   	
    throw ( Vocal::SystemException )
       :	localAddr_(localAddr.clone()),
     	addressFamily_(localAddr.getAddressFamily()),
@@ -143,8 +141,8 @@ Socket::Socket(uint16 tos, uint32 priority,
 	totalBytesReceived_(0),
 	name_(name ? name : "")
 {
-    const string    fn("Socket::Socket");
-    VLog    	    log(fn);
+    const string fn("Socket::Socket");
+    VLog log(fn);
     
     // Finish the name.
     //
@@ -173,9 +171,8 @@ Socket::Socket(uint16 tos, uint32 priority,
                                     __FILE__, __LINE__, errno);
     }
     
-    // Set TOS & Priority
-    vsetPriorityHelper(fd_, priority);
-    vsetTosHelper(fd_, tos);
+    // Set ToS and Priority
+    vsetPrio(fd_, tos, priority, name_.c_str());
 
     // Update the transport address. Don't catch the exception, let it pass.
     //

@@ -1,6 +1,7 @@
 
 // Released into the public domain. --Ben Greear Sep 6, 2003
 
+#include <cpLog.h>
 
 // 16/1/04 fpi
 // WorkAround Win32
@@ -105,21 +106,41 @@ void vhexDump(const char* msg, int len, string& _retval,
 }//hexDump
 
 
+int vsetPrio(int sk, uint16 tos, uint32 val, const char* dbg) {
+   vsetTosHelper_priv(sk, tos);
+   vsetPriorityHelper_priv(sk, val, dbg);
+}
+
+
 /* Returns actual priority that was set, or < 0 on error */
-int vsetPriorityHelper(int sk, uint32 val) {
-   if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY, (char*)&val, sizeof(val)) < 0) {
+int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
+   cpLog(LOG_ERR, "Setting socket priority, dbg: %s  sk: %i to value: %lu\n",
+         dbg, sk, (unsigned long)(val));
+   if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY,
+                  (char*)&val, sizeof(val)) < 0) {
+      cpLog(LOG_ERR, "ERROR:  Failed to set socket priority, sk: %i  val: %lu  err: %s\n",
+            sk, (unsigned long)(val), strerror(errno));
       return -errno;
    }//if
 
-   int new_val = 0;
+   uint32 new_val = 0;
    socklen_t slt = sizeof(new_val);
-   if (getsockopt(sk, SOL_SOCKET, SO_PRIORITY, (char*)(&new_val), &slt) < 0) {
+   if (getsockopt(sk, SOL_SOCKET, SO_PRIORITY,
+                  (char*)(&new_val), &slt) < 0) {
+      cpLog(LOG_ERR, "ERROR:  Failed to get socket priority, sk: %i  val: %lu  err: %s\n",
+            sk, (unsigned long)(val), strerror(errno));
       return -errno;
    }//if
+
+   if (val != new_val) {
+      cpLog(LOG_ERR, "ERROR:  Failed to set socket priority, val: %lu  new_val: %lu\n",
+            (unsigned long)(val), (unsigned long)(new_val));
+   }
+
    return new_val;
 }//vsetPriorityHelper
 
-int vsetTosHelper(int sk, uint16 val) {
+int vsetTosHelper_priv(int sk, uint16 val) {
    if (setsockopt(sk, SOL_IP, IP_TOS, (char*)&val, sizeof(val)) < 0) {
       return -1;
    }//if

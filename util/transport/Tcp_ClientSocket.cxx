@@ -49,7 +49,7 @@
  */
 
 static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.8 2005/03/03 19:59:50 greear Exp $";
+    "$Id: Tcp_ClientSocket.cxx,v 1.9 2005/03/04 01:29:39 greear Exp $";
 
 #ifndef __vxworks
 
@@ -273,8 +273,7 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
       }
       
       // Set ToS and Priority
-      vsetPriorityHelper(_conn->_connId, _skb_priority);
-      vsetTosHelper(_conn->_connId, _tos);
+      vsetPrio(_conn->_connId, _tos, _skb_priority, "Tcp_Client::connect");
 
       int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
       if (rv >= 0) {

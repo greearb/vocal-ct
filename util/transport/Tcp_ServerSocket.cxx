@@ -54,7 +54,7 @@
 
 
 static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
+    "$Id: Tcp_ServerSocket.cxx,v 1.7 2005/03/04 01:29:39 greear Exp $";
 #ifndef __vxworks
 
 
@@ -129,8 +129,8 @@ TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bin
       }
 #endif
 
-      vsetPriorityHelper(_serverConn->_connId, _skb_priority);
-      vsetTosHelper(_serverConn->_connId, _tos);
+      // Set ToS and Priority
+      vsetPrio(_serverConn->_connId, _tos, _skb_priority, "TcpServerSocket::listenOn");
 
 #ifdef __linux__
       if (local_dev_to_bind_to.size()) {
@@ -210,8 +210,8 @@ int TcpServerSocket::acceptNB(Connection& con) {
       cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
       con.setState();
 
-      vsetPriorityHelper(con._connId, _skb_priority);
-      vsetTosHelper(con._connId, _tos);
+      // Set ToS and Priority
+      vsetPrio(con._connId, _tos, _skb_priority, "TcpServerSocket::acceptNB");
 
       return con._connId;
    }
@@ -249,8 +249,8 @@ TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
     cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
     con.setState();
 
-    vsetPriorityHelper(con._connId, _skb_priority);
-    vsetTosHelper(con._connId, _tos);
+    // Set ToS and Priority
+    vsetPrio(con._connId, _tos, _skb_priority, "TcpServerSocket::accept");
 
     return con._connId;
 }

@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.12 2005/03/04 01:29:38 greear Exp $";
 
 
 #include <sys/types.h>
@@ -186,7 +186,8 @@ UaFacade::initialize(const Data& applName,
     if (!NAT_HOST.length()){
        NAT_HOST = local_ip;
     }
-    cpLog(LOG_ERR, "About to create UaFacade...\n");
+    cpLog(LOG_ERR, "About to create UaFacade, tos: %i  priority: %i  local_ip: %s\n",
+          tos, priority, local_ip.c_str());
     myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
                               NAT_HOST, transport, proxyAddr, filteron, nat);
 }

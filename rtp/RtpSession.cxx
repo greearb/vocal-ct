@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.8 2005/03/04 01:29:38 greear Exp $";
 
 
 #include "global.h"
@@ -248,7 +248,8 @@ RtpSession::~RtpSession ()
 }
 
 int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
-                               const string& local_ip, const string& local_dev_to_bind_to,
+                               const string& local_ip,
+                               const string& local_dev_to_bind_to,
                                int localMin, int localMax) {
    int port = 0;
    
@@ -264,7 +265,8 @@ int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
          if ( localMin == localMax )
             cpLog( LOG_ERR, "port %d is not available", localMin );
          else
-            cpLog( LOG_ERR, "No ports between %d and %d are available", localMin, localMax);
+            cpLog( LOG_ERR, "No ports between %d and %d are available",
+                   localMin, localMax);
          recv = 0;
       }
    }
@@ -275,22 +277,20 @@ int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
    return port;
 }
 
-int
-RtpSession::releaseRtpPort()
-{
-    int port = 0;
-    if ( recv != 0 )
-    {
-        port = recv->getPort();
-        delete recv;
-        recv = 0;
-    }
-    return port;
+int RtpSession::releaseRtpPort() {
+   int port = 0;
+   if ( recv != 0 ) {
+      port = recv->getPort();
+      delete recv;
+      recv = 0;
+   }
+   return port;
 }
 
 int
 RtpSession::reserveRtcpPort(uint16 tos, uint32 priority,
-                            const string& local_ip, const string& local_dev_to_bind_to,
+                            const string& local_ip,
+                            const string& local_dev_to_bind_to,
                             int rtcpLocalPort, int portRange) {
    int port = 0;
 
@@ -312,7 +312,8 @@ RtpSession::reserveRtcpPort(uint16 tos, uint32 priority,
          if ( portRange == 0 )
             cpLog( LOG_ERR, "port %d is not available", rtcpLocalPort );
          else
-            cpLog( LOG_ERR, "no ports between %d and %d are available", rtcpLocalPort, rtcpLocalPort + portRange );
+            cpLog( LOG_ERR, "no ports between %d and %d are available",
+                   rtcpLocalPort, rtcpLocalPort + portRange );
          rtcpRecv = 0;
       }
    }
@@ -323,49 +324,44 @@ RtpSession::reserveRtcpPort(uint16 tos, uint32 priority,
    return port;
 }
 
-int
-RtpSession::releaseRtcpPort()
-{
-    int port = 0;
-    if ( rtcpRecv != 0 )
-    {
-        port = rtcpRecv->getPort();
-        delete rtcpRecv;
-        rtcpRecv = 0;
-    }
-    return port;
+int RtpSession::releaseRtcpPort() {
+   int port = 0;
+   if ( rtcpRecv != 0 ) {
+      port = rtcpRecv->getPort();
+      delete rtcpRecv;
+      rtcpRecv = 0;
+   }
+   return port;
 }
 
 /* --- Send and Receive RTP Functions ------------------------------ */
 void RtpSession::setFormat (RtpPayloadType type, int clockrate, int per_sample_size,
                             int samplesize) {
-    if (tran) {
-       tran->setFormat(type);
-       tran->setClockRate(clockrate);
-       tran->setPerSampleSize(per_sample_size);
-       tran->setSampleSize(samplesize);
-    }
-
-    if (recv) {
-       recv->setFormat(type);
-       recv->setClockRate(clockrate);
-       recv->setPerSampleSize(per_sample_size);
-       recv->setSampleSize(samplesize);
-    }
+   if (tran) {
+      tran->setFormat(type);
+      tran->setClockRate(clockrate);
+      tran->setPerSampleSize(per_sample_size);
+      tran->setSampleSize(samplesize);
+   }
+   
+   if (recv) {
+      recv->setFormat(type);
+      recv->setClockRate(clockrate);
+      recv->setPerSampleSize(per_sample_size);
+      recv->setSampleSize(samplesize);
+   }
 }
 
 
-void RtpSession::setCodecString (const char* codecStringInput)
-{
-    if (tran) tran->setCodecString (codecStringInput);
-    if (recv) recv->setCodecString (codecStringInput);
+void RtpSession::setCodecString (const char* codecStringInput) {
+   if (tran) tran->setCodecString (codecStringInput);
+   if (recv) recv->setCodecString (codecStringInput);
 }
 
 
-void RtpSession::setSampleSize (int no_samples)
-{
-    if (tran) tran->setSampleSize (no_samples);
-    if (recv) recv->setSampleSize (no_samples);
+void RtpSession::setSampleSize (int no_samples) {
+   if (tran) tran->setSampleSize (no_samples);
+   if (recv) recv->setSampleSize (no_samples);
 }
 
 
@@ -378,85 +374,73 @@ int RtpSession::getSampleSize () {
 
 // If there are multiple dests, the return will be the total
 // of all dests. - ?
-int RtpSession::getPacketSent ()
-{
-    if (tran)
-        return tran->getPacketSent ();
-    else
-        return 0;
+int RtpSession::getPacketSent () {
+   if (tran)
+      return tran->getPacketSent ();
+   else
+      return 0;
 }
 
 // If there are multiple dests, the return will be the total
 // of all dests. - ?
-int RtpSession::getByteSent ()
-{
-    if (tran)
-        return tran->getPayloadSent ();
-    else
-        return 0;
+int RtpSession::getByteSent () {
+   if (tran)
+      return tran->getPayloadSent ();
+   else
+      return 0;
 }
 
 // If there are multiple srcs, the return will be the total
 // of all srcs. - ?
-int RtpSession::getPacketReceived ()
-{
-    if (recv)
-        return recv->getPacketReceived ();
-    else
-        return 0;
+int RtpSession::getPacketReceived () {
+   if (recv)
+      return recv->getPacketReceived ();
+   else
+      return 0;
 }
 
 // If there are multiple srcs, the return will be the total
 // of all srcs. - ?
-int RtpSession::getByteReceived ()
-{
-    if (recv)
-        return recv->getPayloadReceived ();
-    else
-        return 0;
+int RtpSession::getByteReceived () {
+   if (recv)
+      return recv->getPayloadReceived ();
+   else
+      return 0;
 }
 
 // If there are multiple srcs, this func returns the packect lost
 // for all the srcs
-int RtpSession::getPacketLost ()
-{
-    if (rtcpTran)
-    {
-        if (rtcpRecv)
-        {
-            int lost = 0;
-            for (int i = 0; i < (rtcpRecv->getTranInfoCount()); i++)
-            {
-                lost += rtcpTran->calcLostCount(rtcpRecv->getTranInfoList(i));
-            }
-            return lost;
-        }
-    }
-    return 0;
+int RtpSession::getPacketLost () {
+   if (rtcpTran) {
+      if (rtcpRecv) {
+         int lost = 0;
+         for (int i = 0; i < (rtcpRecv->getTranInfoCount()); i++) {
+            lost += rtcpTran->calcLostCount(rtcpRecv->getTranInfoList(i));
+         }
+         return lost;
+      }
+   }
+   return 0;
 }
 
 // If there are multiple srcs, this func returns the jitter
 // calculation results accumulated by all srcs
-int RtpSession::getJitter ()
-{
-    if (recv)
-    {
-        return (recv->getJitter() >> 4);
-    }
-    return 0;
+int RtpSession::getJitter () {
+   if (recv) {
+      return (recv->getJitter() >> 4);
+   }
+   return 0;
 }
 
 // If there are multiple srcs, what this func returns
 // is not clear - ?
-int RtpSession::getLatency ()
-{
-    if (rtcpRecv)
-    {
-        return (rtcpRecv->getAvgOneWayDelay());
-        //        return (rtcpRecv->getAvgRoundTripDelay());
-    }
-
-    return 0;
+int RtpSession::getLatency () {
+   if (rtcpRecv) {
+      return (rtcpRecv->getAvgOneWayDelay());
+      //        return (rtcpRecv->getAvgRoundTripDelay());
+   }
+   
+   return 0;
 }
 
 void RtpSession::setSessionState (RtpSessionState state)
@@ -495,9 +479,8 @@ void RtpSession::setSessionState (RtpSessionState state)
 }
 
 
-RtpSessionState RtpSession::getSessionState ()
-{
-    return sessionState;
+RtpSessionState RtpSession::getSessionState () {
+   return sessionState;
 }
 
 int
@@ -513,13 +496,15 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
       return -1;
    }
 
+   if (recv) {
+      cpLog(LOG_ERR, "WARNING:  Deleting recv in RtpSession::setReceiver..\n");
+      delete recv;
+      recv = NULL;
+   }
+
    if (localPort != 0) {
       if (portRange != 0) {
-         if (recv) {
-            recv->getUdpStack()->setLocal(localPort, localPort + portRange);
-         }
-         else if (tran) {
-            tran->getUdpStack()->setLocal(localPort, localPort + portRange);
+         if (tran) {
             recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
                                    per_sample_size, samplesize);
          }
@@ -531,11 +516,7 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
          }
       }
       else {
-         if (recv) {
-            recv->getUdpStack()->setLocal(localPort, localPort + portRange);
-         }
-         else if (tran) {
-            tran->getUdpStack()->setLocal(localPort, localPort + portRange);
+         if (tran) {
             recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
                                    per_sample_size, samplesize);
          }
@@ -547,15 +528,16 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
       }
    }
    
+   if (rtcpRecv) {
+      cpLog(LOG_ERR, "WARNING:  Deleting rtcpRecv in RtpSession::setReceiver..\n");
+      delete rtcpRecv;
+      rtcpRecv = NULL;
+   }
+      
+
    if (rtcpLocalPort != 0) {
       if (portRange != 0) {
-         if (rtcpRecv) {
-            rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort,
-                                              rtcpLocalPort + portRange);
-         }
-         else if (rtcpTran) {
-            rtcpTran->getUdpStack()->setLocal(rtcpLocalPort,
-                                              rtcpLocalPort + portRange);
+         if (rtcpTran) {
             rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
          }
          else {
@@ -565,11 +547,7 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
          }
       }
       else {
-         if (rtcpRecv) {
-            rtcpRecv->getUdpStack()->setLocal(rtcpLocalPort);
-         }
-         else if (rtcpTran) {
-            rtcpTran->getUdpStack()->setLocal(rtcpLocalPort);
+         if (rtcpTran) {
             rtcpRecv = new RtcpReceiver(rtcpTran->getUdpStack());
          }
          else {
@@ -584,9 +562,11 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
    if (rtcpTran && rtcpRecv) rtcpTran->setRTCPrecv (rtcpRecv);
    if (rtcpRecv && recv) recv->setRTCPrecv(rtcpRecv);
 
-   if (recv) cpLog (LOG_DEBUG_STACK, "RTP Recv Port: %d", recv->getPort());
-   if (rtcpRecv) cpLog (LOG_DEBUG_STACK, "RTCP Recv Port: %d",
-                        rtcpRecv->getPort());
+   if (recv)
+      cpLog (LOG_DEBUG_STACK, "RTP Recv Port: %d", recv->getPort());
+   if (rtcpRecv)
+      cpLog (LOG_DEBUG_STACK, "RTCP Recv Port: %d",
+             rtcpRecv->getPort());
 
    return 0;
 }
