@@ -1,8 +1,8 @@
-// $Id: IOBuffer.hxx,v 1.1 2004/05/29 01:10:33 greear Exp $
-// $Revision: 1.1 $  $Author: greear $ $Date: 2004/05/29 01:10:33 $
+// $Id: IOBufferv.hxx,v 1.1 2004/12/07 19:54:45 greear Exp $
+// $Revision: 1.1 $  $Author: greear $ $Date: 2004/12/07 19:54:45 $
 
 //
-//Copyright (C) 2001-2004  Ben Greear
+//Copyright (C) 2001  Ben Greear
 //
 //This program is free software; you can redistribute it and/or
 //modify it under the terms of the GNU Library General Public License
@@ -22,9 +22,12 @@
 //
 //
 
-#ifndef __IOBUFFER_INCLUDE__BEN_
-#define __IOBUFFER_INCLUDE__BEN_
+#ifndef __IOBUFFERV_INCLUDE__BEN_
+#define __IOBUFFERV_INCLUDE__BEN_
 
+
+#define TRUE 	1
+#define FALSE 	0
 
 #include <stdio.h> 
 #include <iostream>
@@ -32,26 +35,32 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
+#ifdef __WIN32__
+#include <ws2tcpip.h>
+#else
 #include <sys/socket.h>
+#endif
 #include <unistd.h>
 #include <stdarg.h>
-#include <string>
-#include "BugCatcher.hxx"
+//#include "string2.hxx"
+#include <BugCatcher.hxx>
 
 using namespace std;
 
-class IOBuffer : public BugCatcher {
+class IOBufferv : public BugCatcher {
 protected:
 
-   /** NOTE: when head == tail, the buffer is empty.
+   /** NOTE: when head == tail, the buffer is empty OR full, use
+    *   cur_len to tie-break.
     *
     * head points to index of next insertion
-    * tail points to last byte in the queue
+    * tail points to last (oldest) byte in the queue
     * max_len is the number of bytes in the 'string' buffer.
     */
 
    unsigned char *iobuf;
-   int max_len; //length of iobuf in bytes
+   int max_len; //length of string in bytes
+   int cur_len;
    int head; /* index of next insertion */
    int tail; /* index of last byte in queue */
    int eof;
@@ -63,16 +72,23 @@ public:
    static int string_cnt;
    static int total_bytes;
 
-   IOBuffer  (); //default constructor
-   IOBuffer  (const IOBuffer& S);
-   IOBuffer  (const int m_len);
-   virtual ~IOBuffer ();
-   IOBuffer& operator=(const IOBuffer& src);
+   //static LogStream* logfile;
+
+   IOBufferv  (); //default constructor
+   IOBufferv  (const IOBufferv& S);
+   IOBufferv  (const int m_len);
+   virtual ~IOBufferv ();
+   IOBufferv& operator=(const IOBufferv& src);
+
+   //static void setLogFile(LogStream* dafile);// { logfile = dafile; }
+   //static LogStream* getLogFile();// { return logfile; }
+
 
    int wasEOF() const { return eof; }
 
-   int getCurLen() const ;
-   int getMaxLen() const { return max_len - 1; }
+   int getCurLen() const;
+   int getMaxLen() const { return max_len; }
+   int isEmpty() const { return (cur_len == 0); }
 
    /** This gets a copy of the bytes out of the buffer.  Repeated calls
     * to this method will return the same thing.  Use dropFromTail() to
@@ -80,11 +96,11 @@ public:
     */
    int peekBytes(unsigned char* buf, int len_to_get) const;
 
-   /** Peeks a single byte, deals with any buffer wrapping. */
-   unsigned char charAt(int idx);
-
    /** Actually removes oldest 'len' bytes from the buffer. */
    int dropFromTail(int len); //returns -1 if it failed
+
+   /** Peeks a single byte, deals with any buffer wrapping. */
+   unsigned char charAt(int idx);
 
 
    ///*********************  OPERATORS  ******************************///
@@ -102,12 +118,12 @@ public:
    int  write(const int desc, int max_to_write = -1);
 
    /** Will write read bytes into os if it's not NULL. */
-   int  read(const int desc, const int max_to_read, ostream* os = NULL);
+   int  read(const int desc, const int max_to_read, const char* debug,
+             ostream* os = NULL);
 
    /** Only does one call to recvfrom
     */
-   int recvFrom(const int desc, const int max_to_read, struct sockaddr *from,
-                socklen_t *fromlen);
+   int recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen);
 
    int getMaxContigFree() const;
    int getMaxContigUsed() const;
@@ -117,5 +133,6 @@ public:
 
    string toString();
    string toStringBrief();
+   void assertSanity(); //Do some internal checks to make sure we are in a sane state.
 };
 #endif

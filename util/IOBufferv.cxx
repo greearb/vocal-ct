@@ -1,5 +1,5 @@
-// $Id: IOBuffer.cxx,v 1.1 2004/05/29 01:10:33 greear Exp $
-// $Revision: 1.1 $  $Author: greear $ $Date: 2004/05/29 01:10:33 $
+// $Id: IOBufferv.cxx,v 1.1 2004/12/07 19:54:45 greear Exp $
+// $Revision: 1.1 $  $Author: greear $ $Date: 2004/12/07 19:54:45 $
 
 //
 //Copyright (C) 2001-2004  Ben Greear
@@ -22,16 +22,21 @@
 //
 //
 
-#include "IOBuffer.hxx"
+#include "IOBufferv.hxx"
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
+#include <sstream>
 
-int IOBuffer::string_cnt = 0;
-int IOBuffer::total_bytes = 0;
 
-void vhexDump(const char* msg, int len, string& retval,
-              bool show_decode = true, bool add_newlines = true);
+#define IO_LOGFILE cerr
+
+
+//LogStream* IOBufferv::logfile = NULL;
+int IOBufferv::string_cnt = 0;
+int IOBufferv::total_bytes = 0;
+
+//void hexDump(const char* msg, int len, String& retval, int show_decode = TRUE, int add_newlines = TRUE);
 
 /*
 //Uncomment this if you don't have your own hexDump method..
@@ -85,9 +90,13 @@ void vhexDump(const char* msg, int len, string& retval,
 */
 
 
-void IOBuffer::ensureCapacity(int max_length) {
+//void IOBufferv::setLogFile(LogStream* dafile) { logfile = dafile; }
+
+//LogStream* IOBufferv::getLogFile() { return logfile; }
+
+void IOBufferv::ensureCapacity(int max_length) {
    if (getMaxLen() < max_length) {
-      //cout << "Growing IOBuffer: " << this << " max_length: " << max_length << endl;
+      //cout << "Growing IOBufferv: " << this << " max_length: " << max_length << endl;
       unsigned char* tmp = new unsigned char[max_length + max_len];
       int len = getCurLen();
       peekBytes(tmp, len);
@@ -104,7 +113,7 @@ void IOBuffer::ensureCapacity(int max_length) {
 }//ensureCapacity
    
  
-IOBuffer::IOBuffer() { //default constructor
+IOBufferv::IOBufferv() { //default constructor
    //log("In default const.\n");
    eof = 0;
    string_cnt++;
@@ -112,12 +121,13 @@ IOBuffer::IOBuffer() { //default constructor
    head = 0;
    tail = 0;
    max_len = 200;
+   cur_len = 0;
 
    total_bytes += 200;
 } // constructor
 
 
-IOBuffer::IOBuffer(const IOBuffer& S) {
+IOBufferv::IOBufferv(const IOBufferv& S) {
    eof = 0;
    string_cnt++;
    iobuf = new unsigned char[S.max_len];
@@ -125,11 +135,12 @@ IOBuffer::IOBuffer(const IOBuffer& S) {
    head = S.head;
    tail = S.tail;
    max_len = S.max_len;
+   cur_len = S.cur_len;
 
    total_bytes += max_len;
 } // constructor
 
-IOBuffer& IOBuffer::operator=(const IOBuffer& S) {
+IOBufferv& IOBufferv::operator=(const IOBufferv& S) {
    if (iobuf) {
       delete[] iobuf;
    }
@@ -141,6 +152,7 @@ IOBuffer& IOBuffer::operator=(const IOBuffer& S) {
    tail = S.tail;
    max_len = S.max_len;
    eof = S.eof;
+   cur_len = S.cur_len;
 
    total_bytes += max_len;
    return *this;
@@ -148,7 +160,7 @@ IOBuffer& IOBuffer::operator=(const IOBuffer& S) {
 
 
 
-IOBuffer::IOBuffer(const int my_len) {
+IOBufferv::IOBufferv(const int my_len) {
    int m_len = my_len;
    string_cnt++;
    eof = 0;
@@ -163,12 +175,13 @@ IOBuffer::IOBuffer(const int my_len) {
    iobuf = new unsigned char[m_len];
    head = tail = 0;
    max_len = m_len;
+   cur_len = 0;
 
    total_bytes += (max_len);
 } // constructor
 
 
-IOBuffer::~IOBuffer() {
+IOBufferv::~IOBufferv() {
    string_cnt--;
    total_bytes -= (max_len);
    if (iobuf) {
@@ -178,31 +191,44 @@ IOBuffer::~IOBuffer() {
 } //destructor
 
 
-string IOBuffer::toString() {
-   char tmpb[256];
-   snprintf(tmpb, 255, "max_len: %i  head: %i  tail: %i  cur_len: %i\n",
-            max_len, head, tail, getCurLen());
-   string retval(tmpb);
-   string r2;
+string IOBufferv::toString() {
+   ostringstream oss;
+   oss << "max_len: " << max_len << "  head: " << head
+       << "  tail: " << tail << "  cur_len: " << getCurLen()
+       << endl;
 
-   vhexDump((char*)(iobuf), max_len, r2);
+   //hexDump((char*)(string), max_len, r2);
 
-   retval.append(r2);
+   //retval.append(r2);
 
-   return retval;
+   return oss.str();
 }
 
 
-string IOBuffer::toStringBrief() {
-   char tbuf[256];
-   snprintf(tbuf, 255, "max_len: %i  head: %i  tail: %i  cur_len: %i\n",
-           max_len, head, tail, getCurLen());
-   return tbuf;
+string IOBufferv::toStringBrief() { 
+   ostringstream oss;
+   oss << "max_len: " << max_len << "  head: " << head
+       << "  tail: " << tail << "  cur_len: " << getCurLen()
+       << endl;
+
+   //hexDump((char*)(iobuf), max_len, r2);
+
+   //retval.append(r2);
+
+   return oss.str();
 }
 
-int IOBuffer::getMaxContigFree() const {
-   if (head == tail) { //if empty.
-      return max_len;
+int IOBufferv::getMaxContigFree() const {
+   if (head == tail) { //if empty or full
+      if (!isEmpty()) {
+         return 0;
+      }
+      else {
+         assert(head == 0); /** Code should always reset these to zero when possible
+                             * to make sure that we have contig buffers as much as
+                             * possible. */
+         return max_len;
+      }
    }
    else if (head > tail) {
       return max_len - head;
@@ -213,8 +239,8 @@ int IOBuffer::getMaxContigFree() const {
 }
 
 
-int IOBuffer::getMaxContigUsed() const {
-   if (head == tail) {
+int IOBufferv::getMaxContigUsed() const {
+   if (isEmpty()) {
       return 0;
    }
    else if (head > tail) {
@@ -226,33 +252,7 @@ int IOBuffer::getMaxContigUsed() const {
 }
 
 
-int IOBuffer::getCurLen() const {
-   if (head == tail) {
-      return 0;
-   }
-   else if (head > tail) {
-      return head - tail;
-   }
-   else {
-      return max_len - (tail - head);
-   }
-}
-
-
-/** Peeks a single byte, deals with any buffer wrapping. */
-unsigned char IOBuffer::charAt(int idx) {
-   assert(idx <= getCurLen());
-   if ((max_len - tail) >= idx) {
-      return iobuf[tail + idx];
-   }
-   else {
-      int mlen = max_len - tail;
-      idx -= mlen;
-      return iobuf[idx];
-   }
-}//charAt
-
-int IOBuffer::peekBytes(unsigned char* buf, int len_to_get) const {
+int IOBufferv::peekBytes(unsigned char* buf, int len_to_get) const {
    if (len_to_get > getCurLen()) {
       return -1;
    }
@@ -270,7 +270,7 @@ int IOBuffer::peekBytes(unsigned char* buf, int len_to_get) const {
 }//peekBytes
 
 
-int IOBuffer::dropFromTail(int len) {
+int IOBufferv::dropFromTail(int len) {
    int cl = getCurLen();
 
    if (cl == len) {
@@ -283,14 +283,18 @@ int IOBuffer::dropFromTail(int len) {
       else {
          tail = (len - (max_len - tail));
       }
-      return len;
+   }
+   else {
+      assert("tried to drop more than we have" == "bad idea");
+      return -1;
    }
 
-   return -1;
+   cur_len -= len;
+   return len;
 }
    
 
-int IOBuffer::write(const int desc, int max_to_write) {
+int IOBufferv::write(const int desc, int max_to_write) {
    int this_round = 0;
    int sofar = 0;
 
@@ -300,13 +304,13 @@ int IOBuffer::write(const int desc, int max_to_write) {
 
    if (getCurLen() == 0) {
       //if (IO_LOGFILE.ofLevel(DBG)) {
-      //   IO_LOGFILE << "IOBuffer: Current length was zero in ::write(desc)\n";
+      //   IO_LOGFILE << "IOBufferv: Current length was zero in ::write(desc)\n";
       //}
       return 0;
    }
 
    int len;
-   while (true) {
+   while (TRUE) {
       len = getMaxContigUsed();
 
       // Allow caller to cap amount written
@@ -318,51 +322,56 @@ int IOBuffer::write(const int desc, int max_to_write) {
 
       if (len == 0) {
          if (getCurLen() == 0) {
-            //if (IO_LOGFILE.ofLevel(DBG)) {
-            //   IO_LOGFILE << "IOBuffer::write:  max-contig is zero, sofar: " << sofar
-            //              << " cur_len: " << getCurLen() << "\n";
-            //}
+            if (0) {//IO_LOGFILE.ofLevel(DBG)) {
+               IO_LOGFILE << "IOBufferv::write:  max-contig is zero, sofar: " << sofar
+                          << " cur_len: " << getCurLen() << "\n";
+            }
          }
          else {
-            //if (IO_LOGFILE.ofLevel(ERROR)) {
-            //   IO_LOGFILE << "ERROR:  IOBuffer::write:  max-contig is zero, sofar: " << sofar
-            //              << " cur_len: " << getCurLen() << "\n";
-            //   IO_LOGFILE << toString() << endl;
-            //}
+            if (1) { //IO_LOGFILE.ofLevel(LS_ERROR)) {
+               IO_LOGFILE << "ERROR:  IOBufferv::write:  max-contig is zero, sofar: " << sofar
+                          << " cur_len: " << getCurLen() << "\n";
+               IO_LOGFILE << toString() << endl;
+            }
             return -1;
          }
          return sofar;
       }
       else {
-
-#ifndef WIN32
-         this_round = ::write(desc, iobuf + tail, len);
+#ifdef __WIN32__
+         this_round = ::send(desc, (char*)(iobuf + tail), len, 0);
+         if (this_round < 0) { //some error happened
+            if (WSAGetLastError() != WSAEWOULDBLOCK) {
+               if (IO_LOGFILE.ofLevel(WRN)) {
+                  IO_LOGFILE << "IOBufferv: WARNING: write err (NOT EAGAIN): "
+                             << WSAGetLastError()
+                             << " sofar: " << sofar << endl;
+               }
 #else
          this_round = ::send(desc, iobuf + tail, len, 0);
-#endif
-
          if (this_round < 0) { //some error happened
             if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK
-               perror("IOBuffer.Write() err");
+               perror("IOBufferv.Write() err");
                //if (IO_LOGFILE.ofLevel(WRN)) {
-               //   IO_LOGFILE << "IOBuffer: WARNING: write err (NOT EAGAIN): " << strerror(errno) 
+               //   IO_LOGFILE << "IOBufferv: WARNING: write err (NOT EAGAIN): " << strerror(errno) 
                //              << " sofar: " << sofar << endl;
                //}
+#endif
                if (sofar != 0)
                   return sofar;
                return this_round;
             }//if
             else {
-               //IO_LOGFILE.log(WRN, "IOBuffer: WARNING: EAGAIN on write.\n"); //TODO: remove
+               //IO_LOGFILE.log(WRN, "IOBufferv: WARNING: EAGAIN on write.\n"); //TODO: remove
                //if (IO_LOGFILE.ofLevel(DBG)) {
-               //   IO_LOGFILE << "IOBuffer::write, got EAGAIN on write.\n";
+               //   IO_LOGFILE << "IOBufferv::write, got EAGAIN on write.\n";
                //}
                return sofar;
             }
          }//if
          else if (this_round == 0) { //all done, written to end of the buffer
             //if (IO_LOGFILE.ofLevel(DBG)) {
-            //   IO_LOGFILE << "IOBuffer::write  Attempted to write: " << len
+            //   IO_LOGFILE << "IOBufferv::write  Attempted to write: " << len
             //              << " wrote zero, sofar: " << sofar << endl;
             //}
             return sofar;
@@ -380,7 +389,8 @@ int IOBuffer::write(const int desc, int max_to_write) {
  * bigger than that... (it won't be made smaller if it's already bigger
  * of course.)
  */
-int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
+int IOBufferv::read(const int desc, const int max_to_read,
+                   const char* debug, ostream* os) {
    int sofar = 0;
    int this_round = 0;
 
@@ -394,7 +404,7 @@ int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
    int ctg;
 
    int rounds = 0;
-   int breakout = false;
+   int breakout = FALSE;
    while ((rounds++ < 2) && (!breakout)) {
       //IO_LOGFILE << "Top of while loop, sofar: " << sofar << " max_to_read: " << max_to_read << endl;
       //IO_LOGFILE << toStringBrief() << endl;
@@ -411,19 +421,31 @@ int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
 
       //IO_LOGFILE << "to_rd: " << to_rd << " ctg: " << ctg << endl;
 
-
-
-#ifndef WIN32
-      this_round = ::read(desc, iobuf + head, to_rd);
+#ifdef __WIN32__
+      unsigned long avail_rd = 0xFFFFFFFF;
+      ioctlsocket(desc, FIONREAD, &avail_rd);
+      if (avail_rd == 0) {
+         LOGFILE << " IOB:  About to read desc: " << desc << " avail_rd: " << avail_rd
+                 << " to_rd: " << to_rd << " debug: " << debug << endl;
+      }
+      //if (to_rd > (int)(avail_rd)) {
+      //   to_rd = avail_rd;
+      //}
+      //if (to_rd == 0) {
+      //   this_round = -1;
+      //   errno = EAGAIN;
+      //}
+      //else {
+      this_round = ::recv(desc, (char*)(iobuf + head), to_rd, 0);
+      //}
 #else
-      this_round = ::recv(desc, iobuf + head, to_rd, 0);
+      this_round = ::read(desc, iobuf + head, to_rd);
 #endif
 
       // Odds are, if we can't read all we want this time, we definately won't read any
       // more next time.
-      // TODO: Verify this is a good performance thingie!!
-      if (this_round < to_rd) {
-         breakout = true;
+      if (this_round <= to_rd) {
+         breakout = TRUE;
       }
       //IO_LOGFILE << " this_round: " << this_round << endl;
       
@@ -440,9 +462,13 @@ int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
       }//if
       else {
          if (this_round < 0) { //some error happened
-            if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK, signal interrupted us
+#ifdef __WIN32__
+            if (WSAGetLastError() != WSAEWOULDBLOCK) {
+#else
+            if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK
+#endif
                //if (IO_LOGFILE.ofLevel(WRN)) {
-               //   IO_LOGFILE << "IOBuffer: WARNING: read err (NOT EAGAIN): " << strerror(errno)
+               //   IO_LOGFILE << "IOBufferv: WARNING: recv/read err (NOT EAGAIN): " << strerror(errno)
                //              << " desc: " << desc << endl;
                //}
                if (sofar != 0) {
@@ -457,7 +483,7 @@ int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
          else {
             if (sofar == 0) {
                // We have managed to read nothing..that is end-of-file, so return -1
-               eof = true;
+               eof = TRUE;
                return -1;
             }
             return sofar; // We read nothing this round, but we have read some since we entered the method.
@@ -472,9 +498,23 @@ int IOBuffer::read(const int desc, const int max_to_read, ostream* os) {
 }//Read (from a descriptor)
 
 
+/** Peeks a single byte, deals with any buffer wrapping. */
+unsigned char IOBufferv::charAt(int idx) {
+   assert(idx <= getCurLen());
+   if ((max_len - tail) >= idx) {
+      return iobuf[tail + idx];
+   }
+   else {
+      int mlen = max_len - tail;
+      idx -= mlen;
+      return iobuf[idx];
+   }
+}//charAt
+
+
 /** Only does one call to recvfrom
  */
-int IOBuffer::recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen) {
+int IOBufferv::recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen) {
    int this_round = 0;
 
    if (max_to_read <= 0) {
@@ -486,18 +526,25 @@ int IOBuffer::recvFrom(const int desc, const int max_to_read, struct sockaddr *f
    int ctg = getMaxContigFree();
    if (ctg < max_to_read) {
       //if (IO_LOGFILE.ofLevel(INF)) {
-      //   IO_LOGFILE << "IOBuffer: WARNING:  not enough CONTIG room... (performance problem only)\n";
+      //   IO_LOGFILE << "IOBufferv: WARNING:  not enough CONTIG room... (performance problem only)\n";
       //}
       unsigned char tmp_buf[max_to_read];
+#ifdef __WIN32__
+      this_round = ::recvfrom(desc, (char*)(tmp_buf), max_to_read, 0, from, fromlen);
+#else
       this_round = ::recvfrom(desc, tmp_buf, max_to_read, 0, from, fromlen);
+#endif
 
       if (this_round > 0) {
          append(tmp_buf, this_round);
       }//if
    }
    else {
+#ifdef __WIN32__
+      this_round = ::recvfrom(desc, (char*)(iobuf + head), max_to_read, 0, from, fromlen);
+#else
       this_round = ::recvfrom(desc, iobuf + head, max_to_read, 0, from, fromlen);
-
+#endif
       if (this_round > 0) {
          fakeAppend(this_round); //virtually add it to our buffer
       }//if
@@ -505,10 +552,19 @@ int IOBuffer::recvFrom(const int desc, const int max_to_read, struct sockaddr *f
 
    if (this_round <= 0) {
       if (this_round < 0) { //some error happened
-         if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK, signal interrupted us
+#ifdef __WIN32__
+         if (WSAGetLastError() != WSAEWOULDBLOCK) {
+            if (IO_LOGFILE.ofLevel(WRN)) {
+               IO_LOGFILE << "IOBufferv: WARNING: rcvfrom read err (NOT EAGAIN): "
+                          << WSAGetLastError() << endl;
+            }
+#else
+         if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK
             //if (IO_LOGFILE.ofLevel(WRN)) {
-            //   IO_LOGFILE << "IOBuffer: WARNING: read err (NOT EAGAIN): " << strerror(errno) << endl;
+            //   IO_LOGFILE << "IOBufferv: WARNING: rcvfrom read err (NOT EAGAIN): "
+            //              << strerror(errno) << endl;
             //}
+#endif
             return this_round;
          }//if
          else {  //this means it read all in buffer
@@ -526,7 +582,7 @@ int IOBuffer::recvFrom(const int desc, const int max_to_read, struct sockaddr *f
 }//recvFrom (from a descriptor)
 
 
-void IOBuffer::purge() {
+void IOBufferv::purge() {
    total_bytes -= max_len;
    if (iobuf) {
       delete[] iobuf;
@@ -534,16 +590,19 @@ void IOBuffer::purge() {
    iobuf = new unsigned char[200];
    max_len = 200;
    head = tail = 0;
+   cur_len = 0;
    total_bytes += max_len;
 }//purge
 
 
-void IOBuffer::clear() {
+void IOBufferv::clear() {
    head = tail = 0;
+   cur_len = 0;
+   eof = 0;
 }//Clear
 
 
-int IOBuffer::append(const unsigned char* source, int len) {
+int IOBufferv::append(const unsigned char* source, int len) {
    ensureCapacity(getCurLen() + len);
 
    // Here, we know that we have the space, so lets copy it in...
@@ -559,13 +618,20 @@ int IOBuffer::append(const unsigned char* source, int len) {
    // Copy the rest into the buffer starting at 'head'.
    memcpy(iobuf + head, source + mlen, len - mlen);
    head += (len - mlen);
+   cur_len += len;
+   //IO_LOGFILE << "IOBufferv::append, cur_len: " << cur_len << " len: " << len
+   //           << " getCurLen() " << getCurLen() << endl;
    return len;
 }//append
 
 
+int IOBufferv::getCurLen() const {
+   return cur_len;
+}
+
 // Data has already been coppied to the buffer..we just need to
 // move the head pointer correctly.
-int IOBuffer::fakeAppend(int len) {
+int IOBufferv::fakeAppend(int len) {
    int mlen = 0;
    if ((head + len) >= max_len) {
       mlen = max_len - head;
@@ -574,10 +640,20 @@ int IOBuffer::fakeAppend(int len) {
    }
 
    head += (len - mlen);
+   cur_len += len;
    return len;
 }//append
 
+//Do some internal checks to make sure we are in a sane state.
+void IOBufferv::assertSanity() {
+   if (getCurLen() == 0) {
+      assert(tail == head);
+      assert(tail == 0);
+   }
+   assert(getCurLen() <= getMaxLen());
+}
 
-//IOBuffer::operator const char*() const {
+
+//IOBufferv::operator const char*() const {
 //   return iobuf;
 //}//to char* operator overload

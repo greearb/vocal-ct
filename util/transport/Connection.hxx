@@ -52,13 +52,13 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.9 2004/06/14 00:33:55 greear Exp $";
+    "$Id: Connection.hxx,v 1.10 2004/12/07 19:54:45 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
 #include <string.h>
 #include <BugCatcher.hxx>
-#include <IOBuffer.hxx>
+#include <IOBufferv.hxx>
 #include <string>
 #include <misc.hxx>
 
@@ -285,8 +285,8 @@ protected:
    bool closeOnDestruct; /* Should we close our socket on destruct, or not.
                           * Helps with shared sockets. */
 
-   IOBuffer outBuf;
-   IOBuffer rcvBuf;
+   IOBufferv outBuf;
+   IOBufferv rcvBuf;
 
 private:
    // Don't use this, makes it a total PITA to figure out how to
