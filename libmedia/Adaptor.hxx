@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.4 2004/12/15 00:25:18 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.5 2005/05/25 21:34:35 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -91,7 +91,7 @@ public:
    
    //The rate at which the Adaptor is expecting data, default is 20ms
    // Units are miliseconds.
-   int getDataRate() const { return myDataRate; };
+   virtual int getDataRate() const { return myDataRate; };
 
    ///
    const string& getInstanceName() const { return _instanceName; }
