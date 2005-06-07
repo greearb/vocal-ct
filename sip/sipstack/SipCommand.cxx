@@ -49,7 +49,7 @@
  */
 
 static const char* const SipCommand_cxx_version =
-    "$Id: SipCommand.cxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
+    "$Id: SipCommand.cxx,v 1.5 2005/06/07 20:14:50 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -165,11 +165,10 @@ SipCommand::SipCommand(const StatusMsg& status, const string& _local_ip,
     //setVia(via,0);
 
 
-    if(status.getNumContact() >= 1)
-    {
-        cpLog(LOG_ERR, "Adding URL to requestLine: %s\n",
-              status.getContact(0).getUrl()->encode().c_str());
-        myRequestLine.setUrl(status.getContact(0).getUrl());
+    if (status.getNumContact() >= 1) {
+       cpLog(LOG_DEBUG_STACK, "Adding URL to requestLine: %s\n",
+             status.getContact(0).getUrl()->encode().c_str());
+       myRequestLine.setUrl(status.getContact(0).getUrl());
     }
     
     // why do this for only range 180 <-> 300? !jf!  

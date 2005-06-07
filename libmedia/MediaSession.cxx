@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.8 2005/06/07 20:14:49 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -86,7 +86,7 @@ MediaSession::MediaSession(int sessionId,
         _tos(tos), _skb_priority(priority) {
    _cnt++;
 
-   cpLog(LOG_ERR, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
+   cpLog(LOG_DEBUG_STACK, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
          sessionId, debug, _cnt, this);
 
    mySSRC = 0;
@@ -96,13 +96,13 @@ MediaSession::MediaSession(int sessionId,
    localRes->setBusy(true, "MediaSession constructor");
    localRes->setOwner(this);
    myLocalRes = localRes;
-   cpLog(LOG_ERR, "Created media session, this: %p, count: %d, debug: %s\n",
+   cpLog(LOG_DEBUG_STACK, "Created media session, this: %p, count: %d, debug: %s\n",
          this, _cnt, debug);
 }
 
 
 MediaSession::~MediaSession() {
-   cpLog(LOG_ERR, "MediaSession::~MediaSession, this: %p, count: %d",
+   cpLog(LOG_DEBUG_STACK, "MediaSession::~MediaSession, this: %p, count: %d",
          this, _cnt);
    _cnt--;
    tearDown();
@@ -225,7 +225,7 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
             }
 
             cAdp = mInstance.getMediaCapability().getCodec(fmt_name);
-            cpLog(LOG_ERR, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
+            cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
                   fmt, fmt_name.c_str(), cAdp->getType());
 
             if (cAdp->getType() == SPEEX) {

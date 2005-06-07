@@ -50,7 +50,7 @@
 
 
 static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.7 2004/12/11 08:30:11 greear Exp $";
+    "$Id: CallAgent.cxx,v 1.8 2005/06/07 20:14:50 greear Exp $";
 
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
@@ -175,7 +175,7 @@ void CallAgent::doBye() {
       return;
    }
 
-   cpLog(LOG_ERR, "CallAgent::doBye(), this: %p", this);
+   cpLog(LOG_DEBUG_STACK, "CallAgent::doBye(), this: %p", this);
    Sptr<SipMsg> bMsg = myInvokee->sendBye();
    if (bMsg != 0) {
       facade->postInfo(bMsg);
@@ -190,7 +190,7 @@ void CallAgent::doBye() {
 
 
 void CallAgent::endCall() {
-   cpLog(LOG_ERR, "CallAgent::endCall, this: %p  in state: %s\n",
+   cpLog(LOG_DEBUG_STACK, "CallAgent::endCall, this: %p  in state: %s\n",
          this, myState->className().c_str());
    assertNotDeleted();
 
@@ -199,7 +199,7 @@ void CallAgent::endCall() {
       return;
    }
 
-   cpLog(LOG_ERR, "CallAgent::endCall(), this: %p", this);
+   cpLog(LOG_DEBUG_STACK, "CallAgent::endCall(), this: %p", this);
    
    try {
       freeMedia();
@@ -222,12 +222,12 @@ void CallAgent::endCall() {
 
 
 void CallAgent::freeMedia() {
-   cpLog(LOG_ERR, "in CallAgent::freeMedia, freedMedia: %d\n",
+   cpLog(LOG_DEBUG_STACK, "in CallAgent::freeMedia, freedMedia: %d\n",
          (int)(freedMedia));
    if (! freedMedia) {
       if (myInvokee != 0) {
          int sessionId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
-         cpLog(LOG_ERR, "Freeing session: %d\n", sessionId);
+         cpLog(LOG_DEBUG_STACK, "Freeing session: %d\n", sessionId);
          MediaController::instance().freeSession(sessionId);
       }
       if (facade != 0) {
@@ -431,7 +431,7 @@ void CallAgent::acceptCall() {
 
 
 void CallAgent::stopCall() {
-   cpLog(LOG_ERR, "Stopping call, in state: %s\n",
+   cpLog(LOG_DEBUG_STACK, "Stopping call, in state: %s\n",
          myState->className().c_str());
    
    while (myState->end(*this) < 0) {  //-> INIT
@@ -449,7 +449,7 @@ void CallAgent::stopCall() {
 
 void CallAgent::setDeleted() {
    myActiveFlg = false;
-   cpLog(LOG_ERR, "CallAgent::setDeleted:%d", getId());
+   cpLog(LOG_DEBUG_STACK, "CallAgent::setDeleted:%d", getId());
    CallDB::instance().removeCallData(*myInvokee);
 
    UaCallControl::instance().removeAgent(getId());

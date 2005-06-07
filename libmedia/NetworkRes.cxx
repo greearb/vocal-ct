@@ -79,7 +79,7 @@ bool NetworkRes::isPortTaken(const string& local_ip, string local_if) const {
 
 
 void NetworkRes::setBusy(bool val, const char* reason) {
-   cpLog(LOG_ERR, "setBusy: Setting networkRes: %s busy to: %d, reason: %s\n",
+   cpLog(LOG_DEBUG_STACK, "setBusy: Setting networkRes: %s busy to: %d, reason: %s\n",
          toString().c_str(), val, reason);
    busy = val;
 };

@@ -50,7 +50,7 @@
 
 
 static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.12 2004/11/09 00:49:51 greear Exp $";
+    "$Id: UaCallControl.cxx,v 1.13 2005/06/07 20:14:50 greear Exp $";
 
 
 #include "SipEvent.hxx" 
@@ -550,7 +550,7 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
       return;
    }
    else {
-      cpLog(LOG_ERR, "initiateInvite, debug: %s\n", debug);
+      cpLog(LOG_DEBUG_STACK, "initiateInvite, debug: %s\n", debug);
    }
 
    //Case 1: sip:user@...

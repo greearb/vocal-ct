@@ -115,7 +115,7 @@ int vsetPrio(int sk, uint16 tos, uint32 val, const char* dbg) {
 
 /* Returns actual priority that was set, or < 0 on error */
 int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
-   cpLog(LOG_ERR, "Setting socket priority, dbg: %s  sk: %i to value: %lu\n",
+   cpLog(LOG_DEBUG_STACK, "Setting socket priority, dbg: %s  sk: %i to value: %lu\n",
          dbg, sk, (unsigned long)(val));
    if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY,
                   (char*)&val, sizeof(val)) < 0) {
