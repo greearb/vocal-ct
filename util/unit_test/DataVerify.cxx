@@ -49,13 +49,18 @@
  */
 
 static const char* const DataVerify_cxx_Version =
-    "$Id: DataVerify.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: DataVerify.cxx,v 1.2 2005/06/16 21:08:48 greear Exp $";
 
 #include "Data.hxx"
 #include "Verify.hxx"
 #include <vector>
+#include "misc.hxx"
 //#include "CopyOnWriteData.hxx"
 //#include "StringData.hxx"
+#include <fstream>
+#include <sstream>
+#include <unistd.h>
+using namespace std;
 
 template <class DataClass>
 void test()
@@ -299,6 +304,10 @@ void test()
     {
 	DataClass junk;
 	test_verify(junk == "");
+    }
+    {
+       DataClass junk;
+       test_verify(junk != "1");
     }
     {
 	DataClass junk = Data(7);
@@ -645,7 +654,9 @@ void test()
 int main()
 {
     cerr << "Data!" << endl;
+    debugMemUsage("before test", "dataverify.txt");
     test<Data>();
+    debugMemUsage("after test", "dataverify.txt");
 
 #if 0
     cerr << "CopyOnWriteData!" << endl;
@@ -653,6 +664,6 @@ int main()
     cerr << "StringData!" << endl;
     test<StringData>();
 #endif
-    return test_return_code(141);
+    return test_return_code(142);
 }
 

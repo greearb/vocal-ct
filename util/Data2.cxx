@@ -51,15 +51,12 @@ Data::Data(const char* str, int length)
 }
 
 
-Data::Data(const char* str) 
-   : mLength(0),
-     mCapacity(0)
-{
+Data::Data(const char* str) {
    assert(str);
    atomic_inc(&_cnt);
-   atomic_add(&_total_buf, mCapacity+1);
    mLength = strlen(str);
    mCapacity = mLength;
+   atomic_add(&_total_buf, mCapacity+1);
    mBuf = new char[mLength+1];
    memcpy(mBuf, str, mLength+1);
 }
