@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.12 2005/03/04 01:29:38 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.13 2005/06/23 23:50:21 greear Exp $";
 
 
 #include <sys/types.h>
@@ -368,6 +368,10 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
 #ifdef USE_LANFORGE
 void UaFacade::setLFThread(LFVoipThread* lft) {
    myLFThread = lft;
+}
+
+LFVoipThread* UaFacade::getLFThread() {
+   return myLFThread;
 }
 
 #endif

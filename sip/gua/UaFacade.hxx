@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: UaFacade.hxx,v 1.8 2005/06/23 23:50:21 greear Exp $";
 
 
 #include "global.h"
@@ -169,6 +169,7 @@ public:
 
 #ifdef USE_LANFORGE
    void setLFThread(LFVoipThread* lft);
+   LFVoipThread* getLFThread();
 #endif
 
 private:
