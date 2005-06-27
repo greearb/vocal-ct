@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2004/12/09 01:28:59 greear Exp $
+# $Id: Makefile,v 1.9 2005/06/27 02:18:21 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -28,8 +28,6 @@ LDLIBS_LAST += -lspeex
 CODE_SUBDIRS =  controlState 
 
 
-LDLIBS_LAST += -lCodecLib
-
 # Voice Age Codec Support !
 # 
 
@@ -37,7 +35,8 @@ ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
 LIBDIRS += $(VOICEAGE_BASE)
 
-LDLIBS_LAST += -lg729 -lg729utils
+LDLIBS_LAST += -lCodecLib -lg729 -lg729utils
+
 endif
 
 
