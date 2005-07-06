@@ -54,7 +54,7 @@
 
 
 static const char* const Recorder_h_Version =
-    "$Id: Recorder.h,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Recorder.h,v 1.2 2005/07/06 19:09:56 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -62,40 +62,40 @@ static const char* const Recorder_h_Version =
 #include <stdio.h>
 #include <sndfile.h>
 
-typedef int ASNDFILE ;
-
 /**
   * This class is used for recording audio data to a file.
   */
 
-class Recorder
-{
-    public:
-	/** Default Constructor */
-        Recorder();
+class Recorder {
+public:
+   /** Default Constructor */
+   Recorder();
+   
+   /** Destructor */
+   virtual ~Recorder();
+   
+   /** Start recording */
+   virtual int start();
+   
+   /** Close the recording */
+   virtual int close();
+   
+   /** Write to a file */
+   virtual int write(const void *buffer, int size);
+   
+   /** Open a file */
+   virtual int open(const string &fileName);
 
-	/** Destructor */
-        virtual ~Recorder();
+   const string& getFileName() { return fname; }
 
-        /** Start recording */
-        virtual int start();
+private:  // Private attributes
 
-        /** Close the recording */
-        virtual int close();
+   /**  */
+   SNDFILE * m_iFd;
 
-        /** Write to a file */
-        virtual int write(const void *buffer, int size);
-
-        /** Open a file */
-        virtual int open(const string &fileName);
-
-    private:  // Private attributes
-
-        /**  */
-        SNDFILE * m_iFd;
-
-        /**  */
-        bool m_bActive;
+   string fname; // File-name
+   /**  */
+   bool m_bActive;
 };
 
 #endif

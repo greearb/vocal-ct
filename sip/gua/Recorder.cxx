@@ -49,7 +49,7 @@
  *
  */
 static const char* const Recorder_cxx_Version =
-    "$Id: Recorder.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: Recorder.cxx,v 1.2 2005/07/06 19:09:55 greear Exp $";
 
 
 #include "global.h"
@@ -63,61 +63,57 @@ Recorder::Recorder()
 }
 
 ///
-Recorder::~Recorder()
-{
-    m_bActive = false;
-    close();
+Recorder::~Recorder() {
+   m_bActive = false;
+   close();
 }
 
 /// Start the recording 
-int Recorder::start()
-{
-    cpLog(LOG_DEBUG, "Record active");
-    m_bActive = true;
-    return true;
+int Recorder::start() {
+   cpLog(LOG_DEBUG, "Record active");
+   m_bActive = true;
+   return true;
 }
 
 /// write the buffer 
-int Recorder::write(const void *buffer, int size)
-{
-    if ( !m_bActive ) return 0;
-    return ::sf_write_raw(m_iFd, (void *)buffer, size);
+int Recorder::write(const void *buffer, int size) {
+   if ( !m_bActive )
+      return 0;
+   return ::sf_write_raw(m_iFd, (void *)buffer, size);
 }
 
 /// close the recording 
-int Recorder::close()
-{
-    int ret = 0;
-    m_bActive = false;
-    if(m_iFd)
-    {
-        ret = ::sf_close(m_iFd);
-        m_iFd = 0;
-    }
-    return ret;
+int Recorder::close() {
+   int ret = 0;
+   m_bActive = false;
+   if (m_iFd) {
+      ret = ::sf_close(m_iFd);
+      m_iFd = 0;
+   }
+   fname = "";
+   return ret;
 }
 
 
 /// Open a file for writing 
-int Recorder::open(const string &fileName)
-{
-
-    SF_INFO info;
-
-    memset(&info, 0, sizeof(info));
-    info.samplerate = 8000;
-    info.channels = 1;
-    info.format = SF_FORMAT_WAV | SF_FORMAT_ULAW;
+int Recorder::open(const string &fileName) {
+   fname = fileName; // Save reference
+   
+   SF_INFO info;
+   
+   memset(&info, 0, sizeof(info));
+   info.samplerate = 8000;
+   info.channels = 1;
+   info.format = SF_FORMAT_WAV | SF_FORMAT_ULAW;
 #ifndef NEW_SNDFILE
-    info.pcmbitwidth = 8; // No longer needed with latest libsndfile. --Ben
-    m_iFd = sf_open_write(fileName.c_str(), &info);
+   info.pcmbitwidth = 8; // No longer needed with latest libsndfile. --Ben
+   m_iFd = sf_open_write(fileName.c_str(), &info);
 #else
-    m_iFd = sf_open(fileName.c_str(), SFM_WRITE, &info);
+   m_iFd = sf_open(fileName.c_str(), SFM_WRITE, &info);
 #endif
-    if ( m_iFd == NULL )
-    {
-        cpLog(LOG_ERR, "Error opening file for writing");
-        return false;
-    }
-    return true;
+   if ( m_iFd == NULL ) {
+      cpLog(LOG_ERR, "Error opening file for writing");
+      return false;
+   }
+   return true;
 }
