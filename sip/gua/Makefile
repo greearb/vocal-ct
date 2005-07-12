@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2005/06/27 02:18:21 greear Exp $
+# $Id: Makefile,v 1.10 2005/07/12 23:32:24 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -178,7 +178,7 @@ SRC += LF/LFVoipCtrlHandler.cxx LF/LFVoipEndp.cxx LF/LFVoipHelper.cxx LF/LFVoipM
 
 
 LFDIR=$(l4LIBS_BASE)/..
-INCDIRS += $(LFDIR)/server $(LFDIR)/include $(LFDIR)/l4libs/curl-7.10.4/include
+INCDIRS += $(LFDIR)/server $(LFDIR)/include $(LFDIR)/l4libs/curl/include
 LIBDIRS += $(LFDIR)/lib
 
 # Link in the LANforge .o files needed by the helper process..
