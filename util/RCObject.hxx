@@ -66,7 +66,7 @@ public:
       // Do NOT mess with reference count
       return *this;
    }
-   
+   virtual ~RCObject() { };
 
    virtual int incrementReferenceCount() { count++; return count; }
    virtual int decrementReferenceCount() { count--; return count; }

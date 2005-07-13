@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2004/12/07 19:55:13 greear Exp $
+# $Id: Makefile,v 1.6 2005/07/13 21:01:43 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -29,6 +29,8 @@ endif
 MAKE_NOJ = $(patsubst %-j4,%, $(patsubst %-j2,%, $(MAKE)))
 
 INSTALL = install
+
+XML_VER=2.6.20
 
 CODE_DEPENDS = libxml
 CODE_DEPENDS += speex_targ
@@ -139,7 +141,7 @@ libxml: ../lib.$(TARGET_NAME)/libvxml.so
 	mkdir -p ../lib.$(TARGET_NAME)
 	rm -f $@
 	rm -f ../lib.$(TARGET_NAME)/libvxml.a
-	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.so.2.6.11 $@
+	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.so.${XML_VER} $@
 	ln -s -f $(shell pwd)/libxml2.$(TARGET_NAME)/.libs/libxml2.a ../lib.$(TARGET_NAME)/libvxml.a
 
 libxmlB: libxml2.$(TARGET_NAME)
@@ -147,7 +149,8 @@ libxmlB: libxml2.$(TARGET_NAME)
 	(cd libxml2.$(TARGET_NAME)/.libs ; ln -s -f libxml2.so libvxml.so; ln -s -f libxml2.a libvxml.a)
 
 libxml2.$(TARGET_NAME):
-	$(LNDIR) ../libxml2-2.6.11 libxml2.$(TARGET_NAME)
+	tar -xvzf libxml2-${XML_VER}.tar.gz
+	$(LNDIR) ../libxml2-${XML_VER} libxml2.$(TARGET_NAME)
 	(cd libxml2.$(TARGET_NAME) ; CC="$(CC)" $(CONFIGURE) --without-threads --without-python)
 endif
 
@@ -257,6 +260,7 @@ cleanall: clean
 clean:
 	-rm -rf xerces-c-src1_4_0.$(OS_ARCH)
 	-rm -rf libxml2.$(TARGET_NAME)
+	-rm -rf libxml2-${XML_VER}
 	-rm -rf Equivalence.$(OS_ARCH)
 	-rm -rf yarrow.$(OS_ARCH)
 	-rm -rf newsndfile.$(OS_ARCH)
