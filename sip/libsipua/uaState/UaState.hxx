@@ -54,12 +54,13 @@
 
 
 static const char* const UaState_hxx_Version = 
-"$Id: UaState.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+"$Id: UaState.hxx,v 1.3 2005/08/10 21:58:03 greear Exp $";
 
 #include "CInvalidStateException.hxx"
 #include "SipMsg.hxx"
 #include "SystemInfo.hxx"
 #include "cpLog.h"
+#include "SipCommand.hxx"
 
 namespace Vocal {
 
