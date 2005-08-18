@@ -49,7 +49,7 @@
  */
 
 static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
+    "$Id: UaConfiguration.cxx,v 1.4 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -126,6 +126,8 @@ static const char* UaConfigurationTagString [] =
         "Force_IPv6",
         "IP_TOS",
         "PKT_PRIORITY",
+	"VAD_ON",
+	"VADMsBeforeSuppression",
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -190,6 +192,8 @@ UaConfiguration::parseConfig()
     setValue(ForceIPv6Tag, "false");
     setValue(IP_TOS_TAG, "0");
     setValue(PKT_PRIORITY_TAG, "0");
+    setValue(VAD_ON_TAG, "0");
+    setValue(VADMsBeforeSuppressionTag, "250");
 
     if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) )
     {
@@ -266,6 +270,10 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "       IP_TOS:       %s", getValue(IP_TOS_TAG).c_str());
     cpLog( LOG_INFO, "       PKT_PRIORITY: %s", getValue(PKT_PRIORITY_TAG).c_str());
 
+    cpLog( LOG_INFO, "--- Behaviour Control Options ---" );
+    cpLog( LOG_INFO, "       VAD_ON      : %s", getValue(VAD_ON_TAG).c_str());
+    cpLog( LOG_INFO, "       VADMsBeforeSuppression: %s", getValue(VADMsBeforeSuppressionTag).c_str());
+
 
     cpLog( LOG_INFO, "\n\n");
 
@@ -296,6 +304,19 @@ UaConfiguration::setValue(UaConfigurationTags tag, string value)
     }
 }
 
+// VADOptions interface:
+bool UaConfiguration::getVADOn() const
+{
+    //return atoi(myConfigData[VAD_ON_TAG].c_str()) != 0; 
+    return 1; // REMOVE ME
+}
+
+// VADOptions interface:
+int32_t UaConfiguration::getVADMsBeforeSuppression() const
+{
+    //return (int32_t)atoi(myConfigData[VADMsBeforeSuppressionTag].c_str());
+    return 250;  // REMOVE ME
+}
 
 UaConfiguration::UaConfiguration(const string cfgFile)
     : myConfigFile(cfgFile)

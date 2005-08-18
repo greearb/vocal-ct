@@ -53,7 +53,7 @@
 
 
 static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.6 2005/03/03 19:59:49 greear Exp $";
+    "$Id: MediaController.hxx,v 1.7 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "global.h"
 #include <list>
@@ -101,7 +101,8 @@ public:
                           const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int minRtpPort, int maxRtpPort,
-                          map<VCodecType, int>& prio_map);
+                          map<VCodecType, int>& prio_map,
+                          VADOptions* vadOptions = NULL);
 
    ///
    string className() { return "MediaController"; }
@@ -178,7 +179,8 @@ private:
                    const string& local_ip,
                    const string& local_dev_to_bind_to,
                    int minRtpPort, int maxRtpPort,
-                   map<VCodecType, int>& prio_map);
+                   map<VCodecType, int>& prio_map,
+                   VADOptions* vadOptions);
 
    ///
    static MediaController* myInstance;
@@ -213,6 +215,7 @@ private:
    string localDevToBindTo;
    uint16 _tos;
    uint32 _skb_priority;
+   VADOptions* vadOptions;
 };
 
 }

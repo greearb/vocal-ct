@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.8 2005/06/07 20:14:49 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.9 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -79,11 +79,13 @@ MediaSession::MediaSession(int sessionId,
                            Sptr<NetworkRes> localRes,
                            uint16 tos, uint32 priority,
                            const string& local_dev_to_bind_to,
-                           const char* debug) 
+                           const char* debug,
+                           VADOptions *vadOptions) 
       : mySessionId(sessionId),
         myRtpSession(NULL),
         localDevToBindTo(local_dev_to_bind_to),
-        _tos(tos), _skb_priority(priority) {
+        _tos(tos), _skb_priority(priority),
+        vadOptions(vadOptions) {
    _cnt++;
 
    cpLog(LOG_DEBUG_STACK, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
@@ -305,7 +307,8 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
                                        _tos, _skb_priority,
                                        localDevToBindTo,
                                        remoteRes,
-                                       cAdp, fmt, mySSRC);
+                                       cAdp, fmt, mySSRC,
+                                       vadOptions);
     }
 }//addToSession
 
@@ -342,9 +345,9 @@ void
 MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
                          Adaptor* adp, bool silence_pkt) {
    assertNotDeleted();
-   //cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s\n",
-   //      (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
-   //      adp->getDescription().c_str());
+   cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s\n",
+         (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
+         adp->getDescription().c_str());
    if (adp->getDeviceType() != RTP) {
       //Data from hardware, ship it out to the RTP session
       if (myRtpSession != 0) {

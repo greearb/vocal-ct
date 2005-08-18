@@ -107,7 +107,8 @@ int main(const int argc, const char**argv) {
       UaCommandLine::instance( (int)argc, (const char**)argv );
       //Set the default log file size to be 3MB
       DEBUG_MEM_USAGE("after argc");
-      cpLogSetFileSize (3000000);
+      //cpLogSetFileSize (3000000);
+      cpLogSetFileSize (30000000);
       //Set the num of backup files to be 2
       cpLogSetNumOfBackupFiles (2);
 
@@ -124,7 +125,7 @@ int main(const int argc, const char**argv) {
       }
 
       cpLogSetPriority(cpLogStrToPriority(UaConfiguration::instance().getValue(LogLevelTag).c_str()));
-      //cpLogSetPriority(LOG_DEBUG_STACK);
+      cpLogSetPriority(LOG_DEBUG_STACK);
 
       int localSipPort = 
          atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());

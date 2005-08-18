@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.9 2005/03/03 19:59:49 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.10 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -70,9 +70,12 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                          const string& local_dev_to_bind_to,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
-                         u_int32_t ssrc)
+                         u_int32_t ssrc,
+                         VADOptions *vadOptions)
     : Adaptor("MRtpSession", "MRtpSession", RTP, NONE), mySessionId(sessionId),
-      rtp_rx_packet(1012)
+      rtp_rx_packet(1012),
+      consecutiveSilentSamples(0),
+      vadOptions(vadOptions)
 {
 
     lastRtpRetrieve = 0;
@@ -247,6 +250,58 @@ void MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
    }
 }
 
+// Just a little routine to check whether the buffer contains silence.
+//
+// This method assumes that the data being processed is the optimum encoding
+// for voice quality. 
+// That is: 16-bit signed, mono, 8000Hz (8Khz), PCMU (or in LF terms G711U)
+//
+// Q: What is the most effective way of detecting silence?
+// A: Spoke to my mate Stephen (stephen@blacksapphire.com)
+//    and he told me that this was the best method
+//    "Square your threshold, and compare the square sum against the 
+//     squared threshold"
+//
+//  As I trust him - I guess that is exactly what I'll do
+//     -- Ben Martel (benm@symmetric.co.nz)
+bool MRtpSession::isSilence(char *buffer, int noOfSamples, int perSampleSize)
+{
+   int32_t i = 0;
+   int32_t total_of_values = 0;
+   int32_t average = 0;
+   uint64 sumOfSquares = 0;
+   uint64 thresholdComparisonValue;
+   int16_t* samples;
+
+   if (perSampleSize == 2)
+       samples = reinterpret_cast<int16_t*>(buffer);
+   else
+     // If we have been handed ulaw data, then we don't handle this yet.
+     // Consider converting it.
+       {
+       cpLog(LOG_DEBUG_STACK, "mu-law data - ahhhhhhhh! ");
+       return false;
+       }
+
+   for (i=0; i<noOfSamples; i++)
+           total_of_values += (int32_t)samples[i];
+
+   average = total_of_values / noOfSamples;
+
+   for (i=0; i<noOfSamples; i++) {
+           int32_t deviation = (int32_t)samples[i] - average;
+           sumOfSquares += (uint64) ((uint64)deviation*(uint64)deviation);
+   }
+
+   // The value here of 0x7e equates to -37dB which is the value chosen by the ITU
+   thresholdComparisonValue = (uint64)0x7e * (uint64)0x7e * (uint64)noOfSamples;
+   if (sumOfSquares < thresholdComparisonValue)
+           return true;  // It is silence....sshhhhh!
+   else
+           return false; // Nope - something was making a noise.
+
+}
+
 ///Consume the raw data
 void 
 MRtpSession::sinkData(char* data, int length, VCodecType type,
@@ -258,6 +313,7 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
     //is needed and send it as is
     //Send RTP packet to the destination
     cpLog(LOG_DEBUG_STACK, "%s sinking data", description().c_str());
+    cpLog(LOG_DEBUG_STACK, "type = ");
     int retVal = 0;
     if(type == DTMF_TONE) {
         //First 8 bits will represent the event
@@ -267,9 +323,9 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
         retVal = rtpStack->transmitEvent(event);
     }
     else {
-        if (type != myCodec->getType()) {
-            //First convert the data from type to myType and then feed
-            //it to the soundcard
+        if (type != myCodec->getType() || (vadOptions != NULL && vadOptions->getVADOn()))
+        {
+            //First convert the data from type to myType 
             cpLog(LOG_DEBUG_STACK, "Converting outgoing data, type: %d  myCodec.type: %d, codec: %p",
                   type, myCodec->getType(), codec.getPtr());
 
@@ -289,25 +345,61 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
 
             codec->decode(data, length, decBuf, decLen, decodedSamples,
                           decodedPerSampleSize);
+            vhexDump(data, decLen, dbg);
+            cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
 
-            //vhexDump(data, decLen, dbg);
-            //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
+            bool silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
+            if (silentPacket)
+                consecutiveSilentSamples += decodedSamples;
+            else
+                consecutiveSilentSamples = 0;
 
-            int encLen = 1024;
-            char encBuf[1024];
-            myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize,
-                            encBuf, encLen);
+            bool suppress = vadOptions != NULL && vadOptions->getVADOn() &&
+                ((uint64)consecutiveSilentSamples*1000)/(uint64)codec->getClockRate() >= (uint64)vadOptions->getVADMsBeforeSuppression();
+
+            if (!suppress) {
+                  // If the input and output codecs are the same, then we transmit the
+                  // input data instead of re-encoding.
+                if (type == myCodec->getType()) {
+                    retVal = rtpStack->transmitRaw(data, length);
+                }
+                else {
+                    int encLen = 1024;
+                    char encBuf[1024];
+                    myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize,
+                         encBuf, encLen);
 
             //vhexDump(data, encLen, dbg);
             //cpLog(LOG_ERR, "After encode: %s", dbg.c_str());
 
-            if (encLen > 0) { 
-                retVal = rtpStack->transmitRaw(encBuf, encLen);
-            } else { 
-                // Don't trasmit if there has been an error
-                cpLog(LOG_ERR, "Coding error, no data returned from codec");
+                    if (encLen > 0) { 
+                       retVal = rtpStack->transmitRaw(encBuf, encLen);
+                    } else { 
+                       // Don't trasmit if there has been an error
+                       cpLog(LOG_ERR, "Coding error, no data returned from codec");
+                    }
+                }
+            } else {  /* suppress == true */
+
+                // However, if we have not been tramsitting RTP for a while (suppressing)
+                // because there has been a *long* period of silence (this can 
+                // happen when someone mutes their handset for example)
+                // we need to actually send something as other code
+                // might think that the RTP session has died. 
+                // To do this, we check to see if the suppression has been in force
+                // for 4 times longer than the time we waited before applying it.
+                uint64 dummy = (uint64)vadOptions->getVADMsBeforeSuppression() * (uint64)4;   
+                if (dummy > 8000) // to a maximum of 8 secs
+                    dummy = 8000;
+                else if (dummy < 5000)  // to a minimum of 5 secs
+                    dummy = 5000;
+                   
+                if (((uint64)consecutiveSilentSamples*(uint64)1000)/(uint64)codec->getClockRate() >= dummy ) 
+                          consecutiveSilentSamples = 0;
+                    
             }
         } else {
+            consecutiveSilentSamples = 0;
             //string dmp;
             //hexDump(data, length, dmp);
             //cpLog(LOG_DEBUG_STACK, "Transmit raw:%d\n%s", length, dmp.c_str());

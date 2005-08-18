@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.8 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "Sptr.hxx"
 
@@ -73,6 +73,16 @@ namespace Vocal
 
 namespace UA
 {
+
+class VADOptions {
+public:
+    VADOptions() {}
+    virtual ~VADOptions() {}
+
+    virtual bool getVADOn() const = 0;
+
+    virtual int32_t getVADMsBeforeSuppression() const = 0;
+};
 
 class CodecAdaptor;
 class MediaSession;
@@ -96,7 +106,8 @@ public:
                const string& local_dev_to_bind_to,
                NetworkRes& remote ,
                Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
-               u_int32_t ssrc);
+               u_int32_t ssrc,
+               VADOptions *vadOptions = NULL);
 
    virtual ~MRtpSession();
 
@@ -167,6 +178,8 @@ protected:
    MDTMFInterface* myDTMFInterface;
 
 private:
+   bool isSilence(char *buffer, int noOfSamples, int perSampleSize);
+
    ///
    Sptr<MediaSession> mySession;
    ///
@@ -174,7 +187,11 @@ private:
    string localDevToBindTo;
    uint16 _tos;
    uint32 _skb_priority;
+   uint16 _vadOn;
+   uint16 _vadMsBeforeSuppression;
    RtpPacket rtp_rx_packet;
+   uint32 consecutiveSilentSamples;
+   VADOptions* vadOptions;
 };
 
  

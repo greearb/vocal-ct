@@ -52,10 +52,12 @@
  */
 
 static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
+    "$Id: UaConfiguration.hxx,v 1.5 2005/08/18 21:52:03 bmartel Exp $";
 
 #include <string>
 #include <list>
+
+#include <MRtpSession.hxx>
 
 using namespace std;
 
@@ -113,13 +115,16 @@ typedef enum
     ForceIPv6Tag,
     IP_TOS_TAG,
     PKT_PRIORITY_TAG,
+    VAD_ON_TAG,         // Is Voice Activity Detection enabled
+    VADMsBeforeSuppressionTag,  // How many milliseconds of silence before we stop
+                                // sending RTP packets to the other end 
     UaConfigurationTagMax
 } UaConfigurationTags;
 
 /**
  *  SIP User Agent configuration
  */
-class UaConfiguration {
+class UaConfiguration : public VADOptions {
     public:
         ///
         static UaConfiguration& instance();
@@ -153,6 +158,12 @@ class UaConfiguration {
 
         ///
         const list<string>& getVmServers() const;
+
+        // VADOptions interface:
+        virtual bool getVADOn() const;
+
+        // VADOptions interface:
+        virtual int32_t getVADMsBeforeSuppression() const;
 
     protected:
 

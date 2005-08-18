@@ -50,7 +50,7 @@
 
 
 static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: MediaController.cxx,v 1.8 2005/08/18 21:52:03 bmartel Exp $";
 
 
 #include "MediaController.hxx"
@@ -84,12 +84,13 @@ void MediaController::initialize(uint16 tos, uint32 priority,
                                  const string& local_ip,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
-                                 map<VCodecType, int>& prio_map)
+                                 map<VCodecType, int>& prio_map,
+                                 VADOptions* vadOptions)
 {
    assert(myInstance == 0);
    if (myInstance == 0) {
       myInstance = new MediaController(tos, priority, local_ip, local_dev_to_bind_to,
-                                       minRtpPort, maxRtpPort, prio_map);
+                                       minRtpPort, maxRtpPort, prio_map, vadOptions);
    }
 }
 
@@ -97,10 +98,12 @@ MediaController::MediaController(uint16 tos, uint32 priority,
                                  const string& _local_ip,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
-                                 map<VCodecType, int>& prio_map)
+                                 map<VCodecType, int>& prio_map,
+                                 VADOptions* vadOptions)
       : local_ip(_local_ip),
         localDevToBindTo(local_dev_to_bind_to),
-        _tos(tos), _skb_priority(priority)
+        _tos(tos), _skb_priority(priority),
+        vadOptions(vadOptions)
 {
    cpLog(LOG_DEBUG, "MediaController::MediaController");
    myRollingSessionId = 1;
@@ -275,7 +278,7 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
    //TODO:  There is still a race here, cause another process could jump in
    // and steal the port! --Ben
    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,
-                                                  localDevToBindTo, debug);
+                                                  localDevToBindTo, debug, vadOptions);
 
    assert(myMediaSessionMap.count(sId) == 0);
    myMediaSessionMap[sId] = mSession;

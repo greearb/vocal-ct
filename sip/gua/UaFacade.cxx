@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.13 2005/06/23 23:50:21 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.14 2005/08/18 21:52:03 bmartel Exp $";
 
 
 #include <sys/types.h>
@@ -183,13 +183,27 @@ UaFacade::initialize(const Data& applName,
        priority = atoi(tmp.c_str());
     }
 
+    tmp = UaConfiguration::instance().getValue(VAD_ON_TAG).c_str();
+    uint32 vad_on = 0;
+    if (tmp.size()) {
+       vad_on = atoi(tmp.c_str());
+    }
+    vad_on = 1; // REMOVE ME
+
+    tmp = UaConfiguration::instance().getValue(VADMsBeforeSuppressionTag).c_str();
+    uint32 vadmsbeforesuppression = 0;
+    if (tmp.size()) {
+       vadmsbeforesuppression = atoi(tmp.c_str());
+    }
+    vadmsbeforesuppression = 250; // REMOVE ME
+
     if (!NAT_HOST.length()){
        NAT_HOST = local_ip;
     }
-    cpLog(LOG_ERR, "About to create UaFacade, tos: %i  priority: %i  local_ip: %s\n",
-          tos, priority, local_ip.c_str());
+    cpLog(LOG_ERR, "About to create UaFacade, tos: %i  priority: %i vad_on: %d vadmsbeforesuppression: %d local_ip: %s\n",
+          tos, priority, vad_on, vadmsbeforesuppression, local_ip.c_str());
     myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
-                              NAT_HOST, transport, proxyAddr, filteron, nat);
+                              NAT_HOST, transport, proxyAddr, filteron, nat, &UaConfiguration::instance());
 }
 
 
@@ -199,7 +213,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
                    const string& _localIp,
                    unsigned short _localSipPort, const string& _natIp,
                    int _transport, const NetworkAddress& proxyAddr,
-                   bool filteron, bool nat) :
+                   bool filteron, bool nat, VADOptions* vadOptions) :
       BaseFacade(_localIp, _localSipPort, _natIp, _transport, proxyAddr, nat)
 #ifdef USE_LANFORGE
       , myLFThread(NULL)
@@ -349,7 +363,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
 
       DEBUG_MEM_USAGE("Initializing media controller");
       MediaController::initialize(tos, priority, cfg_local_ip, cfg_local_rtp_dev,
-                                  minRtpPort, maxRtpPort, priority_map);
+                                  minRtpPort, maxRtpPort, priority_map, vadOptions);
 
       cpLog(LOG_DEBUG, "Initialized UaFacade");
    }

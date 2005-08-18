@@ -49,7 +49,7 @@
  */
 
 static const char* const UaCommandLine_cxx_Version =
-    "$Id: UaCommandLine.cxx,v 1.2 2004/06/19 00:51:07 greear Exp $";
+    "$Id: UaCommandLine.cxx,v 1.3 2005/08/18 21:52:03 bmartel Exp $";
 
 #include "global.h"
 #if defined(WIN32) || defined(linux)
@@ -216,7 +216,7 @@ UaCommandLine::parseCommandLine( const int argc,
 		cout << " -M : run gua as VmAdmin agent" << endl;
         cout << " -h : display usage" << endl;
         cout << " -f : specify configuration file"<< endl;
-        cout << " -I : specify local IP address to which we'll bind"<< endl;
+        cout << " -I : specify local IP address to which we'll bind to"<< endl;
         exit(0);
     }
 
@@ -229,7 +229,7 @@ UaCommandLine::parseCommandLine( const int argc,
 		cout << " -M : run gua as VmAdmin agent" << endl;
         cout << " -h : display usage" << endl;
         cout << " -f : specify configuration file"<< endl;
-        cout << " -I : specify local IP address to which we'll bind"<< endl;
+        cout << " -I : specify local IP address to which we'll bind to"<< endl;
         exit(0);
     }
     if(vmFlg && annonFlg)
