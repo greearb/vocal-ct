@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.10 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: MRtpSession.cxx,v 1.11 2005/08/18 23:00:43 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -345,8 +345,8 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
 
             codec->decode(data, length, decBuf, decLen, decodedSamples,
                           decodedPerSampleSize);
-            vhexDump(data, decLen, dbg);
-            cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
+            //vhexDump(data, decLen, dbg);
+            //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
 
             bool silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
             if (silentPacket)
