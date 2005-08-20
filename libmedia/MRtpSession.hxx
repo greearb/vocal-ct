@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.8 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: MRtpSession.hxx,v 1.9 2005/08/20 06:57:42 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -75,14 +75,28 @@ namespace UA
 {
 
 class VADOptions {
+protected:
+   bool vad_on;
+   uint32 ms_before_suppression;
+   uint32 force_send_ms;
+
 public:
-    VADOptions() {}
-    virtual ~VADOptions() {}
+   VADOptions() {}
+   VADOptions(bool vo, uint32 msbs, uint32 fs) :
+         vad_on(vo), ms_before_suppression(msbs),
+         force_send_ms(fs) { }
+   virtual ~VADOptions() {}
 
-    virtual bool getVADOn() const = 0;
+   bool getVADOn() const { return vad_on; }
+   uint32 getForceSendMs() const { return force_send_ms; }
 
-    virtual int32_t getVADMsBeforeSuppression() const = 0;
+   uint32 getVADMsBeforeSuppression() const { return ms_before_suppression; }
+
+   void setVADOn(bool v) { vad_on = v; }
+   void setForceSendMs(uint32 v) { force_send_ms = v; }
+   void setVADMsBeforeSuppression(uint32 v) { ms_before_suppression = v; }
 };
+
 
 class CodecAdaptor;
 class MediaSession;

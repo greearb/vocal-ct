@@ -53,7 +53,7 @@
 
 
 static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.9 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: UaFacade.hxx,v 1.10 2005/08/20 06:57:42 greear Exp $";
 
 
 #include "global.h"
@@ -181,7 +181,7 @@ private:
             const string& _localIp,
             unsigned short _localSipPort, const string& _natIp,
             int _transport, const NetworkAddress& proxyAddr,
-            bool filteron, bool nat, VADOptions* vadOptions);
+            bool filteron, bool nat, VADOptions& vadOptions);
 
    ///
    static Sptr<UaFacade> myInstance;
@@ -225,6 +225,8 @@ private:
 
    ///
    MediaDeviceMap myMediaDeviceMap;
+
+   VADOptions vad_options;
 };
 
 }

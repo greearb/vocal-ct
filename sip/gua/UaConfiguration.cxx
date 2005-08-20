@@ -49,7 +49,7 @@
  */
 
 static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.4 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: UaConfiguration.cxx,v 1.5 2005/08/20 06:57:42 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -128,6 +128,7 @@ static const char* UaConfigurationTagString [] =
         "PKT_PRIORITY",
 	"VAD_ON",
 	"VADMsBeforeSuppression",
+        "VADForceSendAfterMs",
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -194,6 +195,7 @@ UaConfiguration::parseConfig()
     setValue(PKT_PRIORITY_TAG, "0");
     setValue(VAD_ON_TAG, "0");
     setValue(VADMsBeforeSuppressionTag, "250");
+    setValue(VADForceSendAfterMsTag, "5000");
 
     if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) )
     {
@@ -302,20 +304,6 @@ UaConfiguration::setValue(UaConfigurationTags tag, string value)
     {
         cpLog(LOG_DEBUG, "UaConfiguration::setValue, unknown tag for value <%s> ignoring", value.c_str());
     }
-}
-
-// VADOptions interface:
-bool UaConfiguration::getVADOn() const
-{
-    //return atoi(myConfigData[VAD_ON_TAG].c_str()) != 0; 
-    return 1; // REMOVE ME
-}
-
-// VADOptions interface:
-int32_t UaConfiguration::getVADMsBeforeSuppression() const
-{
-    //return (int32_t)atoi(myConfigData[VADMsBeforeSuppressionTag].c_str());
-    return 250;  // REMOVE ME
 }
 
 UaConfiguration::UaConfiguration(const string cfgFile)

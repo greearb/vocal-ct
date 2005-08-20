@@ -52,7 +52,7 @@
  */
 
 static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.5 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: UaConfiguration.hxx,v 1.6 2005/08/20 06:57:42 greear Exp $";
 
 #include <string>
 #include <list>
@@ -68,8 +68,7 @@ namespace UA
 {
 
 
-typedef enum
-{
+typedef enum {
     UserNameTag = 0,
     DisplayNameTag,
     PasswordTag,
@@ -115,69 +114,63 @@ typedef enum
     ForceIPv6Tag,
     IP_TOS_TAG,
     PKT_PRIORITY_TAG,
-    VAD_ON_TAG,         // Is Voice Activity Detection enabled
+    VAD_ON_TAG,         // Is Voice Activity Detection enabled ( 0 == disabled)
     VADMsBeforeSuppressionTag,  // How many milliseconds of silence before we stop
                                 // sending RTP packets to the other end 
+    VADForceSendAfterMsTag, /* Force a pkt to be sent after this many ms, even
+                          * if we are in VAD active mode. */
     UaConfigurationTagMax
 } UaConfigurationTags;
 
 /**
  *  SIP User Agent configuration
  */
-class UaConfiguration : public VADOptions {
-    public:
-        ///
-        static UaConfiguration& instance();
-        ///
-        static void instance( const string cfgFile );
-        static void destroy();
-
-        ///
-        static void parseCfgFileCallBack( char* tag, char* type, char* value );
-        ///
-        void show();
-
-        ///
-        string getValue(UaConfigurationTags tag) const;
-        ///
-        void setValue(UaConfigurationTags tag, string value);
-
-        ///
-        ~UaConfiguration();
-
-        ///
-        void parseConfig();
-
-        const string getMyLocalIp() const;
-
-        const string getConfiguredLocalIp() const;
-        const string getConfiguredLocalSipDev() const;
-        const string getConfiguredLocalRtpDev() const;
-
-        bool shouldUseGui() const;
-
-        ///
-        const list<string>& getVmServers() const;
-
-        // VADOptions interface:
-        virtual bool getVADOn() const;
-
-        // VADOptions interface:
-        virtual int32_t getVADMsBeforeSuppression() const;
-
-    protected:
-
-    private:
-        ///
-        UaConfiguration(const string cfgFile);
-        ///
-        string myConfigFile;
-        ///
-        list<string>  myVmServers;
-        ///
-        string myConfigData[UaConfigurationTagMax];
-        ///
-        static UaConfiguration* uaConfiguration;
+class UaConfiguration {
+public:
+   ///
+   static UaConfiguration& instance();
+   ///
+   static void instance( const string cfgFile );
+   static void destroy();
+   
+   ///
+   static void parseCfgFileCallBack( char* tag, char* type, char* value );
+   ///
+   void show();
+   
+   ///
+   string getValue(UaConfigurationTags tag) const;
+   ///
+   void setValue(UaConfigurationTags tag, string value);
+   
+   ///
+   ~UaConfiguration();
+   
+   ///
+   void parseConfig();
+   
+   const string getMyLocalIp() const;
+   
+   const string getConfiguredLocalIp() const;
+   const string getConfiguredLocalSipDev() const;
+   const string getConfiguredLocalRtpDev() const;
+   
+   bool shouldUseGui() const;
+   
+   ///
+   const list<string>& getVmServers() const;
+   
+private:
+   ///
+   UaConfiguration(const string cfgFile);
+   ///
+   string myConfigFile;
+   ///
+   list<string>  myVmServers;
+   ///
+   string myConfigData[UaConfigurationTagMax];
+   ///
+   static UaConfiguration* uaConfiguration;
 };
  
 }
