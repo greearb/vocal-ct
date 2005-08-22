@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.9 2005/08/22 06:55:50 greear Exp $";
 
 
 #include "global.h"
@@ -420,10 +420,12 @@ int RtpReceiver::readNetwork() {
 }//read into our jitter buffer
 
 
-int RtpReceiver::retrieve(RtpPacket& pkt) {
+int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     // deque next packet from the jitter buffer.
     if (inPos == playPos) {
-       cpLog (LOG_ERR, "Recv buffer is empty when trying to retrieve");
+       //TODO:  Need a way to know we are in VAD and send back a pkt of
+       // silence...
+       cpLog (LOG_ERR, "Recv buffer is empty when trying to retrieve, dbg: %s", dbg);
        receiverError = recv_bufferEmpty;
        jitterBufferEmpty++; // Accounting
        return 0;

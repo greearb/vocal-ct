@@ -52,7 +52,7 @@
  */
 
 static const char* const rtpTypes_h_Version =
-    "$Id: rtpTypes.h,v 1.2 2004/06/15 00:30:10 greear Exp $";
+    "$Id: rtpTypes.h,v 1.3 2005/08/22 06:55:50 greear Exp $";
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -550,6 +550,8 @@ public:
    virtual void avgNewJitterPB(uint64& now, int d, int pkts, int len) = 0;
 
    virtual void avgNewRtpTx(uint64& now, int pkts, int len) = 0;
+
+   virtual void avgNewRtpTxVAD(uint64& now, int pkts, int len) = 0;
 
    // These next three are detected based on the rtp sequence number,
    // and take wraps into account.

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.6 2005/08/22 06:55:50 greear Exp $";
 
 
 
@@ -283,6 +283,11 @@ public:
    int transmit (RtpPacket& packet);
    int transmitRaw (char* inbuffer, int len);
 
+   /** Let the stack know we are suppressing an RTP packet send
+    * due to VAD...for accounting purposes mainly.
+    */
+   int notifyVADSuppression(int len);
+
    /** Transmit DTMF event in RTP on network
     *  @return -1 error, otherwise 0
     **/
@@ -294,7 +299,7 @@ public:
    int readNetwork(fd_set* fds);
 
    // Read from the jitter buffer.
-   int retrieve(RtpPacket& pkt);
+   int retrieve(RtpPacket& pkt, const char* dbg);
 
 
    /** Checks RTCP interval, transmits and receeives if neccessary

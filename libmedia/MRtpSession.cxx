@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.11 2005/08/18 23:00:43 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.12 2005/08/22 06:55:50 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -71,11 +71,12 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                          u_int32_t ssrc,
-                         VADOptions *vadOptions)
+                         VADOptions *_vadOptions)
     : Adaptor("MRtpSession", "MRtpSession", RTP, NONE), mySessionId(sessionId),
       rtp_rx_packet(1012),
       consecutiveSilentSamples(0),
-      vadOptions(vadOptions)
+      consecutiveSilentSentSamples(0),
+      vadOptions(_vadOptions)
 {
 
     lastRtpRetrieve = 0;
@@ -166,7 +167,7 @@ MRtpSession::~MRtpSession() {
 void MRtpSession::retrieveRtpSample() {
     rtp_rx_packet.clear();
 
-    int rv = rtpStack->retrieve(rtp_rx_packet);
+    int rv = rtpStack->retrieve(rtp_rx_packet, "retrieveRtpSample");
 
     if (rv > 0) {
         /* Removing check for payload-usage.  It doesn't work for variable
@@ -181,7 +182,7 @@ void MRtpSession::retrieveRtpSample() {
         }
     }//if
     else {
-       cpLog(LOG_DEBUG_STACK, "failed to rtpStack->retriev, rv: %d\n", rv);
+       cpLog(LOG_DEBUG_STACK, "failed to rtpStack->retrieve, rv: %d\n", rv);
     }
 }//retrieveRtpSample
 
@@ -307,111 +308,119 @@ void
 MRtpSession::sinkData(char* data, int length, VCodecType type,
                       Sptr<CodecAdaptor> codec, bool silence_pkt) {
 
-    //if the codec type is not same as the network type of the session
-    //convert back, say for example if data is PCMU and sent over session codec
-    //is G729, convert data first to G729. If G729 data is coming as input, no converssion
-    //is needed and send it as is
-    //Send RTP packet to the destination
-    cpLog(LOG_DEBUG_STACK, "%s sinking data", description().c_str());
-    cpLog(LOG_DEBUG_STACK, "type = ");
-    int retVal = 0;
-    if(type == DTMF_TONE) {
-        //First 8 bits will represent the event
-        char event;
-        memcpy(&event, data, 1);
-        cerr << "Sending digit:" << (int)event << endl;
-        retVal = rtpStack->transmitEvent(event);
-    }
-    else {
-        if (type != myCodec->getType() || (vadOptions != NULL && vadOptions->getVADOn()))
-        {
-            //First convert the data from type to myType 
-            cpLog(LOG_DEBUG_STACK, "Converting outgoing data, type: %d  myCodec.type: %d, codec: %p",
-                  type, myCodec->getType(), codec.getPtr());
+   //if the codec type is not same as the network type of the session
+   //convert back, say for example if data is PCMU and sent over session codec
+   //is G729, convert data first to G729. If G729 data is coming as input, no converssion
+   //is needed and send it as is
+   //Send RTP packet to the destination
+   cpLog(LOG_DEBUG_STACK, "%s sinking data", description().c_str());
+   cpLog(LOG_DEBUG_STACK, "type = ");
+   int retVal = 0;
+   if (type == DTMF_TONE) {
+      //First 8 bits will represent the event
+      char event;
+      memcpy(&event, data, 1);
+      cerr << "Sending digit:" << (int)event << endl;
+      retVal = rtpStack->transmitEvent(event);
+   }
+   else {
+      if (type != myCodec->getType() || vadOptions->getVADOn()) {
+         //First convert the data from type to myType 
+         cpLog(LOG_DEBUG_STACK, "Converting outgoing data, type: %d  myCodec.type: %d, codec: %p",
+               type, myCodec->getType(), codec.getPtr());
+         
+         if (codec.getPtr() == 0) {
+            codec = MediaController::instance().getMediaCapability().getCodec(type);
+         }
+         
+         //Convert from codec type to PCM
+         int decLen = 1024;
+         char decBuf[1024];
+         int decodedSamples = 0;
+         int decodedPerSampleSize = 0;
+            
+         //string dbg;
+         //vhexDump(data, length, dbg);
+         //cpLog(LOG_ERR, "Before decode: %s", dbg.c_str());
+         
+         codec->decode(data, length, decBuf, decLen, decodedSamples,
+                       decodedPerSampleSize);
+         //vhexDump(data, decLen, dbg);
+         //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
 
-            if (codec.getPtr() == 0) {
-                codec = MediaController::instance().getMediaCapability().getCodec(type);
-            }
-
-            ///Convert from codec type to PCM
-            int decLen = 1024;
-            char decBuf[1024];
-            int decodedSamples = 0;
-            int decodedPerSampleSize = 0;
-
-            //string dbg;
-            //vhexDump(data, length, dbg);
-            //cpLog(LOG_ERR, "Before decode: %s", dbg.c_str());
-
-            codec->decode(data, length, decBuf, decLen, decodedSamples,
-                          decodedPerSampleSize);
-            //vhexDump(data, decLen, dbg);
-            //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
-
-            bool silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
-            if (silentPacket)
-                consecutiveSilentSamples += decodedSamples;
-            else
-                consecutiveSilentSamples = 0;
-
-            bool suppress = vadOptions != NULL && vadOptions->getVADOn() &&
-                ((uint64)consecutiveSilentSamples*1000)/(uint64)codec->getClockRate() >= (uint64)vadOptions->getVADMsBeforeSuppression();
-
-            if (!suppress) {
-                  // If the input and output codecs are the same, then we transmit the
-                  // input data instead of re-encoding.
-                if (type == myCodec->getType()) {
-                    retVal = rtpStack->transmitRaw(data, length);
-                }
-                else {
-                    int encLen = 1024;
-                    char encBuf[1024];
-                    myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize,
-                         encBuf, encLen);
-
-            //vhexDump(data, encLen, dbg);
-            //cpLog(LOG_ERR, "After encode: %s", dbg.c_str());
-
-                    if (encLen > 0) { 
-                       retVal = rtpStack->transmitRaw(encBuf, encLen);
-                    } else { 
-                       // Don't trasmit if there has been an error
-                       cpLog(LOG_ERR, "Coding error, no data returned from codec");
-                    }
-                }
-            } else {  /* suppress == true */
-
-                // However, if we have not been tramsitting RTP for a while (suppressing)
-                // because there has been a *long* period of silence (this can 
-                // happen when someone mutes their handset for example)
-                // we need to actually send something as other code
-                // might think that the RTP session has died. 
-                // To do this, we check to see if the suppression has been in force
-                // for 4 times longer than the time we waited before applying it.
-                uint64 dummy = (uint64)vadOptions->getVADMsBeforeSuppression() * (uint64)4;   
-                if (dummy > 8000) // to a maximum of 8 secs
-                    dummy = 8000;
-                else if (dummy < 5000)  // to a minimum of 5 secs
-                    dummy = 5000;
-                   
-                if (((uint64)consecutiveSilentSamples*(uint64)1000)/(uint64)codec->getClockRate() >= dummy ) 
-                          consecutiveSilentSamples = 0;
-                    
-            }
-        } else {
+         bool silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
+         if (silentPacket) {
+            consecutiveSilentSamples += decodedSamples;
+         }
+         else {
             consecutiveSilentSamples = 0;
-            //string dmp;
-            //hexDump(data, length, dmp);
-            //cpLog(LOG_DEBUG_STACK, "Transmit raw:%d\n%s", length, dmp.c_str());
-            retVal = rtpStack->transmitRaw(data, length);
-        }
-    }
+         }
+         
+         bool suppress = false;
+         if (vadOptions->getVADOn()) {
+            uint64 consecSilenceMs = (consecutiveSilentSamples * 1000) / codec->getClockRate();
+            suppress = consecSilenceMs >= vadOptions->getVADMsBeforeSuppression();
+         }
 
-    if (retVal < 0) {
-        cpLog(LOG_ERR, "Failed to transmit RTP packets to %s:%d", 
-                       myRemoteAddress->getIpName().c_str(),
-                       myRemoteAddress->getPort());
-    }
+         // However, if we have not been tramsitting RTP for a while (suppressing)
+         // because there has been a *long* period of silence (this can 
+         // happen when someone mutes their handset for example)
+         // we need to actually send something as other code
+         // might think that the RTP session has died. 
+         // To do this, we check to see if the suppression has been in force
+         // for 4 times longer than the time we waited before applying it.
+         if (suppress) {
+            uint64 consecSilenceSentMs = (consecutiveSilentSentSamples * 1000) / codec->getClockRate();
+            if (consecSilenceSentMs >= vadOptions->getForceSendMs()) {
+               cpLog(LOG_ERR, "Forcing send of pkt even though we are in VAD..\n");
+               suppress = false;
+            }
+         }
+         
+         if (suppress) {
+            // Let's tell lower layer for accounting purposes, etc.
+            consecutiveSilentSentSamples += decodedSamples;
+            rtpStack->notifyVADSuppression(length);
+         }
+         else {
+            consecutiveSilentSentSamples = 0;
+            // If the input and output codecs are the same, then we transmit the
+            // input data instead of re-encoding.
+            if (type == myCodec->getType()) {
+               retVal = rtpStack->transmitRaw(data, length);
+            }
+            else {
+               int encLen = 1024;
+               char encBuf[1024];
+               myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize,
+                               encBuf, encLen);
+               
+               //vhexDump(data, encLen, dbg);
+               //cpLog(LOG_ERR, "After encode: %s", dbg.c_str());
+               
+               if (encLen > 0) { 
+                  retVal = rtpStack->transmitRaw(encBuf, encLen);
+               } else { 
+                  // Don't trasmit if there has been an error
+                  cpLog(LOG_ERR, "Coding error, no data returned from codec");
+               }
+            }
+         }  
+      } else {
+         consecutiveSilentSamples = 0;
+         consecutiveSilentSentSamples = 0;
+         //string dmp;
+         //hexDump(data, length, dmp);
+         //cpLog(LOG_DEBUG_STACK, "Transmit raw:%d\n%s", length, dmp.c_str());
+         retVal = rtpStack->transmitRaw(data, length);
+      }
+   }
+
+   if (retVal < 0) {
+      cpLog(LOG_ERR, "Failed to transmit RTP packets to %s:%d", 
+            myRemoteAddress->getIpName().c_str(),
+            myRemoteAddress->getPort());
+   }
 }//sinkData
 
 

@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.6 2005/08/22 06:55:50 greear Exp $";
 
 
 #include <sys/types.h>
@@ -155,7 +155,7 @@ public:
       @return <= 0 implies one should not inspect pkt, nothing worth receiving
       was received.
    */
-   int retrieve(RtpPacket& pkt);
+   int retrieve(RtpPacket& pkt, const char* dbg);
 
 
    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,

@@ -49,7 +49,7 @@
  */
 
 static const char* const RtpTransmitter_cxx_Version =
-    "$Id: RtpTransmitter.cxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpTransmitter.cxx,v 1.4 2005/08/22 06:55:50 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -268,23 +268,35 @@ int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag )
 // enough for one RTP payload.  Cannot otherwise work with variable-sized
 // codecs. --Ben
 int RtpTransmitter::transmitRaw (char* data, int len) {
-    assert (data);
-    assert(len >= 0);
-
-    // Initialize our packet.
-    rtp_raw_tx_pkt.clear();
-    rtp_raw_tx_pkt.recalcPacketAlloc(len);
-
-    rtp_raw_tx_pkt.setSSRC(ssrc);
-    rtp_raw_tx_pkt.setPayloadType(format);
-    rtp_raw_tx_pkt.setPayloadUsage(len);
-
-    memcpy (rtp_raw_tx_pkt.getPayloadLoc(), data, len);
-
-    // finish packet
-    return transmit(rtp_raw_tx_pkt);
+   assert (data);
+   assert(len >= 0);
+   
+   // Initialize our packet.
+   rtp_raw_tx_pkt.clear();
+   rtp_raw_tx_pkt.recalcPacketAlloc(len);
+   
+   rtp_raw_tx_pkt.setSSRC(ssrc);
+   rtp_raw_tx_pkt.setPayloadType(format);
+   rtp_raw_tx_pkt.setPayloadUsage(len);
+   
+   memcpy (rtp_raw_tx_pkt.getPayloadLoc(), data, len);
+   
+   // finish packet
+   return transmit(rtp_raw_tx_pkt);
 }
 
+/** Let the stack know we are suppressing an RTP packet send
+ * due to VAD...for accounting purposes mainly.
+ */
+int RtpTransmitter::notifyVADSuppression(int len) {
+#ifdef USE_LANFORGE
+    if (rtpStatsCallbacks) {
+       uint64 now = vgetCurMs();
+       rtpStatsCallbacks->avgNewRtpTxVAD(now, 1, len);
+    }
+#endif
+    return 0;
+}
 
 void RtpTransmitter::setFormat (RtpPayloadType newtype) {
     format = newtype;

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.8 2005/03/04 01:29:38 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.9 2005/08/22 06:55:50 greear Exp $";
 
 
 #include "global.h"
@@ -692,32 +692,58 @@ int RtpSession::transmit (RtpPacket& pkt)
     return tran->transmit(pkt);
 }
 
+/** Let the stack know we are suppressing an RTP packet send
+ * due to VAD...for accounting purposes mainly.
+ */
+int RtpSession::notifyVADSuppression(int len) {
+   static int pkt_sent = 0;
+   
+   if ( !( sessionState == rtp_session_sendrecv
+           || sessionState == rtp_session_sendonly ) ) {
+      sessionError = session_wrongState;
+      cpLog (LOG_ERR, "RTP stack can't transmit. Wrong state");
+      return -1;
+   }
 
-int RtpSession::transmitRaw (char* inbuffer, int len)
-{
-    static int pkt_sent = 0;
+   // Check to see if we should send an RTCP packet...
+   // Only check every 8 packets or so, for efficiency. --Ben
+   if ((pkt_sent++ & 0x7) == 0) {
+      if (rtcpTran) {
+         if (checkIntervalRTCP()) {
+            transmitRTCP();
+         }
+      }
+   }
+   
+   assert (tran);
+   sessionError = session_success;
+   return tran->notifyVADSuppression(len);
+}
 
-    if ( !( sessionState == rtp_session_sendrecv
-            || sessionState == rtp_session_sendonly ) )
-    {
-        sessionError = session_wrongState;
-        cpLog (LOG_ERR, "RTP stack can't transmit. Wrong state");
-        return -1;
-    }
 
-    // Check to see if we should send an RTCP packet...
-    // Only check every 8 packets or so, for efficiency. --Ben
-    if ((pkt_sent++ & 0x7) == 0) {
-       if (rtcpTran) {
-          if (checkIntervalRTCP()) {
-             transmitRTCP();
-          }
-       }
-    }
+int RtpSession::transmitRaw (char* inbuffer, int len) {
+   static int pkt_sent = 0;
+   
+   if ( !( sessionState == rtp_session_sendrecv
+           || sessionState == rtp_session_sendonly ) ) {
+      sessionError = session_wrongState;
+      cpLog (LOG_ERR, "RTP stack can't transmit. Wrong state");
+      return -1;
+   }
 
-    assert (tran);
-    sessionError = session_success;
-    return tran->transmitRaw(inbuffer, len);
+   // Check to see if we should send an RTCP packet...
+   // Only check every 8 packets or so, for efficiency. --Ben
+   if ((pkt_sent++ & 0x7) == 0) {
+      if (rtcpTran) {
+         if (checkIntervalRTCP()) {
+            transmitRTCP();
+         }
+      }
+   }
+   
+   assert (tran);
+   sessionError = session_success;
+   return tran->transmitRaw(inbuffer, len);
 }
 
 
@@ -778,8 +804,8 @@ int RtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 
-int RtpSession::retrieve(RtpPacket& pkt) {
-   return recv->retrieve(pkt);
+int RtpSession::retrieve(RtpPacket& pkt, const char* dbg) {
+   return recv->retrieve(pkt, dbg);
 }
 
 int RtpSession::readNetwork(fd_set* fds) {

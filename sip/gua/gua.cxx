@@ -125,7 +125,7 @@ int main(const int argc, const char**argv) {
       }
 
       cpLogSetPriority(cpLogStrToPriority(UaConfiguration::instance().getValue(LogLevelTag).c_str()));
-      cpLogSetPriority(LOG_DEBUG_STACK);
+      //cpLogSetPriority(LOG_DEBUG_STACK);
 
       int localSipPort = 
          atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());

@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.9 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: MediaSession.cxx,v 1.10 2005/08/22 06:55:50 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -345,9 +345,17 @@ void
 MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
                          Adaptor* adp, bool silence_pkt) {
    assertNotDeleted();
-   cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s\n",
+   if (silence_pkt) {
+      cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
          (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
-         adp->getDescription().c_str());
+         adp->getDescription().c_str(), silence_pkt);
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
+            (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
+            adp->getDescription().c_str(), silence_pkt);
+   }
+
    if (adp->getDeviceType() != RTP) {
       //Data from hardware, ship it out to the RTP session
       if (myRtpSession != 0) {

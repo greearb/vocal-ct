@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpTransmitter_hxx_Version =
-    "$Id: RtpTransmitter.hxx,v 1.3 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtpTransmitter.hxx,v 1.4 2005/08/22 06:55:50 greear Exp $";
 
 #include <sys/types.h>
 #include <map>
@@ -120,6 +120,12 @@ public:
    // enough for one RTP payload.  Cannot otherwise work with variable-sized
    // codecs. --Ben
    int transmitRaw (char* buffer, int data_len);
+
+   /** Let the stack know we are suppressing an RTP packet send
+    * due to VAD...for accounting purposes mainly.
+    */
+   int notifyVADSuppression(int len);
+   
 
    ///
    RtpSrc getSSRC () { return ssrc; }

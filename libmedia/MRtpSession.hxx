@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.9 2005/08/20 06:57:42 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.10 2005/08/22 06:55:50 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -121,7 +121,7 @@ public:
                NetworkRes& remote ,
                Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                u_int32_t ssrc,
-               VADOptions *vadOptions = NULL);
+               VADOptions *vadOptions);
 
    virtual ~MRtpSession();
 
@@ -201,10 +201,9 @@ private:
    string localDevToBindTo;
    uint16 _tos;
    uint32 _skb_priority;
-   uint16 _vadOn;
-   uint16 _vadMsBeforeSuppression;
    RtpPacket rtp_rx_packet;
-   uint32 consecutiveSilentSamples;
+   uint64 consecutiveSilentSamples;
+   uint64 consecutiveSilentSentSamples;
    VADOptions* vadOptions;
 };
 
