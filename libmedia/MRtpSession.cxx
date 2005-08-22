@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.12 2005/08/22 06:55:50 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.13 2005/08/22 20:40:24 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -348,20 +348,22 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
          //vhexDump(data, decLen, dbg);
          //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
 
-         bool silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
-         if (silentPacket) {
-            consecutiveSilentSamples += decodedSamples;
-         }
-         else {
-            consecutiveSilentSamples = 0;
-         }
-         
+         bool silentPacket = false;
          bool suppress = false;
          if (vadOptions->getVADOn()) {
+            silentPacket = isSilence(decBuf, decodedSamples, decodedPerSampleSize);
+
+            if (silentPacket) {
+               consecutiveSilentSamples += decodedSamples;
+            }
+            else {
+               consecutiveSilentSamples = 0;
+            }
+
             uint64 consecSilenceMs = (consecutiveSilentSamples * 1000) / codec->getClockRate();
             suppress = consecSilenceMs >= vadOptions->getVADMsBeforeSuppression();
          }
-
+         
          // However, if we have not been tramsitting RTP for a while (suppressing)
          // because there has been a *long* period of silence (this can 
          // happen when someone mutes their handset for example)
