@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.10 2005/08/22 06:55:50 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.11 2005/08/23 07:34:43 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -166,6 +166,8 @@ protected:
    class MDTMFInterface: public DTMFInterface {
    public:
       MDTMFInterface(MRtpSession* s): mySession(s) { };
+      virtual ~MDTMFInterface() { }
+
       ///Do not know what to do with second argument
       virtual void sendDTMF( int a, int b ) { mySession->recvDTMF(a); };
       MRtpSession* mySession;

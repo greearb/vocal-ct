@@ -52,7 +52,7 @@
  */
 
 static const char* const rtpTypes_h_Version =
-    "$Id: rtpTypes.h,v 1.3 2005/08/22 06:55:50 greear Exp $";
+    "$Id: rtpTypes.h,v 1.4 2005/08/23 07:34:43 greear Exp $";
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -540,6 +540,8 @@ enum KeyEvent
 #ifdef USE_LANFORGE
 class RtpStatsCallbacks {
 public:
+   virtual ~RtpStatsCallbacks() { }
+
    // How long it takes a packet to arrive, once it is sent by the far side.
    virtual void avgNewOneWayLatency(uint64& now, int d) = 0;
 

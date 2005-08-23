@@ -52,19 +52,20 @@
  */
 
 static const char* const DTMFInterface_hxx_Version =
-    "$Id: DTMFInterface.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: DTMFInterface.hxx,v 1.2 2005/08/23 07:34:43 greear Exp $";
 
-class DTMFInterface
-{
-    public:
-        /**
-	   Callback that is called when a particular DTMF event has
-	   arrived.
-	   @param event the DTMFEvent event
-	   @param duration the length of the DTMF event
-	   @see DTMFEvent
-	 */
-        virtual void sendDTMF( int event, int duration ) = 0;
+class DTMFInterface {
+public:
+   virtual ~DTMFInterface() { }
+
+   /**
+      Callback that is called when a particular DTMF event has
+      arrived.
+      @param event the DTMFEvent event
+      @param duration the length of the DTMF event
+      @see DTMFEvent
+   */
+   virtual void sendDTMF( int event, int duration ) = 0;
 };
 
 
