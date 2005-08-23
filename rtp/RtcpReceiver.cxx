@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.7 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.8 2005/08/23 06:39:42 greear Exp $";
 
 
 #include "global.h"
@@ -361,7 +361,7 @@ void RtcpReceiver::readSR (RtcpHeader* head) {
                      nowN, thenN, diff, ld, srt);
             }
             uint64 nw = nowNtp.getMs();
-            cpLog(LOG_ERR, "NOTE:  Inserting lanforge latency: %d, nw: %llu\n",
+            cpLog(LOG_DEBUG_STACK, "NOTE:  Inserting lanforge latency: %d, nw: %llu\n",
                   diff, nw);
             rtpStatsCallbacks->avgNewRoundTripLatency(nw, diff);
          }

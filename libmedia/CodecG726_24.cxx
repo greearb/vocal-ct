@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG726_24_cxx_Version =
-    "$Id: CodecG726_24.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
+    "$Id: CodecG726_24.cxx,v 1.3 2005/08/23 06:39:42 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -186,6 +186,7 @@ char* CodecG726_24::getSilenceFill(int& len) {
          tmp[i] = ulaw2linear(0xFF); // This will be a silence word in linear encoding
       }
 
+      last_len = 2048; //sizeof silence
       encode((char*)(tmp), samples, 2, silence, last_len);
       ms = last_ms;
    }

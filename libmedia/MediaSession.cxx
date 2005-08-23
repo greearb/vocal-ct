@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.10 2005/08/22 06:55:50 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.11 2005/08/23 06:39:42 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -345,16 +345,9 @@ void
 MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
                          Adaptor* adp, bool silence_pkt) {
    assertNotDeleted();
-   if (silence_pkt) {
-      cpLog(LOG_ERR, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
+   cpLog(LOG_DEBUG_STACK, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
          (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
          adp->getDescription().c_str(), silence_pkt);
-   }
-   else {
-      cpLog(LOG_DEBUG_STACK, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
-            (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
-            adp->getDescription().c_str(), silence_pkt);
-   }
 
    if (adp->getDeviceType() != RTP) {
       //Data from hardware, ship it out to the RTP session
@@ -366,8 +359,8 @@ MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdapto
       }
    }
    else {
-      //cpLog(LOG_ERR, "processRaw, using device: %s to sink data.\n",
-      //      myMediaDevice->getInstanceName().c_str());
+      cpLog(LOG_DEBUG_STACK, "processRaw, using device: %s to sink data.\n",
+            myMediaDevice->getInstanceName().c_str());
       myMediaDevice->sinkData(data, len, cType, codec, silence_pkt);
    }
 }
@@ -404,13 +397,17 @@ uint64 MediaSession::getPreferredTimeout(unsigned int jitter_pkts_in_queue,
       rv += myMediaDevice->getDataRate();
    }
 
-   // Now, deal with some adaptive code to try to keep the jitter buffer half full.
-   unsigned int desired = queue_max >> 1; // Half of max
-   if (jitter_pkts_in_queue < (desired - desired/2)) {
-      rv +=  4;
-   }
-   else if (jitter_pkts_in_queue > (desired + desired/2)) {
-      rv -= 4;
+   // If the queue is empty, then might as well go ahead and read...will
+   // just consume a silence packet...
+   if (jitter_pkts_in_queue > 0) {
+      // Now, deal with some adaptive code to try to keep the jitter buffer half full.
+      unsigned int desired = queue_max >> 1; // Half of max
+      if (jitter_pkts_in_queue < (desired - desired/2)) {
+         rv +=  4;
+      }
+      else if (jitter_pkts_in_queue > (desired + desired/2)) {
+         rv -= 4;
+      }
    }
    return rv;
 }

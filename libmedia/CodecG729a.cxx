@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
+    "$Id: CodecG729a.cxx,v 1.3 2005/08/23 06:39:42 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -137,13 +137,14 @@ int CodecG729a::encode(char* data, int num_samples, int per_sample_size,
     Word32 el = encodedLength;
     int rv = codecLibEncode(&enc_handle, shorts, &ns, encBuf, &el, &enc_option, 0);
 
+    if (rv < 0) {
+       cpLog(LOG_ERR, "codecLibEncode rv < 0: %i, num_samples: %d  ns: %d  el: %d\n",
+             rv, num_samples, ns, el);
+    }
+    
     num_samples = ns;
     encodedLength = el;
 
-    if (rv < 0) {
-       cpLog(LOG_ERR, "codecLibEncode rv < 0: %i\n", rv);
-    }
-    
     return rv;
 }
 
@@ -152,18 +153,19 @@ int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
                        int& decodedSamples, int& decodedPerSampleSize) {
     cpLog(LOG_DEBUG_STACK, "CodecG729a::decode: %d, decBufLen: %d",
           length, decBufLen);
-
+    
     Word32 l = length;
     Word32 dbl = decBufLen;
     int rv = codecLibDecode(&dec_handle, data, &l, ((short*)(decBuf)),
                             &dbl, &dec_option, 0);
 
+    if (rv < 0) {
+       cpLog(LOG_ERR, "codecLibDecode rv < 0: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
+             rv, length, decBufLen, l, dbl);
+    }
+
     length = l;
     decBufLen = dbl;
-
-    if (rv < 0) {
-       cpLog(LOG_ERR, "codecLibDecode rv < 0: %i\n", rv);
-    }
 
     assert((unsigned)overflow_catcher == (unsigned)0xd5d5d5d5);
 
@@ -194,7 +196,10 @@ char* CodecG729a::getSilenceFill(int& len) {
          tmp[i] = ulaw2linear(0xFF); // This will be a silence word in linear encoding
       }
 
+      //cpLog(LOG_ERR, "Encoding for silence fill, samples: %d\n", samples);
+      last_len = 2048; //sizeof silence
       encode((char*)(tmp), samples, 2, silence, last_len);
+      //cpLog(LOG_ERR, "Done encoding...\n");
       ms = last_ms;
    }
    len = last_len;

@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.14 2005/08/23 00:27:54 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.15 2005/08/23 06:39:42 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -173,7 +173,7 @@ void MRtpSession::retrieveRtpSample() {
       /* Removing check for payload-usage.  It doesn't work for variable
        * encoding schemes. --Ben
        */
-      if (rtp_rx_packet.getPayloadType() == (RtpPayloadType)myCodec->getRtpType() ) {
+      if (rtp_rx_packet.isSilenceFill() || (rtp_rx_packet.getPayloadType() == (RtpPayloadType)myCodec->getRtpType())) {
          processRecv(rtp_rx_packet, *myRemoteAddress);
       }
       else {
