@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.13 2005/08/22 20:40:24 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.14 2005/08/23 00:27:54 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -165,25 +165,25 @@ MRtpSession::~MRtpSession() {
 }
 
 void MRtpSession::retrieveRtpSample() {
-    rtp_rx_packet.clear();
-
-    int rv = rtpStack->retrieve(rtp_rx_packet, "retrieveRtpSample");
-
-    if (rv > 0) {
-        /* Removing check for payload-usage.  It doesn't work for variable
-         * encoding schemes. --Ben
-         */
-        if (rtp_rx_packet.getPayloadType() == (RtpPayloadType)myCodec->getRtpType() ) {
-            processRecv(rtp_rx_packet, *myRemoteAddress);
-        }
-        else {
-            cpLog(LOG_ERR, "Received from RTP stack incorrect payload type, rtp_type: %d  codec_type: %d  codec_rtp_type: %d",
-                  rtp_rx_packet.getPayloadType(), myCodec->getType(), myCodec->getRtpType());
-        }
-    }//if
-    else {
-       cpLog(LOG_DEBUG_STACK, "failed to rtpStack->retrieve, rv: %d\n", rv);
-    }
+   rtp_rx_packet.clear();
+   
+   int rv = rtpStack->retrieve(rtp_rx_packet, "retrieveRtpSample");
+   
+   if (rv > 0) {
+      /* Removing check for payload-usage.  It doesn't work for variable
+       * encoding schemes. --Ben
+       */
+      if (rtp_rx_packet.getPayloadType() == (RtpPayloadType)myCodec->getRtpType() ) {
+         processRecv(rtp_rx_packet, *myRemoteAddress);
+      }
+      else {
+         cpLog(LOG_ERR, "Received from RTP stack incorrect payload type, rtp_type: %d  codec_type: %d  codec_rtp_type: %d",
+               rtp_rx_packet.getPayloadType(), myCodec->getType(), myCodec->getRtpType());
+      }
+   }//if
+   else {
+      cpLog(LOG_DEBUG_STACK, "failed to rtpStack->retrieve, rv: %d\n", rv);
+   }
 }//retrieveRtpSample
 
 
@@ -247,7 +247,7 @@ void MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
       //cpLog(LOG_ERR, "MRtpSession::procesRecv\n");
       mySession->processRaw((char*) packet.getPayloadLoc(), packet.getPayloadUsage(),
                             myCodec->getType(), myCodec, this,
-                            packet.isMissing() || packet.isSilenceFill());
+                            packet.isSilenceFill());
    }
 }
 

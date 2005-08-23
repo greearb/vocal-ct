@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.9 2005/08/22 06:55:50 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.10 2005/08/23 00:27:55 greear Exp $";
 
 
 #include "global.h"
@@ -355,7 +355,7 @@ void RtpSession::setFormat (RtpPayloadType type, int clockrate, int per_sample_s
 
 void RtpSession::setCodecString (const char* codecStringInput) {
    if (tran) tran->setCodecString (codecStringInput);
-   if (recv) recv->setCodecString (codecStringInput);
+   //if (recv) recv->setCodecString (codecStringInput);
 }
 
 

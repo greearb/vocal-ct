@@ -53,7 +53,7 @@
 
 
 static const char* const CodecG711_hxx_Version = 
-    "$Id: CodecG711U.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG711U.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 
@@ -67,19 +67,19 @@ namespace UA
  */
 class CodecG711U  : public CodecAdaptor
 {
-    public:
-      /**Constructor to create a CodecAdaptor, the priority indicate
-       * the pref when multiple codecs can be used, a 0 priority means
-       * equal preferrence
-       */
-      CodecG711U(int priority=0)
+public:
+   /**Constructor to create a CodecAdaptor, the priority indicate
+    * the pref when multiple codecs can be used, a 0 priority means
+    * equal preferrence
+    */
+   CodecG711U(int priority=0)
          : CodecAdaptor(G711U, priority) 
       { 
-          myEncodingName = "PCMU";
-          myClockRate = 8000;
-          myMediaType = AUDIO;
-          myAttrValueMap["ptime"] = "20";
-	  myCompressionRatio = 1;
+         myEncodingName = "PCMU";
+         myClockRate = 8000;
+         myMediaType = AUDIO;
+         myAttrValueMap["ptime"] = "20";
+         myCompressionRatio = 1;
       };
 
    /**Decode form codec type to raw data (PCMU), caller should supply the buffer of
@@ -102,20 +102,24 @@ class CodecG711U  : public CodecAdaptor
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
 
-      /// Virtual destructor
-      virtual ~CodecG711U() { };
+   /** Should not free the bytes returned, is internal data
+    */
+   virtual char* getSilenceFill(int& len);
 
-      ///
-      virtual string className() { return "CodecG711U"; }
+   /// Virtual destructor
+   virtual ~CodecG711U() { };
 
-   protected:
-      /** Suppress copying
-      */
-      CodecG711U(const CodecG711U &);
-        
-      /** Suppress copying
-      */
-      const CodecG711U & operator=(const CodecG711U &);
+   ///
+   virtual string className() { return "CodecG711U"; }
+
+protected:
+   /** Suppress copying
+    */
+   CodecG711U(const CodecG711U &);
+   
+   /** Suppress copying
+    */
+   const CodecG711U & operator=(const CodecG711U &);
 };
 
 }

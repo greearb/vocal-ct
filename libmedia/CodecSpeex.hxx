@@ -53,7 +53,7 @@
 
 
 static const char* const CodecSpeex_hxx_Version = 
-    "$Id: CodecSpeex.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecSpeex.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 #include <speex.h>
@@ -86,6 +86,8 @@ public:
    //from raw data (PCMU) to codec type 
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
+
+   virtual char* getSilenceFill(int& len);
 
    /// Virtual destructor
    virtual ~CodecSpeex();

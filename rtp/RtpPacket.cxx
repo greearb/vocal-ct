@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpPacket_cxx_Version =
-    "$Id: RtpPacket.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+    "$Id: RtpPacket.cxx,v 1.3 2005/08/23 00:27:55 greear Exp $";
 
 
 #include "global.h"
@@ -156,8 +156,6 @@ void RtpPacket::clear() {
 
    converted_to_nbo = false;
    converted_to_hbo = false;
-   is_logically_missing = false;
-
 }//clear
 
 
@@ -198,7 +196,6 @@ RtpPacket::RtpPacket (RtpPacket* clone, int newpayloadSize) {
 
     converted_to_nbo = false;
     converted_to_hbo = false;
-    is_logically_missing = clone->is_logically_missing;
 }
 
 
@@ -399,7 +396,6 @@ string RtpPacket::toString() const {
    oss << "PacketAlloc: " << getPacketAlloc() << "  ";
    oss << "PayloadSize: " << getPayloadSize() << "  ";
    oss << "PayloadUsage: " << getPayloadUsage() << "  ";
-   oss << "isMissing: " << isMissing() << "  ";
    oss << "isSilence: " << isSilenceFill() << "  ";
    oss << endl;
    oss << "Unused: " << getUnused() << "  ";

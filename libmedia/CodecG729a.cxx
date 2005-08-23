@@ -50,13 +50,14 @@
  */
 
 static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG729a.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
 #include "global.h"
 #include <cassert>
 
+#include "codec/g711.h"
 #include "CodecG729a.hxx"
 #include "cpLog.h"
 
@@ -175,5 +176,30 @@ int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
 
     return rv;
 }
+
+char* CodecG729a::getSilenceFill(int& len) {
+   static char silence[2048];
+   static int last_ms = 0;
+   static int last_len = 0;
+   int ms = atoi(myAttrValueMap["ptime"].c_str());
+   if (ms != last_ms) {
+      int samples = getClockRate() / (1000 / ms);
+      if (samples > 2048) {
+         cpLog(LOG_ERR, "ERROR:  too many samples, clockRate: %i  ptime: %i\n",
+               getClockRate(), ms);
+         samples = 2048;
+      }
+      short tmp[samples];
+      for (int i = 0; i<samples; i++) {
+         tmp[i] = ulaw2linear(0xFF); // This will be a silence word in linear encoding
+      }
+
+      encode((char*)(tmp), samples, 2, silence, last_len);
+      ms = last_ms;
+   }
+   len = last_len;
+   return silence;
+}//getSilenceFill
+
 
 #endif

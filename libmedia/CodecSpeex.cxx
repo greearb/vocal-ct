@@ -50,11 +50,12 @@
  */
 
 static const char* const CodecSpeex_cxx_Version =
-    "$Id: CodecSpeex.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecSpeex.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "global.h"
 #include <cassert>
 
+#include "codec/g711.h"
 #include "CodecSpeex.hxx"
 #include "speex.h"  // Found in the contrib directory
 #include "cpLog.h"
@@ -172,3 +173,28 @@ int CodecSpeex::decode(char* data, int length, char* decBuf, int decBufLen,
 
     return (0);
 }
+
+
+char* CodecSpeex::getSilenceFill(int& len) {
+   static char silence[2048];
+   static int last_ms = 0;
+   static int last_len = 0;
+   int ms = atoi(myAttrValueMap["ptime"].c_str());
+   if (ms != last_ms) {
+      int samples = getClockRate() / (1000 / ms);
+      if (samples > 2048) {
+         cpLog(LOG_ERR, "ERROR:  too many samples, clockRate: %i  ptime: %i\n",
+               getClockRate(), ms);
+         samples = 2048;
+      }
+      short tmp[samples];
+      for (int i = 0; i<samples; i++) {
+         tmp[i] = ulaw2linear(0xFF); // This will be a silence word in linear encoding
+      }
+
+      encode((char*)(tmp), samples, 2, silence, last_len);
+      ms = last_ms;
+   }
+   len = last_len;
+   return silence;
+}//getSilenceFill

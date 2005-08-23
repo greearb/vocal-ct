@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG711U_cxx_Version =
-    "$Id: CodecG711U.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG711U.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -100,3 +100,19 @@ int CodecG711U::decode(char* data, int length, char* decBuf, int decBufLen,
     decodedPerSampleSize = 2;
     return (0);
 }
+
+
+char* CodecG711U::getSilenceFill(int& len) {
+   static char silence[2048];
+   int ms = atoi(myAttrValueMap["ptime"].c_str());
+   int samples = getClockRate() / (1000 / ms);
+   if (samples > 2048) {
+      cpLog(LOG_ERR, "ERROR:  too many samples, clockRate: %i  ptime: %i\n",
+            getClockRate(), ms);
+      samples = 2048;
+   }
+
+   memset(silence, 0xFF, samples);
+   len = samples;
+   return silence;
+}//getSilenceFill

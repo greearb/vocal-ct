@@ -50,7 +50,7 @@
  */
 
 static const char* const rtpCodec_h_Version =
-    "$Id: rtpCodec.h,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: rtpCodec.h,v 1.2 2005/08/23 00:27:55 greear Exp $";
 
 
 #ifndef RTPCODEC_H
@@ -59,12 +59,11 @@ static const char* const rtpCodec_h_Version =
 #include "Rtp.hxx"
 #include "rtpTypes.h"
 
-struct RtpCodecInfo
-{
-    RtpPayloadType payloadType;
-    char codecString[32];
-    int length;
-    unsigned char silence[480];
+struct RtpCodecInfo {
+   RtpPayloadType payloadType;
+   char codecString[32];
+   int length;
+   unsigned char silence[480];
 };
 
 extern const int numRtpCodecInfo;

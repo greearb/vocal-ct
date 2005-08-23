@@ -53,7 +53,7 @@
 
 
 static const char* const CodecAdaptor_hxx_Version = 
-    "$Id: CodecAdaptor.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: CodecAdaptor.hxx,v 1.3 2005/08/23 00:27:54 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -91,11 +91,15 @@ public:
    VCodecType getType() const { return myType; };
    int getPerSampleSize() const { return perSampleSize; }
 
+   /** Do not free returned value, it is a member of the Codec Class.
+    */
+   virtual char* getSilenceFill(int& len) = 0;
+
    void setRtpType(int i) { rtpType = i; }
 
    void setClockRate(int c) { myClockRate = c; }
 
-   ///
+   //
    const map<string, string>& getAttrValueMap() const { return myAttrValueMap; };
 
    /**Decode form codec type to raw data (PCMU), caller should supply the buffer of

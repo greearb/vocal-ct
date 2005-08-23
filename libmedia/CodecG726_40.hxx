@@ -53,7 +53,7 @@
 
 
 static const char* const CodecG726_40_hxx_Version = 
-    "$Id: CodecG726_40.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG726_40.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 
@@ -98,6 +98,8 @@ public:
     */
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
+
+   virtual char* getSilenceFill(int& len);
 
    /// Virtual destructor
    virtual ~CodecG726_40() { };

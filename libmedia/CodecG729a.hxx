@@ -52,7 +52,7 @@
  */
 
 static const char* const CodecG729a_hxx_Version = 
-    "$Id: CodecG729a.hxx,v 1.2 2004/06/20 22:28:00 greear Exp $";
+    "$Id: CodecG729a.hxx,v 1.3 2005/08/23 00:27:54 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -85,6 +85,8 @@ public:
    //from raw data (PCMU) to codec type 
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
+
+   virtual char* getSilenceFill(int& len);
 
    /// Virtual destructor
    virtual ~CodecG729a();

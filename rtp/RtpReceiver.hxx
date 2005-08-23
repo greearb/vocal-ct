@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.6 2005/08/22 06:55:50 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.7 2005/08/23 00:27:55 greear Exp $";
 
 
 #include <sys/types.h>
@@ -157,6 +157,8 @@ public:
    */
    int retrieve(RtpPacket& pkt, const char* dbg);
 
+   /** Helper method to find the right silence fill. */
+   //void resolveSilencePacket(bool& faking);
 
    int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
               int& maxdesc, uint64& timeout, uint64 now);
@@ -203,8 +205,8 @@ public:
    ///
    void setRTCPrecv (RtcpReceiver* rtcpRecv);
 
-   ///
-   void setCodecString (const char* codecStringInput);
+   //
+   //void setCodecString (const char* codecStringInput);
 
 
    int getClockRate() const { return clockRate; }
@@ -351,9 +353,6 @@ protected:
 
    // payload specific sample rate
    int clockRate;
-
-   /// silence packet template
-   char* silenceCodec;
 
    /// my UDP stack
    Sptr<UdpStack> myStack;

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.9 2005/08/22 06:55:50 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.10 2005/08/23 00:27:55 greear Exp $";
 
 
 #include "global.h"
@@ -175,8 +175,6 @@ void RtpReceiver::constructRtpReceiver (RtpPayloadType _format,
     probation = -2;
     prevPacket = NULL;
     rtcpRecv = NULL;
-    silenceCodec = 0;
-    codecString[0] = '\0';
     prevSeqRecv = 0;
     prevSeqPlay = 0;
 
@@ -202,12 +200,38 @@ int RtpReceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    return 0;
 }
 
+/*
+void RtpReceiver::resolveSilencePacket(bool& faking) {
+   if ( silencePacket == NULL ) {
+      cpLog( LOG_DEBUG_STACK, "Patching silence" );
+      if ((tmpPkt.getPayloadType() >= rtpPayloadDynMin) &&
+          (tmpPkt.getPayloadType() <= rtpPayloadDynMax) &&
+          (codecString[0] != '\0')) {
+         silencePacket = findSilenceCodecString(codecString, len);
+      }
+      else {
+         silencePacket = findSilenceCodec( tmpPkt.getPayloadType(), len );
+      }
+      
+      if ( silencePacket == NULL ) {
+         if ( len > rtpCodecInfo[ numRtpCodecInfo - 1 ].length ) {
+            cpLog( LOG_ERR, "Requested codec too big to fake %d", len );
+         }
+         else {
+            cpLog( LOG_ERR, "Faking silence packet with 0x00" );
+            silencePacket = (char*)&rtpCodecInfo[ numRtpCodecInfo - 1 ].silence;
+            faking = true;
+         }
+      }
+   }
+}//resolveSilencePacket
+*/
+
 
 /* --- receive packet functions ------------------------------------ */
 
 int RtpReceiver::readNetwork() {
    int len = 0;
-   bool faking = 0;
    int rv = 0;
    int seq;
 
@@ -284,40 +308,7 @@ int RtpReceiver::readNetwork() {
             jitterBuffer[inPos] = new RtpData();
          }
 
-         if (! isSpeexFormat()) {
-            if ( silenceCodec == 0 ) {
-               cpLog( LOG_DEBUG_STACK, "Patching silence" );
-               if ((tmpPkt.getPayloadType() >= rtpPayloadDynMin) &&
-                   (tmpPkt.getPayloadType() <= rtpPayloadDynMax) &&
-                   (codecString[0] != '\0')) {
-                  silenceCodec = findSilenceCodecString(codecString, len);
-               }
-               else {
-                  silenceCodec = findSilenceCodec( tmpPkt.getPayloadType(), len );
-               }
-                    
-               if ( silenceCodec == 0 ) {
-                  if ( len > rtpCodecInfo[ numRtpCodecInfo - 1 ].length ) {
-                     cpLog( LOG_ERR, "Requested codec too big to fake %d", len );
-                     assert( 0 );
-                  }
-                  cpLog( LOG_DEBUG_STACK, "Faking silence packet with 0x00" );
-                  silenceCodec = (char*)&rtpCodecInfo[ numRtpCodecInfo - 1 ].silence;
-                  faking = true;
-               }
-            }
-            assert( silenceCodec );
-                 
-            jitterBuffer[inPos]->setData(silenceCodec, len);
-            jitterBuffer[inPos]->setSilenceFill(true);
-         }
-         else {
-            // For speex, we let the codec deal with it, will flag on
-            // the 'isLogicallyEmpty' field in the RtpData object.
-            jitterBuffer[inPos]->setSilenceFill(false); // Not particularly silence.
-         }
-              
-         jitterBuffer[inPos]->setIsLogicallyEmpty(true);
+         jitterBuffer[inPos]->setSilenceFill(true);
          jitterBuffer[inPos]->setIsInUse(true);
               
          incrementInPos();
@@ -366,10 +357,6 @@ int RtpReceiver::readNetwork() {
 
       prevPacketRtpTime = tmpPkt.getRtpTime();
 
-      if (faking) {
-         // Try again next time ???
-         silenceCodec = NULL;
-      }
    }//if seq-number was in order
    else {
       // Find the index where we need to insert this.
@@ -384,7 +371,6 @@ int RtpReceiver::readNetwork() {
 
       jitterBuffer[idx]->setData(tmpPkt.getPayloadLoc(), len);
       jitterBuffer[idx]->setSilenceFill(false);
-      jitterBuffer[idx]->setIsLogicallyEmpty(false);
       jitterBuffer[idx]->setIsInUse(true);
 
       insertedOooPkt++;
@@ -428,7 +414,9 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
        cpLog (LOG_ERR, "Recv buffer is empty when trying to retrieve, dbg: %s", dbg);
        receiverError = recv_bufferEmpty;
        jitterBufferEmpty++; // Accounting
-       return 0;
+
+       pkt.setIsSilenceFill(true);
+       return 1;
     }
 
     // create return value.
@@ -440,7 +428,6 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     int packetSize = jitterBuffer[playPos]->getCurLen();
 
     memcpy(pkt.getPayloadLoc(), jitterBuffer[playPos]->getData(), packetSize);
-    pkt.setIsMissing(jitterBuffer[playPos]->isLogicallyEmpty());
     pkt.setIsSilenceFill(jitterBuffer[playPos]->isSilenceFill());
 
     // finish packet
@@ -808,13 +795,12 @@ void RtpReceiver::setFormat (RtpPayloadType newtype) {
     format = newtype;
 }
 
-
-void RtpReceiver::setCodecString(const char* codecStringInput)
-{
-    strncpy(codecString, codecStringInput, strlen(codecStringInput) + 1);
-    cpLog(LOG_DEBUG, "set CodecString %s", codecString);
+/*
+void RtpReceiver::setCodecString(const char* codecStringInput) {
+   strncpy(codecString, codecStringInput, strlen(codecStringInput) + 1);
+   cpLog(LOG_DEBUG, "set CodecString %s", codecString);
 }
-
+*/
 
 void RtpReceiver::incrementInPos() {
    inPos++;

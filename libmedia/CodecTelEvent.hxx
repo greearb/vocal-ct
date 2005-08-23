@@ -53,7 +53,7 @@
 
 
 static const char* const CodecTelEvent_hxx_Version = 
-    "$Id: CodecTelEvent.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecTelEvent.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 
@@ -66,22 +66,21 @@ namespace UA
 /** CodecTelEvent - placeholder implementation for offering/answering
     DTMF TONE event type 100.
  */
-class CodecTelEvent  : public CodecAdaptor
-{
-    public:
-      /**Constructor to create a CodecAdaptor, the priority indicate
-       * the pref when multiple codecs can be used, a 0 priority means
-       * equal preferrence
-       */
-      CodecTelEvent(int priority=0)
+class CodecTelEvent  : public CodecAdaptor {
+public:
+   /**Constructor to create a CodecAdaptor, the priority indicate
+    * the pref when multiple codecs can be used, a 0 priority means
+    * equal preferrence
+    */
+   CodecTelEvent(int priority=0)
          : CodecAdaptor(DTMF_TONE, priority) 
       { 
-          myEncodingName = "telephone-event";
-          myClockRate = 8000;
-          myMediaType = AUDIO;
-          myAttrValueMap["fmtp"] = "100 0-15";
+         myEncodingName = "telephone-event";
+         myClockRate = 8000;
+         myMediaType = AUDIO;
+         myAttrValueMap["fmtp"] = "100 0-15";
       };
-
+   
    /**Decode form codec type to raw data (PCMU), caller should supply the buffer of
     *size atleast length * 2. Returns 0 if successfull or -1 on failure
     * @param length is in bytes
@@ -102,20 +101,22 @@ class CodecTelEvent  : public CodecAdaptor
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
 
-      /// Virtual destructor
-      virtual ~CodecTelEvent() { };
+   virtual char* getSilenceFill(int& len) { len = 0; return ""; }
 
-      ///
-      virtual string className() { return "CodecTelEvent"; }
-
-   protected:
-      /** Suppress copying
-      */
-      CodecTelEvent(const CodecTelEvent &);
-        
-      /** Suppress copying
-      */
-      const CodecTelEvent & operator=(const CodecTelEvent &);
+   /// Virtual destructor
+   virtual ~CodecTelEvent() { };
+   
+   ///
+   virtual string className() { return "CodecTelEvent"; }
+   
+protected:
+   /** Suppress copying
+    */
+   CodecTelEvent(const CodecTelEvent &);
+   
+   /** Suppress copying
+    */
+   const CodecTelEvent & operator=(const CodecTelEvent &);
 };
 
 }

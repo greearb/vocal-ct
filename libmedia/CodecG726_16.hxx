@@ -53,7 +53,7 @@
 
 
 static const char* const CodecG726_16_hxx_Version = 
-    "$Id: CodecG726_16.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecG726_16.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 
@@ -103,6 +103,10 @@ public:
 
    /// Virtual destructor
    virtual ~CodecG726_16() { };
+
+   /** Do not free returned value, it is a member of the Codec Class.
+    */
+   virtual char* getSilenceFill(int& len);
    
    ///
    virtual string className() { return "CodecG726_16"; }

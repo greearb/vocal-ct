@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpPacket_hxx_Version =
-    "$Id: RtpPacket.hxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+    "$Id: RtpPacket.hxx,v 1.3 2005/08/23 00:27:55 greear Exp $";
 
 #include "rtpTypes.h"
 #include  <assert.h>
@@ -196,12 +196,10 @@ public:
 
    bool convertedToNBO() const { return converted_to_nbo; }
    bool convertedToHBO() const { return converted_to_hbo; }
-   bool isMissing() const { return is_logically_missing; }
    bool isSilenceFill() const { return is_silence_fill; }
 
    void setConvertedToNBO(bool b) { converted_to_nbo = b; }
    void setConvertedToHBO(bool b) { converted_to_hbo = b; }
-   void setIsMissing(bool b) { is_logically_missing = b; }
    void setIsSilenceFill(bool b) { is_silence_fill = b; }
 
    static int getInstanceCount() { return _cnt; }
@@ -214,9 +212,9 @@ private:
    bool timestampSet;
    bool converted_to_nbo;
    bool converted_to_hbo;
-   bool is_logically_missing; /* Is this a 'filler' packet (un-filled but logically
-                               * empty */
-   bool is_silence_fill; // Is this filled with silence by the local codec/logic?
+   bool is_silence_fill; /* Ignore data and have the codec fill with silence
+                          * however it prefers to do so...
+                          */
 
    int npadSize;
    int csrc_count;
