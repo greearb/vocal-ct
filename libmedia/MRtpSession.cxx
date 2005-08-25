@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.15 2005/08/23 06:39:42 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.16 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -344,7 +344,7 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
          //cpLog(LOG_ERR, "Before decode: %s", dbg.c_str());
          
          codec->decode(data, length, decBuf, decLen, decodedSamples,
-                       decodedPerSampleSize);
+                       decodedPerSampleSize, false);
          //vhexDump(data, decLen, dbg);
          //cpLog(LOG_ERR, "After decode: %s", dbg.c_str());
 

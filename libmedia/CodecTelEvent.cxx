@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecTelEvent_cxx_Version =
-    "$Id: CodecTelEvent.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: CodecTelEvent.cxx,v 1.2 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -61,7 +61,8 @@ using namespace Vocal::UA;
 
 
 int CodecTelEvent::decode(char* data, int length, char* decBuf, int decBufLen,
-                          int &decodedSamples, int& decodedPerSampleSize) {
+                          int &decodedSamples, int& decodedPerSampleSize,
+                          bool is_silence) {
 
     memcpy(decBuf, data, length);
     decodedSamples = length;

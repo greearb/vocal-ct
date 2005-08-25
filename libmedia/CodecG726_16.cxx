@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG726_16_cxx_Version =
-    "$Id: CodecG726_16.cxx,v 1.3 2005/08/23 06:39:42 greear Exp $";
+    "$Id: CodecG726_16.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -115,25 +115,32 @@ int CodecG726_16::encode(char* data, int num_samples, int per_sample_size,
 }
  
 int CodecG726_16::decode(char* data, int length, char* decBuf, int decBufLen,
-                       int &decodedSamples, int& decodedPerSampleSize) {
-    cpLog(LOG_DEBUG_STACK,"CodecG726_16::decode: %d", length);
-    if (decBufLen < length * 8) {
-       cpLog(LOG_ERR, "Not enough space to put decoded data");
-       return -1; 
-    }
-    short * retData = reinterpret_cast<short*>(decBuf);
-    char* srcData = (data);
-    int j = 0;
-    for (int i = 0; i < length; i++) {
-       int sample = srcData[i];
-       retData[j++] = g726_16_decoder(sample & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
-       retData[j++] = g726_16_decoder((sample >> 2) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
-       retData[j++] = g726_16_decoder((sample >> 4) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
-       retData[j++] = g726_16_decoder((sample >> 6) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
-    }
-    decodedSamples = j;
-    decodedPerSampleSize = 2;
-    return (0);
+                         int &decodedSamples, int& decodedPerSampleSize,
+                         bool is_silence) {
+   cpLog(LOG_DEBUG_STACK,"CodecG726_16::decode: %d", length);
+   
+   if (is_silence) {
+      cpLog(LOG_ERR, "ERROR:  G726_16 Codec does not support silence decode.\n");
+      return -1;
+   }
+
+   if (decBufLen < length * 8) {
+      cpLog(LOG_ERR, "Not enough space to put decoded data");
+      return -1; 
+   }
+   short * retData = reinterpret_cast<short*>(decBuf);
+   char* srcData = (data);
+   int j = 0;
+   for (int i = 0; i < length; i++) {
+      int sample = srcData[i];
+      retData[j++] = g726_16_decoder(sample & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
+      retData[j++] = g726_16_decoder((sample >> 2) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
+      retData[j++] = g726_16_decoder((sample >> 4) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
+      retData[j++] = g726_16_decoder((sample >> 6) & 0x3, AUDIO_ENCODING_LINEAR, &dec_state);
+   }
+   decodedSamples = j;
+   decodedPerSampleSize = 2;
+   return (0);
 }
 
 

@@ -181,48 +181,73 @@ LinAudioDevice::stop()
 
 void 
 LinAudioDevice::sinkData(char* data, int length, VCodecType type,
-                         Sptr<CodecAdaptor> codec, bool silence_pkt)
-{
-    cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
-    if(type == DTMF_TONE)
-    {
-        char digit;
-        memcpy(&digit, data, 1);
-        cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
-        return;
-    }
-    
-    if(type != myCodec->getType())
-    {
-        //First convert the data from type to myType and then feed
-        //it to the soundcard
-        //cpLog(LOG_ERR, "Need codec conversion!!!!");
-        if (codec.getPtr() == 0) {
-            codec = MediaController::instance().getMediaCapability().getCodec(type);
-        }
-        ///Convert from codec type to PCM
-        int decLen = 1024;
-        char decBuf[1024];
-        int decodedSamples = 0;
-        int decodedPerSampleSize = 0;
-        codec->decode(data, length, decBuf, decLen, decodedSamples, decodedPerSampleSize);
-        int encLen = 1024;
-        char encBuf[1024];
-        myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize, encBuf, encLen);
-        mySoundCard.write( (unsigned char*) encBuf, encLen);
-    }
-    else
-    {
-        mySoundCard.write( (unsigned char*) data, length);
-    }
+                         Sptr<CodecAdaptor> codec, bool silence_pkt) {
+   cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
+
+   bool silence = silence_pkt;
+
+   if (type == DTMF_TONE) {
+      char digit;
+      memcpy(&digit, data, 1);
+      cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
+      return;
+   }
+
+   if (codec.getPtr() == 0) {
+      codec = MediaController::instance().getMediaCapability().getCodec(type);
+   }
+
+   if (silence_pkt) {
+      if (codec->supportsSilenceDecode()) {
+         if (type != myCodec->getType()) {
+            // We will be decoding, but codec can handle that
+            // internally, so no need to do anything here.
+         }
+         else {
+            // need to generate silence fill since we'll be passing
+            // straight to the write methods.
+            data = codec->getSilenceFill(length);
+            cpLog(LOG_DEBUG_STACK, "Got silence pkt, new length: %d  codec: %s\n",
+                  length, codec->getEncodingName().c_str());
+         }
+      }
+      else {
+         // need to generate silence fill since we'll be passing
+         // straight to the write methods.
+         data = codec->getSilenceFill(length);
+         cpLog(LOG_DEBUG_STACK, "Got silence pkt, new length: %d  codec: %s\n",
+               length, codec->getEncodingName().c_str());
+         silence = false; /* at least tell the codec it's regular since it
+                           * can't handle internal silence patching.
+                           */
+      }
+   }
+
+   if (type != myCodec->getType()) {
+      //First convert the data from type to myType and then feed
+      //it to the soundcard
+      //cpLog(LOG_ERR, "Need codec conversion!!!!");
+      // Convert from codec type to PCM
+      int decLen = 1024;
+      char decBuf[1024];
+      int decodedSamples = 0;
+      int decodedPerSampleSize = 0;
+      codec->decode(data, length, decBuf, decLen, decodedSamples,
+                    decodedPerSampleSize, silence);
+      int encLen = 1024;
+      char encBuf[1024];
+      myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize, encBuf, encLen);
+      mySoundCard.write( (unsigned char*) encBuf, encLen);
+   }
+   else {
+      mySoundCard.write( (unsigned char*) data, length);
+   }
 }
 
-int
-LinAudioDevice::suspend()
-{
-    cerr << "%%% Suspending audio" << endl;
-    audioActive = false;
-    return(mySoundCard.close());
+int LinAudioDevice::suspend() {
+   cerr << "%%% Suspending audio" << endl;
+   audioActive = false;
+   return(mySoundCard.close());
 }
 
 int

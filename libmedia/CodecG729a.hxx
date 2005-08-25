@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const CodecG729a_hxx_Version = 
-    "$Id: CodecG729a.hxx,v 1.3 2005/08/23 00:27:54 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -80,7 +78,11 @@ public:
 
    //From codec type  to raw data (PCMU)
    virtual int decode(char* data, int length, char* decBuf, int decBufLen,
-                      int &decodedSamples, int& decodedPerSampleSize);
+                      int &decodedSamples, int& decodedPerSampleSize,
+                      bool is_silence);
+
+   // TODO:  Change this to true when g729a codec is fixed. --Ben
+   virtual bool supportsSilenceDecode() const { return false; }
 
    //from raw data (PCMU) to codec type 
    virtual int encode(char* data, int num_samples, int per_sample_size,

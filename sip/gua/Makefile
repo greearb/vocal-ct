@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2005/07/12 23:32:24 greear Exp $
+# $Id: Makefile,v 1.11 2005/08/25 00:20:41 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -33,9 +33,9 @@ CODE_SUBDIRS =  controlState
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
-LIBDIRS += $(VOICEAGE_BASE)
+LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
 
-LDLIBS_LAST += -lCodecLib -lg729 -lg729utils
+LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
 
 endif
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.3 2005/08/23 06:39:42 greear Exp $";
+    "$Id: CodecG729a.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -150,33 +150,48 @@ int CodecG729a::encode(char* data, int num_samples, int per_sample_size,
 
 
 int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
-                       int& decodedSamples, int& decodedPerSampleSize) {
-    cpLog(LOG_DEBUG_STACK, "CodecG729a::decode: %d, decBufLen: %d",
-          length, decBufLen);
-    
-    Word32 l = length;
-    Word32 dbl = decBufLen;
-    int rv = codecLibDecode(&dec_handle, data, &l, ((short*)(decBuf)),
-                            &dbl, &dec_option, 0);
+                       int& decodedSamples, int& decodedPerSampleSize,
+                       bool is_silence) {
+   cpLog(LOG_DEBUG_STACK, "CodecG729a::decode: %d, decBufLen: %d  silence: %d",
+         length, decBufLen, is_silence);
 
-    if (rv < 0) {
-       cpLog(LOG_ERR, "codecLibDecode rv < 0: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
-             rv, length, decBufLen, l, dbl);
-    }
+   // Set appropriate flags in the dec_option structure
+   // TODO: This doesn't actually work with the current codec. --Ben
+   if (is_silence) {
+      cpLog(LOG_ERR, "CodecG729a decoding silence...\n");
+      dec_option.bfi = 1;
+   }
+   else {
+      dec_option.bfi = 0;
+   }
 
-    length = l;
-    decBufLen = dbl;
-
-    assert((unsigned)overflow_catcher == (unsigned)0xd5d5d5d5);
-
-    decodedPerSampleSize = 2;
-
-    decodedSamples = decBufLen;// / 2;
-
-    //cpLog(LOG_ERR, "g729a decode, samples: %i  perSampleSize: %i, rv: %i\n",
-    //      decodedSamples, decodedPerSampleSize, rv);
-
-    return rv;
+   Word32 l = length;
+   Word32 dbl = decBufLen;
+   int rv = codecLibDecode(&dec_handle, data, &l, ((short*)(decBuf)),
+                           &dbl, &dec_option, 0);
+   
+   if (rv < 0) {
+      cpLog(LOG_ERR, "codecLibDecode rv < 0: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
+            rv, length, decBufLen, l, dbl);
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "codecLibDecode OK, rv: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
+            rv, length, decBufLen, l, dbl);
+   }
+   
+   length = l;
+   decBufLen = dbl;
+   
+   assert((unsigned)overflow_catcher == (unsigned)0xd5d5d5d5);
+   
+   decodedPerSampleSize = 2;
+   
+   decodedSamples = decBufLen;// / 2;
+   
+   //cpLog(LOG_ERR, "g729a decode, samples: %i  perSampleSize: %i, rv: %i\n",
+   //      decodedSamples, decodedPerSampleSize, rv);
+   
+   return rv;
 }
 
 char* CodecG729a::getSilenceFill(int& len) {

@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG711U_cxx_Version =
-    "$Id: CodecG711U.cxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
+    "$Id: CodecG711U.cxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -83,23 +83,29 @@ int CodecG711U::encode(char* data, int num_samples, int per_sample_size,
 }
  
 int CodecG711U::decode(char* data, int length, char* decBuf, int decBufLen,
-                       int &decodedSamples, int& decodedPerSampleSize) {
-    cpLog(LOG_DEBUG_STACK,"CodecG711U::decode: %d", length);
-    if(decBufLen < length * 2)
-    {
-       cpLog(LOG_ERR, "Not enough space to put decoded data");
-       return -1; 
-    }
-    short * retData = reinterpret_cast<short*>(decBuf);
-    char* srcData = (data);
-    for(int i = 0; i < length; i++)
-    {
-        retData[i] = ulaw2linear(srcData[i]);
-    }
-    decodedSamples = length;
-    decodedPerSampleSize = 2;
-    return (0);
-}
+                       int &decodedSamples, int& decodedPerSampleSize,
+                       bool is_silence) {
+   cpLog(LOG_DEBUG_STACK,"CodecG711U::decode: %d  silence: %d",
+         length, is_silence);
+   if (is_silence) {
+      cpLog(LOG_ERR, "ERROR:  G711U Codec does not support silence decode.\n");
+      return -1;
+   }
+   else {
+      if (decBufLen < length * 2) {
+         cpLog(LOG_ERR, "Not enough space to put decoded data");
+         return -1; 
+      }
+      short * retData = reinterpret_cast<short*>(decBuf);
+      char* srcData = (data);
+      for (int i = 0; i < length; i++) {
+         retData[i] = ulaw2linear(srcData[i]);
+      }
+      decodedSamples = length;
+      decodedPerSampleSize = 2;
+   }
+   return (0);
+}//decode
 
 
 char* CodecG711U::getSilenceFill(int& len) {

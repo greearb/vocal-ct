@@ -53,7 +53,7 @@
 
 
 static const char* const CodecAdaptor_hxx_Version = 
-    "$Id: CodecAdaptor.hxx,v 1.3 2005/08/23 00:27:54 greear Exp $";
+    "$Id: CodecAdaptor.hxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -108,9 +108,15 @@ public:
     * @param decBufLen is the space available in decBuf, in units of bytes.
     * @param decodedSamples  Upon return, specifies number of samples that were decoded.
     * @param decodedPerSampleSize Upon return, 
+    * @param is_silence  If it is silence, then ignore data and length, as they
+    *    may be completely bogus.  Only call with silence true if the
+    *    supportsSilenceDecode() method returns true.
     */
    virtual int decode(char* data, int length, char* decBuf, int decBufLen,
-                      int &decodedSamples, int& decodedPerSampleSize) = 0;
+                      int &decodedSamples, int& decodedPerSampleSize,
+                      bool is_silence) = 0;
+
+   virtual bool supportsSilenceDecode() const { return false; }
 
    /**Encode from raw data (PCMU) to codec type, caller should supply the buffer of
     * size atleast > length/2. Returns 0 if successfull  or -1 on failure.

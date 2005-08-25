@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecSpeex_cxx_Version =
-    "$Id: CodecSpeex.cxx,v 1.3 2005/08/23 06:39:42 greear Exp $";
+    "$Id: CodecSpeex.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -150,28 +150,35 @@ int CodecSpeex::encode(char* data, int num_samples, int per_sample_size,
 }
  
 int CodecSpeex::decode(char* data, int length, char* decBuf, int decBufLen,
-                       int& decodedSamples, int& decodedPerSampleSize) {
-    cpLog(LOG_DEBUG_STACK,"CodecSpeex::decode: %d, decBufLen: %d",
-          length, decBufLen);
+                       int& decodedSamples, int& decodedPerSampleSize,
+                       bool is_silence) {
+   cpLog(LOG_DEBUG_STACK,"CodecSpeex::decode: %d, decBufLen: %d",
+         length, decBufLen);
 
-    speex_bits_read_from(&dec_bits, data, length);
+   if (is_silence) {
+      // TODO:  Speex can suppor this, I believe. --Ben
+      cpLog(LOG_ERR, "ERROR:  Speex Codec does not support silence decode.\n");
+      return -1;
+   }
 
-    speex_decode(dec_state, &dec_bits, decode_floats); 
-
-    assert((unsigned)overflow_catcher == (unsigned)0xd5d5d5d5);
-
-    decodedPerSampleSize = 2;
-
-    assert(decBufLen > (VSPEEX_FRAME_SIZE * decodedPerSampleSize));
-
-    short* decshorts = (short*)(decBuf);
-    for (int i = 0; i<VSPEEX_FRAME_SIZE; i++) {
-       decshorts[i] = (short)(decode_floats[i]);
-    }
-
-    decodedSamples = VSPEEX_FRAME_SIZE;
-
-    return (0);
+   speex_bits_read_from(&dec_bits, data, length);
+   
+   speex_decode(dec_state, &dec_bits, decode_floats); 
+   
+   assert((unsigned)overflow_catcher == (unsigned)0xd5d5d5d5);
+   
+   decodedPerSampleSize = 2;
+   
+   assert(decBufLen > (VSPEEX_FRAME_SIZE * decodedPerSampleSize));
+   
+   short* decshorts = (short*)(decBuf);
+   for (int i = 0; i<VSPEEX_FRAME_SIZE; i++) {
+      decshorts[i] = (short)(decode_floats[i]);
+   }
+   
+   decodedSamples = VSPEEX_FRAME_SIZE;
+   
+   return (0);
 }
 
 

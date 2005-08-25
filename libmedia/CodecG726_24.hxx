@@ -53,7 +53,7 @@
 
 
 static const char* const CodecG726_24_hxx_Version = 
-    "$Id: CodecG726_24.hxx,v 1.2 2005/08/23 00:27:54 greear Exp $";
+    "$Id: CodecG726_24.hxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
 
 #include "CodecAdaptor.hxx"
 
@@ -87,7 +87,8 @@ public:
     * @param decodedPerSampleSize Upon return, 
     */
    virtual int decode(char* data, int length, char* decBuf, int decBufLen,
-                      int &decodedSamples, int& decodedPerSampleSize);
+                      int &decodedSamples, int& decodedPerSampleSize,
+                      bool is_silence);
 
    /**Encode from raw data (PCMU) to codec type, caller should supply the buffer of
     * size atleast > length/2. Returns 0 if successfull  or -1 on failure.

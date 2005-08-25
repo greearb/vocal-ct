@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.5 2004/12/15 00:25:19 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.6 2005/08/25 00:20:41 greear Exp $";
 
 
 
@@ -309,105 +309,129 @@ void
 VmcpDevice::sinkData(char* data, int length, VCodecType type,
                      Sptr<CodecAdaptor> codec, bool silence_pkt)
 {
-    cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
-    if(type == DTMF_TONE)
-    {
-        char digit;
-        memcpy(&digit, data, 1);
+   cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
+   if (type == DTMF_TONE) {
+      char digit;
+      memcpy(&digit, data, 1);
+      
+      switch ( digit ) {
+      case 0:
+         digit = '0';
+         break;
+      case 1:
+         digit = '1';
+         break;
+      case 2:
+         digit = '2';
+         break;
+      case 3:
+         digit = '3';
+         break;
+      case 4:
+         digit = '4';
+         break;
+      case 5:
+         digit = '5';
+         break;
+      case 6:
+         digit = '6';
+         break;
+      case 7:
+         digit = '7';
+         break;
+      case 8:
+         digit = '8';
+         break;
+      case 9:
+         digit = '9';
+         break;
+      case 10:
+         digit = '*';
+         break;
+      case 11:
+         digit = '#';
+         break;
+      default:
+         cpLog(LOG_ERR,"Unrecognized DTMF Received");
+         return;
+      }//switch
+      
+      cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
+      myVmStack->sendDtmf(digit);
+      return;
+   }
 
-	switch ( digit )
-	  {
-	  case 0:
-	    digit = '0';
-	    break;
-	  case 1:
-	    digit = '1';
-	    break;
-	  case 2:
-	    digit = '2';
-	    break;
-	  case 3:
-	    digit = '3';
-	    break;
-	  case 4:
-	    digit = '4';
-	    break;
-	  case 5:
-	    digit = '5';
-	    break;
-	  case 6:
-	    digit = '6';
-	    break;
-	  case 7:
-	    digit = '7';
-	    break;
-	  case 8:
-	    digit = '8';
-	    break;
-	  case 9:
-	    digit = '9';
-	    break;
-	  case 10:
-	    digit = '*';
-	    break;
-	  case 11:
-	    digit = '#';
-	    break;
-	  default:
-	    cpLog(LOG_ERR,"Unrecognized DTMF Received");
-	    return;
-	  }
+   // TODO:  Figure out why the sleeps were needed and work-around
+   // this.  Maybe tie this to tick logic? --Ben
 
-        cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
-        myVmStack->sendDtmf(digit);
-        return;
-    }
+   //Synchronize writing
+   if ( (!audioActive) || (!hookStateOffhook) ) {
+      //vusleep(30000);
+      return ;
+   }
 
-    // TODO:  Figure out why the sleeps were needed and work-around
-    // this.  Maybe tie this to tick logic? --Ben
+   int wait = networkPktSize - (vgetCurMs() - nextRecTime);
+   if ( wait > 0 ) {
+      //vusleep(wait*1000);
+   }
+   nextRecTime += networkPktSize;
 
-    //Synchronize writing
-    if ( (!audioActive) || (!hookStateOffhook) )
-    {
-       //vusleep(30000);
-        return ;
-    }
-    int wait = networkPktSize - (vgetCurMs() - nextRecTime);
-    if ( wait > 0 )
-    {
-       //vusleep(wait*1000);
-    }
-    nextRecTime += networkPktSize;
+   if (codec.getPtr() == 0) {
+      codec = MediaController::instance().getMediaCapability().getCodec(type);
+   }
 
-    if (type != myCodec->getType())
-    {
-        //First convert the data from type to myType and then feed
-        //it to the soundcard
-        //cpLog(LOG_ERR, "Need codec conversion!!!!");
-        if (codec.getPtr() == 0) {
-           codec = MediaController::instance().getMediaCapability().getCodec(type);
-        }
-        ///Convert from codec type to PCM
-        int decLen = 1024;
-        char decBuf[1024];
-        int decodedSamples = 0;
-        int decodedPerSampleSize = 0;
-        codec->decode(data, length, decBuf, decLen, decodedSamples, decodedPerSampleSize);
-        cpLog(LOG_DEBUG, "declength: [%d]", decLen);
-        cpLog(LOG_DEBUG, "decbuf: [%d]", decBuf);
-          
-        int encLen = 1024;
-        char encBuf[1024];
-        myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize, encBuf, encLen);
-        cpLog(LOG_DEBUG, "enclength: [%d]", encLen);
-        cpLog(LOG_DEBUG, "encbuf: [%d]", encBuf);
-        recorder.write( (unsigned char*) encBuf, encLen);
-    }
-    else
-    {
-        /*  
+   bool silence = silence_pkt;
+   if (silence_pkt) {
+      if (codec->supportsSilenceDecode()) {
+         if (type != myCodec->getType()) {
+            // We will be decoding, but codec can handle that
+            // internally, so no need to do anything here.
+         }
+         else {
+            // need to generate silence fill since we'll be passing
+            // straight to the write methods.
+            data = codec->getSilenceFill(length);
+            cpLog(LOG_DEBUG_STACK, "Got silence pkt, new length: %d  codec: %s\n",
+                  length, codec->getEncodingName().c_str());
+         }
+      }
+      else {
+         // need to generate silence fill since we'll be passing
+         // straight to the write methods.
+         data = codec->getSilenceFill(length);
+         cpLog(LOG_DEBUG_STACK, "Got silence pkt, new length: %d  codec: %s\n",
+               length, codec->getEncodingName().c_str());
+         silence = false; /* at least tell the codec it's regular since it
+                           * can't handle internal silence patching.
+                           */
+      }
+   }
+
+   if (type != myCodec->getType()) {
+      //First convert the data from type to myType and then feed
+      //it to the soundcard
+      //cpLog(LOG_ERR, "Need codec conversion!!!!");
+      //Convert from codec type to PCM
+      int decLen = 1024;
+      char decBuf[1024];
+      int decodedSamples = 0;
+      int decodedPerSampleSize = 0;
+      codec->decode(data, length, decBuf, decLen, decodedSamples,
+                    decodedPerSampleSize, silence);
+      cpLog(LOG_DEBUG, "declength: [%d]", decLen);
+      cpLog(LOG_DEBUG, "decbuf: [%d]", decBuf);
+      
+      int encLen = 1024;
+      char encBuf[1024];
+      myCodec->encode(decBuf, decodedSamples, decodedPerSampleSize, encBuf, encLen);
+      cpLog(LOG_DEBUG, "enclength: [%d]", encLen);
+      cpLog(LOG_DEBUG, "encbuf: [%d]", encBuf);
+      recorder.write( (unsigned char*) encBuf, encLen);
+   }
+   else {
+      /**
         Sptr <CodecAdaptor> cAdp = new CodecG729C();
-    
+          
         int decLen = 1024;
         char decBuf[1024];    
         int encLen = 1024;
@@ -431,10 +455,10 @@ VmcpDevice::sinkData(char* data, int length, VCodecType type,
 
         recorder.write( (unsigned char*) decBuf, decLen);
         */
-        recorder.write( (unsigned char*) data, length);
-        cpLog(LOG_DEBUG, "enclength: [%d]", length);
-        cpLog(LOG_DEBUG, "Data: [%d]", data);
-    } 
+      recorder.write( (unsigned char*) data, length);
+      cpLog(LOG_DEBUG, "enclength: [%d]", length);
+      cpLog(LOG_DEBUG, "Data: [%d]", data);
+   }
 }
 
 
