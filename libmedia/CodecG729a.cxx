@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
+    "$Id: CodecG729a.cxx,v 1.5 2005/08/25 19:32:06 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -155,18 +155,22 @@ int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
    cpLog(LOG_DEBUG_STACK, "CodecG729a::decode: %d, decBufLen: %d  silence: %d",
          length, decBufLen, is_silence);
 
+   Word32 l = length;
+   Word32 dbl = decBufLen;
    // Set appropriate flags in the dec_option structure
    // TODO: This doesn't actually work with the current codec. --Ben
    if (is_silence) {
       cpLog(LOG_ERR, "CodecG729a decoding silence...\n");
       dec_option.bfi = 1;
+
+      // Per VoiceAge support:  Have to lie and tell it that we
+      // actually have some length...
+      l = 20;
    }
    else {
       dec_option.bfi = 0;
    }
 
-   Word32 l = length;
-   Word32 dbl = decBufLen;
    int rv = codecLibDecode(&dec_handle, data, &l, ((short*)(decBuf)),
                            &dbl, &dec_option, 0);
    
@@ -175,7 +179,7 @@ int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
             rv, length, decBufLen, l, dbl);
    }
    else {
-      cpLog(LOG_DEBUG_STACK, "codecLibDecode OK, rv: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
+      cpLog(LOG_ERR, "codecLibDecode OK, rv: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
             rv, length, decBufLen, l, dbl);
    }
    

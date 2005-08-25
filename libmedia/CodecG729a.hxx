@@ -81,8 +81,7 @@ public:
                       int &decodedSamples, int& decodedPerSampleSize,
                       bool is_silence);
 
-   // TODO:  Change this to true when g729a codec is fixed. --Ben
-   virtual bool supportsSilenceDecode() const { return false; }
+   virtual bool supportsSilenceDecode() const { return true; }
 
    //from raw data (PCMU) to codec type 
    virtual int encode(char* data, int num_samples, int per_sample_size,
