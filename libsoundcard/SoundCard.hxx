@@ -51,7 +51,7 @@
  */
 
 static const char* const SoundCard_hxx_Version =
-    "$Id: SoundCard.hxx,v 1.2 2004/06/15 06:20:35 greear Exp $";
+    "$Id: SoundCard.hxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
 
 #include "Data.hxx"
 #include "CircularBuffer.hxx"
@@ -146,6 +146,7 @@ class SoundCard
         int getFd() const;
         bool readerBuffered();
         bool writerBuffered();
+        bool isClosed() { return (myFD < 0); }
 
     private:
         int myFD;

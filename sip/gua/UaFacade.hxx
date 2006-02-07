@@ -52,10 +52,6 @@
  */
 
 
-static const char* const UaFacade_hxx_Version = 
-    "$Id: UaFacade.hxx,v 1.10 2005/08/20 06:57:42 greear Exp $";
-
-
 #include "global.h"
 #include <map>
 #include "Sptr.hxx"
@@ -167,6 +163,12 @@ public:
     */
    //void setMode(CallControlMode mode) { myMode = mode; };
 
+   bool isVadOn() { return vad_options.getVADOn(); }
+
+   void updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_rtp);
+   Sptr<CachedEncodedRtp> findRtpCache(const string& fname, bool vad,
+                                       VCodecType codec);
+
 #ifdef USE_LANFORGE
    void setLFThread(LFVoipThread* lft);
    LFVoipThread* getLFThread();
@@ -227,6 +229,8 @@ private:
    MediaDeviceMap myMediaDeviceMap;
 
    VADOptions vad_options;
+
+   map<string, Sptr<CachedEncodedRtp> > rtp_cache_map;
 };
 
 }

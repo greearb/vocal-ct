@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.6 2005/08/22 06:55:50 greear Exp $";
+    "$Id: RtpSession.hxx,v 1.7 2006/02/07 01:33:21 greear Exp $";
 
 
 
@@ -281,7 +281,7 @@ public:
     *  @return -1 error, otherwise size sent on sucess
     **/
    int transmit (RtpPacket& packet);
-   int transmitRaw (char* inbuffer, int len);
+   int transmitRaw (const char* inbuffer, int len);
 
    /** Let the stack know we are suppressing an RTP packet send
     * due to VAD...for accounting purposes mainly.

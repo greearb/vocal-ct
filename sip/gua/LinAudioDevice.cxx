@@ -101,7 +101,7 @@ void LinAudioDevice::processOutgoingAudio() {
         if (cc >= pld_size) {
             //Send raw packet to Controller
             cpLog(LOG_DEBUG_STACK, "LinAudioDevice::processOutgoingAudio");
-            processRaw((char*)dataBuffer, cc, G711U, NULL, false);
+            processRaw((char*)dataBuffer, cc, G711U, NULL, false, NULL);
         }
         else {
             // Don't bother the lower stack..it needs the rest of the pkt
@@ -181,7 +181,8 @@ LinAudioDevice::stop()
 
 void 
 LinAudioDevice::sinkData(char* data, int length, VCodecType type,
-                         Sptr<CodecAdaptor> codec, bool silence_pkt) {
+                         Sptr<CodecAdaptor> codec, bool silence_pkt,
+                         RtpPayloadCache* payload_cache) {
    cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
 
    bool silence = silence_pkt;

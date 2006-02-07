@@ -51,7 +51,7 @@
  *
  */
 static const char* const NullDeviceVersion =
-    "$Id: NullDevice.hxx,v 1.4 2004/12/15 00:25:19 greear Exp $";
+    "$Id: NullDevice.hxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
 
 #include "MediaDevice.hxx"
 #include <iostream>
@@ -96,7 +96,8 @@ public:
 
    ///
    void sinkData(char* data, int length, VCodecType type,
-                 Sptr<CodecAdaptor> codec, bool silence_pkt) {
+                 Sptr<CodecAdaptor> codec, bool silence_pkt,
+                 RtpPayloadCache* payload_cache) {
       //vusleep(20000);
    };
 

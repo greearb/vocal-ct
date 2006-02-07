@@ -54,7 +54,7 @@
 
 
 static const char* const Recorder_h_Version =
-    "$Id: Recorder.h,v 1.2 2005/07/06 19:09:56 greear Exp $";
+    "$Id: Recorder.h,v 1.3 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -82,6 +82,8 @@ public:
    
    /** Write to a file */
    virtual int write(const void *buffer, int size);
+
+   virtual bool isOpen() { return m_bActive; }
    
    /** Open a file */
    virtual int open(const string &fileName);

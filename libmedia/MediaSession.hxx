@@ -53,7 +53,7 @@
 
 
 static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.7 2005/08/18 21:52:03 bmartel Exp $";
+    "$Id: MediaSession.hxx,v 1.8 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include "Sptr.hxx"
@@ -134,8 +134,16 @@ public:
     * @param silence_pkt - The packet is silence, generated locally, probably because
     *        we never received the real packet.
     */
-   void processRaw (char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
-                    Adaptor* adp, bool silence_pkt);
+   void processRaw (char *data, int len, VCodecType cType,
+                    Sptr<CodecAdaptor> codec, Adaptor* adp,
+                    bool silence_pkt, RtpPayloadCache* payload_cache);
+
+   // This assumes that the data is already right for myCodec.
+   // Use sinkRaw if that is not the case.
+   virtual int processCooked(const char* data, int length, int samples,
+                             VCodecType type);
+
+
 
    /** Allow the receiver to throttle based on the current size of the
     * jitter buffer.  This timeout will be passed to select.

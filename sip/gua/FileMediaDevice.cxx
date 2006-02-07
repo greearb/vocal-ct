@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.5 2004/12/15 00:25:19 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.6 2006/02/07 01:33:21 greear Exp $";
 
 
 
@@ -144,7 +144,7 @@ FileMediaDevice::processAudio () {
       UaFacade::instance().queueEvent(signal.getPtr());
    }
    Sptr<CodecAdaptor> nll;
-   processRaw((char*)buffer, networkPktSize*8, G711U, nll, false);
+   processRaw((char*)buffer, networkPktSize*8, G711U, nll, false, NULL);
 }
 
 //***************************************************************************
@@ -216,15 +216,14 @@ int FileMediaDevice::stop() {
 
 void
 FileMediaDevice::sinkData(char* data, int length, VCodecType type,
-                          Sptr<CodecAdaptor> codec, bool silence_pkt)
-{
-    cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
-    if(type == DTMF_TONE)
-    {
-        char digit;
-        memcpy(&digit, data, 1);
-        cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
-    }
+                          Sptr<CodecAdaptor> codec, bool silence_pkt,
+                          RtpPayloadCache* payload_cache) {
+   cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
+   if(type == DTMF_TONE) {
+      char digit;
+      memcpy(&digit, data, 1);
+      cpLog( LOG_DEBUG, "***  DTMF %c  ***", digit );
+   }
 
-    // TODO:  Implement something here!!
+   // TODO:  Implement something here!!
 }

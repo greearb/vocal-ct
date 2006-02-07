@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2005/08/25 00:20:41 greear Exp $
+# $Id: Makefile,v 1.7 2006/02/07 01:33:21 greear Exp $
 
 BUILD = ../build
 
@@ -48,6 +48,7 @@ endif
 TESTPROGRAMS = 
 
 SRC = \
+Adaptor.cxx \
 MediaDevice.cxx \
 CodecG711U.cxx \
 CodecAdaptor.cxx \

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.4 2004/12/15 00:25:19 greear Exp $";
+    "$Id: MediaDevice.hxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
 
 #include <stdio.h>
 #include "Sptr.hxx"
@@ -115,9 +115,17 @@ public:
     *        the raw, if possible.  If null, a codec will be found, but it will
     *        not necessarily have the right state.  Speex currently needs this
     *        functionality.
+    * @param cache_callback If non-null, encoded pkt will be sent here, useful
+    *        if replaying the same call over and over.
     */
    virtual void processRaw(char* data, int length, VCodecType type,
-                           Sptr<CodecAdaptor> codec, bool silence_pkt);
+                           Sptr<CodecAdaptor> codec, bool silence_pkt,
+                           RtpPayloadCache* cache_callback);
+
+   // This assumes that the data is already right for myCodec.
+   // Use sinkRaw if that is not the case.
+   virtual int processCooked(const char* data, int length, int samples,
+                             VCodecType type);
 
    //Returns 0 if successfully started
    // Specify the codec to use.

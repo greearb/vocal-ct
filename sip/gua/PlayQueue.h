@@ -54,7 +54,7 @@
 
 
 static const char* const PlayQueue_h_Version =
-    "$Id: PlayQueue.h,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: PlayQueue.h,v 1.2 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -67,55 +67,58 @@ static const char* const PlayQueue_h_Version =
   * Wave files get queued and de-queued from this queue.
   */
 
-class PlayQueue
-{
-    public:
+class PlayQueue {
+public:
 
-        ///
-        PlayQueue();
+   ///
+   PlayQueue();
 
-	///
-        virtual ~PlayQueue();
+   ///
+   virtual ~PlayQueue();
 
-        /** Add to the queue */
-        virtual void add(const string & fileName);
+   /** Add to the queue */
+   virtual void add(const string & fileName);
 
-        /** Return the data */
-        virtual int getData(void *buffer, int size);
+   /** Return the data */
+   virtual int getData(void *buffer, int size);
 
-        /** Start playing */
-        virtual int start();
+   /** Start playing */
+   virtual int start();
 
-        /** Stop playing */
-        virtual void stop();
+   /** Stop playing */
+   virtual void stop();
 
-	///
-	bool isListEmpty() { return m_xFileQueue.empty(); };
+   bool isListEmpty() { return m_xFileQueue.empty(); };
 
+   // 0 means loop forever.
+   void setLoopWavefileCount(__uint32_t c) { loop_wavefile_count = c; }
 
-        // 0 means loop forever.
-        void setLoopWavefileCount(__uint32_t c) { loop_wavefile_count = c; }
+   __uint32_t getLoopWavefileCount() const { return loop_wavefile_count; }
 
-    private:  // Private attributes
+   //Since we were last started...
+   __uint32_t getLoopWavefileSofar() const { return loop_wavefile_sofar; }
 
+   void incrementWavefileSofar() { loop_wavefile_sofar++; }
 
-        /** Start playing next song */
-        virtual int reStart();
+private:  // Private attributes
 
-        /**  */
-        std::queue < std::string > m_xFileQueue;
+   /** Start playing next song */
+   virtual int reStart();
 
-        /**  */
-        bool m_bActive;
+   /**  */
+   std::queue < std::string > m_xFileQueue;
 
-        /**  */
-        SNDFILE *m_iFd;
+   /**  */
+   bool m_bActive;
+
+   /**  */
+   SNDFILE *m_iFd;
    
-        /** Info about the file we are reading. */
-        SF_INFO read_info;
+   /** Info about the file we are reading. */
+   SF_INFO read_info;
 
-        __uint32_t loop_wavefile_count;
-        __uint32_t loop_wavefile_sofar; //Since we were last started...
+   __uint32_t loop_wavefile_count;
+   __uint32_t loop_wavefile_sofar; //Since we were last started...
 };
 
 #endif

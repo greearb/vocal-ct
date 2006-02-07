@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.10 2005/08/23 00:27:55 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.11 2006/02/07 01:33:21 greear Exp $";
 
 
 #include "global.h"
@@ -721,7 +721,7 @@ int RtpSession::notifyVADSuppression(int len) {
 }
 
 
-int RtpSession::transmitRaw (char* inbuffer, int len) {
+int RtpSession::transmitRaw (const char* inbuffer, int len) {
    static int pkt_sent = 0;
    
    if ( !( sessionState == rtp_session_sendrecv

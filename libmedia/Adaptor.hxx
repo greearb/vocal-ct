@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.5 2005/05/25 21:34:35 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.6 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -64,13 +64,78 @@ static const char* const Adaptor_hxx_Version =
 #include <BugCatcher.hxx>
 #include <misc.hxx>
 
-
 namespace Vocal
 {
 
 namespace UA
 {
 
+   struct RtpPldBufferStorage {
+      int flags; //None defined at this moment..must be zero.
+      int len;
+      int samples;
+      VCodecType ct;
+   };
+
+   /** Holds Encoded RTP data.  Used when we are re-transmitting
+    * same file over and over:  No need to re-encode each time.
+    */
+   class RtpPldBuffer : public BugCatcher {
+   protected:
+      RtpPldBufferStorage s;
+      char* buf;
+
+   public:
+      RtpPldBuffer(const char* buffer, int length, int sampleCount,
+                   VCodecType codec_type) {
+         s.flags = 0;
+         s.len = length;
+         s.samples = sampleCount;
+         s.ct = codec_type;
+         buf = new char[length];
+         memcpy(buf, buffer, length);
+      }
+
+      RtpPldBuffer(const RtpPldBuffer& rhs) {
+         s = rhs.s;
+         buf = new char[s.len];
+         memcpy(buf, rhs.buf, s.len);
+      }
+
+      virtual ~RtpPldBuffer() {
+         if (buf) {
+            delete[] buf;
+         }
+      }
+
+      const char* getBuffer() const { return buf; }
+      VCodecType getCodecType() const { return s.ct; }
+      int getLength() const { return s.len; }
+      int getSampleCount() const { return s.samples; }
+      RtpPldBufferStorage getStorage() { return s; }
+   };
+
+   /** Interface class, used for callback. */
+   class RtpPayloadCache {
+   public:
+      virtual void addRtpPldBuffer(const char* msg, int len, int samples,
+                                   VCodecType t) = 0;
+   };
+
+   class CachedEncodedRtp : public BugCatcher {
+   protected:
+      string key; //file_name.codec.VAD.cache
+      list<RtpPldBuffer*> buffers;
+
+   public:
+      CachedEncodedRtp(const string& _key, const list<RtpPldBuffer*>& _buffers);
+      CachedEncodedRtp(const string& _key);
+      ~CachedEncodedRtp();
+
+      void addBuffer(RtpPldBuffer* b);
+      const list<RtpPldBuffer*>& getBufferList() const { return buffers; }
+      const string& getKey() const { return key; }
+   };
 
 /** Abstract class,defines interface to plug a Media Source/Sink. A Media Handling device 
     implementation must derive from this interface in order to plug into the 
@@ -108,8 +173,8 @@ public:
     * 
     */
    virtual void sinkData(char* data, int length, VCodecType type,
-                         Sptr<CodecAdaptor> codec, bool silence_pkt) = 0;
-
+                         Sptr<CodecAdaptor> codec, bool silence_pkt,
+                         RtpPayloadCache* payload_cache) = 0;
 
    // Do work, maybe can read or write now, check the file descriptors.
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,

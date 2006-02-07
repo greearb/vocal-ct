@@ -49,7 +49,7 @@
  */
 
 static const char* const PlayQueue_cxx_Version =
-    "$Id: PlayQueue.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+    "$Id: PlayQueue.cxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include "PlayQueue.h"
@@ -96,9 +96,7 @@ int PlayQueue::start()
 }
 
 int PlayQueue::reStart() {
-
-    while ( !m_xFileQueue.empty() )
-    {
+    while ( !m_xFileQueue.empty() ) {
         string fileName = m_xFileQueue.front();
         cpLog(LOG_DEBUG, "Opening: %s" , fileName.c_str());
         m_xFileQueue.pop();
@@ -185,11 +183,3 @@ void PlayQueue::stop()
 	m_xFileQueue.pop();
     }
 }
-
-
-/* Local Variables: */
-/* c-file-style:"stroustrup" */
-/* c-basic-offset:4 */
-/* c-file-offsets:((inclass . ++)) */
-/* indent-tabs-mode:nil */
-/* End: */

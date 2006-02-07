@@ -50,11 +50,12 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.15 2005/08/20 06:57:42 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.16 2006/02/07 01:33:21 greear Exp $";
 
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 
 #ifdef __FreeBSD__
 #include <sys/ioctl.h>
@@ -700,4 +701,178 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
       }
    }
    return 0;
+}
+
+
+Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
+                                              VCodecType codec) {
+   // Ok..need to add this to our cache
+   char buf[fname.size() + 100];
+   if (vad) {
+      sprintf(buf, "%s.VAD.%i", fname.c_str(), (int)(codec));
+   }
+   else {
+      sprintf(buf, "%s.%i", fname.c_str(), (int)(codec));
+   }
+
+   string k(buf);
+   Sptr<CachedEncodedRtp> rv = rtp_cache_map[k];
+   char tmp[1024];
+
+   if (! rv.getPtr()) {
+
+      // Lock the base file so we don't conflict w/other processes.
+      int fd = -1;
+      FILE* lck = fopen(fname.c_str(), "r");
+      if (lck) {
+         fd = fileno(lck);
+         flock(fd, LOCK_EX);
+      }
+
+      // Couldn't find anything...see if we can read it from disk.
+      rv = new CachedEncodedRtp(k);
+      ifstream f(buf);
+      int sofar = 0;
+      if (f) {
+         RtpPldBufferStorage b;
+         // Ok then..read it in.
+         while (f) {
+            if (f.eof()) {
+               break;
+            }
+            f.read((char*)(&b), sizeof(b));
+            if (f.gcount() != sizeof(b)) {
+               if (f.gcount() == 0) {
+                  // Maybe it does eof handling wierd?
+                  cpLog(LOG_ERR, "WARNING:  Read zero..must be end of file, sofar: %d\n",
+                     sofar);
+               }
+               else {
+                  cpLog(LOG_ERR, "ERROR:  Failed to read complete buffer, read: %d  file: %s  assuming cache corrupted, sofar: %d\n",
+                        f.gcount(), k.c_str(), sofar);
+                  rv = NULL;
+               }
+               break;
+            }
+            else {
+               sofar += sizeof(b);
+               cpLog(LOG_DEBUG, "read in header, length: %d, b.len: %d\n",
+                     sizeof(b), b.len);
+               if (b.len > 1024) {
+                  cpLog(LOG_ERR, "ERROR:  buffer length too long while reading rtp buffer file: %s  assuming corrupted.\n", k.c_str());
+                  rv = NULL;
+                  break;
+               }
+               else {
+                  if (b.len > 0) {
+                     f.read(tmp, b.len);
+                     if (f.gcount() != b.len) {
+                        cpLog(LOG_ERR, "ERROR:  Failed to read complete buffer payload, file: %s  assuming cache corrupted, tried: %d  sofar: %d\n",
+                              k.c_str(), b.len, sofar);
+                        rv = NULL;
+                        break;
+                     }
+                     else {
+                        sofar += b.len;
+                        cpLog(LOG_DEBUG, "read in payload, length: %d\n", b.len);
+                        rv->addBuffer(new RtpPldBuffer(tmp, b.len, b.samples, b.ct));
+                     }
+                  }
+               }
+            }
+         }
+      }
+      else {
+         cpLog(LOG_ERR, "WARNING: Could not find RTP cache file: %s  Will rebuild.\n",
+               k.c_str());
+         rv = NULL;
+      }
+
+      if (lck) {
+         flock(fd, LOCK_UN); // Unlock it..
+         fclose(lck); // Seems to free up the pointer...
+         lck = NULL;
+      }
+
+   }
+   return rv;
+}//findRtpCache
+
+
+void UaFacade::updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_rtp) {
+
+   bool vad = false;
+   VCodecType codec = G711U;
+   // See if we are using VAD or not.
+   list<RtpPldBuffer*>::const_iterator cii;
+   for(cii = encoded_rtp.begin(); cii != encoded_rtp.end(); cii++) {
+      codec = ((*cii)->getCodecType());
+      if ((*cii)->getLength() == 0) {
+         // Silence
+         vad = true;
+         break;
+      }
+   }
+
+   Sptr<CachedEncodedRtp> c = findRtpCache(fname, vad, codec);
+
+   if (!c.getPtr()) {
+      // Ok..need to add this to our cache
+      char buf[fname.size() + 100];
+      if (vad) {
+         sprintf(buf, "%s.VAD.%i", fname.c_str(), (int)(codec));
+      }
+      else {
+         sprintf(buf, "%s.%i", fname.c_str(), (int)(codec));
+      }
+
+      c = new CachedEncodedRtp(buf, encoded_rtp);
+      string k(buf);
+      rtp_cache_map[k] = c;
+
+      // Lock the base file so we don't conflict w/other processes.
+      int fd = -1;
+      FILE* lck = fopen(fname.c_str(), "r");
+      if (lck) {
+         fd = fileno(lck);
+         flock(fd, LOCK_EX);
+      }
+
+      // Make sure nothing sneaked in and created the file...
+      ifstream ifs(buf);
+      if (ifs) {
+         cpLog(LOG_ERR, "WARNING:  Another process created rtp cache file...will ignore our copy.\n");
+      }
+      else {
+         // Now, save it to disk.
+         ofstream f(buf);
+         if (f) {
+            list<RtpPldBuffer*>::const_iterator cii;
+            for(cii = encoded_rtp.begin(); cii != encoded_rtp.end(); cii++) {
+               RtpPldBuffer* bc = *cii;
+               RtpPldBufferStorage b = bc->getStorage();
+               f.write((char*)(&b), sizeof(b));
+               f.write(bc->getBuffer(), bc->getLength());
+               if (f.fail()) {
+                  cpLog(LOG_ERR, "ERROR:  Failed to write rtp cache, err: %s\n",
+                        strerror(errno));
+                  f.close();
+                  unlink(buf);
+                  break;
+               }
+            }
+         }
+         else {
+            cpLog(LOG_ERR, "ERROR:  Failed to open rtp buffer cache for writing, file: %s  error: %s\n",
+                  buf, strerror(errno));
+         }
+      }
+
+      if (lck) {
+         flock(fd, LOCK_UN); // Unlock it..
+         fclose(lck); // Seems to free up the pointer...
+         lck = NULL;
+      }
+
+   }
 }

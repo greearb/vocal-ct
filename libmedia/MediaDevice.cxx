@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaDevice_cxx_Version =
-    "$Id: MediaDevice.cxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: MediaDevice.cxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -91,7 +91,14 @@ MediaDevice::stop() {
 
 void 
 MediaDevice::processRaw(char* data, int length, VCodecType type,
-                        Sptr<CodecAdaptor> codec, bool silence_pkt)
+                        Sptr<CodecAdaptor> codec, bool silence_pkt,
+                        RtpPayloadCache* payload_cache)
 {
-    mySession->processRaw(data, length, type, codec, this, silence_pkt);
+   mySession->processRaw(data, length, type, codec, this, silence_pkt,
+                         payload_cache);
 }; 
+
+int MediaDevice::processCooked(const char* data, int length, int samples,
+                               VCodecType type) {
+   return mySession->processCooked(data, length, samples, type);
+}

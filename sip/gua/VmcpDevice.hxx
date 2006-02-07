@@ -51,7 +51,7 @@
  *
  */
 static const char* const VmcpDevice_hxx_Version =
-    "$Id: VmcpDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: VmcpDevice.hxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
 
 //#include "Vmcp.h"
 #include "PlayQueue.h"
@@ -105,7 +105,9 @@ public:
 
    ///Sinks the received data to the recorder
    void sinkData(char* data, int length, VCodecType type,
-                 Sptr<CodecAdaptor> codec, bool silence_pkt);
+                 Sptr<CodecAdaptor> codec, bool silence_pkt,
+                 RtpPayloadCache* payload_cache);
+
 
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      uint64 now);

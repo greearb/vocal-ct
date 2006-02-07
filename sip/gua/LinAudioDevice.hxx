@@ -51,7 +51,7 @@
  *
  */
 static const char* const LinAudioDeviceVersion =
-    "$Id: LinAudioDevice.hxx,v 1.2 2004/06/21 19:33:20 greear Exp $";
+    "$Id: LinAudioDevice.hxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
 
 #include "Rtp.hxx"
 #include "SoundCard.hxx"
@@ -80,37 +80,38 @@ namespace UA
  */
 
 class LinAudioDevice : public MediaDevice {
-    public:
-        ///
-        LinAudioDevice( const char* deviceName);
+public:
+   ///
+   LinAudioDevice( const char* deviceName);
 
-        /// Destructor
-        virtual ~LinAudioDevice();
+   /// Destructor
+   virtual ~LinAudioDevice();
 
-        /** Start audio channel on device
-       	  * @return 0 if successful, errorcode otherwise
-	  */
-        int start(VCodecType codec_type);
+   /** Start audio channel on device
+    * @return 0 if successful, errorcode otherwise
+    */
+   int start(VCodecType codec_type);
 
-        /** Stops audio channel on device
-       	 * @return 0 if successful, errorcode otherwise
-    	 */
-        int stop();
+   /** Stops audio channel on device
+    * @return 0 if successful, errorcode otherwise
+    */
+   int stop();
 
-        /** suspend audio channel on device
-       	 * @return 0 if successful, errorcode otherwise
-    	 */
-        int suspend();
+   /** suspend audio channel on device
+    * @return 0 if successful, errorcode otherwise
+    */
+   int suspend();
 
-        /** resume audio channel on device
-       	 * @return 0 if successful, errorcode otherwise
-    	 */
-        int resume();
+   /** resume audio channel on device
+    * @return 0 if successful, errorcode otherwise
+    */
+   int resume();
         
 
-        ///Play data to the soundcard device
-        void sinkData(char* data, int length, VCodecType type,
-                      Sptr<CodecAdaptor> codec, bool silence_pkt);
+   ///Play data to the soundcard device
+   void sinkData(char* data, int length, VCodecType type,
+                 Sptr<CodecAdaptor> codec, bool silence_pkt,
+                 RtpPayloadCache* payload_cache);
 
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                      uint64 now);
@@ -121,32 +122,32 @@ class LinAudioDevice : public MediaDevice {
 
 
 #ifdef USE_WINRTP
-        int RenderAudioSamples(std::vector<std::pair<AudioSample*, AudioSource* > > &data);
-        int GenerateData(AudioSample **ppAudioSample);
-        void addMixer(Sptr<PCMMixer> mmixer);
-        void setSinkMixer(Sptr<PCMMixer> mmixer);
+   int RenderAudioSamples(std::vector<std::pair<AudioSample*, AudioSource* > > &data);
+   int GenerateData(AudioSample **ppAudioSample);
+   void addMixer(Sptr<PCMMixer> mmixer);
+   void setSinkMixer(Sptr<PCMMixer> mmixer);
 #endif
 
 
-    private:
+private:
 #ifdef USE_WINRTP
-       Sptr<PCM2G711Transformer> myPCMtoUlawTransformer;
-       Sptr<G7112PCMTransformer> myUlawToPCMTransformer;
+   Sptr<PCM2G711Transformer> myPCMtoUlawTransformer;
+   Sptr<G7112PCMTransformer> myUlawToPCMTransformer;
 #endif
-        ///
-	void processOutgoingAudio();
+   ///
+   void processOutgoingAudio();
 
-        ///process data from audio device
-        void processAudio();
+   ///process data from audio device
+   void processAudio();
 
-        //
-        bool audioActive;
+   //
+   bool audioActive;
 
-        ///
-        unsigned char dataBuffer[480];
+   ///
+   unsigned char dataBuffer[480];
 
-        ///
-        SoundCard mySoundCard;
+   ///
+   SoundCard mySoundCard;
 
 };
  

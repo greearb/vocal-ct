@@ -49,7 +49,7 @@
  */
 
 static const char* const RtpTransmitter_cxx_Version =
-    "$Id: RtpTransmitter.cxx,v 1.4 2005/08/22 06:55:50 greear Exp $";
+    "$Id: RtpTransmitter.cxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -267,7 +267,7 @@ int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag )
 // It does no additional buffering, the data should be exactly
 // enough for one RTP payload.  Cannot otherwise work with variable-sized
 // codecs. --Ben
-int RtpTransmitter::transmitRaw (char* data, int len) {
+int RtpTransmitter::transmitRaw (const char* data, int len) {
    assert (data);
    assert(len >= 0);
    

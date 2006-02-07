@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.16 2005/08/25 00:20:41 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.17 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -247,7 +247,7 @@ void MRtpSession::processRecv(RtpPacket& packet, const NetworkRes& sentBy) {
       //cpLog(LOG_ERR, "MRtpSession::procesRecv\n");
       mySession->processRaw((char*) packet.getPayloadLoc(), packet.getPayloadUsage(),
                             myCodec->getType(), myCodec, this,
-                            packet.isSilenceFill());
+                            packet.isSilenceFill(), NULL);
    }
 }
 
@@ -274,39 +274,66 @@ bool MRtpSession::isSilence(char *buffer, int noOfSamples, int perSampleSize)
    uint64 thresholdComparisonValue;
    int16_t* samples;
 
-   if (perSampleSize == 2)
-       samples = reinterpret_cast<int16_t*>(buffer);
-   else
-     // If we have been handed ulaw data, then we don't handle this yet.
-     // Consider converting it.
-       {
-       cpLog(LOG_DEBUG_STACK, "mu-law data - ahhhhhhhh! ");
-       return false;
-       }
+   if (perSampleSize == 2) {
+      samples = reinterpret_cast<int16_t*>(buffer);
+   }
+   else {
+      // If we have been handed ulaw data, then we don't handle this yet.
+      // Consider converting it.
+      cpLog(LOG_DEBUG_STACK, "mu-law data - ahhhhhhhh! ");
+      return false;
+   }
 
-   for (i=0; i<noOfSamples; i++)
-           total_of_values += (int32_t)samples[i];
+   for (i=0; i<noOfSamples; i++) {
+      total_of_values += (int32_t)samples[i];
+   }
 
    average = total_of_values / noOfSamples;
 
    for (i=0; i<noOfSamples; i++) {
-           int32_t deviation = (int32_t)samples[i] - average;
-           sumOfSquares += (uint64) ((uint64)deviation*(uint64)deviation);
+      int32_t deviation = (int32_t)samples[i] - average;
+      sumOfSquares += (uint64) ((uint64)deviation*(uint64)deviation);
    }
 
-   // The value here of 0x7e equates to -37dB which is the value chosen by the ITU
+   // The value here of 0x7e equates to -37dB which is the value
+   // chosen by the ITU
    thresholdComparisonValue = (uint64)0x7e * (uint64)0x7e * (uint64)noOfSamples;
    if (sumOfSquares < thresholdComparisonValue)
-           return true;  // It is silence....sshhhhh!
+      return true;  // It is silence....sshhhhh!
    else
-           return false; // Nope - something was making a noise.
-
+      return false; // Nope - something was making a noise.
 }
+
+// This assumes that the data is already right for myCodec.
+// Use sinkData if that is not the case.
+int MRtpSession::sinkCooked(const char* data, int length, int samples,
+                            VCodecType type) {
+   if (type != myCodec->getType()) {
+      cpLog(LOG_ERR, "ERROR:  Invalid type: %d  codec->type: %d\n",
+            type, myCodec->getType());
+      return -1;
+   }
+   else {
+      // Check for silence pkt, ie VAD
+      if (length == 0) {
+         consecutiveSilentSentSamples += samples;
+         rtpStack->notifyVADSuppression(length);
+         return 0;
+      }
+      else {
+         consecutiveSilentSamples = 0;
+         consecutiveSilentSentSamples = 0;
+         return rtpStack->transmitRaw(data, length);
+      }
+   }
+}//sinkCooked
+
 
 ///Consume the raw data
 void 
 MRtpSession::sinkData(char* data, int length, VCodecType type,
-                      Sptr<CodecAdaptor> codec, bool silence_pkt) {
+                      Sptr<CodecAdaptor> codec, bool silence_pkt,
+                      RtpPayloadCache* payload_cache) {
 
    //if the codec type is not same as the network type of the session
    //convert back, say for example if data is PCMU and sent over session codec
@@ -383,6 +410,10 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
             // Let's tell lower layer for accounting purposes, etc.
             consecutiveSilentSentSamples += decodedSamples;
             rtpStack->notifyVADSuppression(length);
+            if (payload_cache) {
+               // Add a 'silent' pkt
+               payload_cache->addRtpPldBuffer(NULL, 0, 0, myCodec->getType());
+            }
          }
          else {
             consecutiveSilentSentSamples = 0;
@@ -402,19 +433,31 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
                
                if (encLen > 0) { 
                   retVal = rtpStack->transmitRaw(encBuf, encLen);
-               } else { 
+
+                  if (payload_cache) {
+                     payload_cache->addRtpPldBuffer(encBuf, encLen, decodedSamples,
+                                                    myCodec->getType());
+                  }
+               }
+               else { 
                   // Don't trasmit if there has been an error
                   cpLog(LOG_ERR, "Coding error, no data returned from codec");
                }
             }
-         }  
-      } else {
+         }
+      }
+      else {
          consecutiveSilentSamples = 0;
          consecutiveSilentSentSamples = 0;
          //string dmp;
          //hexDump(data, length, dmp);
          //cpLog(LOG_DEBUG_STACK, "Transmit raw:%d\n%s", length, dmp.c_str());
          retVal = rtpStack->transmitRaw(data, length);
+
+         if (payload_cache) {
+            payload_cache->addRtpPldBuffer(data, length, 160,
+                                           myCodec->getType());
+         }
       }
    }
 
@@ -444,7 +487,7 @@ void MRtpSession::recvDTMF(int event) {
       mySession = MediaController::instance().getSession(mySessionId);
    }
    if (mySession.getPtr()) {
-      mySession->processRaw(&eventData, 1, DTMF_TONE, nll, this, false);
+      mySession->processRaw(&eventData, 1, DTMF_TONE, nll, this, false, NULL);
    }
 }
 

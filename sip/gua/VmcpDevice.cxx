@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.6 2005/08/25 00:20:41 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.7 2006/02/07 01:33:21 greear Exp $";
 
 
 
@@ -152,7 +152,7 @@ void VmcpDevice::processAudio () {
    }
 
    if (!hasPlayed) {
-      processRaw((char*)buffer, networkPktSize*8, G711U, NULL, false);
+      processRaw((char*)buffer, networkPktSize*8, G711U, NULL, false, NULL);
    }
 }
 
@@ -307,8 +307,8 @@ int VmcpDevice::stop (void) {
 
 void
 VmcpDevice::sinkData(char* data, int length, VCodecType type,
-                     Sptr<CodecAdaptor> codec, bool silence_pkt)
-{
+                     Sptr<CodecAdaptor> codec, bool silence_pkt,
+                     RtpPayloadCache* payload_cache) {
    cpLog(LOG_DEBUG_STACK, "Sink Data: length %d", length);
    if (type == DTMF_TONE) {
       char digit;

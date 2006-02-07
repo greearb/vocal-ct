@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.11 2005/08/23 06:39:42 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.12 2006/02/07 01:33:21 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -341,9 +341,23 @@ MediaSession::tearDown()
     return 1;
 }
 
+// This assumes that the data is already right for myCodec.
+// Use sinkRaw if that is not the case.
+int MediaSession::processCooked(const char* data, int length, int samples,
+                                VCodecType type) {
+   if (myRtpSession != 0) {
+      return myRtpSession->sinkCooked(data, length, samples, type);
+   }
+   else {
+      cpLog(LOG_ERR, "ERROR:  myRtpSession is NULL!\n");
+      return -1;
+   }
+}
+
 void 
-MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdaptor> codec,
-                         Adaptor* adp, bool silence_pkt) {
+MediaSession::processRaw(char *data, int len, VCodecType cType,
+                         Sptr<CodecAdaptor> codec, Adaptor* adp,
+                         bool silence_pkt, RtpPayloadCache* payload_cache) {
    assertNotDeleted();
    cpLog(LOG_DEBUG_STACK, "processRaw, RTP: %d  adp->deviceType: %d  adp->instanceName: %s  adp->description: %s silence_pkt: %i\n",
          (int)(RTP), (int)(adp->getDeviceType()), adp->getInstanceName().c_str(),
@@ -352,7 +366,7 @@ MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdapto
    if (adp->getDeviceType() != RTP) {
       //Data from hardware, ship it out to the RTP session
       if (myRtpSession != 0) {
-         myRtpSession->sinkData(data, len, cType, codec, silence_pkt);
+         myRtpSession->sinkData(data, len, cType, codec, silence_pkt, payload_cache);
       }
       else {
          cpLog(LOG_ERR, "ERROR:  myRtpSession is NULL!\n");
@@ -361,7 +375,7 @@ MediaSession::processRaw(char *data, int len, VCodecType cType, Sptr<CodecAdapto
    else {
       cpLog(LOG_DEBUG_STACK, "processRaw, using device: %s to sink data.\n",
             myMediaDevice->getInstanceName().c_str());
-      myMediaDevice->sinkData(data, len, cType, codec, silence_pkt);
+      myMediaDevice->sinkData(data, len, cType, codec, silence_pkt, NULL);
    }
 }
 

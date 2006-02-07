@@ -51,7 +51,7 @@
  *
  */
 static const char* const FileMediaDevice_hxx_Version =
-    "$Id: FileMediaDevice.hxx,v 1.3 2004/06/21 19:33:20 greear Exp $";
+    "$Id: FileMediaDevice.hxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
 
 #include "RtpSession.hxx"
 #include "UaHardwareEvent.hxx"
@@ -96,7 +96,8 @@ public:
     *  fully implemented.
     */
    void sinkData(char* data, int length, VCodecType type,
-                 Sptr<CodecAdaptor> codec, bool silence_pkt);
+                 Sptr<CodecAdaptor> codec, bool silence_pkt,
+                 RtpPayloadCache* payload_cache);
 
    // Do work, maybe can read or write now, check the file descriptors.
    virtual void tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,

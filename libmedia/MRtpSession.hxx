@@ -58,7 +58,7 @@
 #include "Def.hxx"
 
 static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.11 2005/08/23 07:34:43 greear Exp $";
+    "$Id: MRtpSession.hxx,v 1.12 2006/02/07 01:33:21 greear Exp $";
 
 #include "Sptr.hxx"
 
@@ -136,10 +136,16 @@ public:
    ///
    int getSessionId() const { return mySessionId; };
 
+   // This assumes that the data is already right for myCodec.
+   // Use sinkData if that is not the case.
+   virtual int sinkCooked(const char* data, int length, int samples,
+                          VCodecType type);
+
    /** Send the data over the wire
     */
-   void sinkData(char* data, int length, VCodecType type,
-                 Sptr<CodecAdaptor> codec, bool silence_pkt);
+   virtual void sinkData(char* data, int length, VCodecType type,
+                         Sptr<CodecAdaptor> codec, bool silence_pkt,
+                         RtpPayloadCache* payload_cache);
 
    ///Re-initialise connection to remote party based on the remote SDP
    void adopt(SdpSession& remoteSdp);
