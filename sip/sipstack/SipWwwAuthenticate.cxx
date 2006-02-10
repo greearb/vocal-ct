@@ -50,7 +50,7 @@
  */
 
 static const char* const SipWwwAuthenticate_cxx_Version =
-    "$Id: SipWwwAuthenticate.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
+    "$Id: SipWwwAuthenticate.cxx,v 1.4 2006/02/10 17:39:20 greear Exp $";
 
 #pragma warning (disable: 4786)
 
@@ -91,30 +91,14 @@ SipWwwAuthenticate::SipWwwAuthenticate( const Data& srcData, const string& local
     }
 
     Data fdata = srcData;
-    try
-    {
-        decode(fdata);
-    }
-    catch (SipWwwAuthenticateParserException&)
-    {
-        if (SipParserMode::sipParserMode())
-        {
-
-            throw SipWwwAuthenticateParserException(
-                "failed to decode the ProxyAuthenticate string",
-                __FILE__,
-                __LINE__,
-                DECODE_FAILED_WWWAUTHENTICATE);
-        }
-    }
+    decode(fdata);
 }
 
 
 SipWwwAuthenticate&
 SipWwwAuthenticate::operator = (const SipWwwAuthenticate& src)
 {
-    if (&src != this)
-    {
+    if (&src != this) {
         authScheme = src.authScheme;
         myParamList= src.myParamList;
     }
@@ -135,82 +119,48 @@ SipWwwAuthenticate::decode(const Data& data)
 {
     Data nData = data;
 
-    try
-    {
-        scanSipWwwauthorization(nData);
-    }
-    catch (SipWwwAuthenticateParserException e)
-    {
-        if (SipParserMode::sipParserMode())
-        {
-
-            throw SipWwwAuthenticateParserException(
-                e.getDescription(),
-                __FILE__,
-                __LINE__,
-                DECODE_FAILED_WWWAUTHENTICATE
-            );
-        }
+    if (scanSipWwwauthorization(nData) < 0) {
+       cpLog(LOG_ERR, "ERROR:  Failed to decode SipWwwAuthenticate, data -:%s:-\n",
+             data.c_str());
     }
 }
 
 
-void
-SipWwwAuthenticate::scanSipWwwauthorization(const Data& tmpdata)
-{
-    Data authdetails = tmpdata ;
-    Data authType;
-    int ret = authdetails.match(" ", &authType, true);
-    if (ret == FIRST)
-    {
-        if (SipParserMode::sipParserMode())
-        {
+int SipWwwAuthenticate::scanSipWwwauthorization(const Data& tmpdata) {
+   Data authdetails = tmpdata ;
+   Data authType;
+   int ret = authdetails.match(" ", &authType, true);
+   if (ret == FIRST) {
+      if (SipParserMode::sipParserMode()) {
+         cpLog(LOG_ERR, "ERROR:  Failed to decode ProxyAuthenticate, tmpdata -:%s:-\n",
+               tmpdata.c_str());
+         return -1;
+      }
+   }
+   else if (ret == FOUND) {
+      setAuthScheme(authType);
+      cpLog(LOG_DEBUG_STACK,"Found auth sceme [%s]", authType.logData());
+      
+      if ( ( isEqualNoCase(authType,AUTH_BASIC)) ||
+           ( isEqualNoCase(authType,AUTH_DIGEST)) ||
+           ( isEqualNoCase(authType,AUTH_PGP ) )
+         ) {
 
-            throw SipWwwAuthenticateParserException(
-                "failed to decode the ProxyAuthenticate string",
-                __FILE__,
-                __LINE__,
-                DECODE_FAILED_WWWAUTHENTICATE);
-        }
-
-    }
-    else if (ret == FOUND)
-    {
-        setAuthScheme(authType);
-        cpLog(LOG_DEBUG_STACK,"Found aunth sceme [%s]", authType.logData());
-
-        if ( ( isEqualNoCase(authType,AUTH_BASIC)) ||
-             ( isEqualNoCase(authType,AUTH_DIGEST)) ||
-             ( isEqualNoCase(authType,AUTH_PGP ) )
-            )
-        {
-            try
-            {
-                myParamList.decode(authdetails, ',');
+         if (myParamList.decode(authdetails, ',') < 0) {
+            if (SipParserMode::sipParserMode()) {
+               cpLog(LOG_ERR, "ERROR:  Failed parsing auth tokens, tmpdata -:%s:-\n",
+                     tmpdata.c_str());
+               return -1;
             }
-            catch (SipWwwAuthenticateParserException&)
-            {
-                if (SipParserMode::sipParserMode())
-                {
-                    throw (SipWwwAuthenticateParserException(
-                        "failed in parsing auth tokens",
-                        __FILE__,
-                                   __LINE__,
-                        DECODE_FAILED_WWWAUTHENTICATE));
-                }
-            }
-        }
-        
-    }
-    else if (ret == NOT_FOUND)
-    {
-        throw SipWwwAuthenticateParserException(
-            "No AuthScheme",
-            __FILE__,
-            __LINE__,
-            DECODE_FAILED_WWWAUTHENTICATE);
-    }
-
+         }
+      }
+   }
+   else if (ret == NOT_FOUND) {
+      cpLog(LOG_ERR, "ERROR:  No Auth Scheme, tmpdata -:%s:-\n",
+            tmpdata.c_str());
+      return -1;
+   }
+   return 0;
 }
 
 
@@ -257,50 +207,43 @@ SipWwwAuthenticate::setRealmValue(const Data& data)
 
 ///
 Data
-SipWwwAuthenticate::getTokenValue(const Data& token) const
-{
-    Data ret;
-    //Strip off any "" from the value
-    string tokenstr = myParamList.getValue(token).convertString();
-    int pos;
-    pos = tokenstr.find("\"");
-
-    if (pos != static_cast<int>(string::npos))
-    {
-         tokenstr = tokenstr.substr(pos + 1, tokenstr.length() - 2);                }
-
-    ret = tokenstr;
-
-    return ret;
+SipWwwAuthenticate::getTokenValue(const Data& token) const {
+   Data ret;
+   //Strip off any "" from the value
+   string tokenstr = myParamList.getValue(token).convertString();
+   int pos;
+   pos = tokenstr.find("\"");
+   
+   if (pos != static_cast<int>(string::npos)) {
+      tokenstr = tokenstr.substr(pos + 1, tokenstr.length() - 2);
+   }
+   
+   ret = tokenstr;
+   
+   return ret;
 }
 
 
 ///
 Data
-SipWwwAuthenticate::getRealmValue() const
-{
-    return getTokenValue(REALM);
+SipWwwAuthenticate::getRealmValue() const {
+   return getTokenValue(REALM);
 }
 
 
 
 Sptr<SipHeader>
-SipWwwAuthenticate::duplicate() const
-{
-    return new SipWwwAuthenticate(*this);
+SipWwwAuthenticate::duplicate() const {
+   return new SipWwwAuthenticate(*this);
 }
 
 
-bool
-SipWwwAuthenticate::compareSipHeader(SipHeader* msg) const
-{
-    SipWwwAuthenticate* otherMsg = dynamic_cast<SipWwwAuthenticate*>(msg);
-    if(otherMsg != 0)
-    {
-	return (*this == *otherMsg);
-    }
-    else
-    {
-	return false;
-    }
+bool SipWwwAuthenticate::compareSipHeader(SipHeader* msg) const {
+   SipWwwAuthenticate* otherMsg = dynamic_cast<SipWwwAuthenticate*>(msg);
+   if(otherMsg != 0) {
+      return (*this == *otherMsg);
+   }
+   else {
+      return false;
+   }
 }

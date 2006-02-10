@@ -49,7 +49,7 @@
  */
 
 static const char* const SipParameterList_cxx_Version =
-    "$Id: SipParameterList.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipParameterList.cxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
 
 #include "global.h"
 #include "SipParameterList.hxx"
@@ -157,8 +157,7 @@ Data SipParameterList::encode() const
 
 
 
-void SipParameterList::decode(Data data, char delimiter, bool eatWhitespace)
-{
+int SipParameterList::decode(Data data, char delimiter, bool eatWhitespace) {
     char matchedChar;
     Data key;
     Data value;
@@ -168,15 +167,12 @@ void SipParameterList::decode(Data data, char delimiter, bool eatWhitespace)
     sprintf(del1, "=%c", myDelimiter);
     sprintf(del2, "%c", myDelimiter);
 
-    while(!done)
-    {
+    while(!done) {
         key = data.matchChar(del1, &matchedChar);
-        if(matchedChar == '=')
-        {
+        if(matchedChar == '=') {
             // this is a separator, so stuff before this is a thing
             value = data.matchChar(del2, &matchedChar);
-            if(matchedChar != myDelimiter)
-            {
+            if(matchedChar != myDelimiter) {
                 value = data;
                 // done
                 done = true;
@@ -203,14 +199,12 @@ void SipParameterList::decode(Data data, char delimiter, bool eatWhitespace)
             }
             operator[](key) = token;
         }
-        else if(matchedChar == delimiter)
-        {
+        else if(matchedChar == delimiter) {
             // no value here, so just stuff nothing into the value
             assert (key != "");
             operator[](key) = "";
         }
-        else
-        {
+        else {
             // nothing left, so done
             // done
             if(data.length() != 0)
@@ -221,6 +215,7 @@ void SipParameterList::decode(Data data, char delimiter, bool eatWhitespace)
             done = true;
         }
     }
+    return 0;
 }
 
 Data 
@@ -249,11 +244,3 @@ SipParameterList::clearValue(const Data& key)
 {
     erase(key);
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

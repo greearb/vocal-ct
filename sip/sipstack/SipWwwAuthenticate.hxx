@@ -54,7 +54,7 @@
 #include "global.h"
 
 static const char* const SipWwwAuthenticateVersion =
-    "$Id: SipWwwAuthenticate.hxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
+    "$Id: SipWwwAuthenticate.hxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
 
 
 
@@ -112,76 +112,63 @@ class SipWwwAuthenticateParserException : public VException
 
 
 /// data container for WwwAuthenticate header
-class SipWwwAuthenticate : public SipHeader
-{
-    public:
+class SipWwwAuthenticate : public SipHeader {
+public:
 
-        /*** Create by decoding the data string passed in. This is the decode
-             or parse.  */
-        SipWwwAuthenticate( const Data& srcData, const string& local_ip );
+   /*** Create by decoding the data string passed in. This is the decode
+        or parse.  */
+   SipWwwAuthenticate( const Data& srcData, const string& local_ip );
+   
+   ///
+   SipWwwAuthenticate( const SipWwwAuthenticate& src );
 
-        ///
-        SipWwwAuthenticate( const SipWwwAuthenticate& src );
+   ///
+   SipWwwAuthenticate&
+   operator = (const SipWwwAuthenticate& src);
 
-        ///
-        SipWwwAuthenticate&
-        operator = (const SipWwwAuthenticate& src);
+   ///
+   bool operator ==(const SipWwwAuthenticate& src) const;
+   ///
+   void setAuthScheme(const Data & data) {
+      authScheme = data;
+   }
 
-        ///
-        bool operator ==(const SipWwwAuthenticate& src) const;
-        ///
-        void
-        setAuthScheme(const Data & data)
-        {
-            authScheme = data;
-        }
+   ///
+   Data getAuthScheme() const {
+      return authScheme;
+   }
 
-        ///
-        Data
-        getAuthScheme() const
-        {
-            return authScheme;
-        }
+   ///
+   void setAuthTokenDetails(const Data& token, const Data& tokenValue);
 
-        ///
-        void
-        setAuthTokenDetails(const Data& token, const Data& tokenValue);
+   /*** return the encoded string version of this. This call should only be
+        used inside the stack and is not part of the API */
+   Data encode() const;
 
-        /*** return the encoded string version of this. This call should only be
-             used inside the stack and is not part of the API */
-        Data
-        encode() const;
+   ///
+   void setRealmValue(const Data& realmValue);
 
-        ///
-        void
-        setRealmValue(const Data& realmValue);
+   ///
+   Data getTokenValue(const Data& token) const;
 
-        ///
-        Data
-        getTokenValue(const Data& token) const;
+   ///
+   Data getRealmValue() const;
 
-        ///
-        Data
-        getRealmValue() const;
+   /// method for copying sip headers of any type without knowing which type
+   Sptr<SipHeader> duplicate() const;
+   /// compare two headers of (possibly) the same class
+   virtual bool compareSipHeader(SipHeader* msg) const;
+private:
 
-	/// method for copying sip headers of any type without knowing which type
-	Sptr<SipHeader> duplicate() const;
-	/// compare two headers of (possibly) the same class
-	virtual bool compareSipHeader(SipHeader* msg) const;
-    private:
+   void decode(const Data& data);
 
-        void
-        decode(const Data& data);
-
-        void
-        scanSipWwwauthorization(const Data& data);
-
-
-        Data authScheme;
-        SipParameterList myParamList;   //contains tokens, and tokenValues.
-    
-        friend class StatusMsg;
-        SipWwwAuthenticate(); // Not Implemented
+   int scanSipWwwauthorization(const Data& data);
+   
+   Data authScheme;
+   SipParameterList myParamList;   //contains tokens, and tokenValues.
+   
+   friend class StatusMsg;
+   SipWwwAuthenticate(); // Not Implemented
 };
 
  

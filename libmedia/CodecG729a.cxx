@@ -50,7 +50,7 @@
  */
 
 static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.5 2005/08/25 19:32:06 greear Exp $";
+    "$Id: CodecG729a.cxx,v 1.6 2006/02/10 17:39:20 greear Exp $";
 
 #ifdef USE_VOICE_AGE
 
@@ -179,7 +179,7 @@ int CodecG729a::decode(char* data, int length, char* decBuf, int decBufLen,
             rv, length, decBufLen, l, dbl);
    }
    else {
-      cpLog(LOG_ERR, "codecLibDecode OK, rv: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
+      cpLog(LOG_DEBUG, "codecLibDecode OK, rv: %i, length: %d decBufLen: %d l: %d dbl: %d\n",
             rv, length, decBufLen, l, dbl);
    }
    

@@ -52,7 +52,7 @@
  */
 
 static const char* const SipParameterList_hxx_Version =
-    "$Id: SipParameterList.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipParameterList.hxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
 
 #include <map>
 
@@ -112,8 +112,7 @@ class SipParameterListParserException : public VException
     guaranteed assumption, but it makes life better, and it seems to
     match up to NIST's approach, so we'll take it.  */
 
-class SipParameterList : public std::map <Data, Data>
-{
+class SipParameterList : public std::map <Data, Data> {
     public:
 	/// Create one with default values
         SipParameterList(char delimiter=';');
@@ -131,7 +130,8 @@ class SipParameterList : public std::map <Data, Data>
 	Data encode() const ;
 
 	///parser functions
-	void decode(Data data, char delimiter=';', bool eatWhitespace=true);
+        // Returns < 0 on error.
+	int decode(Data data, char delimiter=';', bool eatWhitespace=true);
 
         ///
         Data getValue(const Data& key) const;
@@ -160,12 +160,5 @@ class SipParameterList : public std::map <Data, Data>
 
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif
