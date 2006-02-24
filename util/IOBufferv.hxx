@@ -1,5 +1,5 @@
-// $Id: IOBufferv.hxx,v 1.1 2004/12/07 19:54:45 greear Exp $
-// $Revision: 1.1 $  $Author: greear $ $Date: 2004/12/07 19:54:45 $
+// $Id: IOBufferv.hxx,v 1.2 2006/02/24 22:27:52 greear Exp $
+// $Revision: 1.2 $  $Author: greear $ $Date: 2006/02/24 22:27:52 $
 
 //
 //Copyright (C) 2001  Ben Greear
@@ -115,15 +115,15 @@ public:
    int append(const unsigned char* bytes, int len);
    void ensureCapacity(int max_length);
 
-   int  write(const int desc, int max_to_write = -1);
+   ssize_t write(const int desc, int max_to_write = -1);
 
    /** Will write read bytes into os if it's not NULL. */
-   int  read(const int desc, const int max_to_read, const char* debug,
-             ostream* os = NULL);
+   ssize_t read(const int desc, const int max_to_read, const char* debug,
+                 ostream* os = NULL);
 
    /** Only does one call to recvfrom
     */
-   int recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen);
+   ssize_t recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen);
 
    int getMaxContigFree() const;
    int getMaxContigUsed() const;

@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.10 2004/12/07 19:54:45 greear Exp $";
+    "$Id: Connection.hxx,v 1.11 2006/02/24 22:27:52 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -270,8 +270,8 @@ protected:
    void setState();
 
    virtual int iclose();
-   virtual int iread();
-   virtual int iwrite();
+   virtual ssize_t iread();
+   virtual ssize_t iwrite();
 
    friend class TcpServerSocket;
    friend class TcpClientSocket;

@@ -1,5 +1,5 @@
-// $Id: IOBufferv.cxx,v 1.1 2004/12/07 19:54:45 greear Exp $
-// $Revision: 1.1 $  $Author: greear $ $Date: 2004/12/07 19:54:45 $
+// $Id: IOBufferv.cxx,v 1.2 2006/02/24 22:27:52 greear Exp $
+// $Revision: 1.2 $  $Author: greear $ $Date: 2006/02/24 22:27:52 $
 
 //
 //Copyright (C) 2001-2004  Ben Greear
@@ -294,9 +294,9 @@ int IOBufferv::dropFromTail(int len) {
 }
    
 
-int IOBufferv::write(const int desc, int max_to_write) {
-   int this_round = 0;
-   int sofar = 0;
+ssize_t IOBufferv::write(const int desc, int max_to_write) {
+   ssize_t this_round = 0;
+   ssize_t sofar = 0;
 
    if (desc == -1) {  //cleans up an error message or two.
       return -1;
@@ -389,10 +389,10 @@ int IOBufferv::write(const int desc, int max_to_write) {
  * bigger than that... (it won't be made smaller if it's already bigger
  * of course.)
  */
-int IOBufferv::read(const int desc, const int max_to_read,
+ssize_t IOBufferv::read(const int desc, const int max_to_read,
                    const char* debug, ostream* os) {
-   int sofar = 0;
-   int this_round = 0;
+   ssize_t sofar = 0;
+   ssize_t this_round = 0;
 
    if (max_to_read <= 0) {
       return 0; //idiot exit
@@ -400,8 +400,8 @@ int IOBufferv::read(const int desc, const int max_to_read,
 
    ensureCapacity(getCurLen() + max_to_read);
 
-   int to_rd;
-   int ctg;
+   ssize_t to_rd;
+   ssize_t ctg;
 
    int rounds = 0;
    int breakout = FALSE;
@@ -514,8 +514,9 @@ unsigned char IOBufferv::charAt(int idx) {
 
 /** Only does one call to recvfrom
  */
-int IOBufferv::recvFrom(const int desc, const int max_to_read, struct sockaddr *from, socklen_t *fromlen) {
-   int this_round = 0;
+ssize_t IOBufferv::recvFrom(const int desc, const int max_to_read,
+                            struct sockaddr *from, socklen_t *fromlen) {
+   ssize_t this_round = 0;
 
    if (max_to_read <= 0) {
       return 0; //idiot exit
@@ -523,7 +524,7 @@ int IOBufferv::recvFrom(const int desc, const int max_to_read, struct sockaddr *
 
    ensureCapacity(max_to_read);
 
-   int ctg = getMaxContigFree();
+   ssize_t ctg = getMaxContigFree();
    if (ctg < max_to_read) {
       //if (IO_LOGFILE.ofLevel(INF)) {
       //   IO_LOGFILE << "IOBufferv: WARNING:  not enough CONTIG room... (performance problem only)\n";

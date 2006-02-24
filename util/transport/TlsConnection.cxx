@@ -49,7 +49,7 @@
  */
 
 static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.6 2004/06/06 08:32:37 greear Exp $";
+    "$Id: TlsConnection.cxx,v 1.7 2006/02/24 22:27:52 greear Exp $";
 
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
@@ -117,12 +117,12 @@ int TlsConnection::iclose() {
 }
 
 
-int TlsConnection::iread() {
+ssize_t TlsConnection::iread() {
     if (ssl) {
 #ifdef VOCAL_HAS_OPENSSL
-        int count = 8196;
+        ssize_t count = 8196;
         char buf[count];
-        int rd = SSL_read(ssl, buf, count);
+        ssize_t rd = SSL_read(ssl, buf, count);
         if (t < 0) {
             int myerr = SSL_get_error(ssl, t);
             if (myerr == SSL_ERROR_WANT_READ) {
@@ -150,13 +150,13 @@ int TlsConnection::iread() {
 }
 
 
-int TlsConnection::iwrite() {
+ssize_t TlsConnection::iwrite() {
     if (ssl) {
 #ifdef VOCAL_HAS_OPENSSL
-        int count = outBuf.getCurLen();
+        ssize_t count = outBuf.getCurLen();
         char buf[count];
         outBuf.peekBytes(outbuf, count);
-        int t = SSL_write(ssl, buf, count);
+        ssize_t t = SSL_write(ssl, buf, count);
 	if (t < 0) {
 	    ERR_print_errors_fp(stderr);
             int myerr = SSL_get_error(ssl, t);

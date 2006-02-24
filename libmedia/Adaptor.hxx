@@ -53,7 +53,7 @@
 
 
 static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.6 2006/02/07 01:33:21 greear Exp $";
+    "$Id: Adaptor.hxx,v 1.7 2006/02/24 22:27:52 greear Exp $";
 
 #include "global.h"
 #include <string>
@@ -118,6 +118,7 @@ namespace UA
    /** Interface class, used for callback. */
    class RtpPayloadCache {
    public:
+      virtual ~RtpPayloadCache() { }
       virtual void addRtpPldBuffer(const char* msg, int len, int samples,
                                    VCodecType t) = 0;
    };

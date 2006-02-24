@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2004/12/07 19:55:13 greear Exp $
+# $Id: Makefile,v 1.5 2006/02/24 22:27:52 greear Exp $
 
 BUILD = ../build
 
@@ -55,7 +55,8 @@ rtpApi.cxx: rtpTools.hxx Rtp.hxx Rtcp.hxx RtpSession.hxx $(CAPIBUILDER)
 	cat rtpTools.hxx Rtp.hxx Rtcp.hxx RtpSession.hxx | $(CAPIBUILDER) -irtpTools.hxx -iRtp.hxx -iRtcp.hxx -iRtpSession.hxx   > rtpApi.cxx
 
 ifeq ($(VOCAL_USE_LANFORGE),yes)
-LFDIR=$(HOME)/btbits/btbits/
+LFDIR=$(l4LIBS_BASE)/..
+#LFDIR=$(HOME)/btbits/btbits/
 INCDIRS += $(LFDIR)/include
 LIBDIRS += $(LFDIR)/lib
 MKSHLIB_INCDIRS += -L$(LFDIR)/lib

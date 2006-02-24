@@ -53,7 +53,7 @@
 
 
 static const char* const Application_hxx_Version = 
-    "$Id: Application.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Application.hxx,v 1.2 2006/02/24 22:27:52 greear Exp $";
 
 
 #include "Runnable.hxx"
@@ -71,10 +71,10 @@ namespace Vocal
 
 class Application;
 
-class ApplicationCreator
-{
-    public:
-        virtual Application * create() = 0;
+class ApplicationCreator {
+public:
+   virtual ~ApplicationCreator() { }
+   virtual Application * create() = 0;
 };
 
 /** A singleton class which should be the entry point for a process.<br><br>

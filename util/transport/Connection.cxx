@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.7 2004/06/03 23:54:17 greear Exp $";
+    "$Id: Connection.cxx,v 1.8 2006/02/24 22:27:52 greear Exp $";
 
 #ifndef __vxworks
 
@@ -207,12 +207,12 @@ int Connection::iclose() {
 }
 
 
-int Connection::iread() {
+ssize_t Connection::iread() {
     return rcvBuf.read(_connId, 65536, NULL);
 }
 
 
-int Connection::iwrite() {
+ssize_t Connection::iwrite() {
     return outBuf.write(_connId);
 }
 
