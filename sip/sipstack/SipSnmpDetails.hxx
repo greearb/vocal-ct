@@ -51,10 +51,7 @@
  *
  */
 
-static const char* const SipSnmpDetailsVersion
-= "$Id: SipSnmpDetails.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
+#if 0
 
 
 #include <cassert>
@@ -170,10 +167,6 @@ class SipSnmpDetails: public BugCatcher
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif // AGENT_API_MIB_VARS_HXX
+
+#endif

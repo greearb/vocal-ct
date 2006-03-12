@@ -49,7 +49,7 @@
  */
 
 static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
+    "$Id: SipTransceiver.cxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -72,7 +72,7 @@ static const char* const SipTransceiver_cxx_Version =
 #include "SipFrom.hxx"
 #include "SipContact.hxx"
 #include "SipCSeq.hxx"
-#include "SipSnmpDetails.hxx"
+//#include "SipSnmpDetails.hxx"
 #include "SipTransactionId.hxx"
 #include "SipTransceiver.hxx"
 #include "SystemInfo.hxx"
@@ -187,9 +187,9 @@ void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage) {
 
    if (msgPtr != 0) {
       //// should this only be for actually sent messages? /////////
-      if (sipAgent != 0) {
-         updateSnmpData(sm, OUTS);
-      }
+      //if (sipAgent != 0) {
+      //   updateSnmpData(sm, OUTS);
+      //}
       //////////////////////////////////////////////////////////////
 	
       send(msgPtr);
@@ -218,9 +218,9 @@ void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
     
    if (msgPtr != 0) {
       //// should this only be for actually sent messages? /////////
-      if (sipAgent != 0) {
-         updateSnmpData(sipMessage.getPtr(), OUTS);
-      }
+      //if (sipAgent != 0) {
+      //   updateSnmpData(sipMessage.getPtr(), OUTS);
+      //}
       //////////////////////////////////////////////////////////////
 
       send(msgPtr, host, port);
@@ -304,9 +304,9 @@ void SipTransceiver::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
    if (tcpConnection != 0) {
       tcpConnection->tick(input_fds, output_fds, exc_fds, now);
    }
-   if (sipAgent != 0) {
-      sipAgent->tick(input_fds, output_fds, exc_fds, now);
-   }
+   //if (sipAgent != 0) {
+   //   sipAgent->tick(input_fds, output_fds, exc_fds, now);
+   //}
 
    // TODO:  If we ever wanted to optimize this for many calls, then could
    // keep a separate list of to-be-purged calls...that way we do not have
@@ -331,9 +331,9 @@ int SipTransceiver::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fd
    if (tcpConnection != 0) {
       tcpConnection->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
    }
-   if (sipAgent != 0) {
-      sipAgent->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
-   }
+   //if (sipAgent != 0) {
+   //   sipAgent->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
+   //}
    return 0;
 }
 
@@ -416,9 +416,9 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
 
    if (msgQ != 0) {
       //need to have snmpDetails for this.
-      if (sipAgent != 0) {
-         updateSnmpData(sipPtr, INS);
-      }
+      //if (sipAgent != 0) {
+      //   updateSnmpData(sipPtr, INS);
+      //}
    }
 
    return msgQ;
@@ -456,6 +456,7 @@ SipTransceiver::getCallContainer(const SipTransactionId& id) {
    return sentRequestDB.getCallContainer(id);
 }
 
+#if 0
 void
 SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType) {
    //come here only if snmpAgent is valid.
@@ -497,6 +498,7 @@ SipTransceiver::updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType) {
       }
    }
 }//updateSnmpData
+#endif
 
 #if 0
 void

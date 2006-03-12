@@ -1,5 +1,6 @@
 // Released into the public domain. --Ben Greear June 7, 2004
 
+#if 0
 
 #include <sys/file.h>
 #include <string>
@@ -19,4 +20,4 @@ public:
 
 };//FileStackLock
 
-
+#endif

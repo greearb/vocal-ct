@@ -49,7 +49,7 @@
  */
 
 static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.8 2006/02/24 22:27:52 greear Exp $";
+    "$Id: Connection.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
 
 #ifndef __vxworks
 
@@ -58,13 +58,15 @@ static const char* const Connection_cxx_version =
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/types.h>
+#ifndef __MINGW32__
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#endif
 #include <string.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <signal.h>
-#include <arpa/inet.h>
 
 #ifndef __vxworks
 #include <sys/time.h>
@@ -198,7 +200,6 @@ int Connection::write() {
 }
 
 int Connection::iclose() {
-    assert(!shouldCloseOnDestruct());
 #ifndef WIN32
     return ::close(_connId);
 #else
@@ -220,90 +221,17 @@ ssize_t Connection::iwrite() {
 #define snprintf _snprintf
 #endif
 
-string
-Connection::getDescription() const
-{
-    string retStr;
-    char hName[256];
-    char portBuf[256];
-    char descBuf[256];
-    SA* sa = (SA*) _connAddr;
-    switch (sa->sa_family)
-    {
-        case AF_INET:
-        {
-            struct sockaddr_in* sin = (struct sockaddr_in*) sa;
-            if(inet_ntop(AF_INET, &sin->sin_addr, hName, 256) == 0)
-            {
-                cpLog(LOG_ERR, "inet_ntop failed");
-            };
-            if(ntohs(sin->sin_port) != 0)
-            {
-               sprintf(portBuf, "%d", ntohs(sin->sin_port));
-            }
-            snprintf(descBuf, 256, "%s:%s", hName, portBuf);
-            retStr = descBuf;
-        }
-        break;
-        case AF_INET6:
-        {
-            struct sockaddr_in6* sin = (struct sockaddr_in6*)(sa);
-            if(inet_ntop(AF_INET6, &sin->sin6_addr, hName, 256) == 0)
-            {
-                cpLog(LOG_ERR, "inet_ntop failed");
-            };
-            if(ntohs(sin->sin6_port) != 0)
-            {
-               sprintf(portBuf, "%d", ntohs(sin->sin6_port));
-            }
-            snprintf(descBuf, 256, "%s:%s", hName, portBuf);
-            retStr = descBuf;
-        }
-        break;
-        default:
-            retStr = "Unknown";
-        break;
-    }
-    return retStr;
+string Connection::getDescription() const {
+   struct sockaddr_in* sa = (struct sockaddr_in*)(_connAddr);
+   string ipn(vtoStringIp(ntohl(sa->sin_addr.s_addr)));
+   ipn.append(":");
+   ipn.append(itoa(ntohs(sa->sin_port)));
+   return ipn;
 }
 
 string Connection::getPeerIp() const {
-    string retStr;
-    char hName[256];
-    SA* sa = (SA*) _connAddr;
-    switch (sa->sa_family)
-    {
-        case AF_INET:
-        {
-            struct sockaddr_in* sin = (struct sockaddr_in*) sa;
-            if(inet_ntop(AF_INET, &sin->sin_addr, hName, 256) == 0)
-            {
-                cpLog(LOG_ERR, "inet_ntop failed");
-            }
-            else
-            {
-                retStr = hName;
-            }
-        }
-        break;
-        case AF_INET6:
-        {
-            struct sockaddr_in6* sin = (struct sockaddr_in6*)(sa);
-            if(inet_ntop(AF_INET6, &sin->sin6_addr, hName, 256) == 0)
-            {
-                cpLog(LOG_ERR, "inet_ntop failed");
-            }
-            else
-            {
-                retStr = hName;
-            }
-        }
-        break;
-        default:
-        retStr = "Unknown";
-        break;
-    }
-    return retStr;
+   struct sockaddr_in* sa = (struct sockaddr_in*)(_connAddr);
+   return vtoStringIp(ntohl(sa->sin_addr.s_addr));
 }
 
 int Connection::getPeerPort() const {
@@ -337,7 +265,7 @@ void Connection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
          int rv;
          int so_err = 0;
          socklen_t slen = sizeof(int);
-         rv = getsockopt(getSocketFD(), SOL_SOCKET, SO_ERROR, &so_err, &slen);
+         rv = getsockopt(getSocketFD(), SOL_SOCKET, SO_ERROR, (char*)(&so_err), &slen);
          if (rv < 0) {
             cpLog(LOG_ERR, "ERROR: getsockopt failed w/val: %d: %s\n",
                   rv, strerror(errno));

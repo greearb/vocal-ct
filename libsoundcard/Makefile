@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.3 2004/11/19 01:54:37 greear Exp $
+# $Id: Makefile,v 1.4 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 
@@ -10,6 +10,11 @@ PACKAGES += RTP UTIL LIBCEXT OPENSSL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/rtp/obj.$(TARGET_NAME)/
 MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lrtp
+
+ifeq ($(ARCH),i386-mingw32msvc)
+MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil
+LDLIBS_LAST += -lws2_32 -lwinmm -lvutil
+endif
 
 
 ifeq ($(USE_SSL),1)

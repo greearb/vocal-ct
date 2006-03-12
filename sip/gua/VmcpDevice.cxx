@@ -48,7 +48,7 @@
  *
  */
 static const char* const VmcpDevice_cxx_Version = 
-    "$Id: VmcpDevice.cxx,v 1.7 2006/02/07 01:33:21 greear Exp $";
+    "$Id: VmcpDevice.cxx,v 1.8 2006/03/12 07:41:28 greear Exp $";
 
 
 
@@ -141,8 +141,7 @@ int VmcpDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 
 
 void VmcpDevice::processAudio () {
-   char buffer[1024];
-   memset(buffer, 0xFE, networkPktSize*8);
+   unsigned char buffer[networkPktSize*8];
    if ( !player.getData(buffer, networkPktSize*8) ) {
       if (player.isListEmpty()) {
          cpLog(LOG_DEBUG, "Done playing");

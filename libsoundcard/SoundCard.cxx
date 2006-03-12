@@ -49,25 +49,25 @@
  */
 
 static const char* const SoundCard_cxx_Version =
-    "$Id: SoundCard.cxx,v 1.3 2004/06/22 02:24:04 greear Exp $";
+    "$Id: SoundCard.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 #include <unistd.h>
-#include <sys/ioctl.h>
 #include <csignal>
 #include <errno.h>
 
 /* sockets */
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <fcntl.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 
 #ifndef WIN32
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <sys/soundcard.h>
 #endif
 
@@ -124,8 +124,8 @@ SoundCard::open()
     }
 
 #else
-    if (waveInGetNumDevs() <= 0) 
-    {
+#ifndef __MINGW32__
+    if (waveInGetNumDevs() <= 0) {
         cpLog(LOG_DEBUG, "could not get any devices");
 	myFD = -1;
 	return -1;
@@ -147,6 +147,10 @@ SoundCard::open()
 #endif
     }
     myFD = 1;
+#else
+    // Not supported on MINGW
+    myFD = -1;
+#endif
 #endif
 
 #ifndef WIN32
@@ -296,12 +300,11 @@ SoundCard::open()
 }
 
 
-bool
-SoundCard::writerBuffered ()
-{
+bool SoundCard::writerBuffered () {
     int bufbytes = 0;
+#ifndef __MINGW32__
     ::ioctl(myFD, SNDCTL_DSP_GETODELAY, &bufbytes);
-
+#endif
     return (bufbytes > 0);
 }
 
@@ -387,7 +390,9 @@ void SoundCard::write ( const unsigned char* data, int samples ) {
     }
 
 #else
+#ifndef __MINGW32__
     m_aSoundCardWinOut.Write(reinterpret_cast<char*>(dataBuffer), cc);
+#endif
 #endif
 
     return;
@@ -464,7 +469,9 @@ SoundCard::read( unsigned char* data,
 	cc = myReadBuffer.get(rawAudio, samples * 2 * myNumChannels);
 
 #else
+#ifndef __MINGW32__
         cc = m_aSoundCardWinIn.Read( (char*)rawAudio, samples * 2 );
+#endif
 #endif
         q = 0;
         for(p = 0; p < cc; p += (myNumChannels * myMultiplier * 2) )
@@ -489,10 +496,12 @@ SoundCard::read( unsigned char* data,
     // AND:prevent - many garbage on screen (when run 2 programs and
     // input from sound card already use one from him) :-/
 
+#ifndef __MINGW32__
     if( m_aSoundCardWinIn.IsOpen() && samples != cc )
     {
         cpLog(LOG_ERR,"Incomplete read from Sound Card (%d)", cc);
     }
+#endif
 #endif
 
     // NOTE:  Inefficient to convert this..remove before shipping.
@@ -522,8 +531,10 @@ SoundCard::close()
     }
 
 #else
+#ifndef __MINGW32__
     m_aSoundCardWinOut.Close();
     m_aSoundCardWinIn.Close();
+#endif
 #endif
 
     myFD = -1;

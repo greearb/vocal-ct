@@ -50,7 +50,7 @@
 
 
 static const char* const TotalStatistic_cxx_Version = 
-    "$Id: TotalStatistic.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: TotalStatistic.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -127,7 +127,7 @@ TotalStatistic::copy() const
 
 
 void
-TotalStatistic::set(u_int32_t total)
+TotalStatistic::set(uint32 total)
 {
     m_total = total;
     record();
@@ -155,7 +155,7 @@ TotalStatistic::operator++(int)
 
 
 const TotalStatistic &    
-TotalStatistic::operator+=(u_int32_t inc)
+TotalStatistic::operator+=(uint32 inc)
 {
     m_total = inc;
     record();
@@ -164,7 +164,7 @@ TotalStatistic::operator+=(u_int32_t inc)
 }
 
 
-u_int32_t   
+uint32   
 TotalStatistic::get() const
 {
     return ( m_total );

@@ -51,21 +51,23 @@
  *
  */
 
-static const char* const UdpStackHeaderVersion =
-    "$Id: UdpStack.hxx,v 1.9 2005/03/03 19:59:50 greear Exp $";
-
 #include <sys/types.h>
+#ifndef __MINGW32__
 #include <sys/socket.h>
+#include <netdb.h>
+#endif
+
 #include <unistd.h>
 #include <sys/time.h>
 
 #ifdef __vxworks
 #include <selectLib.h>
 #else
+#ifndef __MINGW32__
 #include <sys/select.h>
 #endif
+#endif
 
-#include <netdb.h>
 #include "global.h"
 #include <fstream>
 #include <string>
@@ -119,35 +121,6 @@ public:
    NetworkAddress* getNetworkAddress() { return na; }
 };//ByteBuffer
       
-
-// class UdpStackPrivateData;
-// this class hold stuff that is likely to be a problem to port
-class UdpStackPrivateData
-{
-public:
-   UdpStackPrivateData() {
-      localAddr = new sockaddr_storage();
-      remoteAddr = new sockaddr_storage();
-   }
-
-   ~UdpStackPrivateData();
-
-   /// File descriptor of socket
-   int socketFd;
-   
-   /// Address of local computer that will receive or send the packets
-   struct sockaddr_storage *localAddr;
-   
-   /** Address of remote computer that local computer receive from
-    * or send to the packets
-    * This address is set when doClient is called.
-    * And later when setDestination() is called, this address will be the one
-    * connect to. But disconnectPorts() won't remove this address.
-    */
-   struct sockaddr_storage *remoteAddr;
-
-};
-
 
 
 /** 
@@ -335,7 +308,7 @@ public:
    */
    int receiveFrom ( char* buffer,
                      const int bufSize,
-                     NetworkAddress* sender,
+                     struct sockaddr_in* sender,
                      int flags = 0);  // returns bytes read
 
    /** 
@@ -355,7 +328,7 @@ public:
    */
    int receiveTimeout ( char* buffer,
                         const int bufSize,
-                        NetworkAddress* sender,
+                        struct sockaddr_in* sender,
                         int sec = 0,
                         int usec = 0);
 
@@ -452,14 +425,14 @@ private:
    UdpStack( const UdpStack& );
    UdpStack();
 
-   void doServer ( int minPort,
-                   int maxPort);
+   int doServer ( int minPort, int maxPort);
 
-   void doClient ( const NetworkAddress* desName);
+   void doClient ( const NetworkAddress& desName);
    
-   int recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
-                      struct sockaddr *sa, socklen_t *salenptr,
-                      struct in6_pktinfo *pktp);
+   //int recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
+   //                   struct sockaddr *sa, socklen_t *salenptr,
+   //                   struct in6_pktinfo *pktp);
+
    /// name of receiver
    string lclName;
 
@@ -484,9 +457,19 @@ private:
    /// Mode
    UdpMode mode;
 
-   /** Local IP address that we ended up bound to.
+   /// File descriptor of socket
+   int socketFd;
+   
+   /// Address of local computer that will receive or send the packets
+   NetworkAddress localAddr;
+   
+   /** Address of remote computer that local computer receive from
+    * or send to the packets
+    * This address is set when doClient is called.
+    * And later when setDestination() is called, this address will be the one
+    * connect to. But disconnectPorts() won't remove this address.
     */
-   string curLocalIp; 
+   NetworkAddress remoteAddr;
 
    /** If you wish to bind to a local IP, set that here.  If left
     * blank, the default local IP, as determined by the operating
@@ -501,9 +484,6 @@ private:
 
    /// flag for msg log
    bool logFlag;
-
-   /// private data that will be a pain to port
-   UdpStackPrivateData* data;
 
    ofstream* in_log;
    ofstream* out_log;
@@ -520,82 +500,6 @@ private:
    // Msgs may queue here if we have no kernel buffers to send at the moment.
    list<Sptr<ByteBuffer> > sendBacklog;
 };
-
-
-/// Class to hold all types of exceptions that occur in the UDP stack
-class UdpStackException
-{
-    public:
-        ///
-        UdpStackException ( const string& description )
-        : desc(description)
-        {}
-        ;
-
-        string getDescription() const
-        {
-            return desc;
-        }
-    private:
-        string desc;
-
-        friend std::ostream& operator<< ( std::ostream& strm , const UdpStackException& e );
-};
-
-inline std::ostream&
-operator<< ( std::ostream& strm , const UdpStackException& e )
-{
-    strm << e.desc;
-    return strm;
-}
-
-//e exception class for when a transmited packet is renused
-class UdpStackExceptionConectionRefused: public UdpStackException
-{
-    public:
-        ///
-        UdpStackExceptionConectionRefused( const string& description )
-        : UdpStackException(description)
-        {}
-        ;
-};
-
-
-/// exception class for when all ports all already in use
-class UdpStackExceptionPortsInUse: public UdpStackException
-{
-    public:
-        ///
-        UdpStackExceptionPortsInUse ( const string& description )
-        : UdpStackException(description)
-        {}
-        ;
-};
-
-
-/// exception class for when a bogus hostname is given
-class UdpStackExceptionBadHostname: public UdpStackException
-{
-    public:
-        ///
-        UdpStackExceptionBadHostname( const string& description )
-        : UdpStackException(description)
-        {}
-        ;
-};
-
-
-/// exception class for when a bogus hostname is given
-class UdpStackExceptionBadPort: public UdpStackException
-{
-    public:
-        ///
-        UdpStackExceptionBadPort( const string& description )
-        : UdpStackException(description)
-        {}
-        ;
-};
-
 
 
 #endif

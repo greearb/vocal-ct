@@ -54,7 +54,7 @@
 
 
 static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.11 2005/03/03 19:59:49 greear Exp $";
+= "$Id: SipTransceiver.hxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <string>
@@ -69,7 +69,7 @@ static const char* const SipTransceiver_hxx_Version
 #include "SipSentResponseDB.hxx"
 #include "SipTransactionId.hxx"
 
-#include "SipSnmpDetails.hxx"
+//#include "SipSnmpDetails.hxx"
 #include "SipMsgQueue.hxx"
 #include "SipMsg.hxx"
 #include "SipCommand.hxx"
@@ -149,7 +149,7 @@ public:
    const string getLocalIp() const { return localIp; }
 
    ///
-   void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
+   //void updateSnmpData(Sptr < SipMsg > sipMsg, SnmpType snmpType);
 
    ///
    Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
@@ -196,7 +196,7 @@ private:
    void send(Sptr<SipMsgContainer> msgPtr);
   
    /// SNMP details data member vriables
-   Sptr<SipAgent> sipAgent;
+   //Sptr<SipAgent> sipAgent;
 
    Data myLocalNamePort;
    

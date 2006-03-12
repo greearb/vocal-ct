@@ -55,8 +55,9 @@
 #ifdef USE_VOICE_AGE
 
 #include "CodecAdaptor.hxx"
+extern "C" {
 #include <codecLib_if.h> // Voice-age specific file.
-
+}
 
 namespace Vocal
 {

@@ -49,8 +49,7 @@
  *
  */
 
-static const char* const CodecSpeex_cxx_Version =
-    "$Id: CodecSpeex.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
+#ifdef USE_SPEEX
 
 #include "global.h"
 #include <cassert>
@@ -206,3 +205,6 @@ char* CodecSpeex::getSilenceFill(int& len) {
    len = last_len;
    return silence;
 }//getSilenceFill
+
+
+#endif

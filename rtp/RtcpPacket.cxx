@@ -49,7 +49,7 @@
  */
 
 static const char* const RtcpPacket_cxx_Version =
-    "$Id: RtcpPacket.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: RtcpPacket.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -66,8 +66,6 @@ static const char* const RtcpPacket_cxx_Version =
 
 // networking
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #include "global.h"
 #include "cpLog.h"

@@ -51,7 +51,7 @@
  *
  */
 static const char* const FileMediaDevice_hxx_Version =
-    "$Id: FileMediaDevice.hxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
+    "$Id: FileMediaDevice.hxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
 
 #include "RtpSession.hxx"
 #include "UaHardwareEvent.hxx"
@@ -131,7 +131,7 @@ private:
    ///File to play
    string myFileToPlay;
    ///
-   uint64 networkPktSize;
+   uint32 networkPktSize;
    ///
    int myId;
 };

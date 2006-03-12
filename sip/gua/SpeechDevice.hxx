@@ -51,7 +51,7 @@
  *
  */
 static const char* const SpeechDeviceVersion =
-    "$Id: SpeechDevice.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
+    "$Id: SpeechDevice.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 #include "Rtp.hxx"
 #include "SoundCard.hxx"
@@ -59,8 +59,6 @@ static const char* const SpeechDeviceVersion =
 #include "SipProxyEvent.hxx"
 #include "PlayQueue.h"
 #include "DeviceEvent.hxx"
-
-typedef long int VmTime; 
 
 #include "NetworkRes.hxx"
 
@@ -162,9 +160,7 @@ class SpeechDevice : public MediaDevice
         SpeechHandler myHandler;
 
         ///
-        VmTime getTimeOfDay();
-        ///
-        VmTime nextTime;
+        uint64 nextTime;
         ///
         int networkPktSize;
         Fifo<int> myTFifo;
@@ -176,13 +172,5 @@ class SpeechDevice : public MediaDevice
  
 }
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

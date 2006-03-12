@@ -53,7 +53,7 @@
 
 
 static const char* const Poll_hxx_Version = 
-    "$Id: Poll.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: Poll.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <map>
@@ -61,7 +61,9 @@ static const char* const Poll_hxx_Version =
 #ifdef __APPLE__
 #include "poll.h"
 #else
+#ifndef __MINGW32__
 #include <sys/poll.h>
+#endif
 #endif
 #include "Sptr.hxx"
 #include "Pipe.hxx"

@@ -48,8 +48,12 @@
  *
  */
 
+#warning "Dead code"
+
+#if 0
+
 static const char* const SipSnmpDetails_cxx_Version =
-    "$Id: SipSnmpDetails.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: SipSnmpDetails.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 #include <iostream>
 #include <sys/time.h>
@@ -214,10 +218,10 @@ SipSnmpDetails::setServiceStartTime()
     time_t curtime;
     struct tm *loctime;
     curtime = time (NULL);
-    struct tm res;
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__MINGW32__)
     loctime = localtime (&curtime);
 #else
+    struct tm res;
     loctime = localtime_r (&curtime, &res);
 #endif
     starttime = mktime(loctime);
@@ -230,10 +234,10 @@ SipSnmpDetails::setServiceLastChange()
     time_t curtime;
     struct tm *loctime;
     curtime = time (NULL);
-    struct tm res;
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__MINGW32__)
     loctime = localtime (&curtime);
 #else
+    struct tm res;
     loctime = localtime_r (&curtime, &res);
 #endif
     lastchange = mktime(loctime);
@@ -379,10 +383,4 @@ snmpData SipSnmpDetails::getstackdata(int index)
     return stdata ;
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
+#endif

@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.4 2004/12/09 01:28:58 greear Exp $
+# $Id: Makefile.tools,v 1.5 2006/03/12 07:41:28 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -23,6 +23,10 @@
 # elsewhere if they apply to ALL compilers for a platform
 # (e.g. big-endianness vs. little-endianness).
 
+FPIC="-fPIC"
+ifeq ($(ARCH),i386-mingw32msvc)
+FPIC=
+endif
 
 ##############################  GNU toolchain  ##############################
 
@@ -42,8 +46,8 @@ ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
 #CXX		= g++
 
 # This is desired, forces you to fix some things...
-MKSHLIB		= $(CC) -fPIC -shared -Wl,-z,defs
-#MKSHLIB		= $(CC) -fPIC -shared
+MKSHLIB		= $(CC) $(FPIC) -shared -Wl,-z,defs
+#MKSHLIB		= $(CC) $(FPIC) -shared
 
 ifeq ($(VOCAL_BUILD_GPROF),yes)
 MKSHLIB += `fc-config --libs`
@@ -59,10 +63,10 @@ DMANGLE		=
 INSTALL		= install
 HAS_REPO        = true
 LNDIR		= $(shell pwd)/$(ROOT)/tools/lndir.sh
-CFLAGS		+= -Wall -fPIC
-CXXFLAGS	+= -Wall -fPIC -Wno-deprecated
+CFLAGS		+= -Wall $(FPIC)
+CXXFLAGS	+= -Wall $(FPIC) -Wno-deprecated
 DFLAG_INTEGRATED = -MMD
-REPO_FLAG       = -frepo -fPIC
+REPO_FLAG       = -frepo $(FPIC)
 
 ifeq ($(VOCAL_BUILD_GPROF),yes)
 DEBUG_FLAG	= -g  `fc-config --cflags`
@@ -123,7 +127,7 @@ endif
 ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu3)
 CC		= gcc3 
 CXX		= g++3 
-MKSHLIB		= $(CC) -fPIC -shared
+MKSHLIB		= $(CC) $(FPIC) -shared
 DEP		= $(CXX) 
 LINKER		= $(CXX)
 AR		= ar
@@ -132,11 +136,11 @@ DFLAGS		= -MM
 DMANGLE		=
 INSTALL		= install
 LNDIR		= $(shell pwd)/$(ROOT)/tools/lndir.sh
-CFLAGS		+= -Wall -MMD -fPIC
-CXXFLAGS	+= -Wall -MMD -fPIC
+CFLAGS		+= -Wall -MMD $(FPIC)
+CXXFLAGS	+= -Wall -MMD $(FPIC)
 HAS_REPO        = true
 DEBUG_FLAG	= -g
-REPO_FLAG       = -frepo -fPIC
+REPO_FLAG       = -frepo $(FPIC)
 COMPILE_SMALL_FLAG = -Os -fno-inline -fno-keep-static-consts
 LD_STATIC       = -Wl,-Bstatic
 LD_DYNAMIC      = -Wl,-Bdynamic
@@ -163,7 +167,7 @@ VOCAL_CROSS_ROOT = /skiff/local/bin
 endif
 CC		= $(VOCAL_CROSS_ROOT)/arm-linux-gcc
 CXX		= $(VOCAL_CROSS_ROOT)/arm-linux-g++
-MKSHLIB		= $(CC) -fPIC -shared 
+MKSHLIB		= $(CC) $(FPIC) -shared 
 DEP		= $(CXX) 
 LINKER		= $(CXX) 
 AR		= $(VOCAL_CROSS_ROOT)/arm-linux-ar
@@ -173,9 +177,9 @@ DMANGLE		=
 INSTALL		= install
 HAS_REPO        = true
 LNDIR		= $(shell pwd)/$(ROOT)/tools/lndir.sh
-CFLAGS		+= -Wall -fPIC
-CXXFLAGS	+= -Wall -fPIC
-REPO_FLAG       = -frepo -fPIC
+CFLAGS		+= -Wall $(FPIC)
+CXXFLAGS	+= -Wall $(FPIC)
+REPO_FLAG       = -frepo $(FPIC)
 DEBUG_FLAG	= -g
 COMPILE_SMALL_FLAG = -Os -fno-inline -fno-keep-static-consts
 LD_STATIC       = -Wl,-Bstatic

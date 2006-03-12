@@ -53,11 +53,10 @@
 
 
 static const char* const IP6Address_hxx_Version = 
-    "$Id: IP6Address.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: IP6Address.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "TransportAddress.hxx"
-#include <netinet/in.h>
 
 
 /** Infrastructure common to VOCAL.

@@ -53,16 +53,18 @@
 
 
 /*
-$Id: global.h,v 1.1 2004/05/01 04:14:55 greear Exp $
+$Id: global.h,v 1.2 2006/03/12 07:41:28 greear Exp $
 */
 
 // 25/11/03 fpi
 // WorkAround Win32
 #ifdef WIN32
 
+#ifndef __MINGW32__
 #pragma warning(disable : 4786)
 #pragma warning (disable: 4290)
 #pragma warning (disable: 4715)
+#endif
 
 #include <string>
 #include <winsock2.h>
@@ -114,7 +116,9 @@ using namespace __gnu_cxx;
 #pragma once
 #endif /* _MSC_VER > 1000 */
 
+#ifndef __MINGW32__
 #pragma warning(disable : 4786)
+#endif
 
 #define WIN32_LEAN_AND_MEAN	
 
@@ -151,7 +155,7 @@ using namespace __gnu_cxx;
 #define ENETRESET               WSAENETRESET
 #define ECONNABORTED            WSAECONNABORTED
 #define ECONNRESET              WSAECONNRESET
-#define ENOBUFS                 WSAENOBUFS
+#define ENOBUFS                 ENOMEM
 #define EISCONN                 WSAEISCONN
 #define ENOTCONN                WSAENOTCONN
 #define ESHUTDOWN               WSAESHUTDOWN

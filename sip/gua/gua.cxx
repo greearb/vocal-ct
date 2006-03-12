@@ -103,6 +103,16 @@ int main(const int argc, const char**argv) {
    INIT_DEBUG_MEM_USAGE;
    DEBUG_MEM_USAGE("beginning of main");
 
+#ifdef __WIN32__
+   if (timeBeginPeriod(1) != TIMERR_NOERROR) { // Set to 1ms timer resolution
+      cerr << "WARNING:  timeBeginPeriod had error, will not have great time resolution.\n";
+   }
+   else {
+      cerr << "Successfully set timer resolution to 1ms.\n";
+   }
+
+#endif
+
    try {
       UaCommandLine::instance( (int)argc, (const char**)argv );
       //Set the default log file size to be 3MB
@@ -208,7 +218,7 @@ int main(const int argc, const char**argv) {
 
     }
     catch(VException& e) {
-       cpLog(LOG_ERR, "Caught exception, termination application. Reason:%s",
+       cpLog(LOG_ERR, "Caught exception, terminating application. Reason: %s",
              e.getDescription().c_str());
        cerr << "Caught exception, termination application. Reason ";
        cerr << e.getDescription().c_str() << endl;
@@ -218,7 +228,6 @@ int main(const int argc, const char**argv) {
    // memory leaks.
    SipParserMode::destroy();
    ControlStateFactory::destroy();
-   NetworkConfig::destroy();
    UaStateFactory::destroy();
    UaCallControl::destroy();
    MediaController::destroy();

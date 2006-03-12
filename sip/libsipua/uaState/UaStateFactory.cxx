@@ -50,10 +50,9 @@
 
 
 
-static const char* const UaStateFactory_cxx_Version = 
-"$Id: UaStateFactory.cxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
-
+#ifndef __MINGW32__
 #pragma warning (disable: 4786)
+#endif
 
 #include "UaStateFactory.hxx"
 #include "UaStateIdle.hxx"

@@ -49,7 +49,7 @@
  */
 
 static const char* const PlayQueue_cxx_Version =
-    "$Id: PlayQueue.cxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
+    "$Id: PlayQueue.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include "PlayQueue.h"
@@ -57,6 +57,7 @@ static const char* const PlayQueue_cxx_Version =
 #include <fcntl.h>
 #include "cpLog.h"
 #include <errno.h>
+#include "../../rtp/codec/g711.h"  // for linear2ulaw conversion.
 
 PlayQueue::PlayQueue()
 {
@@ -144,28 +145,26 @@ int PlayQueue::reStart() {
 }
 
 
-int PlayQueue::getData(void *buffer, int size) {
+bool PlayQueue::getData(unsigned char *buffer, int bytes_to_read) {
     if ( !m_bActive ) {
 	//cpLog(LOG_DEBUG, "tried to get data when not playing");
 	return true;
     }
 
-    int units_to_read = size;
-    char* cbuf = (char*)(buffer);
+    int samples = bytes_to_read;
     int rc;
+    short tmpbuf[samples];
+    rc = ::sf_read_short(m_iFd, tmpbuf, samples);
 
-    if (read_info.format == (SF_FORMAT_WAV | SF_FORMAT_ULAW)) {
-        rc = ::sf_read_raw(m_iFd, buffer, units_to_read);
-    }
-    else {
-        short shorts[size];
-        rc = ::sf_read_short(m_iFd, shorts, units_to_read);
-        s2ulaw_array(shorts, rc, (unsigned char*)(cbuf));
+    /* Copy PCM audio data into sendBuf as ulaw audio data*/
+    for (int i = 0; i < rc; i++) {
+       buffer[i] = (unsigned char) linear2ulaw(tmpbuf[i]);
     }
 
-    if ( rc != units_to_read ) {
+    if ( rc != samples ) {
 	cpLog(LOG_DEBUG, "finished reading sound file");
-        memset(cbuf + rc, 0x7F, size - rc);
+        char* cbuf = (char*)(buffer);
+        memset(cbuf + rc, 0x7F, samples - rc);
         ::sf_close(m_iFd);
         m_iFd = 0;
         return reStart();

@@ -53,14 +53,13 @@
 
 
 
-static const char* const PlayQueue_h_Version =
-    "$Id: PlayQueue.h,v 1.2 2006/02/07 01:33:21 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include <queue>
 #include <cstdio>
 #include <sndfile.h>
+#include <misc.hxx>
+
 
 /**
   * This Class is used as a queue for media files to play.
@@ -79,8 +78,9 @@ public:
    /** Add to the queue */
    virtual void add(const string & fileName);
 
-   /** Return the data */
-   virtual int getData(void *buffer, int size);
+   /** Return the data in buffer.  Returns true on success, false on failure.
+    *  Note that returned data is g711 ulaw, so bytes == samples */
+   virtual bool getData(unsigned char *buffer, int bytes_to_read);
 
    /** Start playing */
    virtual int start();
@@ -91,12 +91,12 @@ public:
    bool isListEmpty() { return m_xFileQueue.empty(); };
 
    // 0 means loop forever.
-   void setLoopWavefileCount(__uint32_t c) { loop_wavefile_count = c; }
+   void setLoopWavefileCount(uint32 c) { loop_wavefile_count = c; }
 
-   __uint32_t getLoopWavefileCount() const { return loop_wavefile_count; }
+   uint32 getLoopWavefileCount() const { return loop_wavefile_count; }
 
    //Since we were last started...
-   __uint32_t getLoopWavefileSofar() const { return loop_wavefile_sofar; }
+   uint32 getLoopWavefileSofar() const { return loop_wavefile_sofar; }
 
    void incrementWavefileSofar() { loop_wavefile_sofar++; }
 
@@ -117,8 +117,8 @@ private:  // Private attributes
    /** Info about the file we are reading. */
    SF_INFO read_info;
 
-   __uint32_t loop_wavefile_count;
-   __uint32_t loop_wavefile_sofar; //Since we were last started...
+   uint32 loop_wavefile_count;
+   uint32 loop_wavefile_sofar; //Since we were last started...
 };
 
 #endif

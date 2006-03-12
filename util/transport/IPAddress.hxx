@@ -53,11 +53,13 @@
 
 
 static const char* const IPAddress_hxx_Version = 
-    "$Id: IPAddress.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: IPAddress.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "TransportAddress.hxx"
+#ifndef __MINGW32__
 #include <netinet/in.h>
+#endif
 #include <string>
 
 

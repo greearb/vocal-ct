@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const CodecG729a_cxx_Version =
-    "$Id: CodecG729a.cxx,v 1.6 2006/02/10 17:39:20 greear Exp $";
-
 #ifdef USE_VOICE_AGE
 
 #include "global.h"

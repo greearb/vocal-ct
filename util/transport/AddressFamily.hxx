@@ -53,14 +53,17 @@
 
 
 static const char* const AddressFamily_hxx_Version = 
-    "$Id: AddressFamily.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: AddressFamily.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
 #include <sys/types.h>
 #endif
 
+#ifndef __MINGW32__
 #include <sys/socket.h>
+#endif
+
 #include "Writer.hxx"
 
 /** Infrastructure common to VOCAL.

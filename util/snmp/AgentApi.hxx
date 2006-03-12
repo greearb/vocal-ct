@@ -52,11 +52,11 @@
  */
 
 
-
+#if 0
 
 
 static const char* const AgentApiHeaderVersion =
-    "$Id: AgentApi.hxx,v 1.4 2004/06/14 00:33:55 greear Exp $";
+    "$Id: AgentApi.hxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
 /*
   This file is used by both the server (RS/FS...) C++ code and the snmp agent process
   (snmpd ) C code.  The snmpd uses only the type definitions.
@@ -166,3 +166,5 @@ private:
 
 #endif /* __cplusplus */
 #endif /* AgentApi_H */
+
+#endif

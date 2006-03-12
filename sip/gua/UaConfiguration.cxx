@@ -49,7 +49,7 @@
  */
 
 static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.5 2005/08/20 06:57:42 greear Exp $";
+    "$Id: UaConfiguration.cxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -221,12 +221,17 @@ const string UaConfiguration::getConfiguredLocalSipDev() const {
 
 const string UaConfiguration::getMyLocalIp() const {
     string cip = getValue(RegisterFromTag).c_str();
-    if (cip.size()) {
-        return cip;
+    if (cip.size() == 0) {
+       uint32 ip;
+       if (vtoIpString(theSystem.gethostName(), ip) < 0) {
+          cpLog(LOG_ERR, "ERROR:  Can't resolve local hostname: %s  error: %s\n",
+                theSystem.gethostName(), VSTRERROR);
+       }
+       else {
+          cip = vtoStringIp(ip);
+       }
     }
-    else {
-        return theSystem.gethostAddress(); //default system ip
-    }
+    return cip;
 }
 
 void

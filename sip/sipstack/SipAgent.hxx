@@ -52,9 +52,10 @@
  */
 
 
+#if 0
 
 static const char* const SipAgentVersion
-= "$Id: SipAgent.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+= "$Id: SipAgent.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 #include "SipFtrSupportedTable.hxx"
 #include "SipUriSupportedTable.hxx"
@@ -97,7 +98,7 @@ class SipAgent: public AgentApi
         virtual voReturnStatus processMessage(ipcMessage *message, NetworkAddress *sender);
         ///
 
-        Sptr<SipSnmpDetails> snmpdetails;
+        //Sptr<SipSnmpDetails> snmpdetails;
 
     private:
         
@@ -110,10 +111,6 @@ class SipAgent: public AgentApi
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif //SipAgent_H
+
+#endif

@@ -50,11 +50,13 @@
  */
 
 static const char* const cpLog_cxx_Version =
-    "$Id: cpLog.cxx,v 1.3 2004/06/02 20:23:10 greear Exp $";
+    "$Id: cpLog.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
+#ifndef __MINGW32__
 #include <syslog.h>
+#endif
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -73,6 +75,7 @@ static const char* const cpLog_cxx_Version =
 #include "cpLog.h"
 #include "global.h"
 #include "support.hxx"
+#include "misc.hxx"
 
 
 /* String sizes */
@@ -415,7 +418,7 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
     int datebufCharsRemaining;
 
     struct timeval tv;
-    int result = gettimeofday (&tv, NULL);
+    int result = vgettimeofday (&tv, NULL);
     
     if (result == -1)
     {
@@ -436,7 +439,7 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
                   DATEBUF_SIZE,
                   "%Y%m%d-%H%M%S", /* guaranteed to fit in 256 chars,
                                       hence don't check return code */
-#if defined( __APPLE__ )
+#if defined( __APPLE__ ) || defined(__MINGW32__)
                   localtime (&timeInSeconds));
 #else
                   localtime_r (&timeInSeconds, &localT));

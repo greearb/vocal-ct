@@ -1,4 +1,4 @@
-# $Id: Makefile.pre,v 1.1 2004/05/01 04:14:55 greear Exp $
+# $Id: Makefile.pre,v 1.2 2006/03/12 07:41:28 greear Exp $
 
 # The license applies to all software incorporated in the "Vovida
 # Open Communication Application Library" except for those portions
@@ -142,7 +142,14 @@ endif
 #ifeq ($(VOCAL_BUILD_GPROF),yes)
 #CONFIGURE_ARGS += --with-gprof
 #endif
+
 CONFIGURE = ./configure $(CONFIGURE_ARGS)
+ifeq ($(ARCH),i386-mingw32msvc)
+CONFIGURE = cross-configure.sh $(CONFIGURE_ARGS)
+endif
+
+
+
 
 
 ######################################################################
@@ -159,6 +166,10 @@ endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
     DEFINES += USE_VOICE_AGE
+endif
+
+ifeq ($(VOCAL_USE_SPEEX),yes)
+    DEFINES += USE_SPEEX
 endif
 
 default: code

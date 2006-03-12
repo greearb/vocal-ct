@@ -397,14 +397,14 @@ int
 
 #endif /* !IPV6_JOIN_GROUP */
 #endif /* _WS2TCPIP_H_ */
-
 //
 // Unless the build environment is explicitly targeting
 // platforms that include built-in getaddrinfo() support,
 // include the backwards-compatibility version of the APIs.
 //
 #if !defined(_WIN32_WINNT) || (_WIN32_WINNT <= 0x0500)
+#ifndef __MINGW32__
 #include <wspiapi.h>
 #endif
-
+#endif
 #endif /* _TPIPV6_ */

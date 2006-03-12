@@ -50,7 +50,7 @@
  */
 
 static const char* const NtpTime_cxx_Version =
-    "$Id: NtpTime.cxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: NtpTime.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -196,7 +196,7 @@ bool operator>( const NtpTime& rhs , const NtpTime& lhs )
 NtpTime getNtpTime()
 {
     struct timeval now;
-    int err = gettimeofday(&now, NULL);
+    int err = vgettimeofday(&now, NULL);
     assert( !err );
 
     NtpTime result ( now.tv_sec, now.tv_usec*4294);

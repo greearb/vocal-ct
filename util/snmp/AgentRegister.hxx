@@ -56,13 +56,12 @@
 #define AgentRegister_H
 
 static const char* const AgentRegisterHeaderVersion =
-    "$Id: AgentRegister.hxx,v 1.3 2004/05/06 05:41:05 greear Exp $";
+    "$Id: AgentRegister.hxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #ifdef __cplusplus
 
 #include <unistd.h>
 #include <sys/param.h>
-#include <netinet/in.h>
 #include "Sptr.hxx"
 #include "SnmpCommon.h"
 #include "UdpStack.hxx"

@@ -50,7 +50,11 @@ ac_help="$ac_help
   --with-lanforge                 build with LANforge (www.candelatech.com) integration"
 ac_help="$ac_help
 
-  --with-voiceage                 build with VoiceAge (g729a) integration"
+  --with-system-sndfile           build with system's libsndfile
+  --with-sndfile-libdir           Specify -L(dir) to use for sndfile library
+  --with-sndfile-incdir           Specify -I(dir) to use for sndfile headers
+  --with-voiceage                 build with VoiceAge (g729a) integration
+  --with-speex                    build with Speex Codec integration"
 ac_help="$ac_help
 
   --with-compile-type             Compile with specific type:
@@ -621,6 +625,13 @@ else
 esac
 fi
 GNU_MAKE="$ac_cv_path_GNU_MAKE"
+
+# allow --with-make=foo over-ride
+if test "${with_make+set}" = set; then
+  withval="$with_make"
+  GNU_MAKE=$with_make
+fi
+
 if test -n "$GNU_MAKE"; then
   echo "$ac_t""$GNU_MAKE" 1>&6
 else
@@ -746,6 +757,36 @@ if test "${with_voiceage+set}" = set; then
   VOCAL_USE_VOICEAGE=$with_voiceage
 else
   VOCAL_USE_VOICEAGE=no
+fi
+
+# Check whether --with-voiceage was given
+if test "${with_system_sndfile+set}" = set; then
+  withval="$with_system_sndfile"
+  VOCAL_USE_SYSTEM_LIBSNDFILE=$with_system_sndfile
+else
+  VOCAL_USE_SYSTEM_LIBSNDFILE=no
+fi
+
+if test "${with_sndfile_libdir+set}" = set; then
+  withval="$with_sndfile_libdir"
+  VOCAL_SNDFILE_LIB_DIR=$with_sndfile_libdir
+else
+  VOCAL_SNDFILE_LIB_DIR=
+fi
+
+if test "${with_sndfile_incdir+set}" = set; then
+  withval="$with_sndfile_incdir"
+  VOCAL_SNDFILE_INC_DIR=$with_sndfile_incdir
+else
+  VOCAL_SNDFILE_INC_DIR=
+fi
+
+# Check whether --with-speex was given
+if test "${with_speex+set}" = set; then
+  withval="$with_speex"
+  VOCAL_USE_SPEEX=$with_speex
+else
+  VOCAL_USE_SPEEX=no
 fi
 
 # Check whether --with-compile-type was given
@@ -1007,9 +1048,14 @@ s%@VOCAL_SOCKLEN_TYPE@%$VOCAL_SOCKLEN_TYPE%g
 s%@VOCAL_SOCKET_BUFFER_TYPE@%$VOCAL_SOCKET_BUFFER_TYPE%g
 s%@VOCAL_BUILD_SHARED_LIBS@%$VOCAL_BUILD_SHARED_LIBS%g
 s%@VOCAL_USE_SYSTEM_LIBS@%$VOCAL_USE_SYSTEM_LIBS%g
+s%@VOCAL_USE_SYSTEM_LIBSNDFILE@%$VOCAL_USE_SYSTEM_LIBSNDFILE%g
+s%@VOCAL_SNDFILE_LIB_DIR@%$VOCAL_SNDFILE_LIB_DIR%g
+s%@VOCAL_SNDFILE_INC_DIR@%$VOCAL_SNDFILE_INC_DIR%g
 s%@VOCAL_BUILD_GPROF@%$VOCAL_BUILD_GPROF%g
 s%@VOCAL_USE_LANFORGE@%$VOCAL_USE_LANFORGE%g
+s%@VOCAL_ARCH@%$target%g
 s%@VOCAL_USE_VOICEAGE@%$VOCAL_USE_VOICEAGE%g
+s%@VOCAL_USE_SPEEX@%$VOCAL_USE_SPEEX%g
 s%@VOCAL_COMPILE_TYPE@%$VOCAL_COMPILE_TYPE%g
 s%@VOCAL_OPTIMIZE_LEVEL@%$VOCAL_OPTIMIZE_LEVEL%g
 s%@VOCAL_USE_OPENSSL@%$VOCAL_USE_OPENSSL%g

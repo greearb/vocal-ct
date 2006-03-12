@@ -35,6 +35,225 @@
 
 using namespace Vocal::TimeAndDate;
 
+#ifdef __WIN32__
+
+
+
+uint64 vcalcEpocOffset() {
+   SYSTEMTIME st;
+   FILETIME ft;
+
+   memset(&st, 0, sizeof(st));
+   memset(&ft, 0, sizeof(ft));
+
+   st.wYear = 1970;
+   st.wMonth = 1;
+   st.wDayOfWeek = 0;
+   st.wDay = 1;
+   st.wHour = 0;
+   st.wMinute = 0;
+   st.wSecond = 0;
+   st.wMilliseconds = 0;
+
+   if (!SystemTimeToFileTime(&st, &ft)) {
+      cerr << "ERROR:  SystemTimeToFileTime failed, err: "
+           << GetLastError() << endl;
+   }
+
+   uint64 t = ft.dwHighDateTime;
+   t = t << 32;
+   t |= ft.dwLowDateTime;
+
+   cerr << "calcEpocOffset value: " << t << "  hi: " << ft.dwHighDateTime
+        << " lo: " << ft.dwLowDateTime << endl;
+
+   return t;
+}
+
+// Gets high resolution by spinning up to 15ms.  Don't call this often!!!
+uint64 vgetRawCurMsSpin() {
+   FILETIME tm;
+
+   static uint64 epocOffset = vcalcEpocOffset();
+   uint64 t_now;
+
+   GetSystemTimeAsFileTime(&tm);
+   uint64 t_start = tm.dwHighDateTime;
+   t_start = t_start << 32;
+   t_start |= tm.dwLowDateTime;
+   while (1) {
+      GetSystemTimeAsFileTime(&tm);
+      t_now = tm.dwHighDateTime;
+      t_now = t_now << 32;
+      t_now |= tm.dwLowDateTime;
+
+      if (t_now != t_start) {
+         // Hit a boundary...as accurate as we are going to get.
+         break;
+      }
+   }
+
+
+   t_now -= epocOffset;
+
+   // t is in 100ns units, convert to usecs
+   t_now = t_now / 10000; //msecs
+
+   return t_now;
+}
+
+uint64 vbaselineMs = 0;
+uint32 vtickBaseline = 0;
+
+void vresyncBaselineClock() {
+   vbaselineMs = 0;
+   struct timeval tv;
+   vgettimeofday(&tv, NULL);
+}
+
+/* Correctly synched with the 'real' time/date clock, but only exact to
+ * about 15ms.
+ */
+uint64 vgetCurMsFromClock() {
+   // This has resolution of only about 15ms
+   FILETIME tm;
+
+   GetSystemTimeAsFileTime(&tm);
+   uint64 t = tm.dwHighDateTime;
+   t = t << 32;
+   t |= tm.dwLowDateTime;
+
+   // The Windows epoc is January 1, 1601 (UTC).
+   static uint64 offset = vcalcEpocOffset();
+
+   //mudlog << "file-time: " << t << " offset: " << offset
+   //       << " normalized: " << (t - offset) << " hi: "
+   //       << tm.dwHighDateTime << " lo: " << tm.dwLowDateTime
+   //       << " calc-offset:\n" << calcEpocOffset() << "\n\n";
+
+   t -= offset;
+
+   // t is in 100ns units, convert to ms
+   t = t / 10000;
+   return t;
+}
+
+const char* vwinstrerror() {
+   // To decode these, try:
+   // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/winsock/windows_sockets_error_codes_2.asp
+   static char lfsrr[128];
+   sprintf(lfsrr, "Error# %d", WSAGetLastError());
+   return lfsrr;
+}
+
+#endif
+
+/** Returns opinter to static memory, do NOT delete or modify result. */
+const char* vtoStringIp(uint32 ip) {
+   static char buf[50];
+   sprintf(buf, "%i.%i.%i.%i",
+           ((ip >> 24) & 0xFF),
+           ((ip >> 16) & 0xFF),
+           ((ip >> 8) & 0xFF),
+           (ip & 0xFF));
+   return buf;
+}//toStringIp
+
+
+int vtoIpString(const char* ip, uint32& retval) {
+   retval = 0;
+
+   if (strcmp(ip, "0.0.0.0") == 0) {
+      return 0;
+   }
+
+   if (ip[0] == 0) {
+      return 0;
+   }
+
+   uint64 now = vgetCurMs(); // Debugging only
+
+#if 0
+   struct addrinfo aiHints;
+   struct addrinfo *aiList = NULL;
+
+   // It seems it can't resolve IP addresses, or tries too hard to find a name,
+   // or something.  Need to check for a.b.c.d
+   retval = inet_addr(ip);
+   if (retval != INADDR_NONE) {
+      retval = ntohl(retval);
+      return 0;
+   }
+   // Otherwise, try to resolve it below.
+
+
+   //--------------------------------
+   // Setup the hints address info structure
+   // which is passed to the getaddrinfo() function
+   memset(&aiHints, 0, sizeof(aiHints));
+   aiHints.ai_family = AF_INET;
+   aiHints.ai_socktype = SOCK_STREAM;
+   aiHints.ai_protocol = IPPROTO_TCP;
+
+   //--------------------------------
+   // Call getaddrinfo(). If the call succeeds,
+   // the aiList variable will hold a linked list
+   // of addrinfo structures containing response
+   // information about the host
+   if ((retval = getaddrinfo(ip, NULL, &aiHints, &aiList)) != 0) {
+      cpLog(LOG_ERR, "ERROR:  getaddrinfo failed, error: %s\n", VSTRERROR);
+      return retval;
+   }
+
+   uint64 n2 = getCurMs();
+   if (n2 - now > 10) {
+      VLOG << "WARNING:  Took " << n2 - now << "ms to gethostbyname for host/ip -:"
+           << ip << ":-\n";
+   }
+
+   if (aiList && aiList->ai_addr) {
+      struct sockaddr_in* sin = (struct sockaddr_in*)(aiList->ai_addr);
+      retval = ntohl(sin->sin_addr.s_addr);
+
+      freeaddrinfo(aiList);
+      return retval;
+   }
+   return -1;
+#endif
+
+   // It seems it can't resolve IP addresses, or tries too hard to find a name,
+   // or something.  Need to check for a.b.c.d
+   retval = inet_addr(ip);
+   if (retval != INADDR_NONE) {
+      retval = ntohl(retval);
+      return 0;
+   }
+
+   // Otherwise, try to resolve it below.
+   struct hostent *hp;
+   hp = gethostbyname(ip);
+   uint64 n2 = vgetCurMs();
+   if (n2 - now > 10) {
+      cpLog(LOG_ERR, "WARNING:  Took %dms to gethostbyname for host/ip: %s\n",
+            n2 - now, ip);
+   }
+   if (hp == NULL) {
+      return -1;
+   }//if
+   else {
+      retval = ntohl(*((unsigned int*)(hp->h_addr_list[0])));
+      if (retval != 0) {
+         return 0;
+      }
+      else {
+         return -1;
+      }
+   }
+   return -1;
+}
+
+
+
 void debugMemUsage(const char* msg, const char* fname) {
    char cmd[256];
    cmd[255] = 0;
@@ -115,6 +334,7 @@ int vsetPrio(int sk, uint16 tos, uint32 val, const char* dbg) {
 
 /* Returns actual priority that was set, or < 0 on error */
 int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
+#ifndef __WIN32__
    cpLog(LOG_DEBUG_STACK, "Setting socket priority, dbg: %s  sk: %i to value: %lu\n",
          dbg, sk, (unsigned long)(val));
    if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY,
@@ -139,9 +359,13 @@ int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
    }
 
    return new_val;
+#else
+   return 0;
+#endif
 }//vsetPriorityHelper
 
 int vsetTosHelper_priv(int sk, uint16 val) {
+#ifndef __WIN32__
    if (setsockopt(sk, SOL_IP, IP_TOS, (char*)&val, sizeof(val)) < 0) {
       return -1;
    }//if
@@ -152,6 +376,9 @@ int vsetTosHelper_priv(int sk, uint16 val) {
       return -1;
    }//if
    return new_val;
+#else
+   return -1;
+#endif
 }//vsetTosHelper
 
 
@@ -167,35 +394,63 @@ void vusleep(int milliseconds) {
 }
 */
 
-// 16/1/04 fpi
-// tbr
-// todo: Win32 porting
-// note: until now we do not need these functions
-#ifndef WIN32
 #ifndef LINK_WITH_LANFORGE_MISC
+
+int vgettimeofday(struct timeval* tv, void* null) {
+
+   // Get baseline time, in seconds.
+   if (vbaselineMs == 0) {
+      vbaselineMs = vgetRawCurMsSpin();
+      vtickBaseline = timeGetTime();
+   }
+
+   uint32 curTicks = timeGetTime();
+   if (curTicks < vtickBaseline) {
+      // Wrap!
+      cerr << "milisecond tick counter wrapped, congratz on a long run!\n";
+      vbaselineMs = vgetRawCurMsSpin();
+      vtickBaseline = timeGetTime();
+   }
+   
+   uint64 now_ms = (vbaselineMs + (curTicks - vtickBaseline));
+   *tv = vms_to_tv(now_ms);
+   return 0;
+};
+
+void vsleep(int secs) {
+   Sleep(secs * 1000);
+}
+
+int vkill(int pid, int sig) {
+   return 0;
+}
+
+int vflock(int pid, int lk) {
+   return 0;
+}
 
 uint64 vgetCurMs() {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   vgettimeofday(&tv, NULL);
    return vtv_to_ms(tv);
 }
 
 uint64 vgetCurUs() {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   vgettimeofday(&tv, NULL);
    return vtv_to_us(tv);
 }
 
 uint64 vgetCurNs() {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   vgettimeofday(&tv, NULL);
    return vtv_to_ns(tv);
 }
 
 
 struct timeval vgetCurTv() {
    struct timeval tv;
-   gettimeofday(&tv, NULL);
+   vgettimeofday(&tv, NULL);
    return tv;
 }
 
@@ -264,5 +519,4 @@ string itoa(uint16 i) {
    return buf;
 }
 
-#endif
 #endif

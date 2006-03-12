@@ -51,12 +51,11 @@
  *
  */
 static const char* const VmcpDevice_hxx_Version =
-    "$Id: VmcpDevice.hxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
+    "$Id: VmcpDevice.hxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
 
 //#include "Vmcp.h"
 #include "PlayQueue.h"
 #include "Recorder.h"
-#include "VmTime.h"
 #include "DeviceEvent.hxx"
 #include "MediaDevice.hxx"
 

@@ -49,13 +49,12 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.6 2006/02/07 01:33:21 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
 
 
 
 #include "global.h"
 #include <cassert>
-#include <sys/times.h>
 #include "FileMediaDevice.hxx"
 #include "UaFacade.hxx"
 #include "cpLog.h"
@@ -66,7 +65,6 @@ using namespace Vocal::UA;
 
 static const string WaveFilePath="/usr/local/vocal/etc/";
 
-static int clkTicksPerSec = 0;
 
 //***************************************************************************
 // FileMediaDevice::FileMediaDevice
@@ -77,10 +75,6 @@ static int clkTicksPerSec = 0;
 FileMediaDevice::FileMediaDevice(int id)
     : MediaDevice("FileMediaDevice", WAVE, AUDIO), hasPlayed(false), myId(id)
 {
-    if(clkTicksPerSec == 0)
-    {
-        clkTicksPerSec = sysconf(_SC_CLK_TCK);
-    }
     cpLog(LOG_DEBUG, "Opened wave device with id:%d", id);
     audioActive = false;
     myFileToPlay="default.wav";
@@ -132,13 +126,9 @@ int FileMediaDevice::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
 
 void
 FileMediaDevice::processAudio () {
-   //TODO:  This looks wierd, and at the least it could bust the stack with such
-   // a large buffer.
-   char buffer[10240];
-   memset(buffer, 0xFE, networkPktSize*8);
+   unsigned char buffer[networkPktSize*8];
    if ( !player.getData(buffer, networkPktSize*8) ) {
-      Sptr < UaHardwareEvent > signal = 
-         new UaHardwareEvent( myId );
+      Sptr < UaHardwareEvent > signal = new UaHardwareEvent( myId );
       signal->type = HardwareAudioType;
       signal->request.type = AudioStop;
       UaFacade::instance().queueEvent(signal.getPtr());

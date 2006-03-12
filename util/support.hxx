@@ -52,7 +52,7 @@
  */
 
 static const char* const support_hxx_version =
-    "$Id: support.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: support.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -240,9 +240,10 @@ c2lower_s(const char* cstr);
 /**
    check to see if a string is all legal digit characters
 */
-
+#ifndef __MINGW32__
 int
 matchString(string a, string regex);
+#endif
 
 
 /**

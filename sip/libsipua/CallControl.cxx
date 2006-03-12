@@ -49,10 +49,9 @@
  */
 
 
-static const char* const CallControl_cxx_Version =
-    "$Id: CallControl.cxx,v 1.5 2004/11/04 07:51:18 greear Exp $";
-
+#ifndef __MINGW32__
 #pragma warning (disable: 4786)
+#endif
 
 #include "SipEvent.hxx" 
 #include "CallTimerEvent.hxx" 

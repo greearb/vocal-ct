@@ -51,7 +51,7 @@
 
 
 static const char version[] =
-    "$Id: VTime.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: VTime.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 
@@ -186,7 +186,7 @@ bool operator>( const VTime& rhs , const VTime& lhs )
 VTime getVTime()
 {
     struct timeval now;
-    int err = gettimeofday( &now, NULL );
+    int err = vgettimeofday( &now, NULL );
     assert( !err );
 
     VTime result ( now.tv_sec, now.tv_usec * 4294 );
@@ -202,8 +202,9 @@ VTime::strftime(const string& format)
     (void)time(&now);
 
     char datebuf[256];
+
+#if !defined(__APPLE__) && !defined(__MINGW32__)
     struct tm localt;
-#if !defined(__APPLE__)
     ::strftime(datebuf, 256, format.c_str(), localtime_r(&now, &localt));
 #else
     ::strftime(datebuf, 256, format.c_str(), localtime(&now));
@@ -241,43 +242,3 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 }
 
 #endif // __vxworks
-
-
-#ifdef WIN32
-
-// 1/12/03 fpi
-// Bugfix Bugzilla
-/*
-int
-gettimeofday (struct timeval *tv, struct timezone *)
-{
-    FILETIME file_time;
-    GetSystemTimeAsFileTime (&file_time);
-
-    ULARGE_INTEGER _100ns = {file_time.dwLowDateTime,
-                           file_time.dwHighDateTime};
-
-    _100ns.QuadPart -= 0x19db1ded53e8000;
-
-    tv->tv_sec = long (_100ns.QuadPart / (10000 * 1000));
-    tv->tv_usec = (long) ((_100ns.LowPart % (DWORD) (10000 * 1000)) / 10);
-
-    return 0;
-}
-*/
-
-#include <SYS\TIMEB.H>
-
-int
-gettimeofday(struct timeval *tv, struct timezone *)
-{
-	struct _timeb currSysTime;
-	_ftime(&currSysTime);
-	
-	tv->tv_sec = currSysTime.time;
-	tv->tv_usec = currSysTime.millitm * 1000;
-
-    return 0;
-}
-
-#endif // WIN32

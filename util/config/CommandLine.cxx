@@ -49,7 +49,7 @@
  */
 
 static const char* const CommandLine_cxx_Version =
-    "$Id: CommandLine.cxx,v 1.2 2004/06/06 08:32:37 greear Exp $";
+    "$Id: CommandLine.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <iostream>
@@ -63,7 +63,9 @@ static const char* const CommandLine_cxx_Version =
 #if defined(WIN32) || defined(linux)
 #if defined(WIN32)
 #define __GNU_LIBRARY__
+#ifndef __MINGW32__
 #define __STDC__ 1
+#endif
 #endif // defined(WIN32)
 #include <getopt.h>
 

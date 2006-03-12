@@ -51,17 +51,12 @@
  *
  */
 
-static const char* const SystemInfo_hxx_Version =
-    "$Id: SystemInfo.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include <iostream>
 #include <unistd.h>
 #include <stdio.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include "Sptr.hxx"
 #include <string>
+#include <misc.hxx>
 
 class NetworkAddress;    
 
@@ -76,24 +71,20 @@ class SystemInfo
         ~SystemInfo();
 
         //Accessors methods
-        const char* const getUrlToRegister()const
-        {
-            return registerUrl;
+        const char* const getUrlToRegister()const {
+            return registerUrl.c_str();
         }
         ///
-        const char* const getRegisterDomain() const
-        {
-            return registerDomain;
+        const char* const getRegisterDomain() const {
+            return registerDomain.c_str();
         }
         ///
-        const char* const getUserName() const
-        {
-            return userName;
+        const char* const getUserName() const {
+            return userName.c_str();
         }
         ///
-        const char* const getDisplayName() const
-        {
-            return displayName;
+        const char* const getDisplayName() const {
+            return displayName.c_str();
         }
 
 
@@ -101,10 +92,9 @@ class SystemInfo
         // NOTE:  You probably should use the local_ip as configured by the
         // user, or at least check to see if the user set the local_ip before
         // using this method. --Ben
-        const char* const gethostAddress () const
-        {
-            return hostIP;
-        }
+        //const char* const gethostAddress () const {
+        //    return hostIP.c_str();
+        //}
 
         ///
         // NOTE:  You probably should use the local_ip as configured by the
@@ -113,57 +103,48 @@ class SystemInfo
         const char* const gethostAddress (char* buf, int len, int family) const;
 
         ///
-        const char* const gethostName() const
-        {
-            return hostName;
+        const char* const gethostName() const {
+            return hostName.c_str();
         }
 
         const string resolveIpToHostname(const string& ipaddr);
 
         // Returns true if succeeded in resolving the IP.
-        static bool toIpv4String(const char* ipaddr, unsigned long& rv);
+        static bool toIpv4String(const char* ipaddr, uint32& rv);
 
         ///
-        const char* const getSessionName() const
-        {
-            return sessionName;
+        const char* const getSessionName() const {
+            return sessionName.c_str();
         };
         ///
         const char* const getFirstIPpart() const;
 
         ///Mutators
-        void setUrlToRegister(const char* regUrl)
-        {
-            makeCopy(&registerUrl , regUrl);
+        void setUrlToRegister(const char* regUrl) {
+            registerUrl = regUrl;
         }
         ///
-        void setRegisterDomain(const char* regDomain)
-        {
-            makeCopy(&registerDomain, regDomain);
+        void setRegisterDomain(const char* regDomain) {
+            registerDomain = regDomain;
         }
         ///
-        void setUserName(const char* name)
-        {
-            makeCopy(&userName , name);
+        void setUserName(const char* name) {
+            userName = name;
         }
         ///
-        void setDisplayName(const char* name)
-        {
-            makeCopy(&displayName , name);
+        void setDisplayName(const char* name) {
+            displayName = name;
         }
         ///
-        void setSessionName(const char* session)
-        {
-            makeCopy(&sessionName , session);
+        void setSessionName(const char* session) {
+            sessionName = session;
         }
         ///
-        void setSystemPort(int port)
-        {
+        void setSystemPort(int port) {
             mySystemPort = port;
         }
         ///
-        int getSystemPort()
-        {
+        int getSystemPort() {
             return mySystemPort;
         }
 
@@ -173,19 +154,14 @@ class SystemInfo
         friend ostream& operator<<(ostream& os, const SystemInfo& sysInfo);
 
     private:
-        ///
-        void breakIP();
 
-        ///
-        void makeCopy(char** dest, const char* src);
-
-        char* userName;
-        char* displayName;
-        char* hostName;
-        char* hostIP;
-        char* sessionName;
-        char* registerDomain;
-        char* registerUrl;
+        string userName;
+        string displayName;
+        string hostName;
+        //string hostIP;
+        string sessionName;
+        string registerDomain;
+        string registerUrl;
         int mySystemPort;
 };
 
@@ -202,8 +178,6 @@ inline ostream& operator<<(ostream& os, const SystemInfo& sysInfo)
     os.width(20);
     os << "Host name:" << sysInfo.gethostName() << endl;
     os.width(20);
-    os << "Host IP:" << sysInfo.gethostAddress() << endl;
-    os.width(20);
     os << "Session :" << sysInfo.getSessionName() << endl;
     os.width(20);
     os << "Register domain:" << sysInfo.getRegisterDomain() << endl;
@@ -215,12 +189,5 @@ inline ostream& operator<<(ostream& os, const SystemInfo& sysInfo)
 extern void parseSystemInfo(char* tag, char* type, char* value);
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

@@ -52,7 +52,7 @@
  */
 
 static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.11 2006/02/24 22:27:52 greear Exp $";
+    "$Id: Connection.hxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 #include "vin.h"
 #include "global.h"
@@ -63,8 +63,10 @@ static const char* const ConnectionHeaderVersion =
 #include <misc.hxx>
 
 #include <sys/types.h>
+#ifndef __MINGW32__
 #include <sys/socket.h>
 #include <sys/uio.h>
+#endif
 
 #if defined(__svr4__) || defined(__SUNPRO_CC)
 

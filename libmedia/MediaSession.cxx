@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.12 2006/02/07 01:33:21 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.13 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -230,9 +230,9 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
             cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
                   fmt, fmt_name.c_str(), cAdp->getType());
 
-            if (cAdp->getType() == SPEEX) {
-               // Make a copy, we have state in the Speex codec.
-               cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
+            if (cAdp->getType() == G726_16) {
+               // Make a copy, we have state in this codec.
+               cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
                cAdp->setRtpType(fmt);
                cAdp->setClockRate(sample_rate);
             }
@@ -244,12 +244,14 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
                cAdp->setClockRate(sample_rate);
             }
 #endif
-            else if (cAdp->getType() == G726_16) {
-               // Make a copy, we have state in this codec.
-               cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
+#ifdef USE_SPEEX
+            else if (cAdp->getType() == SPEEX) {
+               // Make a copy, we have state in the Speex codec.
+               cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
                cAdp->setRtpType(fmt);
                cAdp->setClockRate(sample_rate);
             }
+#endif
             else if (cAdp->getType() == G726_24) {
                // Make a copy, we have state in this codec.
                cAdp = new CodecG726_24(*((CodecG726_24*)(cAdp.getPtr())));
@@ -269,14 +271,12 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
                cAdp->setClockRate(sample_rate);
             }
 
-            if(lMedia->getConnection())
-            {
+            if(lMedia->getConnection()) {
                 LocalScopeAllocator lo;
                 lAddr = lMedia->getConnection()->getUnicast().getData(lo);
                 fromMedia = 1;
             }
-            else
-            {
+            else {
                 lAddr = localAddr;
                 fromMedia = 0;
             }

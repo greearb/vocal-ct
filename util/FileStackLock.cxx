@@ -1,5 +1,6 @@
 // Released into the public domain. --Ben Greear June 7, 2004
 
+#if 0
 
 #include "FileStackLock.hxx"
 #include <cpLog.h>
@@ -64,3 +65,4 @@ FileStackLock::~FileStackLock() {
    }
 }//destructor
 
+#endif

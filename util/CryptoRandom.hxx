@@ -56,10 +56,11 @@
 
 
 static const char* const CryptoRandomHeaderVersion =
-    "$Id: CryptoRandom.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: CryptoRandom.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
-
+#ifndef __WIN32__
 #include <sys/ioctl.h>
+#endif
 
 #ifdef __linux__
 #include <asm/types.h>

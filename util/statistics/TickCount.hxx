@@ -53,13 +53,12 @@
 
 
 static const char* const TickCount_hxx_Version = 
-    "$Id: TickCount.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: TickCount.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "vtypes.h"
-#include <sys/times.h>
 #include <unistd.h>
-
+#include <misc.hxx>
 
 /** Infrastructure common to VOCAL.<br><br>
  */
@@ -195,7 +194,7 @@ inline void    	TickCount::calibrate()
 	
 	// There's got to be a better way.
 	//
-	sleep(1);
+	vsleep(1);
 
 	stop.set();
 

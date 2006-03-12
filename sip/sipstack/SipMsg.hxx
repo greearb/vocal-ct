@@ -52,7 +52,7 @@
  */
 
 static const char* const SipMsgVersion 
-= "$Id: SipMsg.hxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
+= "$Id: SipMsg.hxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
 
 #include "Data.hxx"
 #include "NetworkAddress.h"
@@ -793,7 +793,8 @@ public:
    /// 
    const Data& getReceivedIPPort();
    ///
-   void setReceivedIPPort(const Data& ipName);
+   void setReceivedIPPort(const Data& p);
+   void setReceivedIPPort(short p);
     
    /**@name Transfer functions.
     */

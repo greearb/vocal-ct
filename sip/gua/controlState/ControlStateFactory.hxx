@@ -52,10 +52,6 @@
  */
 
 
-
-static const char* const ControlStateFactory_hxx_Version = 
-"$Id: ControlStateFactory.hxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
-
 #include <map>
 #include "CInvalidStateException.hxx"
 #include "ControlState.hxx"
@@ -84,8 +80,6 @@ class ControlStateFactory {
 public:
    ///
    typedef map<CStateType, ControlState* > ControlStateMap;
-   ///
-   typedef map<pthread_t, ControlStateMap > ThreadBasedControlStateMap;
          
    ///
    static ControlStateFactory& instance();
@@ -106,12 +100,12 @@ protected:
    
    ///Destructor
    virtual ~ControlStateFactory();
+
+   ControlStateMap cs_map;
    
    ///
    static ControlStateFactory* myInstance;
 
-   ///
-   ThreadBasedControlStateMap  myControlStateMap;
 };
 
 }

@@ -51,18 +51,11 @@
  *
  */
 
-static const char* const NetworkAddress_hxx_Version =
-"$Id: NetworkAddress.h,v 1.2 2004/06/10 23:16:17 greear Exp $";
 
-#include <netdb.h>
+
 #include <iostream>
 #include <string>
 
-#ifdef __FreeBSD__
-#include <sys/types.h>
-#endif
-
-#include <sys/socket.h>
 #include <stdio.h>
 
 #include "global.h"
@@ -70,8 +63,8 @@ static const char* const NetworkAddress_hxx_Version =
 #include "VException.hxx"
 #include "Data.hxx"
 #include "BugCatcher.hxx"
+#include <misc.hxx>
 
-#define IPV4_LENGTH 4
 
 /**
    Class which implements a network address, which contains both the
@@ -95,168 +88,116 @@ static const char* const NetworkAddress_hxx_Version =
    
    </pre>
 */
-class NetworkAddress : public BugCatcher
-{
-    public:
-	class UnresolvedException : public VException
-	{
-	    public:
-		UnresolvedException(const string& reason, 
-				    const string& file,
-				    const int line);
-		string getName() const { return "NetworkAddress::UnresolvedException"; }
-	};
+class NetworkAddress : public BugCatcher {
+public:
 	
-	/** The host hostName can be in the same form as passed to
-	 * setHostName()  Can set hostName to "" here if wanted, and
-         * will use localHost....converts to 127.0.0.1 if DNS is screwed
-         * up though.
-	 */
-	explicit NetworkAddress ( const Data& hostName, int port = -1 );
+   /** The host hostName can be in the same form as passed to
+    * setHostName()  Can set hostName to "" here if wanted, and
+    * will use localHost....converts to 127.0.0.1 if DNS is screwed
+    * up though.
+    */
+   explicit NetworkAddress ( const Data& hostName, int port = -1 );
 	
-	/** takes IP or DNS with optional ":port" syntax.  Examples:
-	    <P>lab1.vovida.com
-	    <BR>192.168.4.5
-	    <BR>lab1.vovoda.com:80
-	    <BR>192.168.4.5:6000
-	    
-	    @param theAddress the address to set it to
-
+   /** takes IP or DNS with optional ":port" syntax.  Examples:
+       <P>lab1.vovida.com
+       <BR>192.168.4.5
+       <BR>lab1.vovoda.com:80
+       <BR>192.168.4.5:6000
+       
+       @param theAddress the address to set it to
         */
-        void setHostName ( const Data& theAddress );
+   void setHostName ( const Data& theAddress );
 
-        /// set port
-        void setPort ( int port );
+   /// set port
+   void setPort ( int port );
 
-        /// get hostname in the form "lab1.vovida.com"
-        const Data& getHostName () const;
+   /// get hostname in the form "lab1.vovida.com"
+   const Data& getHostName () const;
 
-        /// get IP address as a string in the form "192.168.4.5"
-        const Data& getIpName () const;
+   /// get IP address as a string in the form "192.168.4.5"
+   const Data& getIpName () const;
 
-        // Returns something like: "192.168.1.1:666"
-        const string getIpAndPortName() const;
+   // Returns something like: "192.168.1.1:666"
+   const string getIpAndPortName() const;
 
-        /** 
-            return the IP4 address packed as an unsigned int, in
-            network byte order.
-            @deprecated use getSockAddr() instead.
-        */
-        u_int32_t getIp4Address () const;
+   /** 
+       return the IP4 address packed as an unsigned int, in host byte order.
+       @deprecated use getSockAddr() instead.
+   */
+   uint32 getIp4Address () const;
 
-        /** 
-            return the address in a sockaddr.
-            @param socka    returned address
-            @param uhints   ?
-        */
-        void getSockAddr(struct sockaddr_storage * socka, 
-                         struct addrinfo* uhints=0) const;
+   /// get the port
+   int getPort () const;
 
-        /// get the port
-        int getPort () const;
+   /// convert to string - returns same as print output; i.e. host:port
+   operator string() const;
 
-        /// compare two IP addresses
-        friend bool operator < (const NetworkAddress & xAddress,
-                                const NetworkAddress & yAddress );
+   /// printing operator -- calls print() fn.
+   friend ostream & operator<< ( ostream & xStream,
+                                 const NetworkAddress& rxObj );
 
-        /// compare two IP addresses
-        friend bool operator == (const NetworkAddress & xAddress,
-                                 const NetworkAddress & yAddress );
+   /// copy constructor
+   NetworkAddress( const NetworkAddress& x);
 
-        /// compare two IP addresses
-        friend bool operator != (const NetworkAddress & xAddress,
-                                 const NetworkAddress & yAddress );
+   /// assignment operator =
+   NetworkAddress& operator=( const NetworkAddress& x );
 
-        /// convert to string - returns same as print output; i.e. host:port
-        operator string() const;
+   /// printing operator.  This should be replaced w/ Vocal::IO:Writer
+   ostream & print ( ostream & xStr ) const;
 
-        /// printing operator -- calls print() fn.
-        friend ostream & operator<< ( ostream & xStream,
-                                      const NetworkAddress& rxObj );
+   /// Yet another way to get printable info from this guy.
+   string toString() const;
 
-        /// copy constructor
-        NetworkAddress( const NetworkAddress& x);
+   /** hash function, uses last 2 bytes of ip address + 2 bytes
+       of port the bits 15-0 of ipaddress (Bigendian) becomes the
+       Most Significant Byte(MSB) of hashkey, bits 15-0 of port
+       becomes LSB of hashkey.
+   */
+   uint32 hashIpPort( ) const;
 
-        /// assignment operator =
-        NetworkAddress& operator=( const NetworkAddress& x );
+   /// hash function, uses last 2 bytes of ip address + 2 bytes of port
+   static uint32 hashIpPort( const u_int32_t ipAddress, const int port );
 
-        /// printing operator.  This should be replaced w/ Vocal::IO:Writer
-        ostream & print ( ostream & xStr ) const;
+   ///Check if the passed arg is an IpV6 address
+   static bool is_valid_ip6_addr (const Data& ip_addr);
 
-        /// Yet another way to get printable info from this guy.
-        string toString() const;
+   static bool is_valid_ip4_addr (const Data& ip_addr);
 
-        /** hash function, uses last 2 bytes of ip address + 2 bytes
-            of port the bits 15-0 of ipaddress (Bigendian) becomes the
-            Most Significant Byte(MSB) of hashkey, bits 15-0 of port
-            becomes LSB of hashkey.
-        */
-        u_int32_t hashIpPort( ) const;
+   static const Data& getLocalHostName();
+   static string NetworkAddress::resolveHostName(uint32 addr);
 
-        /// hash function, uses last 2 bytes of ip address + 2 bytes of port
-        static u_int32_t 
-        hashIpPort( const u_int32_t ipAddress, const int port );
+private:
+   NetworkAddress(); // Restricted access (not implemented)
 
-        /** Mutexes the gethostbyname(), return 0 when successful
-         * the last argumrnt is only for Windows protability
-         */
-        static int getHostByName(const char* hostName,
-                                 struct addrinfo* res,
-                                 struct hostent* hEnt=0);
+   ///
+   static bool is_v6_string(const Data& addr);
 
-        ///calls unix gethostname()
-        static Data getLocalHostName();
+   /// Check if parameter is a valid IP address
+   bool is_valid_ip_addr (const Data& ip_addr) const;
 
-        static void freeAddrInfo(struct addrinfo* res);
-
-      
-	/// value if host lookup failed
-        static const int getHostLookupFailed;
-        /// value if host lookup succeeded
-        static const int getHostLookupOK;
-
-        ///Resolves an IP address to a name
-        Data getHostByAddress(Data& ipAddr) const;
-
-        ///Check if the passed arg is an IpV6 address
-        static bool is_valid_ip6_addr (const Data& ip_addr);
-
-        static bool is_valid_ip4_addr (const Data& ip_addr);
-
-    private:
-        NetworkAddress(); // Restricted access (not implemented)
-
-        ///
-        static bool is_v6_string(const Data& addr);
-
-        /// Check if parameter is a valid IP address
-        bool is_valid_ip_addr (const Data& ip_addr) const;
-
-        void init(string& hostname, int port) const;
-        void initIpAddress() const;
-        bool isDottedDecimal(const string& addr);
+   void init(string& hostname, int port) const;
+   void initIpAddress() const;
+   bool isDottedDecimal(const string& addr);
     
-        mutable int aPort;
-        mutable Data hostName;
-        mutable Data ipAddress;
-        mutable sockaddr_storage sa_cache;
-        mutable bool ipAddressSet;
-        mutable bool sockAddrSet;
-        static string localHostName;
+   int aPort;
+   mutable Data hostName; // gandolf
+   mutable Data hostIPstring; // 192.168.2.2
+   mutable uint32 hostIP; // cached value of resolved hostName
+   mutable bool ipAddressSet;
 };
 
 
 inline ostream &
 operator<< ( ostream & xStream, const NetworkAddress& rxObj ) {
-    return rxObj.print ( xStream );
+   return rxObj.print ( xStream );
 }
 
 
 class NetworkAddressHash {
-    public:
-        unsigned long int operator() ( const NetworkAddress& src ) const {
-            return src.hashIpPort();
-        }
+public:
+   unsigned long int operator() ( const NetworkAddress& src ) const {
+      return src.hashIpPort();
+   }
 };
 
 // NETWORKADDRESS_HXX_

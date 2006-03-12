@@ -52,7 +52,7 @@
  */
 
 static const char* const vsockHeaderVersion =
-    "$Id: vsock.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: vsock.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 #ifdef __vxworks
 #include <resolvLib.h>
@@ -86,12 +86,15 @@ extern int strncasecmp(const char* s1, const char* s2, size_t n);
 
 #else
 
+#ifndef __MINGW32__
 #include <netdb.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <pwd.h>
+#endif
+
+#include <sys/types.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <pwd.h>
 #include <unistd.h>
 #include <string.h>
 

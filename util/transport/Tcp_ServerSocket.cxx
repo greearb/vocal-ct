@@ -52,17 +52,16 @@
 
 
 
-
-static const char* const TcpServerSocket_cxx_Version =
-    "$Id: Tcp_ServerSocket.cxx,v 1.7 2005/03/04 01:29:39 greear Exp $";
 #ifndef __vxworks
 
 
 #include "global.h"
 #include <errno.h>
 #include <unistd.h>
+#ifndef __MINGW32__
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 #include <stdio.h>
 #ifndef WIN32
 #include <strings.h>
@@ -83,7 +82,6 @@ TcpServerSocket::TcpServerSocket(uint16 tos, uint32 priority,
                                  const string& _local_ip,
                                  const string& local_dev_to_bind_to,
                                  int servPort, bool blocking)
-   throw (VNetworkException&)
 {
    _serverConn = new Connection(blocking);
    local_ip = _local_ip;
@@ -92,101 +90,70 @@ TcpServerSocket::TcpServerSocket(uint16 tos, uint32 priority,
    listenOn(local_ip, local_dev_to_bind_to, servPort);
 }
 
-void
-TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bind_to,
-                          int servPort) throw (VNetworkException&)
-{
-   struct addrinfo hints, *res, *sRes;
-   memset(&hints, 0, sizeof(hints));
-   hints.ai_flags = AI_PASSIVE;
-   hints.ai_family = NetworkConfig::instance().getAddrFamily();
-   hints.ai_socktype = SOCK_STREAM;
-   char serv[56], err;
-   sprintf(serv, "%u", servPort);
-   const char* lip = NULL;
-   if (local_ip.size()) {
-      lip = local_ip.c_str();
+int TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to_bind_to,
+                               int servPort) {
+   struct sockaddr_in sa;
+   memset(&sa, 0, sizeof(sa));
+   sa.sin_family = AF_INET;
+   sa.sin_port   = htons(servPort);
+
+   uint32 ip;
+   if (vtoIpString(local_ip.c_str(), ip) < 0) {
+      cpLog(LOG_ERR, "ERROR:  Could not resolve local-ip: %s  error: %s\n",
+            local_ip.c_str(), VSTRERROR);
+      return -ERRNO;
    }
 
-   if ((err= getaddrinfo(lip, serv, &hints, &res)) != 0) {
-      char buf[256];
-      sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
-      cpLog(LOG_ERR, buf);
-      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   sa.sin_addr.s_addr = htonl(ip);
+
+   _serverConn->_connId = ::socket(AF_INET, SOCK_STREAM, 0);
+   if (_serverConn->_connId < 0) {
+      cpLog(LOG_ERR, "ERROR:  Failed to create socket: %s\n", VSTRERROR);
+      return -ERRNO;
    }
 
-   sRes = res;
-   do {
-      _serverConn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-      if (_serverConn->_connId < 0) {
-         continue;
-      }
-      int on = 1;
-#ifndef WIN32
-      if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR, &on, sizeof ( on )) ) {
-         // this is an error -- can't set it
-         cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
-      }
-#endif
+   int on = 1;
+   if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR, (char*)(&on), sizeof ( on )) ) {
+      // this is an error -- can't set it
+      cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
+   }
 
-      // Set ToS and Priority
-      vsetPrio(_serverConn->_connId, _tos, _skb_priority, "TcpServerSocket::listenOn");
+   // Set ToS and Priority
+   vsetPrio(_serverConn->_connId, _tos, _skb_priority, "TcpServerSocket::listenOn");
 
 #ifdef __linux__
-      if (local_dev_to_bind_to.size()) {
-         // Bind to specific device.
-         char dv[15 + 1];
-         strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-         if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
-                        dv, 15 + 1)) {
-            cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                  dv, strerror(errno));
-         }
+   if (local_dev_to_bind_to.size()) {
+      // Bind to specific device.
+      char dv[15 + 1];
+      strncpy(dv, local_dev_to_bind_to.c_str(), 15);
+      if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
+                     dv, 15 + 1)) {
+         cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+               dv, strerror(errno));
       }
-#endif
+   }
+#endif   
 
-      if (::bind(_serverConn->_connId, res->ai_addr, res->ai_addrlen) == 0) {
-         
-         //Success
-         delete []_serverConn->_connAddr;
-         _serverConn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-         memcpy(_serverConn->_connAddr, res->ai_addr, res->ai_addrlen);
-         
-         char tmp_addr[80];
-         struct sockaddr_in* sin = (struct sockaddr_in*)(res->ai_addr);
-         inet_ntop(res->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
-         tmp_addr[79] = 0;
-         curLocalIp = tmp_addr;
-         
-         cpLog(LOG_INFO, "(%s) TCP server locally bound to %s:%d",
-               (res->ai_family == PF_INET) ? "IPv4" : "IPv6",
-               curLocalIp.c_str(), servPort);
-         break;
-      }
-      
-      close();
-   } while((res = res->ai_next) != NULL);
+   if (::bind(_serverConn->_connId, (struct sockaddr*)(&sa), sizeof(sa))) {
+      delete []_serverConn->_connAddr;
+      _serverConn->_connAddr = (struct sockaddr*) new char[sizeof(sa)];
+      memcpy(_serverConn->_connAddr, &sa, sizeof(sa));
 
-   freeaddrinfo(sRes);
-   
-   if (res == NULL) {
-      char buf[256];
-      sprintf(buf, "Failed to initialize TCP server on ip: [%s]:%d, reason: %s",
-              local_ip.c_str(), servPort, strerror(errno));
-      cpLog(LOG_ALERT, "%s", buf);
-      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+      curLocalIp = vtoStringIp(ip);
+         
+      cpLog(LOG_INFO, "IPv4 TCP server locally bound to %s:%d",
+            curLocalIp.c_str(), servPort);
    }
 
    if (::listen(_serverConn->_connId, LISTENQ)) {
-      char buf[256];
-      sprintf(buf, "listen failed, reason:%s", strerror(errno));
-      cpLog(LOG_ALERT, "%s", buf);
-      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+      cpLog(LOG_ALERT, "ERROR:  listen failed, reason: %s\n", VSTRERROR);
+      close();
+      return -ERRNO;
    }
+   return 0;
 }
 
-TcpServerSocket::~TcpServerSocket()
-{
+TcpServerSocket::~TcpServerSocket() {
     close();
 }
 
@@ -205,7 +172,7 @@ int TcpServerSocket::acceptNB(Connection& con) {
    if (select(_serverConn->_connId + 1, &rdfds, NULL, NULL, &tv) > 0) {
       if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr,
                                   &con._connAddrLen)) < 0) {
-         return -errno;
+         return -ERRNO;
       }
       cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
       con.setState();
@@ -234,44 +201,26 @@ bool TcpServerSocket::checkIfSet ( fd_set* set ) {
    return !!(FD_ISSET(getSocketFD(), set));
 }
 
+int TcpServerSocket::accept(Connection& con) {
+   if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr, &con._connAddrLen)) < 0) {
+      cpLog(LOG_ERR, "Failed to accept the connection, reason:%s", VSTRERROR);
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
+      con.setState();
 
-
-int
-TcpServerSocket::accept(Connection& con) throw (VNetworkException&)
-{
-    if ((con._connId = ::accept(_serverConn->_connId, (SA*) con._connAddr, &con._connAddrLen)) < 0)
-    {
-        char buf[256];
-        snprintf(buf, 255, "Failed to accept the connection, reason:%s", strerror(errno));
-        cpLog(LOG_DEBUG, buf);
-        throw VNetworkException(buf, __FILE__, __LINE__, errno);
-    }
-    cpLog(LOG_DEBUG_STACK, "Connection from %s", con.getDescription().c_str());
-    con.setState();
-
-    // Set ToS and Priority
-    vsetPrio(con._connId, _tos, _skb_priority, "TcpServerSocket::accept");
-
-    return con._connId;
+      // Set ToS and Priority
+      vsetPrio(con._connId, _tos, _skb_priority, "TcpServerSocket::accept");
+   }
+   return con._connId;
 }
 
-void
-TcpServerSocket::close()
-{
-#if !defined(WIN32)
-    ::close(_serverConn->getConnId());
-#else
-    ::closesocket(_serverConn->getConnId());
-#endif
-    
+void TcpServerSocket::close() {
 #ifndef WIN32
-        ::close(_serverConn->_connId);
+   ::close(_serverConn->_connId);
 #else
-        // 25/11/03 fpi
-        // WorkAround Win32
-        ::closesocket(_serverConn->_connId);
+   ::closesocket(_serverConn->_connId);
 #endif
-
     _serverConn->_connId = -1; //Ensure it is not used later.
 }
 

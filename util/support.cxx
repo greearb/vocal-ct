@@ -50,7 +50,7 @@
 
 
 static const char* const support_cxx_Version =
-    "$Id: support.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: support.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -60,10 +60,12 @@ static const char* const support_cxx_Version =
 #ifndef WIN32
 #include <regex.h>
 #else
+#ifndef __MINGW32__
 #define __STDC__ 1
 extern "C" {
 #include <regex.h>
 }
+#endif
 #include <iostream>
 #endif
 
@@ -490,7 +492,7 @@ string c2lower_s(const char* cstr)
     return str;
 }
 
-
+#ifndef __MINGW32__
 int matchString(string a, string regex)
 {
     regex_t re;
@@ -503,7 +505,7 @@ int matchString(string a, string regex)
     regfree(&re);
     return (status);
 }
-
+#endif
 
 bool stringToInt ( const string& s, int *num)
 {

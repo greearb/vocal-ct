@@ -52,11 +52,12 @@
  */
 
 static const char* const NtpTime_hxx_Version =
-    "$Id: NtpTime.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
+    "$Id: NtpTime.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <sys/types.h>
 #include "vtypes.h"
+#include <misc.hxx>
 
 ///
 class NtpTime
@@ -82,14 +83,14 @@ class NtpTime
             return fractional;
         };
 
-        __uint64_t getUs() const {
-           __uint64_t rv = ((__uint64_t)(seconds)) * 1000000;
+        uint64 getUs() const {
+           uint64 rv = ((uint64)(seconds)) * 1000000;
            rv += (fractional / 4294);
            return rv;
         }
 
-        __uint64_t getMs() const {
-           __uint64_t rv = ((__uint64_t)(seconds)) * 1000;
+        uint64 getMs() const {
+           uint64 rv = ((uint64)(seconds)) * 1000;
            rv += (fractional / 4294967);
            return rv;
         }

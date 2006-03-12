@@ -51,13 +51,19 @@
  *
  */
 
-static const char* const NetworkConfig_hxx_Version =
-"$Id: NetworkConfig.hxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+#warning "Dead code"
 
+#if 0
+
+static const char* const NetworkConfig_hxx_Version =
+"$Id: NetworkConfig.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
+
+#ifndef __MINGW32__
 #include <netdb.h>
+#include <sys/socket.h>
+#endif
 #include <iostream>
 #include <string>
-#include <sys/socket.h>
 #include <stdio.h>
 
 #include "global.h"
@@ -97,4 +103,5 @@ private:
 };
 
 // NETWORKCONFIG_HXX_
+#endif
 #endif

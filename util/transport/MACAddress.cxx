@@ -50,16 +50,20 @@
 
 
 static const char* const MACAddress_cxx_Version = 
-    "$Id: MACAddress.cxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
+    "$Id: MACAddress.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
 #include "MACAddress.hxx"
 #include "Socket.hxx"
+
+#ifndef __MINGW32__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <net/if.h>
+#endif
+
 #include <unistd.h>
 #include <string.h>
 

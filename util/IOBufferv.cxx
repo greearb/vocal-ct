@@ -1,5 +1,5 @@
-// $Id: IOBufferv.cxx,v 1.2 2006/02/24 22:27:52 greear Exp $
-// $Revision: 1.2 $  $Author: greear $ $Date: 2006/02/24 22:27:52 $
+// $Id: IOBufferv.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $
+// $Revision: 1.3 $  $Author: greear $ $Date: 2006/03/12 07:41:28 $
 
 //
 //Copyright (C) 2001-2004  Ben Greear
@@ -342,11 +342,9 @@ ssize_t IOBufferv::write(const int desc, int max_to_write) {
          this_round = ::send(desc, (char*)(iobuf + tail), len, 0);
          if (this_round < 0) { //some error happened
             if (WSAGetLastError() != WSAEWOULDBLOCK) {
-               if (IO_LOGFILE.ofLevel(WRN)) {
-                  IO_LOGFILE << "IOBufferv: WARNING: write err (NOT EAGAIN): "
-                             << WSAGetLastError()
-                             << " sofar: " << sofar << endl;
-               }
+               IO_LOGFILE << "IOBufferv: WARNING: write err (NOT EAGAIN): "
+                          << WSAGetLastError()
+                          << " sofar: " << sofar << endl;
 #else
          this_round = ::send(desc, iobuf + tail, len, 0);
          if (this_round < 0) { //some error happened
@@ -425,7 +423,7 @@ ssize_t IOBufferv::read(const int desc, const int max_to_read,
       unsigned long avail_rd = 0xFFFFFFFF;
       ioctlsocket(desc, FIONREAD, &avail_rd);
       if (avail_rd == 0) {
-         LOGFILE << " IOB:  About to read desc: " << desc << " avail_rd: " << avail_rd
+         cout << " IOB:  About to read desc: " << desc << " avail_rd: " << avail_rd
                  << " to_rd: " << to_rd << " debug: " << debug << endl;
       }
       //if (to_rd > (int)(avail_rd)) {
@@ -555,10 +553,8 @@ ssize_t IOBufferv::recvFrom(const int desc, const int max_to_read,
       if (this_round < 0) { //some error happened
 #ifdef __WIN32__
          if (WSAGetLastError() != WSAEWOULDBLOCK) {
-            if (IO_LOGFILE.ofLevel(WRN)) {
-               IO_LOGFILE << "IOBufferv: WARNING: rcvfrom read err (NOT EAGAIN): "
-                          << WSAGetLastError() << endl;
-            }
+            IO_LOGFILE << "IOBufferv: WARNING: rcvfrom read err (NOT EAGAIN): "
+                       << WSAGetLastError() << endl;
 #else
          if ((errno != EAGAIN) && (errno != EINTR)) { //== EWOULDBLOCK
             //if (IO_LOGFILE.ofLevel(WRN)) {

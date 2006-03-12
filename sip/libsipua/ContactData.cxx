@@ -49,10 +49,9 @@
  */
 
 
-static const char* const ContactData_cxx_Version =
-    "$Id: ContactData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
+#ifndef __MINGW32__
 #pragma warning (disable: 4786)
+#endif
 
 #include "ContactData.hxx"
 #include "SipCallLegData.hxx"

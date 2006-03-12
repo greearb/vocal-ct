@@ -49,13 +49,14 @@
  */
 
 static const char* const SipTcpConnection_cxx_Version =
-"$Id: SipTcpConnection.cxx,v 1.12 2005/03/03 19:59:49 greear Exp $";
+"$Id: SipTcpConnection.cxx,v 1.13 2006/03/12 07:41:28 greear Exp $";
 
 #include <sys/types.h>
 #include <sys/time.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <strstream>
 
 #include "global.h"
 #include "InviteMsg.hxx"
@@ -69,7 +70,7 @@ static const char* const SipTcpConnection_cxx_Version =
 #include "StatusMsg.hxx"
 #include "Tcp_ClientSocket.hxx"
 #include "Tcp_ServerSocket.hxx"
-#include "VFilter.hxx"
+//#include "VFilter.hxx"
 #include "VFunctor.hxx"
 #include "VNetworkException.hxx"
 #include "support.hxx"
@@ -439,11 +440,7 @@ SipTcpConnection::SipTcpConnection(uint16 tos, uint32 priority, const string& lo
 
    // TODO:  This is slightly weird.  At this point, we shouldn't
    // care about the IP for this guy... --Ben
-   string mh = local_ip;
-   if (mh.size() == 0) {
-      mh = Vocal::theSystem.gethostAddress(); //OK
-   }
-   tcpConnInfo.setConnNPeerIp(fd, mytcpStack.getServerConn(), mh);
+   tcpConnInfo.setConnNPeerIp(fd, mytcpStack.getServerConn(), local_ip);
 }
 
 
@@ -453,13 +450,7 @@ SipTcpConnection::~SipTcpConnection() {
 
 
 const string SipTcpConnection::getLocalIp() const {
-   string rv = mytcpStack.getSpecifiedLocalIp();
-   if (rv.size()) {
-      return rv;
-   }
-   else {
-      return theSystem.gethostAddress(); //OK
-   }
+   return mytcpStack.getSpecifiedLocalIp();
 }
 
 
@@ -506,15 +497,12 @@ int SipTcpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
    }
 
    if (nhost.length()) {
-      try {
-         Sptr<NetworkAddress> na =  new NetworkAddress(nhost.convertString(), nport); 
-         msg->setNetworkAddr(na);
-      }
-      catch(NetworkAddress::UnresolvedException& e) {
-         cpLog(LOG_ERR, "Destination (%s) is not reachable, reason:%s.",
-               nhost.logData(), e.getDescription().c_str());
+      Sptr<NetworkAddress> na =  new NetworkAddress(nhost.convertString(), nport);
+      if (na->getIp4Address() == 0) {
+         cpLog(LOG_ERR, "Destination (%s) is not reachable.\n", nhost.logData());
          return -1;
       }
+      msg->setNetworkAddr(na);
    }
    sendQ.push_back(msg);
    return 0;

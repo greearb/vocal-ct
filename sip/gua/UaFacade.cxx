@@ -50,7 +50,7 @@
 
 
 static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.16 2006/02/07 01:33:21 greear Exp $";
+    "$Id: UaFacade.cxx,v 1.17 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <sys/types.h>
@@ -59,8 +59,6 @@ static const char* const UaFacade_cxx_Version =
 
 #ifdef __FreeBSD__
 #include <sys/ioctl.h>
-#else
-#include <stropts.h>
 #endif
 
 #include <sys/types.h>
@@ -262,8 +260,9 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
       string cfg_force_ipv6 = UaConfiguration::instance().getValue(ForceIPv6Tag);
 
       if (cfg_force_ipv6 == "true") {
-	  // change the network configuration by force
-	  NetworkConfig::instance().setAddrFamily(PF_INET6);
+         cerr << "ERROR:  ipv6 not supported.\n";
+         cpLog(LOG_ERR, "ERROR:  ipv6 not supported.\n");
+         exit(5);
       }
 
 
@@ -731,7 +730,7 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
 
       // Couldn't find anything...see if we can read it from disk.
       rv = new CachedEncodedRtp(k);
-      ifstream f(buf);
+      ifstream f(buf, ios::binary | ios::in );
       int sofar = 0;
       if (f) {
          RtpPldBufferStorage b;
@@ -767,8 +766,8 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
                   if (b.len > 0) {
                      f.read(tmp, b.len);
                      if (f.gcount() != b.len) {
-                        cpLog(LOG_ERR, "ERROR:  Failed to read complete buffer payload, file: %s  assuming cache corrupted, tried: %d  sofar: %d\n",
-                              k.c_str(), b.len, sofar);
+                        cpLog(LOG_ERR, "ERROR:  Failed to read complete buffer payload, read: %d file: %s  assuming cache corrupted, tried: %d  sofar: %d\n",
+                              f.gcount(), k.c_str(), b.len, sofar);
                         rv = NULL;
                         break;
                      }
@@ -783,8 +782,8 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
          }
       }
       else {
-         cpLog(LOG_ERR, "WARNING: Could not find RTP cache file: %s  Will rebuild.\n",
-               k.c_str());
+         cpLog(LOG_ERR, "WARNING: Could not find RTP cache file: %s  error: %s  Will rebuild.\n",
+               k.c_str(), VSTRERROR);
          rv = NULL;
       }
 
@@ -845,7 +844,7 @@ void UaFacade::updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_r
       }
       else {
          // Now, save it to disk.
-         ofstream f(buf);
+         ofstream f(buf, ios::binary | ios::out);
          if (f) {
             list<RtpPldBuffer*>::const_iterator cii;
             for(cii = encoded_rtp.begin(); cii != encoded_rtp.end(); cii++) {

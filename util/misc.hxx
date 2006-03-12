@@ -18,63 +18,67 @@ void debugMemUsage(const char* msg, const char* fname);
 
 #if defined(sparc) || defined(__OpenBSD__)
 
-// Fix sparc compile
-typedef uint64_t u64; // hack, so we may include kernel's ethtool.h
-typedef uint32_t u32; // hack, so we may include kernel's ethtool.h
-typedef uint16_t u16; // ditto
-typedef uint8_t u8;   // ditto
-
 typedef uint64_t uint64;
 typedef uint32_t uint32;
 typedef uint16_t uint16;
 typedef uint8_t uint8;
 
-#define __u8 uint8
-#define __u16 uint16
-#define __u32 uint32
-#define __u64 uint64
-
 #else
-// 15/1/04 fpi
-// WorkAround Wi32
-#ifndef WIN32
 
-typedef __uint64_t u64; // hack, so we may include kernel's ethtool.h
-typedef __uint32_t u32; // hack, so we may include kernel's ethtool.h
-typedef __uint16_t u16; // ditto
-typedef __uint8_t u8;   // ditto
+#ifndef WIN32
 
 typedef __uint64_t uint64;
 typedef __uint32_t uint32;
 typedef __uint16_t uint16;
 typedef __uint8_t uint8;
 
-#define __u8 uint8
+#define vgettimeofday gettimeofday
+#define VSTRERROR strerror(errno)
+#define ERRNO errno
+
+#else
+
+typedef uint32_t uint32;
+typedef int32_t int32;
+typedef uint16_t uint16;
+typedef uint8_t uint8;
+typedef uint64_t uint64;
+
+void vsleep(int secs);
+
+#define SOL_IP IPPROTO_IP
+
+#define SOCKADDR sockaddr
+const char* vwinstrerror();
+#define VSTRERROR vwinstrerror()
+#define ERRNO WSAGetLastError()
+
+extern uint64 vbaselineMs;
+extern uint32 vtickBaseline;
+
+int vgettimeofday(struct timeval* tv, void* null);
+
+// Gets high resolution by spinning up to 15ms.  Don't call this often!!!
+uint64 vgetRawCurMsSpin();
+uint64 vcalcEpocOffset();
+void vresyncBaselineClock(); /* re-calculates the basline using getRawCurMsSpin() */
+
+/* Correctly synched with the 'real' time/date clock, but only exact to
+ * about 15ms.  Set foo to non NULL if you want to recalculate the
+ */
+uint64 vgetCurMsFromClock();
+
+
+#endif
+#endif
+
+#define __u8  uint8
 #define __u16 uint16
 #define __u32 uint32
 #define __u64 uint64
 
-#else
-
-typedef UINT64 u64; // hack, so we may include kernel's ethtool.h
-typedef DWORD  u32; // hack, so we may include kernel's ethtool.h
-typedef WORD   u16; // ditto
-typedef BYTE   u8;   // ditto
-
-typedef DWORD uint32;
-typedef WORD uint16;
-typedef BYTE uint8;
-
-
-typedef ULARGE_INTEGER uint64;
-
-#define __u8  BYTE
-#define __u16 WORD
-#define __u32 DWORD
-#define __u64 ULARGE_INTEGER
-
-#endif
-#endif
+const char* vtoStringIp(uint32 ip);
+int vtoIpString(const char* ip, uint32& retval);
 
 uint64 vgetCurMs();
 uint64 vgetCurUs();

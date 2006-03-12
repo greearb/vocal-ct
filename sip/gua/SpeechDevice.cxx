@@ -156,7 +156,7 @@ SpeechDevice::processAudio()
         player.start();
     }
 
-    int wait = networkPktSize - (getTimeOfDay() - nextTime);
+    int wait = networkPktSize - (vgetCurMs() - nextTime);
 
     if ( wait > 0 ) 
     {
@@ -205,7 +205,7 @@ SpeechDevice::start(VCodecType codec_type)
     // allocate RTP packet spaces
     networkPktSize = atoi(Vocal::UA::UaConfiguration::instance().getValue(NetworkRtpRateTag).c_str());
 
-    nextTime = getTimeOfDay();
+    nextTime = vgetCurMs();
     hasPlayed = false;
     string aName(UaConfiguration::instance().getValue(SphinxWavefileDirTag));
     aName += "/";
@@ -299,17 +299,6 @@ SpeechDevice::sinkData(char* data, int length, VCodecType type)
         //Give the RTP to recognizer
         myHandler.recognize((unsigned char*) data , length );
     }
-}
-
-
-VmTime
-SpeechDevice::getTimeOfDay()
-{
-    VmTime tm;
-    struct tms t;
-
-    tm = times(&t) * 10;
-    return tm;
 }
 
 

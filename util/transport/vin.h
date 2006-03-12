@@ -69,8 +69,10 @@
 typedef long ssize_t;
 typedef int socklen_t;
 #include <sys/types.h>
+#ifndef __MINGW32__
 #include <sys/socket.h>
 #include <netinet/in.h>
+#endif
 #endif // WIN32
 
 #ifdef __APPLE__

@@ -56,7 +56,7 @@
 
 
 static const char* const TimerHeaderVersion =
-    "$Id: Timer.h,v 1.3 2004/11/19 01:54:38 greear Exp $";
+    "$Id: Timer.h,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 
 
@@ -209,7 +209,7 @@ bool Timer < T > ::sleepFor(timeval* t)
     timeval now;
     bool retval;
 
-    int err = gettimeofday(&now, NULL);
+    int err = vgettimeofday(&now, NULL);
     assert( !err );
 
     if (!events.empty())
@@ -251,7 +251,7 @@ void Timer < T > ::insert(T obj, int msDelay)
     assert( INT_MIN < -2000000000 );
 
     timeval now;
-    int err = gettimeofday(&now, NULL);
+    int err = vgettimeofday(&now, NULL);
     assert( !err );
 
     //XDEBUG(3, cout << "DELAY: " << msDelay << endl);
@@ -299,7 +299,7 @@ template < class T >
 bool Timer < T > ::ready()
 {
     timeval now;
-    int err = gettimeofday(&now, NULL);
+    int err = vgettimeofday(&now, NULL);
     assert( !err );
 
     if (!events.empty())

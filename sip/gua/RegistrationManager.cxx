@@ -50,7 +50,7 @@
  */
 
 static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.6 2004/11/04 05:16:41 greear Exp $";
+    "$Id: RegistrationManager.cxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "SipVia.hxx"
@@ -237,13 +237,8 @@ RegistrationManager::addRegistration(int check) {
    // Set Request line
    Data reqUrlString;
    SipRequestLine& reqLine = registerMsg->getMutableRequestLine();
-   if (NetworkConfig::instance().isDualStack() && 
-       NetworkAddress::is_valid_ip6_addr(toAddress)) {
-      reqUrlString = Data( string("sip:[") + toAddress + "]");
-   }
-   else {
-      reqUrlString = Data( string("sip:") + toAddress );
-   }
+   reqUrlString = Data( string("sip:") + toAddress );
+   
    if (strcasecmp(config.getValue(SipTransportTag).c_str(), "TCP") == 0) {
       reqUrlString += ";transport=tcp;";
    }

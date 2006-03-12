@@ -53,7 +53,7 @@
 
 
 static const char* const StatisticsDb_hxx_Version = 
-    "$Id: StatisticsDb.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: StatisticsDb.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <map>
@@ -61,6 +61,8 @@ static const char* const StatisticsDb_hxx_Version =
 
 #include "Writer.hxx"
 #include "Data.hxx"
+#include <misc.hxx>
+
 
 /** Infrastructure common to VOCAL.<br><br>
  */
@@ -81,7 +83,8 @@ class Statistic;
 
 /** Using an unsigned int for simplicity.<br><br>
  */
-typedef     u_int32_t	    StatisticsDbKey;
+
+typedef     uint32	    StatisticsDbKey;
 
 
 /** Never used as a database key.<br><br>

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpPacket_cxx_Version =
-    "$Id: RtpPacket.cxx,v 1.3 2005/08/23 00:27:55 greear Exp $";
+    "$Id: RtpPacket.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -70,11 +70,6 @@ static const char* const RtpPacket_cxx_Version =
 //#include <errno.h>
 
 #include <sstream>
-
-// network socket
-#include <netinet/in.h>                // struct socketaddr_in
-//#include <sys/socket.h>
-//#include <netdb.h>
 
 #include "cpLog.h"
 #include "vsock.hxx"

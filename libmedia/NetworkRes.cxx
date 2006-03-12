@@ -67,14 +67,13 @@ void NetworkRes::setOwner(MediaSession* o) {
 
 bool NetworkRes::isPortTaken(const string& local_ip, string local_if) const {
    // TODO:  This is about 100 times less efficient than it should be!!!
-   try {
-      // Attempt to bind to local interface...if that works, then the port is free
-      UdpStack uStack(0, 0, false, local_ip, local_if , NULL, getPort(), getPort() );
-      return false;
-   }
-   catch (...) {
+   // Attempt to bind to local interface...if that works, then the port is free
+   UdpStack uStack(0, 0, false, local_ip, local_if , NULL, getPort(), getPort());
+
+   if (uStack.getRxPort() == 0) {
       return true;
    }
+   return false;
 }
 
 

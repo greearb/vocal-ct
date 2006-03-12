@@ -51,12 +51,10 @@
  *
  */
 
-static const char* const HostMatch_hxx_version =
-    "$Id: HostMatch.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
 #include "global.h"
 #include <string>
 
+#if 0
 /** compare two hosts and determine if they are equal (e.g. their IP
  * addresses, and each name, are equal) 
  */
@@ -72,5 +70,6 @@ int hostsCompare(const std::string& first, const std::string& second);
  * share any names)  
  */
 bool hostsIntersect(const std::string& first, const std::string& second);
+#endif
 
 #endif

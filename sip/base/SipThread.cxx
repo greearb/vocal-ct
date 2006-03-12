@@ -50,7 +50,7 @@
 
 
 static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.8 2004/11/05 07:25:06 greear Exp $";
+    "$Id: SipThread.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -93,9 +93,6 @@ SipThread::discardMessage( Sptr < SipMsg > &sipMsg) const {
    }
 
    string my_local_ip = mySipStack->getLocalIp();
-   if (my_local_ip.size() == 0) {
-      my_local_ip = theSystem.gethostAddress(); //OK
-   }
 
    SipVia mySipVia("", my_local_ip);
    mySipVia.setHost(my_local_ip);

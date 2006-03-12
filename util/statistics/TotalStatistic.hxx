@@ -53,7 +53,7 @@
 
 
 static const char* const TotalStatistic_hxx_Version = 
-    "$Id: TotalStatistic.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: TotalStatistic.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "Statistic.hxx"
@@ -115,7 +115,7 @@ class TotalStatistic : public Vocal::Statistics::Statistic
     	/** Set the total to the given value. This is useful for 
 	 *  individual statistics.
 	 */
-	void	set(u_int32_t);
+	void	set(uint32 value);
 
 
 	/** Set's individual statistic's total to one, and then records
@@ -136,12 +136,12 @@ class TotalStatistic : public Vocal::Statistics::Statistic
 	 *  records the statistic, such that the combined statistic in the 
 	 *  database is increased by given value.
 	 */
-        const TotalStatistic &    operator+=(u_int32_t);
+        const TotalStatistic &    operator+=(uint32);
 
 
     	/** Returns the total. More meaningful for combined statistics.
 	 */
-	u_int32_t   get() const;
+	uint32   get() const;
 
 
 	/** Write the statistic to an ostream.
@@ -152,7 +152,7 @@ class TotalStatistic : public Vocal::Statistics::Statistic
     private:
     
 
-    	u_int32_t   	    m_total;
+    	uint32   	    m_total;
 };
 
 

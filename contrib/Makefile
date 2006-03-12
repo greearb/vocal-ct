@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2005/07/13 21:01:43 greear Exp $
+# $Id: Makefile,v 1.7 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -32,8 +32,11 @@ INSTALL = install
 
 XML_VER=2.6.20
 
-CODE_DEPENDS = libxml
-CODE_DEPENDS += speex_targ
+#CODE_DEPENDS = libxml
+CODE_DEPENDS =
+ifeq ($(VOCAL_USE_SPEEX),true)
+CODE_DEPENDS = speex_targ
+endif
 #CODE_DEPENDS += Equivalence
 
 ifeq ($(OSTYPE),FreeBSD)
@@ -187,11 +190,11 @@ speex_targB: speex.$(TARGET_NAME);
 speex.$(TARGET_NAME):
 	mkdir -p ../speex/speex-1.0.3/build
 	$(LNDIR) ../speex/speex-1.0.3 speex.$(TARGET_NAME)
-	(cd speex.$(TARGET_NAME) ; CC="$(CC)" ./configure --prefix=`pwd`/build)
+	(cd speex.$(TARGET_NAME) ; CC="$(CC)" $(CONFIGURE) --prefix=`pwd`/build)
 
 
 
-ifeq ($(VOCAL_USE_SYSTEM_LIBSNDFILE),true)
+ifeq ($(VOCAL_USE_SYSTEM_LIBSNDFILE),yes)
 newsndfile:
 	@echo "using system newsndfile"
 else

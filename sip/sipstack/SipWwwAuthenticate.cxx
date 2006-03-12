@@ -50,9 +50,11 @@
  */
 
 static const char* const SipWwwAuthenticate_cxx_Version =
-    "$Id: SipWwwAuthenticate.cxx,v 1.4 2006/02/10 17:39:20 greear Exp $";
+    "$Id: SipWwwAuthenticate.cxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
 
+#ifndef __MINGW32__
 #pragma warning (disable: 4786)
+#endif
 
 #include <iostream>
 

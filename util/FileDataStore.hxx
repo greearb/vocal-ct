@@ -53,10 +53,10 @@
 
 
 
-
+#if 0
 
 static const char* const FileDataStoreVersion =
-    "$Id: FileDataStore.hxx,v 1.3 2004/06/07 08:32:20 greear Exp $";
+    "$Id: FileDataStore.hxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include "DataStore.hxx"
 
@@ -169,5 +169,6 @@ private:
    int numBins;
 
 };
+#endif
 
 #endif

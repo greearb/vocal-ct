@@ -51,13 +51,12 @@
 
 
 static const char* const AgentRegister_cxx_Version =
-    "$Id: AgentRegister.cxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
+    "$Id: AgentRegister.cxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
 #include <unistd.h>
 #include <sys/param.h>
-#include <netinet/in.h>
 #include "AgentRegister.hxx"
 #include "UdpStack.hxx"
 #include "cpLog.h"

@@ -49,9 +49,6 @@
  */
 
 
-static const char* const CallInfo_cxx_Version =
-    "$Id: CallInfo.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 
 #include "global.h"
 #include "CallInfo.hxx"
@@ -95,11 +92,7 @@ CallInfo::~CallInfo()
 
 
 const string CallInfo::getLocalIp() const {
-   string li = mySipStack->getLocalIp();
-   if (li.size() == 0) {
-      li = theSystem.gethostAddress(); //OK
-   }
-   return li;
+   return mySipStack->getLocalIp();
 }
 
 

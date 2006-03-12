@@ -49,9 +49,10 @@
  *
  */
 
+#if 0
 
 static const char* const DataStore_cxx_Version =
-    "$Id: DataStore.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: DataStore.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -66,3 +67,5 @@ DataStore::DataStore( int aproxNumUsersP )
 
 DataStore::~DataStore()
 {}
+
+#endif

@@ -48,8 +48,9 @@
  *
  */
 
-static const char* const NetworkConfig_cxx_Version =
-"$Id: NetworkConfig.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
+#warning "Dead code"
+
+#if 0
 
 #include <unistd.h> 
 #include <errno.h> 
@@ -140,3 +141,6 @@ int NetworkConfig::init() {
    }
    return 0;
 }
+
+
+#endif

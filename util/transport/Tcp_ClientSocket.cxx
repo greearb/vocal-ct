@@ -48,23 +48,19 @@
  *
  */
 
-static const char* const TcpClientSocket_cxx_Version =
-    "$Id: Tcp_ClientSocket.cxx,v 1.9 2005/03/04 01:29:39 greear Exp $";
 
 #ifndef __vxworks
 
 #include "global.h"
 #include <errno.h>
 #include <unistd.h>
+#ifndef __MINGW32__
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
 #include <sys/socket.h>
-#ifndef WIN32
-#include <strings.h>
-#else
-#include <string.h>
 #endif
+#include <stdio.h>
+#include <string.h>
 
 #include "VNetworkException.hxx"
 #include "Tcp_ClientSocket.hxx"
@@ -199,118 +195,85 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
       return;
    }
 
-   struct addrinfo hints, *res, *tSave;
-   memset(&hints, 0, sizeof(hints));
-   hints.ai_family = NetworkConfig::instance().getAddrFamily();
-   hints.ai_socktype = SOCK_STREAM;
-   int err=0;
-   char pBuf[56];
-   int myerrno = 0;
+   assert(_conn->_connId < 0); // Make sure we don't leak sockets
 
-   sprintf(pBuf, "%d", _serverPort);
-   if ((err = getaddrinfo(_hostName.c_str(), pBuf, &hints, &res)) != 0) {
-      char buf[256];
-      snprintf(buf, 255, "Failed to getaddrinfo for server %s:%d, reason %s",
-               _hostName.c_str(), 
-               _serverPort,
-               gai_strerror(errno));
-      cpLog(LOG_ERR, buf);
-      throw VNetworkException(buf, __FILE__, __LINE__, errno);
+   struct sockaddr_in name;
+   uint32 tmpip;
+   if (vtoIpString(_hostName.c_str(), tmpip) < 0) {
+      cpLog(LOG_ERR, "ERROR:  Failed to resolve destination host: %s\n", _hostName.c_str());
+      return;
    }
-   tSave = res;
-   do {
-      assert(_conn->_connId < 0); // Make sure we don't leak sockets
+   name.sin_family = AF_INET;
+   name.sin_port = htons(_serverPort);      
+   name.sin_addr.s_addr = htonl(tmpip);
+
+   _conn->_connId = ::socket(AF_INET, SOCK_STREAM, 0);
+   if (_conn->_connId < 0) {
+      char buf[256];
+      sprintf(buf, "Failed to create socket: reason %s", VSTRERROR);
+      cpLog(LOG_DEBUG, buf);
+   }
       
-      _conn->_connId = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-      if (_conn->_connId < 0) {
-         char buf[256];
-         sprintf(buf, "Failed to create socket: reason %s",
-                 strerror(errno));
-         cpLog(LOG_DEBUG, buf);
-         continue;
-      }
-      
-      // Set it to be non-blocking, etc.
-      _conn->setState();
+   // Set it to be non-blocking, etc.
+   _conn->setState();
       
 #ifdef __linux__
-      // Optionally, bind this to the local interface.
-      if (local_dev_to_bind_to.size()) {
-         // Bind to specific device.
-         char dv[15 + 1];
-         strncpy(dv, local_dev_to_bind_to.c_str(), 15);
-         if (setsockopt(_conn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
-                        dv, 15 + 1)) {
-            cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                  dv, strerror(errno));
-         }
+   // Optionally, bind this to the local interface.
+   if (local_dev_to_bind_to.size()) {
+      // Bind to specific device.
+      char dv[15 + 1];
+      strncpy(dv, local_dev_to_bind_to.c_str(), 15);
+      if (setsockopt(_conn->_connId, SOL_SOCKET, SO_BINDTODEVICE, dv, 15 + 1)) {
+         cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+               dv, VSTRERROR);
       }
+   }
 #endif
       
-      // Bind to the local IP
-      if (local_ip_to_bind_to.size()) {
-         struct addrinfo hints2, *res2;
-         memset(&hints2, 0, sizeof(hints2));
-         hints2.ai_flags = AI_PASSIVE;
-         hints2.ai_family = NetworkConfig::instance().getAddrFamily();
-         hints2.ai_socktype = SOCK_STREAM;
-         const char* lip = local_ip_to_bind_to.c_str();
-         
-         if ((err = getaddrinfo(lip, NULL, &hints2, &res2)) != 0) {
-            char buf[256];
-            sprintf(buf, "getaddrinfo failed, reason:%s", gai_strerror(errno));
-            cpLog(LOG_ERR, buf);
-            throw VNetworkException(buf, __FILE__, __LINE__, errno);
-         }
-         else {
-            if (::bind(_conn->_connId, res2->ai_addr, res2->ai_addrlen) != 0) {
-               char buf[256];
-               sprintf(buf, "bind failed, reason:%s", gai_strerror(errno));
-               cpLog(LOG_ERR, buf);
-               throw VNetworkException(buf, __FILE__, __LINE__, errno);
-            }
-         }
-      }
-      
-      // Set ToS and Priority
-      vsetPrio(_conn->_connId, _tos, _skb_priority, "Tcp_Client::connect");
-
-      int rv = ::connect(_conn->_connId, res->ai_addr, res->ai_addrlen);
-      if (rv >= 0) {
-         ///Success
-         char descBuf[256];
-         cpLog(LOG_DEBUG, "Connected to %s", connectionDesc(res, descBuf, 256));
-         delete []_conn->_connAddr;
-         _conn->_connAddr = (struct sockaddr*) new char[res->ai_addrlen];
-         memcpy((_conn->_connAddr), (res->ai_addr), res->ai_addrlen);
-         cpLog(LOG_DEBUG, "SIze:%d, size2:%d",
-               sizeof(*_conn->_connAddr), res->ai_addrlen);
-         _conn->_connAddrLen = res->ai_addrlen;
-         break;
+   // Bind to the local IP
+   if (local_ip_to_bind_to.size()) {
+      uint32 lip;
+      if (vtoIpString(local_ip_to_bind_to.c_str(), lip) < 0) {
+         cpLog(LOG_ERR, "ERROR:  Failed to resolve local host/ip: %s\n", local_ip_to_bind_to.c_str());
       }
       else {
-         myerrno = errno;
-         // If we are non-blocking, then EINPROGRESS is OK
-         if (myerrno == EINPROGRESS) {
-            _conn->setConnectInProgress(true);
-            break;
+         struct sockaddr_in my_ip_addr;
+         memset(&my_ip_addr, 0, sizeof(my_ip_addr));
+   
+         my_ip_addr.sin_family = AF_INET;
+         my_ip_addr.sin_addr.s_addr = htonl(lip);
+         my_ip_addr.sin_port = 0;  // any local port
+         if (::bind(_conn->_connId, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
+            cpLog(LOG_ERR, "ERROR:  local bind to ip: %s failed with error: %s\n",
+                  local_ip_to_bind_to.c_str(), VSTRERROR);
+            // Shouldn't be fatal.
          }
       }
-      
-      _conn->close();
-   } while ((res = res->ai_next) != 0);
-   
-   if (res == 0) {
-      char buf[256];
-      snprintf(buf, 255, "Failed to connect to server %s:%d, reason %s (%d)",
-               _hostName.c_str(), 
-               _serverPort,
-               gai_strerror(myerrno), myerrno);
-      cpLog(LOG_ERR, buf);
-      _conn->close();
-      throw VNetworkException(buf, __FILE__, __LINE__, errno);
    }
-   freeaddrinfo(tSave);
+   // Set ToS and Priority
+   vsetPrio(_conn->_connId, _tos, _skb_priority, "Tcp_Client::connect");
+
+   int rv = ::connect(_conn->_connId, (struct sockaddr*)&name, sizeof(name));
+   if (rv >= 0) {
+      ///Success
+      cpLog(LOG_DEBUG, "Connected to %s:%i", _hostName.c_str(), _serverPort);
+      delete[] _conn->_connAddr;
+      _conn->_connAddr = (struct sockaddr*) new char[sizeof(name)];
+      memcpy(_conn->_connAddr, &name, sizeof(name));
+      _conn->_connAddrLen = sizeof(name);
+   }
+   else {
+      int myerrno = ERRNO;
+      // If we are non-blocking, then EINPROGRESS is OK
+      if (myerrno == EINPROGRESS) {
+         _conn->setConnectInProgress(true);
+      }
+      else {
+         cpLog(LOG_ERR, "ERROR:  Failed to connect to %s:%i, error: %s\n",
+               _hostName.c_str(), _serverPort, VSTRERROR);
+      }
+   }
+      
    _conn->setState();
 }//connect
 
@@ -331,52 +294,14 @@ void TcpClientSocket::close() {
       _conn->close();
    }
 }
-
-const char*
-TcpClientSocket::connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const
-{
-    assert(laddr);
-    char hName[256];
-    char portBuf[56];
-    hName[0] = '\0';
-    portBuf[0] = '\0';
-    switch(laddr->ai_family)
-    {
-        case AF_INET:
-        {
-            cpLog(LOG_DEBUG, "IPv4");
-            struct sockaddr_in* sin = (struct sockaddr_in*)(laddr->ai_addr);
-            if(inet_ntop(laddr->ai_family, &sin->sin_addr, hName, 256) == 0)
-            {
-                return 0;
-            };
-            if(ntohs(sin->sin_port) != 0)
-            {
-               sprintf(portBuf, "%d", ntohs(sin->sin_port)); 
-            }
-            snprintf(descBuf, bufLen, "%s:%s", hName, portBuf);
-        }
-        break;
-        case AF_INET6:
-        {
-            cpLog(LOG_DEBUG, "IPv6");
-            struct sockaddr_in6* sin = (struct sockaddr_in6*)(laddr->ai_addr);
-            if(inet_ntop(laddr->ai_family, &sin->sin6_addr, hName, 256) == 0)
-            {
-                return 0;
-            };
-            if(ntohs(sin->sin6_port) != 0)
-            {
-               sprintf(portBuf, "%d", ntohs(sin->sin6_port)); 
-            }
-            snprintf(descBuf, bufLen, "%s:%s", hName, portBuf);
-        }
-        break;
-        default:
-            snprintf(descBuf, bufLen, "Unknown");
-        break;
-    }
-    return descBuf;
+#if 0
+string TcpClientSocket::connectionDesc(struct addrinfo* laddr) const {
+   struct sockaddr_in* sa = (struct sockaddr_in*)(laddr);
+   string ipn(vtoStringIp(ntohl(sa->sin_addr.s_addr)));
+   ipn.append(":");
+   ipn.append(itoa(ntohs(sa->sin_port)));
+   return ipn;
 }
+#endif
 
 #endif

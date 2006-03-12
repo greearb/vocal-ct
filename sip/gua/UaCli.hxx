@@ -53,12 +53,16 @@
 
 
 static const char* const UaCli_hxx_Version = 
-    "$Id: UaCli.hxx,v 1.3 2004/06/19 00:51:07 greear Exp $";
+    "$Id: UaCli.hxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include <BugCatcher.hxx>
 #include <string>
 #include <misc.hxx>
-
+#ifndef __MINGW32__
+#include <sys/select.h>
+#else
+#include <winsock2.h>
+#endif
 
 using namespace std;
 

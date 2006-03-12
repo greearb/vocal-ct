@@ -49,7 +49,7 @@
  */
 
 static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
+    "$Id: SipMsg.cxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -168,7 +168,7 @@ bool
 SipMsg::operator==(const SipMsg& src) const
 {
     bool equal = ((myVersion == src.myVersion) &&
-                  (myReceivedAddress == src.myReceivedAddress) &&
+                  (myReceivedAddress.getIpAndPortName() == src.myReceivedAddress.getIpAndPortName()) &&
                   (myHeaderList == src.myHeaderList));
     cpLog(LOG_DEBUG_STACK, "SipMsg::operator== returns %s", 
 	  equal ? "true" : "false");
@@ -1285,12 +1285,13 @@ SipMsg::getReceivedIPPort()
 }
     
 
-void  
-SipMsg::setReceivedIPPort(const Data& ipPort)
-{
+void SipMsg::setReceivedIPPort(const Data& ipPort) {
     recvdIPPort = ipPort;
 }
 
+void SipMsg::setReceivedIPPort(short p) {
+    recvdIPPort = itoa(p);
+}
 
 // ----------------------------------------------------------------------
 

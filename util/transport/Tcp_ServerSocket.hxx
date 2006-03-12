@@ -52,10 +52,12 @@
  */
 
 static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.6 2005/03/03 19:59:50 greear Exp $";
+    "$Id: Tcp_ServerSocket.hxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
 
+#ifndef __MINGW32__
 #include <sys/socket.h>
 #include <netinet/in.h>
+#endif
 
 //User define class
 #include "mstring.hxx"
@@ -63,7 +65,6 @@ static const char* const TcpServerSocketHeaderVersion =
 #include <BugCatcher.hxx>
 #include <Sptr.hxx>
 
-class VNetworkException;
 class TcpServerSocket;
 
 
@@ -99,12 +100,11 @@ public:
       @param local_ip   Bind to this local IP if specified.
       @param servPort   listen on this port.
       * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
-      @throw VNetworkException
    */
    TcpServerSocket(uint16 tos, uint32 priority,
                    const string& local_ip,
                    const string& local_dev_to_bind_to,
-                   int servPort, bool blocking) throw (VNetworkException&);
+                   int servPort, bool blocking);
    
    virtual ~TcpServerSocket();
 
@@ -113,9 +113,8 @@ public:
       object for it.
       
       @param con   the client connection is set to this object.
-      @throw VNetworkException
    */
-   int accept(Connection& con) throw (VNetworkException&);
+   int accept(Connection& con);
 
    /** Returns < 0 if cannot immediately accept a connection, uses
     * select to determine if can select or not.
@@ -143,7 +142,6 @@ public:
 
    /// Check and see if this stacks file descriptor is set in fd_set
    bool checkIfSet ( fd_set* set );
-   
 
    const string& getSpecifiedLocalIp() const { return local_ip; }
 
@@ -155,8 +153,8 @@ protected:
 
 private:
    ///
-   void listenOn(const string& local_ip, const string& local_dev_to_bind_to,
-                 int servPort) throw (VNetworkException&);
+   int listenOn(const string& local_ip, const string& local_dev_to_bind_to,
+                int servPort);
 
    Sptr<Connection> _serverConn;
 

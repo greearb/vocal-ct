@@ -5,7 +5,7 @@
 #include "Data2.hxx"
 #include "DataException.hxx"
 #include "cpLog.h"
-#if defined(WIN32) || defined(__QNX__)
+#if defined(__QNX__)
 #define strcasecmp(a,b) stricmp(a,b)
 #define strncasecmp(a,b,c) strnicmp(a,b,c)
 #endif

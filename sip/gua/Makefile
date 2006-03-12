@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2005/08/25 00:20:41 greear Exp $
+# $Id: Makefile,v 1.12 2006/03/12 07:41:28 greear Exp $
 
 USE_VM=1
 BUILD = ../../build
@@ -11,33 +11,25 @@ MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil
 
 include $(BUILD)/Makefile.pre
 ifeq ($(OSTYPE),SunOS)
-PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 RTP UTIL LIBCEXT LIBXML HEARTBEAT
+PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 RTP UTIL LIBCEXT
 else
-PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 NEWSNDFILE LIBSNDCARD RTP UTIL LIBCEXT OPENSSL PSLIB PSUTILIB LIBXML HEARTBEAT
+PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 NEWSNDFILE LIBSNDCARD RTP UTIL LIBCEXT OPENSSL
 endif
 
 INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
            $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/gua 
 
-# Comment this out if you don't want speex codec support.
+ifeq ($(VOCAL_USE_SEEX),true)
 INCDIRS += -DUSE_SPEEX $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += -lspeex
+endif
 
+LIBDIRS += $(VOCAL_SNDFILE_LIB_DIR)
+INCDIRS += $(VOCAL_SNDFILE_INC_DIR)
+LDLIBS_LAST += -lsndfile
 
 CODE_SUBDIRS =  controlState 
-
-
-# Voice Age Codec Support !
-# 
-
-ifeq ($(VOCAL_USE_VOICEAGE),yes)
-#  Add new entries here if your VoiceAge files are found elsewhere.
-LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
-
-LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
-
-endif
 
 
 ifeq ($(USE_VM),1)
@@ -117,6 +109,15 @@ LDLIBS_LAST += \
                -lX11 -lXext -lXft -ldl 
 endif
 
+# Voice Age Codec Support !
+# 
+ifeq ($(VOCAL_USE_VOICEAGE),yes)
+#  Add new entries here if your VoiceAge files are found elsewhere.
+LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
+LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
+endif
+
+
 
 TESTPROGRAMS = \
     gua.cxx
@@ -191,6 +192,18 @@ LDLIBS_LAST += -lbitfield -lgcont
 
 
 endif
+
+ifeq ($(ARCH),i386-mingw32msvc)
+MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
+LDLIBS_LAST += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
+endif
+
+ifeq ($(VOCAL_USE_VOICEAGE),yes)
+#  Add new entries here if your VoiceAge files are found elsewhere.
+LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
+LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
+endif
+
 
 ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
 	LDLIBS := -Wl,-Bdynamic $(LDLIBS)

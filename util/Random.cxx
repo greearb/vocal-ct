@@ -49,7 +49,7 @@
  */
 
 static const char* const Random_cxx_Version =
-    "$Id: Random.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: Random.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -58,8 +58,9 @@ static const char* const Random_cxx_Version =
 #include <cstdlib>
 #include <unistd.h>
 #include <time.h>
+#ifndef __MINGW32__
 #include <sys/times.h>
-
+#endif
 
 
 using Vocal::Random;

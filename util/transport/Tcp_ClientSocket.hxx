@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const TcpClientSocketHeaderVersion =
-    "$Id: Tcp_ClientSocket.hxx,v 1.7 2005/03/03 19:59:50 greear Exp $";
 
 //User define class
 #include "Connection.hxx"
@@ -173,7 +171,7 @@ public:
 
 private:
    void initalize();
-   const char* connectionDesc(struct addrinfo* laddr, char* descBuf, int bufLen) const;
+   //string connectionDesc(struct addrinfo* laddr) const;
    
    string local_dev_to_bind_to;
    string local_ip_to_bind_to;

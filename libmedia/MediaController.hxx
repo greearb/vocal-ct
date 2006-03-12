@@ -52,9 +52,6 @@
  */
 
 
-static const char* const MediaController_hxx_Version = 
-    "$Id: MediaController.hxx,v 1.7 2005/08/18 21:52:03 bmartel Exp $";
-
 #include "global.h"
 #include <list>
 #include <map>

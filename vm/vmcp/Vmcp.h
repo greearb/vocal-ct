@@ -51,18 +51,13 @@
  *
  */
 
-static const char* const Vmcp_h_Version =
-    "$Id: Vmcp.h,v 1.1 2004/05/01 04:15:38 greear Exp $";
-        
 #include "global.h" 
 #include <string>
 #include <sys/types.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #include "Streamio.h"
 #include "Lineparser.h"
+#include <misc.hxx>
 
 struct VmcpSessionInfo 
 {
@@ -125,7 +120,7 @@ class Vmcp
     public:
 	virtual int connect(unsigned int port);
 	virtual int connect(const char *server,unsigned int port);
-	virtual int connect(unsigned int server,unsigned int port);
+	virtual int connect(uint32 server, unsigned int port);
 
 /** Common methods
  */
@@ -236,13 +231,5 @@ class Vmcp
 	string m_xRecordFileName;
 	int m_xSfd;
 };
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif // __VMCP_H

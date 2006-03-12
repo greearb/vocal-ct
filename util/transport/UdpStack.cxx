@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const UdpStack_cxx_Version =
-    "$Id: UdpStack.cxx,v 1.11 2005/03/04 01:29:39 greear Exp $";
 
 /* TODO List
  * - add sendTo function to allow you to specifiy different destinations
@@ -76,16 +74,20 @@ static const char* const UdpStack_cxx_Version =
 #include <errno.h>
 #include <iostream>
 #include <stdio.h>
+
+#ifndef __MINGW32__
 #include <netdb.h>
-#include <sys/types.h>
 #include <netinet/in.h> // for struct sockaddr_in
-#include <stdlib.h>
-#include <strstream>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/uio.h>
+#endif
+
+#include <sys/types.h>
+#include <stdlib.h>
+#include <strstream>
 #include "VTime.hxx"
 #include <unistd.h>
-#include <sys/uio.h>
 
 #ifndef __vxworks
 #include <fcntl.h>
@@ -116,32 +118,11 @@ typedef int socklen_t;
 #include "UdpStack.hxx"
 #include "cpLog.h"
 #include "vsock.hxx"
-#include "InitTransport.hxx"
 #include "NetworkConfig.hxx"
 
 // 16/1/04 fpi
 // WorkAround Win32
 #ifdef WIN32
-char* inet_ntop(int af, const void *src, char *dst, size_t size)
-{
-  struct sockaddr_in6 addr6;
-
-  if (af == AF_INET)
-     return strncpy (dst, inet_ntoa(*(struct in_addr*)&src), size);
-
-  if (af != AF_INET6)
-     return (NULL);
-
-  memset (&addr6, 0, sizeof(addr6));
-  memcpy (&addr6.sin6_addr, src, sizeof(addr6.sin6_addr));
-  addr6.sin6_family = AF_INET6;
-  if (getnameinfo ((const struct sockaddr*)&addr6, sizeof(addr6),
-                   dst, size, NULL, 0, NI_NUMERICHOST) == 0)
-     return (dst);
-  return (NULL);
-//	assert(!"Win32 porting: inet_ntop(..) not supported");
-//	return 0;
-}
 
 struct iovec {
 	void *iov_base;
@@ -199,6 +180,9 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
         numBytesTransmitted (0),
         numPacketsTransmitted (0),
         mode (sendrecv),
+        socketFd(-1),
+        localAddr(local_ip),
+        remoteAddr(""),
         desiredLocalIp(local_ip),
         boundLocal(false),
         logFlag (log_flag),
@@ -212,94 +196,76 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
    _tos = tos;
    _skb_priority = priority;
 
-   initTransport(); // Does magic on winders, it seems.
-   data = new UdpStackPrivateData();
-
    mode = udpMode;
 
-   data->socketFd = socket(NetworkConfig::instance().getAddrFamily(), SOCK_DGRAM, IPPROTO_UDP);
-   cpLog (LOG_DEBUG_STACK, "UdpStack socketFd = %d", data->socketFd);
-   if ( data->socketFd < 0 ) {
+   socketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+   cpLog (LOG_DEBUG_STACK, "UdpStack socketFd = %d", socketFd);
+   if (socketFd < 0 ) {
       // Clean up memory before we throw the exception.
-      delete data;
-      data = NULL;
       
-#if !defined(WIN32)
-      int err = errno;
       strstream errMsg;
       errMsg << "UdpStack::::UdpStack error during socket creation:";
-      errMsg << "Reason " << strerror(err) << ends;
+      errMsg << "Reason " << VSTRERROR << ends;
       
-      cpLog(LOG_ERR,  errMsg.str());
-      throw UdpStackException(errMsg.str());
-#else
-      int err = WSAGetLastError();
-      cpLog(LOG_ERR, "UdpStack: socket failed: %d", err);
-      assert(0);
-#endif
+      cpLog(LOG_ERR, errMsg.str());
    }
    
-   int buf1 = 1;
-   int len1 = sizeof(buf1);
-   
-   
+   int buf1 = 1;   
    int rcvbuf = 0;
    int rcvbufnew = 240 * 1024;
-   int rcvbufnewlen = sizeof(rcvbufnew);
    int sndbuf = 0;
-   unsigned int rcvbuflen = 1;
-   unsigned int sndbuflen = 1;
+   int len;
 
    char dbg[128];
    snprintf(dbg, 128, "UdpStack: %s:%i-%i",
             local_ip.c_str(), minPort, maxPort);
 
    // Set ToS and Priority
-   vsetPrio(data->socketFd, _tos, _skb_priority, dbg);
+   vsetPrio(socketFd, _tos, _skb_priority, dbg);
    
-   if (setsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF,
-                  (int *)&rcvbufnew, rcvbufnewlen) < 0) {
+   if (setsockopt(socketFd, SOL_SOCKET, SO_RCVBUF,
+                  (char *)(&rcvbufnew), sizeof(rcvbufnew)) < 0) {
       fprintf(stderr, "setsockopt error SO_RCVBUF :%s\n",
-              strerror(errno));
+              VSTRERROR);
    }
       
-   if (getsockopt(data->socketFd, SOL_SOCKET, SO_RCVBUF, 
-                  (int*)&rcvbuf, &rcvbuflen) < 0) {
+   len = sizeof(rcvbuf);
+   if (getsockopt(socketFd, SOL_SOCKET, SO_RCVBUF, 
+                  (char*)&rcvbuf, &len) < 0) {
       fprintf(stderr, "getsockopt error SO_RCVBUF :%s\n",
-              strerror(errno));
+              VSTRERROR);
    }
    else {
-      cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf , rcvbuflen);
+      cpLog(LOG_DEBUG, "SO_RCVBUF = %d, rcvbuflen  =%d" , rcvbuf, len);
    }
    
-   if (getsockopt(data->socketFd, SOL_SOCKET, SO_SNDBUF, 
-                  (int*)&sndbuf, &sndbuflen) < 0) {
+   len = sizeof(sndbuf);
+   if (getsockopt(socketFd, SOL_SOCKET, SO_SNDBUF, 
+                  (char*)&sndbuf, &len) < 0) {
       fprintf(stderr, "getsockopt error SO_SNDBUF :%s\n",
-              strerror(errno));
+              VSTRERROR);
    }
    else {
-      cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf , sndbuflen);
+      cpLog(LOG_DEBUG, "SO_SNDBUF = %d, sndbuflen = %d" , sndbuf, &len);
    }
    
    
    if (isMulticast) {
       // set option to get rid of the "Address already in use" error
-      if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEADDR,
-                     (char*)&buf1, len1) < 0) {
+      if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR,
+                     (char*)&buf1, sizeof(buf1)) < 0) {
          fprintf(stderr, "setsockopt error SO_REUSEADDR :%s",
-                 strerror(errno));
+                 VSTRERROR);
       }
       
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__FreeBSD__)
       
-      if (setsockopt(data->socketFd, SOL_SOCKET, SO_REUSEPORT,
-                     (char*)&buf1, len1) < 0) {
+      if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEPORT,
+                     (char*)&buf1, sizeof(buf1)) < 0) {
          fprintf(stderr, "setsockopt error SO_REUSEPORT :%s",
-                 strerror(errno));
+                 VSTRERROR);
       }
-      
 #endif
-      
    }
    
    setModeBlocking(isBlocking);
@@ -308,13 +274,13 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
     case inactive : {
        cpLog(LOG_INFO, "Udp stack is inactive");
        cpLog(LOG_ERR, "desHost is saved for future use.");
-       doClient(desHost);
+       doClient(*desHost);
        break;
     }
     case sendonly : {
        if ( desHost ) {
           // set the remote address
-          doClient(desHost);
+          doClient(*desHost);
        }
        else {
           cpLog(LOG_DEBUG_STACK, "sendonly Udp stack, desHost is needed by using setDestination()");
@@ -325,7 +291,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
        if ( desHost ) {
           cpLog(LOG_ERR,
                 "recvonly Udp stack, desHost is saved for future use.");
-          doClient(desHost);
+          doClient(*desHost);
        }
        else {
           // only receive, do bind socket to local port
@@ -338,7 +304,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
           // receive and send,
           // bind the socket to local port and set the remote address
           doServer(minPort, maxPort);
-          doClient(desHost);
+          doClient(*desHost);
        }
        else {
           // only receive, do bind socket to local port
@@ -394,10 +360,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
 #endif
 }
 
-void
-UdpStack::doServer ( int minPort,
-                     int maxPort) // These are local port ranges.
-{
+int UdpStack::doServer ( int minPort, int maxPort) {
     /*
         cpLog (LOG_DEBUG_STACK, "UdpStack::doServer");
         cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
@@ -420,145 +383,75 @@ UdpStack::doServer ( int minPort,
     aName.freeze(false);
 
     // find a port to use
-    int portOk = false;
     int err = 0;
-    int bError = false;
-
+    int portOk = false;
 
     // struct addrinfo is defined in lwres/netdb.h
     // sockaddr is defined in bits/socket.h
-    struct addrinfo hints;
-    struct addrinfo *sa = NULL;
-    const char* lip = NULL;
-    memset(&hints, 0, sizeof(hints));
-    if (desiredLocalIp.size()) {
-       //hints.ai_flags = AI_PASSIVE;
-       lip = desiredLocalIp.c_str();
+    uint32 lip;
+    if (vtoIpString(desiredLocalIp.c_str(), lip) < 0) {
+       cpLog(LOG_ERR, "ERROR:  Failed to resolve local IP: %s  error: %s\n",
+             desiredLocalIp.c_str(), VSTRERROR);
+       return -1;
     }
-    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-    hints.ai_flags = AI_PASSIVE;
-//    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_DGRAM;
 
     // here it assigns the port, the local port
     // & bind the addr(INADDR_ANY|lip + port) to the socket
     for (int localPort = minPort; localPort <= maxPort; localPort++ ) {
-       char currport[6];
-       sprintf(currport, "%u", localPort);
-       cpLog(LOG_DEBUG_STACK, "getaddrinfo()");
-       int error = getaddrinfo(lip, currport, &hints, &sa);
-       if (error) {
-          perror(gai_strerror(error));
-          continue;
-       }
-
-       // 16/1/04 fpi		  
-       // tbr
-       // todo
-       // Win32 WorkAround
-       // Note: I think this code is not useful,
-       // binding to a specific ip binds on the device
-       // that has the ip assigned
        
-       // It's useful in some cases on Linux, at least.
-#ifdef __linux__
-       if (localDev.size()) {
-          // Bind to specific device.
-          char dv[15 + 1];
-          strncpy(dv, localDev.c_str(), 15);
-          if (setsockopt(data->socketFd, SOL_SOCKET, SO_BINDTODEVICE,
-                         dv, 15 + 1)) {
-             cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                   dv, strerror(errno));
-          }
-       }
-#endif
-
-
+       struct sockaddr_in my_ip_addr;
+       memset(&my_ip_addr, '\0', sizeof(my_ip_addr));
+       
+       my_ip_addr.sin_family = AF_INET;
+       my_ip_addr.sin_addr.s_addr = htonl(lip);
+       my_ip_addr.sin_port = htons(localPort);
+       
        cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%s desiredLocalIp: %s",
-             data->socketFd, currport, desiredLocalIp.c_str());
-
-
-       if (bind(data->socketFd, sa->ai_addr, sa->ai_addrlen) != 0) {
+             socketFd, localPort, desiredLocalIp.c_str());
+       
+       
+       if (bind(socketFd, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
           // failed, so keep trying
-
-#if !defined(WIN32)
-          err = errno;
-          if ( err == EADDRINUSE ) {
-             freeaddrinfo(sa);
-             continue;  // this port is in use - try the next one
-          }
-#else
-          // 25/11/03 fpi
-          // WorkAround Win32
-          // uncomment code
-          /* Fix suggested by Anandprasanna Gaitonde, 
-             prasanna@controlnet.co.in */
-          err = WSAGetLastError();
-          if ( err == WSAEADDRINUSE ) {
-             freeaddrinfo(sa);
-             continue;  // this port is in use - try the next one
-          }
-				
-#endif
-
-          // some other error
-
-          err = errno;
-          strstream errMsg;
-          errMsg << "UdpStack<" << getLclName() 
-                 << ">::UdpStack error during socket bind: ";
-          errMsg << strerror(err);
-          errMsg << char(0);
-          bError = true;
-          cpLog(LOG_ERR, "%s",  errMsg.str());
+          cpLog(LOG_ERR, "WARNING:  failed to bind to ip: %s(0x%x)  port: %d, error: %s\n",
+                desiredLocalIp.c_str(), lip, localPort, VSTRERROR);
        }
        else {
           // successful binding occured
+          cpLog(LOG_ERR, "NOTE:  bound to ip: %s(0x%x)  port: %d\n",
+                desiredLocalIp.c_str(), lip, localPort);
 
-          // NOTE to self: netinet/in.h defines in_addr, 
-          // second arg of inet_ntop
+#ifdef __linux__
+          if (localDev.size()) {
+             // Bind to specific device.
+             char dv[15 + 1];
+             strncpy(dv, localDev.c_str(), 15);
+             if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
+                            dv, 15 + 1)) {
+                cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                      dv, strerror(errno));
+             }
+          }
+#endif
 
-          char tmp_addr[80];
-          struct sockaddr_in* sin = (struct sockaddr_in*)(sa->ai_addr);
-          inet_ntop(sa->ai_family, &(sin->sin_addr.s_addr), tmp_addr, 80);
-          tmp_addr[79] = 0;
-          curLocalIp = tmp_addr;
+          // TODO:  Should probe this, but as long as we always specify the local IP,
+          //   then no big deal.
+          localAddr.setHostName(vtoStringIp(lip));
+          localAddr.setPort(localPort);
 
           boundLocal = true;
           portOk = true;
-          memcpy(data->localAddr, sa->ai_addr, sa->ai_addrlen);
-          bError = false;
-          if (sa->ai_family == AF_INET6) {
-             cpLog(LOG_DEBUG, "(IPv6) Udp bound to fd = %d, port = %d, local_ip: %s",
-                   data->socketFd, localPort, curLocalIp.c_str());
-             //Set the sockoption so that we get get source IP
-             //when running on the same host
-             int on=1;
-             
-             // 25/11/03 fpi
-             // WorkAround Win32
-             // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
-             setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
-          }
-          else {
-             cpLog(LOG_DEBUG, "(IPv4) Udp bound to fd = %d, port = %d, local_ip: %s",
-                   data->socketFd, localPort, curLocalIp.c_str());
-          }
-       }
-       freeaddrinfo(sa);
-       if (portOk)
+
+          cpLog(LOG_DEBUG, "(IPv4) Udp bound to fd = %d, addr: %s",
+                socketFd, localAddr.toString().c_str());
           break;
-    }
-
-    if (bError)
-       throw UdpStackException("fecked");//errMsg.str());
-
+       }
+    }//for all ports
 
     // deal with errors
     if (!portOk) {
        // all ports are in use
-       //localPort = -1;
+       localAddr.setHostName("0.0.0.0");
+       localAddr.setPort(0);
        strstream errMsg;
        errMsg << "UdpStack<" << getLclName()
               << ">::UdpStack all ports in range "
@@ -566,8 +459,7 @@ UdpStack::doServer ( int minPort,
               << " are in use.";
        errMsg << char(0);
        cpLog(LOG_ERR, errMsg.str());
-       throw UdpStackExceptionPortsInUse(errMsg.str());
-       errMsg.freeze(false);
+       return -1;
     }
 
     // reset name now that the port is defined
@@ -575,131 +467,90 @@ UdpStack::doServer ( int minPort,
     aName2 << "-receiver-" << ":" << minPort << char(0);
     setLclName( aName2.str() );
     aName2.freeze(false);
+    return 0;
 }
 
-void
-UdpStack::doClient ( const NetworkAddress* desHost)
-{
-    
-    //cpLog (LOG_DEBUG_STACK, "UdpStack::doClient");
-    //cpLog (LOG_DEBUG_STACK, "desHost = %s, desPort = %d", 
-    //           desHost->getIpName().c_str(), desHost->getPort());
-
+void UdpStack::doClient ( const NetworkAddress& desHost) {
     // this is a client
-    assert (desHost);
-    desHost->getSockAddr(data->remoteAddr);
+    remoteAddr = desHost;
 }
 
 void
-UdpStack::connectPorts()
-{
-    if ((mode == recvonly) || (mode == inactive))
-    {
-        cpLog(LOG_ERR, "The UdpStack is recvonly or inactive.");
-        return ;
-    }
+UdpStack::connectPorts() {
+   if ((mode == recvonly) || (mode == inactive)) {
+      cpLog(LOG_ERR, "The UdpStack is recvonly or inactive.");
+      return ;
+   }
 
-    int result;
+   int result;
 
-    // connect to server
-    if ((result = connect(data->socketFd,
-                          (struct sockaddr*) data->remoteAddr,
-                          sizeof(*data->remoteAddr))) != 0)
-    {
-        int err = errno;
-        strstream errMsg;
-        errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
-        << ">::UdpStack error during socket connect: ";
-        errMsg << strerror(err);
-        errMsg << char(0);
+   
+   struct sockaddr_in sa;
+   memset(&sa, 0, sizeof(sa));
+   sa.sin_family = AF_INET;
+   sa.sin_port = htons(remoteAddr.getPort());
+   sa.sin_addr.s_addr = htonl(remoteAddr.getIp4Address());
 
-        cpLog(LOG_ERR,  errMsg.str());
-        throw UdpStackException(errMsg.str());
-        errMsg.freeze(false);
-        assert(0);
-    }
-
-// 16/1/04 fpi		  
-// tbr
-// todo
-// Win32 WorkAround
-// Note: I left the Vovida 1.5.0 HEAD code,
-// else scope it's not managed due 
-// to code that it cannot compile on Win32
-#ifndef WIN32
-    else {
-       // Bind to the local interface, if specified, and only if we have not already
-       // bound.  This almost definately will NOT work with IP-v6 as it currently
-       // is implemented.
-       if (desiredLocalIp.size() && !boundLocal) {
-            struct hostent *hp = NULL;
-            struct hostent tmp;
-            memset(&tmp, 0, sizeof(tmp));
-            char buf[256];
-            int my_errno = 0;
-#if defined(__OpenBSD__)
-           // NOTE:  This is NOT threadsafe!!! --Ben
-           hp = gethostbyname(desiredLocalIp.c_str());
-#else
-#if defined(sparc)
-            hp = gethostbyname_r(desiredLocalIp.c_str(), &tmp, buf, 256, &my_errno);
-#else
-            gethostbyname_r(desiredLocalIp.c_str(), &tmp, buf, 256, &hp, &my_errno);
-#endif
-#endif
-            if (hp == NULL) {
-               strstream errMsg;
-               errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
-                      << ">::UdpStack could not resolve host: "
-                      << desiredLocalIp << ": " << strerror(my_errno)
-                      << char(0);
-               cpLog(LOG_ERR,  errMsg.str());
-            }//if
-            else {
+   // connect to server
+   if ((result = connect(socketFd,
+                         (struct sockaddr*)&sa,
+                         sizeof(sa))) != 0) {
+      strstream errMsg;
+      errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
+             << ">::UdpStack error during socket connect: "
+             << VSTRERROR << ends;
+      
+      cpLog(LOG_ERR,  errMsg.str());
+   }   
+   else {
+      // Bind to the local interface, if specified, and only if we have not already
+      // bound.  This almost definately will NOT work with IP-v6 as it currently
+      // is implemented.
+      if (desiredLocalIp.size() && !boundLocal) {
+         uint32 lip;
+         if (vtoIpString(desiredLocalIp.c_str(), lip) < 0) {
+            strstream errMsg;
+            errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
+                   << ">::UdpStack could not resolve host: "
+                   << desiredLocalIp << ": " << VSTRERROR << ends;
+            cpLog(LOG_ERR,  errMsg.str());
+         }//if
+         else {
 
 #ifdef __linux__
-               if (localDev.size()) {
-                  // Bind to specific device.
-                  char dv[15 + 1];
-                  strncpy(dv, localDev.c_str(), 15);
-                  if (setsockopt(data->socketFd, SOL_SOCKET, SO_BINDTODEVICE,
-                                 dv, 15 + 1)) {
-                     cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                           dv, strerror(errno));
-                  }
-               }
-#endif
-
-               struct sockaddr_in sa;
-               
-               memset(&sa, 0, sizeof(sa));
-               
-               sa.sin_family = AF_INET;
-               sa.sin_port   = INADDR_ANY; /* any */
-               sa.sin_addr.s_addr = *((unsigned int*)(hp->h_addr_list[0]));
-
-               // Got the IP, now bind locally.
-               if (bind(data->socketFd, (struct sockaddr*)(&sa), sizeof(sa)) < 0) {
-                  strstream errMsg;
-                  errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
-                         << ">::UdpStack could not bind during connect, ip: "
-                         << desiredLocalIp << ": " << strerror(errno)
-                         << char(0);
-                  cpLog(LOG_ERR,  errMsg.str());
-               }
-               else {
-
-                  char tmp_addr[80];
-                  inet_ntop(sa.sin_family, &(sa.sin_addr.s_addr), tmp_addr, 80);
-                  tmp_addr[79] = 0;
-                  curLocalIp = tmp_addr;
-                  boundLocal = true;
+            if (localDev.size()) {
+               // Bind to specific device.
+               char dv[15 + 1];
+               strncpy(dv, localDev.c_str(), 15);
+               if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
+                              dv, 15 + 1)) {
+                  cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                        dv, strerror(errno));
                }
             }
-       }
-   }
 #endif
- 
+
+            memset(&sa, 0, sizeof(sa));
+            
+            sa.sin_family = AF_INET;
+            sa.sin_port   = INADDR_ANY; /* any */
+            sa.sin_addr.s_addr = htonl(lip);
+            
+            // Got the IP, now bind locally.
+            if (bind(socketFd, (struct sockaddr*)(&sa), sizeof(sa)) < 0) {
+               strstream errMsg;
+               errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
+                      << ">::UdpStack could not bind during connect, ip: "
+                      << desiredLocalIp << ": " << VSTRERROR << ends;
+               cpLog(LOG_ERR,  errMsg.str());
+            }
+            else {
+               localAddr.setHostName(vtoStringIp(lip));
+               boundLocal = true;
+            }
+         }
+      }
+   }
 }// connectPorts
 
 
@@ -720,129 +571,44 @@ UdpStack::disconnectPorts()
     struct sockaddr dummyAddr;
 
     memset((char*) &dummyAddr, 0, sizeof(dummyAddr));
-    dummyAddr.sa_family = NetworkConfig::instance().getAddrFamily();
+    dummyAddr.sa_family = AF_INET;
 
     int result;
 
-    if ((result = connect(data->socketFd,
+    if ((result = connect(socketFd,
                           (struct sockaddr*) & dummyAddr,
                           sizeof(dummyAddr))) != 0)
     {
-        int err = errno;
         strstream errMsg;
         errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
-        << ">::UdpStack error during socket connect: ";
-        errMsg << strerror(err);
-        errMsg << char(0);
+               << ">::UdpStack error during socket connect: " << VSTRERROR << ends;
 
-        cpLog(LOG_ERR,  errMsg.str());
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
+        cpLog(LOG_ERR, errMsg.str());
     }
 
     dummyAddr.sa_family = AF_UNSPEC;
-    if ((result = connect(data->socketFd,
+    if ((result = connect(socketFd,
                           (struct sockaddr*) & dummyAddr,
                           sizeof(dummyAddr))) != 0)
     {
-        int err = errno;
         strstream errMsg;
         errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
-        << ">::UdpStack error during socket connect: ";
-        errMsg << strerror(err);
-        errMsg << char(0);
+               << ">::UdpStack error during socket connect: " << VSTRERROR << ends;
 
         cpLog(LOG_ERR, errMsg.str());
-        errMsg.freeze(false);
-#if 0
-        throw UdpStackException(errMsg.str());
-        assert(0);
-#endif
     }
 }
-
-
-#if 0
-// This looks quite strange to me.  Am hoping it's not
-// really needed. --Ben
-
-// set the local ports
-// The first time change from inactive to recvonly/sendrecv or
-// change the local ports, this method needs to be called.
-void UdpStack::setLocal (const int minPort, int maxPort ) {
-   cpLog (LOG_DEBUG_STACK, "UdpStack::setLocal");
-   cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
-
-   if ((mode == sendonly) || (mode == inactive)) {
-      cpLog(LOG_ERR, "The UdpStack is sendonly or inactive.");
-      return ;
-   }
-
-   // To reopen a new socket, since after sendto(), bind() will fail
-
-   int newFd;
-   newFd = socket(NetworkConfig::instance().getAddrFamily(), 
-                  SOCK_DGRAM, IPPROTO_UDP);
-   if (NetworkConfig::instance().getAddrFamily() == AF_INET6) {
-      //Set the sockoption so that we get get source IP
-      //when running on the same host
-      int on=1;
-      
-      // 25/11/03 fpi
-      // WorkAround Win32
-      // ! setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, &on, sizeof(on));
-      setsockopt(data->socketFd, IPPROTO_IPV6, IPV6_PKTINFO, (const char *)&on, sizeof(on));
-   }
-#ifndef WIN32
-   if ( close (data->socketFd) != 0 )
-#else
-   if ( closesocket(data->socketFd) )
-#endif 
-   {
-      cpLog(LOG_ERR, "close socketFd error!");
-   }
-   data->socketFd = newFd;
-   if ( data->socketFd < 0 ) {
-      int err = errno;
-      strstream errMsg;
-      errMsg << "UdpStack<" /* << getLclName() */
-             << ">::UdpStack error during socket creation: ";
-      errMsg << strerror(err);
-      errMsg << char(0);
-      
-      cpLog(LOG_ERR,  errMsg.str());
-      throw UdpStackException(errMsg.str());
-      errMsg.freeze(false);
-      assert(0);
-   }
-
-   char dbg[128];
-   snprintf(dbg, 128, "UdpStack:setLocal %s:%i-%i",
-            local_ip.c_str(), minPort, maxPort);
-   
-   // Set ToS and Priority
-   vsetPrio(data->socketFd, _tos, _skb_priority, dbg);
-
-   doSyncBlockingMode();
-   doServer(minPort, maxPort);
-}
-
-#endif
 
 
 /// set the default destination
 void
-UdpStack::setDestination ( const NetworkAddress* host )
-{
+UdpStack::setDestination ( const NetworkAddress* host ) {
     if ((mode == recvonly) || (mode == inactive))
     {
         cpLog(LOG_ERR, "The UdpStack is recvonly or inactive.");
         return ;
     }
-    doClient(host);
+    doClient(*host);
 }
 
 void
@@ -854,43 +620,17 @@ UdpStack::setDestination ( const char* host, int port )
     setDestination (&netAddress);
 }
 
-int
-UdpStack::getRxPort() {
-        	cpLog(LOG_DEBUG_STACK, "getRxPort()");
-		char service[6];
-		if(getnameinfo((struct sockaddr *)data->localAddr, sizeof(*data->localAddr), NULL, 0, service, sizeof(service), NI_NUMERICSERV | NI_NUMERICHOST))
-			perror("getnameinfo");
-		return atoi(service);
+int UdpStack::getRxPort() {
+   return localAddr.getPort();
 }
 
-int
-UdpStack::getTxPort() {
-        	cpLog(LOG_DEBUG_STACK, "getTxPort()");
-		char service[6];
-		if(getnameinfo((struct sockaddr *)data->remoteAddr, sizeof(*data->remoteAddr), NULL, 0, service, sizeof(service), NI_NUMERICSERV | NI_NUMERICHOST))
-			perror("getnameinfo");
-		return atoi(service);
-        };
-
-
-/// need to delete the ne wobject after the object is used
-NetworkAddress *
-UdpStack::getDestinationHost () const
-{
-	char host[256];
-	char port[6];
-
-    if(getnameinfo((struct sockaddr *)data->remoteAddr, sizeof(*data->remoteAddr), host, sizeof(host), port, sizeof(port), NI_NUMERICSERV | NI_NUMERICHOST))
-	    perror("getnameinfo");
-
-    NetworkAddress* desHost = new NetworkAddress(host, atoi(port)) ;
-    return desHost;
-
+int UdpStack::getTxPort() {
+   return remoteAddr.getPort();
 }
 
 
 int UdpStack::getSocketFD () {
-    return data->socketFd;
+    return socketFd;
 }
 
 int UdpStack::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
@@ -900,15 +640,15 @@ int UdpStack::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    if (sendBacklog.size()) {
       addToFdSet(output_fds);
    }
-   if (data->socketFd > maxdesc) {
-      maxdesc = data->socketFd;
+   if (socketFd > maxdesc) {
+      maxdesc = socketFd;
    }
    return 0;
 }
 
 void
 UdpStack::addToFdSet ( fd_set* set ) {
-    FD_SET(data->socketFd, set);
+    FD_SET(socketFd, set);
 }
 
 
@@ -920,7 +660,7 @@ UdpStack::getMaxFD ( int prevMax ) {
 
 bool
 UdpStack::checkIfSet ( fd_set* set ) {
-    return ( FD_ISSET(data->socketFd, set) ? true : false );
+    return ( FD_ISSET(socketFd, set) ? true : false );
 }
 
 
@@ -931,17 +671,17 @@ UdpStack::receive ( const char* buf, const int bufSize, int flags ) {
       return -1;
    }
 
-   int len = recv( data->socketFd,
-                   (char *)buf, bufSize,
-                   flags);
+   int len = recv(socketFd,
+                  (char *)buf, bufSize,
+                  flags);
    if ( len < 0 ) {
-      if ((errno == EAGAIN) || (errno == EINTR)) {
+      int err = ERRNO;
+      if ((err == EAGAIN) || (err == EINTR) || (err == WSAEWOULDBLOCK)) {
          rxbusy++;
          return 0;
       }
       else {
-         int err = errno;
-         cpLog(LOG_ERR, "UdpStack: receive error: %s", strerror(err));
+         cpLog(LOG_ERR, "UdpStack: receive error: %s", VSTRERROR);
       }
    }
    else if (len == 0) {
@@ -968,18 +708,11 @@ UdpStack::receive ( const char* buf, const int bufSize, int flags ) {
 
 int UdpStack::receiveFrom ( char* buffer,
                             const int bufSize,
-                            NetworkAddress* sender,
+                            struct sockaddr_in* sender,
                             int flags) {
    if ((mode == sendonly) || (mode == inactive)) {
       cpLog(LOG_ERR, "The stack is not capable to receive. ");
       return -1;
-   }
-
-   struct sockaddr_storage xSrc;
-   int srcLen = sizeof(xSrc);
-
-   if (sender) {
-      sender->getSockAddr(&xSrc);
    }
 
 // 25/11/03 fpi
@@ -1010,101 +743,54 @@ int UdpStack::receiveFrom ( char* buffer,
     } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
 #else */   
     int len = 0;
-    bool ipV6 = false;
-    struct in6_pktinfo pktinfo;
-    if (NetworkConfig::instance().getAddrFamily() == AF_INET) {
+    int frlen = sizeof(*sender);
+    if (!sender) {
+       frlen = 0;
+    }
 #ifdef WIN32
-       do {
-          len = recvfrom( data->socketFd,
-                          (char *)buffer,
-                          bufSize,
-                          0, // flags
-                          (sockaddr*) &xSrc,
-                          (socklen_t*) &srcLen);
-       } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
+    do {
+       frlen = sizeof(*sender);
+       int* flp = &frlen;
+       if (!sender) {
+          frlen = 0;
+          flp = NULL;
+       }
+       len = recvfrom( socketFd,
+                       buffer,
+                       bufSize,
+                       flags,
+                       (struct sockaddr*)(sender),
+                       flp);
+    } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
        
 #else
 
-       len = recvfrom( data->socketFd,
-                       (char *)buffer,
-                       bufSize,
-                       flags,
-                       (struct sockaddr*) &xSrc,
-                       (socklen_t*) &srcLen);
+    len = recvfrom( socketFd,
+                    (char *)buffer,
+                    bufSize,
+                    flags,
+                    (struct sockaddr*)(sender),
+                    &frlen);
 #endif
-    }
-    else {
-       ipV6 = true;
-       int _flags=flags;
-       len = recvfrom_flags( data->socketFd,
-                             (char *)buffer,
-                             bufSize,
-                             &_flags /*flags */ ,
-                             (struct sockaddr*) &xSrc,
-                             (socklen_t*) &srcLen,
-                             &pktinfo);
-    }
-
+    
     if ( len <= 0 ) {
-       int err = errno;
-       if ((errno == EAGAIN) || (errno == EINTR)) {
+       int err = ERRNO;
+       if ((err == EAGAIN) || (err == EINTR) || (err == WSAEWOULDBLOCK)) {
           // This can be a normal case...
           len = 0;
        }
        else {
           strstream errMsg;
-          errMsg << "UdpStack<" << getLclName() << ">::receive error : ";
-          errMsg << strerror(err);
-          errMsg << char(0);
-          
+          errMsg << "UdpStack<" << getLclName() << ">::receive error : "
+                 << VSTRERROR << "(" << err << ") fd: "
+                 << socketFd << " sender: " << sender << " frlen: " << frlen
+                 << " sizeof(*sender): " << sizeof(*sender) << " buffer: " << buffer
+                 << " bufsize: " << bufSize
+                 << endl << ends;
           cpLog(LOG_ERR, "%s", errMsg.str());
-          errMsg.freeze(false);
        }
     }
     else {
-       if (sender) {
-          struct sockaddr_storage xSrcT;
-          sender->getSockAddr(&xSrcT);
-          if (memcmp(&xSrc, &xSrcT, srcLen)  == 0) {
-             //No need to set anything, return
-             numBytesReceived += len;
-             numPacketsReceived += 1;
-             return len;
-          }
-
-          //TODO:  Should allow a way to disable this as it is a potentially
-          // long blocking call. --Ben
-          //Do the heavy-weight work only if the caller shows interest
-          char hostname[256];
-          char port[64];
-          hostname[0] = '\0';
-          port[0] = '\0';
-          int err = getnameinfo((struct sockaddr *)&xSrc, srcLen, hostname, 256, port, 64, NI_NUMERICHOST | NI_NUMERICSERV);
-          if (err) {
-             cpLog(LOG_ERR, "Failed to get the host name");
-          }
-          
-          string tmp = hostname;
-          if (ipV6) {
-             struct sockaddr_in6* sin6 = (struct sockaddr_in6*)&xSrc;
-             if (IN6_IS_ADDR_LOOPBACK((struct in6_addr*)&sin6->sin6_addr) &&
-                 (inet_ntop(AF_INET6, &pktinfo.ipi6_addr, hostname, 256))) {
-                tmp = "[";
-                tmp += hostname;
-                tmp += "]";
-             }
-             else {
-                tmp = "[";
-                tmp += hostname;
-                tmp += "]";
-             }
-          }
-          cpLog(LOG_DEBUG, "***Received from:%s:%s", tmp.c_str(), port);
-          sender->setPort(atoi(port));
-          if ((sender->getIpName() != Data(hostname))) {
-             sender->setHostName(tmp.c_str());
-          }
-       }
        numBytesReceived += len;
        numPacketsReceived += 1;
     }
@@ -1125,7 +811,7 @@ int UdpStack::receiveFrom ( char* buffer,
 int
 UdpStack::receiveTimeout ( char* buffer,
                            const int bufSize,
-                           NetworkAddress* sender,
+                           struct sockaddr_in* sender,
                            int sec,
                            int usec)
 {
@@ -1193,9 +879,10 @@ string UdpStack::toString() {
       << packetLossProbability << " BytesRx: " << numBytesReceived
       << " PktsRx: " << numPacketsReceived << " BytesTx: " << numBytesTransmitted
       << " PktsTx: " << numPacketsTransmitted << " mode: " << mode
-      << " curLocalIp: " << curLocalIp << " desiredLocalIp: "
+      << " localAddr: " << localAddr.toString()
+      << " remoteAddr: " << remoteAddr.toString() << " desiredLocalIp: "
       << desiredLocalIp << " logFlag: " << logFlag << " socketFd: "
-      << data->socketFd << " rcvCount: " << rcvCount << " sndCount: "
+      << socketFd << " rcvCount: " << rcvCount << " sndCount: "
       << sndCount << " blockingFlg: " << blockingFlg << endl;
    return rv.str();
 }
@@ -1247,12 +934,7 @@ UdpStack::queueTransmit ( const char* buf, const int length ) {
       static bool randInit = false;
       if (!randInit) {
          randInit = true;
-
-         timeval tv;
-         gettimeofday(&tv, NULL);
-
-         long seed = tv.tv_sec + tv.tv_usec;
-         
+         long seed = vgetCurMs();
          srandom(seed);
       }
 
@@ -1301,17 +983,17 @@ UdpStack::queueTransmit ( const char* buf, const int length ) {
 
 int UdpStack::doTransmit(const char* buf, int ln) {
 
-   int count = send(data->socketFd, (char *)buf, ln, 0 /* flags */ );
+   int count = send(socketFd, (char *)buf, ln, 0 /* flags */ );
 
    if ( count != ln ) {
-      int err = errno;
+      int err = ERRNO;
       if ((err == EAGAIN) || (err == EINTR)) {
          count = 0;
       }
       else {
          ostrstream errMsg;
          errMsg << "UdpStack<" << getRmtName() << ">::transmit: "
-                << strerror(err);
+                << VSTRERROR;
          cpLog(LOG_ERR, errMsg.str());
       }
    }
@@ -1394,19 +1076,21 @@ int UdpStack::doTransmitTo( const char* buffer,
                             const int length,
                             const NetworkAddress* dest ) {
 
-   struct sockaddr_storage xDest;
-   memset(&xDest, 0, sizeof(xDest));
-   dest->getSockAddr(&xDest);
+   struct sockaddr_in dest_addr;
+   memset(&dest_addr, '\0', sizeof(dest_addr));
+   dest_addr.sin_family = AF_INET;
+   dest_addr.sin_addr.s_addr = htonl(dest->getIp4Address());
+   dest_addr.sin_port = htons(dest->getPort());
 
-   int count = sendto( data->socketFd,
+   int count = sendto( socketFd,
                        (char*)buffer,
                        length,
                        0 ,  // flags
-                       (struct sockaddr*) & xDest,
-                       sizeof(struct sockaddr_storage));
+                       (struct sockaddr*) &dest_addr,
+                       sizeof(dest_addr));
 
    if ( count != length ) {
-      int err = errno;
+      int err = ERRNO;
       if ((err == EAGAIN) || (err == EINTR)) {
          count = 0;
       }
@@ -1415,7 +1099,7 @@ int UdpStack::doTransmitTo( const char* buffer,
          errMsg << "UdpStack<" << getRmtName() << ">::transmitTo error\n"
                 << toString() << "\n buffer: " << (void*)(buffer)
                 << " length: " << length << " dest: " << dest->toString()
-                << ", error: ";
+                << ", error: " << VSTRERROR << ends;
          cpLog(LOG_ERR, errMsg.str());
          return -err;
       }
@@ -1479,17 +1163,15 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
                           IP_ADD_MEMBERSHIP,
                           (char*) & mreqn,
                           sizeof(struct ip_mreqn));
-        if(ret < 0)
-        {
-            cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(), strerror(errno));
+        if(ret < 0) {
+           cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
+                 VSTRERROR);
         }
-        else
-        {
+        else {
            cpLog(LOG_INFO, "Joined multi-cast group");
         }
     }
-    else 
-    {
+    else {
         //Join to multi-cast group
         struct ipv6_mreq mreq6;
         string mCastGroup("ff13::1");
@@ -1515,12 +1197,11 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
                           IPV6_ADD_MEMBERSHIP,
                           (char*) & mreq6,
                           sizeof(mreq6));
-        if(ret < 0)
-        {
-            cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(), strerror(errno));
+        if(ret < 0) {
+           cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
+                 VSTRERROR);
         }
-        else
-        {
+        else {
            cpLog(LOG_INFO, "Joined multi-cast group");
         }
     }
@@ -1578,28 +1259,6 @@ UdpStack::leaveMulticastGroup( NetworkAddress group,
 }
 
 
-UdpStackPrivateData::~UdpStackPrivateData() {
-   if (socketFd >= 0) {
-#ifndef WIN32
-      close (socketFd);
-#else
-      closesocket(socketFd);
-#endif
-      socketFd = -1;
-   }
-
-   if (localAddr) {
-      delete localAddr;
-      localAddr = NULL;
-   }
-   
-   if (remoteAddr) {
-      delete remoteAddr;
-      remoteAddr = NULL;
-   }
-}//Destructor
-
-
 UdpStack::~UdpStack()
 {
    if (in_log) {
@@ -1614,17 +1273,15 @@ UdpStack::~UdpStack()
       out_log = NULL;
    }
 
-    if (data) {
-       delete data;
-       data = NULL;
-    }
+   if (socketFd >= 0) {
+      closesocket(socketFd);
+      socketFd = -1;
+   }
 }
 
 
-int
-UdpStack::getBytesReceived () const
-{
-    return numBytesReceived;
+int UdpStack::getBytesReceived () const {
+   return numBytesReceived;
 }
 
 int
@@ -1645,6 +1302,7 @@ UdpStack::getPacketsTransmitted () const
     return numPacketsTransmitted;
 }
 
+#if 0
 int
 UdpStack::recvfrom_flags(int fd, void *ptr, size_t nbytes, int *flagsp,
                          struct sockaddr *sa, socklen_t *salenptr, 
@@ -1854,6 +1512,8 @@ next header
     return(n);
 }
 
+#endif
+
 int UdpStack::setModeBlocking(bool flg){
    if (blockingFlg != flg) {
       blockingFlg = flg;
@@ -1874,18 +1534,18 @@ int UdpStack::doSyncBlockingMode() {
 #ifndef WIN32
       int flags;
       if ((flags = fcntl(fd, F_GETFL, 0)) < 0) {
-         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", VSTRERROR);
          return -1;
       }
       flags &= ~O_NONBLOCK;
       if (fcntl(fd, F_SETFL, flags) < 0) {
-         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", VSTRERROR);
          return -1;
       }
 #else
       unsigned long non_blocking = 0;
       if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
-         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to make socket blocking, reason:%s", VSTRERROR);
          return -1;
       }
 #endif
@@ -1893,23 +1553,21 @@ int UdpStack::doSyncBlockingMode() {
    else {
       int fd = getSocketFD();
 
-      // 25/11/03 fpi
-      // WorkAround Win32
 #ifndef WIN32
       int flags;
       if ((flags = fcntl(fd, F_GETFL, 0)) < 0) {
-         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to get block flag, reason:%s", VSTRERROR);
          return -1;
       }
       flags |= O_NONBLOCK;
       if (fcntl(fd, F_SETFL, flags) < 0) {
-         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", VSTRERROR);
          return -1;
       }
 #else
       unsigned long non_blocking = 1;
       if (ioctlsocket(fd, FIONBIO, &non_blocking)) {
-         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", strerror(errno));
+         cpLog(LOG_ERR, "Failed to make socket non-block, reason:%s", VSTRERROR);
          return -1;
       }
 #endif

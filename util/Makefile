@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2005/03/03 19:59:49 greear Exp $
+# $Id: Makefile,v 1.9 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 
@@ -37,7 +37,7 @@ ifeq ($(OSTYPE),Linux)
 DEFINES += USE_CRYPTO_RANDOM
 endif
 
-CODE_SUBDIRS =  logging crypto statistics snmp signals io \
+CODE_SUBDIRS =  logging crypto statistics signals io \
                 transport config dnssrv adts
 
 SRC += \
@@ -46,7 +46,6 @@ SRC += \
 	Data2.cxx \
 	RandomHex.cxx \
 	Sptr.cxx \
-	transport/InitTransport.cxx \
 	vstring.cxx\
         Application.cxx \
         Base64.cxx \
@@ -68,7 +67,6 @@ SRC += \
         Timer.cxx \
         VEnvVar.cxx \
         VException.cxx \
-        VFilter.cxx \
         VTest.cxx \
         VTime.cxx \
         Verify.cxx \
@@ -98,8 +96,6 @@ SRC += \
         mstring.cxx \
         signals/SignalAction.cxx \
         signals/SignalSet.cxx \
-        snmp/AgentApi.cxx \
-        snmp/AgentRegister.cxx \
         statistics/DurationStatistic.cxx \
         statistics/PerfDuration.cxx \
         statistics/PerfTotal.cxx \
@@ -151,12 +147,8 @@ endif
 ifeq ($(OSTYPE),cygwin)
 else
 SRC +=  \
-        io/VNamedPipeFC.cxx \
         Random.cxx \
-        signals/SignalHandler.cxx \
-        io/VFileBrowser.cxx \
-        io/VFileSystem.cxx \
-
+        signals/SignalHandler.cxx
 endif
 
 ifeq ($(USE_BIND),1)
@@ -179,11 +171,8 @@ io/FileDescriptor.hxx \
 io/FileStat.hxx \
 io/Pipe.hxx \
 io/Serialize.hxx \
-io/VFileBrowser.hxx \
 io/VFile.hxx \
-io/VFileSystem.hxx \
 io/VIoException.hxx \
-io/VNamedPipeFC.hxx \
 io/Writer.hxx \
 logging/cpLog.h \
 logging/CpPriorityLog.hxx \
@@ -193,9 +182,6 @@ logging/VLog.hxx \
 signals/SignalAction.hxx \
 signals/SignalHandler.hxx \
 signals/SignalSet.hxx \
-snmp/AgentApi.hxx \
-snmp/AgentApiMibVars.hxx \
-snmp/AgentRegister.hxx \
 statistics/Duration.hxx \
 statistics/DurationStatistic.hxx \
 statistics/PerfDuration.hxx \
@@ -210,7 +196,6 @@ transport/AddressFamily.hxx \
 transport/ConnectionBrokenException.hxx \
 transport/Connection.hxx \
 transport/DatagramSocket.hxx \
-transport/InitTransport.hxx \
 transport/IP6Address.hxx \
 transport/IPAddress.hxx \
 transport/MACAddress.hxx \

@@ -54,10 +54,7 @@
 // 25/11/03 fpi
 // WorkAround Win32
 #ifndef _WS2TCPIP_H_
-
-static const char* const W32McastCfgHeaderVersion =
-    "$Id: W32McastCfg.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
-
+#ifndef __MINGW32__
 
 /* Multicast related definitions */
 
@@ -84,7 +81,7 @@ struct ip_mreq {
         struct in_addr  imr_interface;  /* local IP address of interface */
 };
 
-
+#endif // mingw is fine, however.
 #endif  // WorkAround Win32
 
 #endif

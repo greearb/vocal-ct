@@ -50,7 +50,7 @@
 
 
 static const char* const IPAddress_cxx_Version = 
-    "$Id: IPAddress.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: IPAddress.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -64,8 +64,6 @@ static const char* const IPAddress_cxx_Version =
 #include <cstdlib>
 #include <cstdio>
 #include <cerrno>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <strstream>
 
 

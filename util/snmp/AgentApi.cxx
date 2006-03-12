@@ -48,15 +48,17 @@
  *
  */
 
+#warning "Dead code..remove me."
+
+#if 0
 
 static const char* const AgentApi_cxx_Version =
-    "$Id: AgentApi.cxx,v 1.7 2005/03/03 19:59:50 greear Exp $";
+    "$Id: AgentApi.cxx,v 1.8 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
 #include <unistd.h>
 #include <sys/param.h>
-#include <netinet/in.h>
 #include "AgentApi.hxx"
 #include "UdpStack.hxx"
 #include "cpLog.h"
@@ -345,3 +347,5 @@ void AgentApi::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    // Attempt to write any pending data
    udpStack->flushBacklog();
 }//tick
+
+#endif

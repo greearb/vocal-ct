@@ -50,7 +50,7 @@
 
 
 static const char* const TimeVal_cxx_Version =
-    "$Id: TimeVal.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: TimeVal.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -112,7 +112,7 @@ TimeVal::operator=(const timeval & src)
 const TimeVal &
 TimeVal::now()
 {
-    int rc = gettimeofday(this, 0);
+    int rc = vgettimeofday(this, 0);
     assert( rc == 0 );
 
     return ( *this );

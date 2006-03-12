@@ -48,15 +48,8 @@
  *
  */
 
-static const char* const SystemInfo_cxx_Version =
-"$Id: SystemInfo.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include <iostream>
-#include <netdb.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <errno.h>
 
 #include "global.h"
@@ -64,6 +57,7 @@ static const char* const SystemInfo_cxx_Version =
 #include "NetworkAddress.h"
 #include "NetworkConfig.hxx"
 #include "SystemInfo.hxx"
+#include <misc.hxx>
 
 using namespace Vocal;
 
@@ -75,146 +69,40 @@ using namespace Vocal;
 
 SystemInfo Vocal::theSystem;
 
-SystemInfo::SystemInfo()
-: userName(0),
-  displayName(0),
-  hostName(0),
-  hostIP(0),
-  sessionName(0),
-  registerDomain(0),
-  registerUrl(0)
-{
-    hostName = new char[NI_MAXHOST+1];
-    hostIP = new char[NI_MAXHOST+1];
+SystemInfo::SystemInfo() {
     int err;
 
-#ifdef WIN32
+    sessionName = "VOVIDA Session";
+    userName = "-";
+
+#ifdef __WIN32__
+    // Initialize winsock
+
     WORD wVersionRequested;
     WSADATA wsaData;
+    
+    wVersionRequested = MAKEWORD( 2, 0 );
+    if ((err = WSAStartup( wVersionRequested, &wsaData )) != 0) {
+        /* Tell the user that we could not find a usable */
+        /* WinSock DLL.                                  */
+        cerr << "ERROR:  Could not load Winsock 2.0 DLLs, err: " << err << endl;
+    }
 
-    wVersionRequested = MAKEWORD( 2, 2 );
-
-    err = WSAStartup( wVersionRequested, &wsaData );
-    assert(err == 0);
 #endif
 
-    makeCopy(&sessionName , "VOVIDA Session");
-    makeCopy(&userName , "-");
-
-    //initialize registerDomain.
-    makeCopy(&registerDomain , "");
-    makeCopy(&registerUrl , "");
-    makeCopy(&displayName , "");
-
-    err = gethostname(hostName, NI_MAXHOST);
-    assert( err == 0 );
-
-    // can not call cpLog becuase it may not be constructed yet
-
-    struct addrinfo hints;
-    struct addrinfo *res;
-    struct sockaddr *sa;
-
-    memset(&hints, 0, sizeof(hints));
-    
-    /* set-up hints structure */
-    hints.ai_family = NetworkConfig::instance().getAddrFamily();
-
-    err = getaddrinfo(hostName, NULL, &hints, &res);
-
-    if (err) {
-       cpLog(LOG_ERR, "Failed to resolve the host name, reason %s",
-                  gai_strerror(err));
-       assert(0);
-    } else {
-       sa = (struct sockaddr *) res->ai_addr;
-       err = getnameinfo(sa, res->ai_addrlen, hostIP, 256, NULL, 0, NI_NUMERICHOST); 
-       if (err) {
-	  cpLog(LOG_ERR, "Failed to get the host name info, %s" ,hostIP);
-          perror("getnameinfo");
-          assert(0);
-       }
-       if (res->ai_family == PF_INET6) { // Enclose IP in ['s
-		string tmp(hostIP);
-		tmp.insert(0,"[");
-		tmp+="]";
-		const char* tmp2 = tmp.c_str();
-                memcpy((void *)hostIP, (void *)tmp2, tmp.length());
-       }
+    char tmp[NI_MAXHOST];
+    err = gethostname(tmp, NI_MAXHOST);
+    if (err != 0) {
+        cerr << "ERROR:  Failed to gethostname, err: " << err << "  " << VSTRERROR << endl;
+        tmp[0] = 0;
     }
-    freeaddrinfo(res);
-
-/*    char buf[2048];
-    int myErrno;
-
-    int retval = NetworkAddress::getHostByName(hostName, &ent, buf, 2048, &myErrno);
-    if (retval != NetworkAddress::getHostLookupOK)
-    {
-        ipName = string("0.0.0.0");
+    else {
+        hostName = tmp;
     }
-    else
-    {
-        unsigned char* loc = (unsigned char*)ent.h_addr_list[0];
-
-        char buf[1000];
-        sprintf(buf, "%d.%d.%d.%d",
-                int(*(loc + 0)),
-                int(*(loc + 1)),
-                int(*(loc + 2)),
-                int(*(loc + 3)) );
-
-        ipName = buf;
-    }
-
-    makeCopy(&hostIPAddress, ipName.c_str());
-    breakIP();*/
-
-    // can not call cpLog becuase it may not be constructed yet
 }
 
-
-/*
-void
-SystemInfo::breakIP()
-{
-    //get hostAddress and get first three octects in this.
-
-    char buf[256];
-
-    // can not call cpLog becuase it may not be constructed yet
-
-    int i1, i2, i3, i4;
-    sscanf(hostIPAddress, "%d.%d.%d.%d", &i1, &i2, &i3, &i4);
-
-    sprintf(buf, "%d.%d.%d", i1, i2, i3);
-    firstIPpart = new char[strlen(buf) + 1];
-    strcpy(firstIPpart, buf);
-}*/
-
-
-
-bool SystemInfo::toIpv4String(const char* ip, unsigned long& retval) {
-   retval = 0;
-
-   if (strcmp(ip, "0.0.0.0") == 0) {
-      return true;
-   }
-
-   struct hostent *hp;
-   hp = gethostbyname(ip);
-   if (hp == NULL) {
-      return false;
-   }//if
-   else {
-      retval = ntohl(*((unsigned long*)(hp->h_addr_list[0])));
-      if (retval != 0) {
-         return true;
-      }
-      else {
-         return false;
-      }
-   }
-   return false;
+bool SystemInfo::toIpv4String(const char* ip, uint32& retval) {
+    return vtoIpString(ip, retval);
 }
 
 
@@ -226,24 +114,7 @@ const string SystemInfo::resolveIpToHostname(const string& ipaddr) {
 }
 
 
-void
-SystemInfo::makeCopy(char** dest, const char* src)
-{
-    delete [] *dest;
-    *dest = new char[strlen(src) + 1];
-    strcpy(*dest, src);
-}
-
-SystemInfo::~SystemInfo()
-{
-    delete [] userName;
-    delete [] displayName;
-    delete [] hostName;
-    delete [] hostIP;
-    delete [] sessionName;
-    delete [] registerDomain;
-    delete [] registerUrl;
-}
+SystemInfo::~SystemInfo() { }
 
 void
 Vocal::parseSystemInfo(char* tag, char* type, char* value)
@@ -292,61 +163,10 @@ Vocal::parseSystemInfo(char* tag, char* type, char* value)
         }
     }
 }
-/*
-const char* const 
-SystemInfo::getFirstIPpart() const
-{ //return the first three octects of the IP address
-    cpLog(LOG_DEBUG_STACK, "FirstIPPart: %s", firstIPpart);
-    return firstIPpart;
-}*/
 
 bool
 SystemInfo::isMe(const NetworkAddress& na)
 {
     NetworkAddress me(hostName, mySystemPort);
-    return (na == me);
+    return (na.getIpAndPortName() == me.getIpAndPortName());
 }
-
-///
-// NOTE:  You probably should use the local_ip as configured by the
-// user, or at least check to see if the user set the local_ip before
-// using this method. --Ben
-const char* const 
-SystemInfo::gethostAddress (char* buf, int len, int family) const
-{
-    struct addrinfo hints;
-    struct addrinfo *res;
-    struct sockaddr *sa;
-
-    assert(buf);
-    memset(&hints, 0, sizeof(hints));
-    
-    /* set-up hints structure */
-    hints.ai_family = family;
-
-    int err = getaddrinfo(hostName, NULL, &hints, &res);
-
-    if (err) {
-       cpLog(LOG_ERR, "Failed to resolve the host name, reason %s",
-                  gai_strerror(err));
-       buf[0] = 0; 
-    } else {
-       sa = (struct sockaddr *) res->ai_addr;
-       err = getnameinfo(sa, res->ai_addrlen, buf, len, NULL, 0, NI_NUMERICHOST); 
-       if (err) {
-	  cpLog(LOG_ERR, "Failed to get the host name info for %s, reason %s" ,hostName, gai_strerror(err));
-          buf[0] = 0;
-       }
-    }
-    freeaddrinfo(res);
-    return buf;
-}
-
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

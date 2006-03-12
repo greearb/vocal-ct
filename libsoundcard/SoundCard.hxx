@@ -51,18 +51,19 @@
  */
 
 static const char* const SoundCard_hxx_Version =
-    "$Id: SoundCard.hxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
+    "$Id: SoundCard.hxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include "Data.hxx"
 #include "CircularBuffer.hxx"
 
 using Vocal::ADT::CircularBuffer;
 
+#ifndef __MINGW32__
 #ifdef WIN32
 #include <Mmsystem.h>
 #include "ASoundCardWin.hxx"
 #endif
-
+#endif
 
 namespace Vocal
 {
@@ -155,10 +156,12 @@ class SoundCard
         int myNumChannels;
         int myMultiplier;
 
+#ifndef __MINGW32__
 #ifdef WIN32
         //AND:Win32 specific members (handles, etc...)
         ASoundCardWin	m_aSoundCardWinIn;
         ASoundCardWin	m_aSoundCardWinOut;
+#endif
 #endif
 
         CircularBuffer<unsigned char> myReadBuffer;

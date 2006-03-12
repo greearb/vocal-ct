@@ -52,8 +52,7 @@
  */
 
 
-static const char* const CodecSpeex_hxx_Version = 
-    "$Id: CodecSpeex.hxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
+#ifdef USE_SPEEX
 
 #include "CodecAdaptor.hxx"
 #include <speex.h>
@@ -118,4 +117,5 @@ private:
 }
 }
 
+#endif
 #endif

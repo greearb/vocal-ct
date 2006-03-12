@@ -51,7 +51,7 @@
 
 
 static const char* const ControlStateFactory_cxx_Version = 
-"$Id: ControlStateFactory.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
+"$Id: ControlStateFactory.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include "ControlStateFactory.hxx"
 #include "StateTrying.hxx"
@@ -88,16 +88,11 @@ ControlStateFactory::getState(CStateType stateType)
 {
     ControlState* retVal;
 
-    pthread_t tId = pthread_self();
-    ControlStateMap& tMap = myControlStateMap[tId];
-
-    ControlStateMap::iterator itr  = tMap.find(stateType);
-    if(itr != tMap.end())
-    {
+    ControlStateMap::iterator itr  = cs_map.find(stateType);
+    if (itr != cs_map.end()) {
         return itr->second;
     }
-    switch(stateType)
-    {
+    switch(stateType) {
         case INIT:
            retVal = new StateInit();
         break;
@@ -123,22 +118,14 @@ ControlStateFactory::getState(CStateType stateType)
             assert(0); 
         break;
     }
-    tMap[stateType] = retVal;
+    cs_map[stateType] = retVal;
     return retVal;
 }
 
-ControlStateFactory::~ControlStateFactory()
-{
-    for(ThreadBasedControlStateMap::iterator itr = myControlStateMap.begin();
-               itr != myControlStateMap.end(); itr++)
-    {
-        ControlStateMap& tMap = itr->second;
-        for(ControlStateMap::iterator itr2 = tMap.begin();
-               itr2 != tMap.end(); itr2++)
-        {
-            delete (itr2->second);
-        }
-        tMap.erase(tMap.begin(), tMap.end());
-    }
+ControlStateFactory::~ControlStateFactory() {
+   for(ControlStateMap::iterator itr2 = cs_map.begin(); itr2 != cs_map.end(); itr2++) {
+      delete (itr2->second);
+   }
+   cs_map.erase(cs_map.begin(), cs_map.end());
 }
 

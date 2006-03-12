@@ -49,10 +49,9 @@
  *
  */
 
+#warning "Dead code..remove this file."
 
-static const char* const HostMatch_cxx_Version =
-    "$Id: HostMatch.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
+#if 0
 
 #include "global.h"
 #include <deque>
@@ -62,14 +61,8 @@ static const char* const HostMatch_cxx_Version =
 #include <cassert>
 #include <set>
 #include "NetworkAddress.h"
-#include <netdb.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <algorithm>
 
-// 24/11/03 fpi
-// WorkAround Win32
 #ifdef WIN32
 #include <ws2tcpip.h>
 #endif
@@ -145,19 +138,15 @@ ostream& SimpleAddress::print(ostream& s) const
     return s;
 }
 
-
-deque < SimpleAddress > getAddrList(const string& host)
-{
+deque < SimpleAddress > getAddrList(const string& host) {
     deque < SimpleAddress > list;
 
     char buf[2048];
     struct addrinfo *res = 0;
 
-    int retval =
-        NetworkAddress::getHostByName(host.c_str(), res);
+    int retval = NetworkAddress::getHostByName(host.c_str(), res);
 
-    if (retval != NetworkAddress::getHostLookupOK)
-    {
+    if (retval != NetworkAddress::getHostLookupOK) {
         return list;
     }
     while (res) {
@@ -216,9 +205,7 @@ set < SimpleAddress > getAddrSet(const string& host)
     return list;
 }
 
-
-bool hostsEqual(const string& first, const string& second)
-{
+bool hostsEqual(const string& first, const string& second) {
     set < SimpleAddress > firstSet;
     set < SimpleAddress > secondSet;
 
@@ -286,3 +273,5 @@ bool hostsIntersect(const string& first, const string& second)
     assert(0);
     return false;
 }
+
+#endif

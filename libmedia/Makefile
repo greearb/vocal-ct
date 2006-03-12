@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2006/02/07 01:33:21 greear Exp $
+# $Id: Makefile,v 1.8 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 
@@ -17,15 +17,17 @@ PACKAGES += RTP MEDIALIB SDP2 UTIL OPENSSL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ -L$(ROOT)/rtp/obj.$(TARGET_NAME)/ \
   -L$(ROOT)/sdp/sdp2/obj.$(TARGET_NAME)/ \
-  -L$(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib \
   -L$(ROOT)/contrib/Equivalence.$(OS_ARCH)/openh323-1.11.4/lib
 
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lrtp -lm -lsdp2 -lspeex
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lrtp -lm -lsdp2
 
-
+ifeq ($(VOCAL_USE_SPEEX),yes)
+MKSHLIB_INCDIRS += -L$(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
+MKSHLIB_LIBS += -lspeex
 INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += -lspeex
+endif
 
 ifeq ($(VOCAL_USE_LANFORGE),yes)
 LFDIR=../../..
@@ -52,7 +54,6 @@ Adaptor.cxx \
 MediaDevice.cxx \
 CodecG711U.cxx \
 CodecAdaptor.cxx \
-CodecSpeex.cxx \
 CodecG726_16.cxx \
 CodecG726_24.cxx \
 CodecG726_32.cxx \
@@ -65,9 +66,14 @@ NetworkRes.cxx \
 SdpHandler.cxx \
 MRtpSession.cxx
 
+ifeq ($(VOCAL_USE_SPEEX),yes)
+SRC += CodecSpeex.cxx
+endif
+
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 SRC += CodecG729a.cxx
 endif
+
 
 #docs:	doc++/config.txt
 #	doc++ --config doc++/config.txt

@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.8 2005/08/23 06:39:42 greear Exp $";
+    "$Id: RtcpReceiver.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -67,8 +67,6 @@ static const char* const RtcpReceiver_cxx_Version =
 
 // networking
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #include "cpLog.h"
 #include "vsock.hxx"
@@ -123,6 +121,10 @@ RtcpReceiver::~RtcpReceiver () {
    // Nothing to do here
 }
 
+#ifdef __MINGW32__
+#warning "Investigate receive-from and MSG_DONTWAIT for MINGW."
+#define MSG_DONTWAIT 0
+#endif
 
 /* --- receive packet functions ------------------------------------ */
 int RtcpReceiver::getPacket (RtcpPacket& pkt) {
@@ -132,10 +134,10 @@ int RtcpReceiver::getPacket (RtcpPacket& pkt) {
    //int len = recvfrom (socketFD, p->getPacketData(), p->getPacketAlloc(),
    //                    0, (struct sockaddr*) &txAddress, &fromLen);
    //    int len = myStack->receive  (p->getPacketData(), p->getPacketAlloc());
-   NetworkAddress sender("0.0.0.0");
+   //NetworkAddress sender("0.0.0.0");
    int len = myStack->receiveFrom (pkt.getPacketData(),
                                    pkt.getPacketAlloc(),
-                                   &sender, MSG_DONTWAIT);
+                                   NULL, MSG_DONTWAIT);
    //cpLog(LOG_DEBUG_STACK, "RTCP receiveFrom: %s : %d", sender.getIpName().c_str(),
    //          sender.getPort());
    

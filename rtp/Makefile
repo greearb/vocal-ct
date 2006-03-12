@@ -1,15 +1,19 @@
-# $Id: Makefile,v 1.5 2006/02/24 22:27:52 greear Exp $
+# $Id: Makefile,v 1.6 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 
 include $(BUILD)/Makefile.pre
 
-PACKAGES += UTIL LIBXML LIBCEXT OPENSSL
+PACKAGES += UTIL LIBCEXT OPENSSL
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ \
 		   -L$(ROOT)/lib.$(TARGET_NAME)/
-MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lvxml
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil
 
+ifeq ($(ARCH),i386-mingw32msvc)
+MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil
+LDLIBS_LAST += -lws2_32 -lwinmm -lvutil
+endif
 
 INCDIRS += codec
 

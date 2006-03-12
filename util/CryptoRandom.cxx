@@ -51,7 +51,7 @@
 
 
 static const char* const CryptoRandom_cxx_Version =
-    "$Id: CryptoRandom.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+    "$Id: CryptoRandom.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <cerrno>
@@ -66,6 +66,7 @@ static const char* const CryptoRandom_cxx_Version =
 #include "cpLog.h"
 #include "global.h"
 #include "support.hxx"
+#include "misc.hxx"
 
 
 static bool srandomCalled = false;
@@ -151,7 +152,7 @@ int CryptoRandom::getPseudoRandom(unsigned char* buf, int num)
 {
     //generate a random number;
     struct timeval tv;
-    gettimeofday(&tv, 0);
+    vgettimeofday(&tv, 0);
 
     if (!srandomCalled)
     {

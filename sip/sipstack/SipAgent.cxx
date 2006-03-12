@@ -48,9 +48,9 @@
  *
  */
 
-static const char* const SipAgent_cxx_Version =
-    "$Id: SipAgent.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
+#warning "Dead code."
 
+#if 0
 
 // 24/11/03 fpi
 // WorkAround Win32
@@ -60,7 +60,7 @@ static const char* const SipAgent_cxx_Version =
 
 #include <iostream>
 #include "SipAgent.hxx"
-#include "SipSnmpDetails.hxx"
+//#include "SipSnmpDetails.hxx"
 #include "cpLog.h"
 #include "SnmpCommon.h"
 #include "symbols.hxx"
@@ -900,9 +900,4 @@ SipAgent::updateCommandSnmpData(Method type, SnmpType snmptype)
 }
 
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
+#endif

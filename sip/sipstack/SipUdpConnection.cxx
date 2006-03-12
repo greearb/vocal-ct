@@ -49,7 +49,7 @@
  */
 
 static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.12 2005/03/03 19:59:49 greear Exp $";
+    "$Id: SipUdpConnection.cxx,v 1.13 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include "SipUdpConnection.hxx"
@@ -91,13 +91,7 @@ SipUdpConnection::~SipUdpConnection() {
 }
 
 const string SipUdpConnection::getLocalIp() const {
-    string rv = udpStack.getSpecifiedLocalIp();
-    if (rv.size()) {
-        return rv;
-    }
-    else {
-        return theSystem.gethostAddress(); //OK
-    }
+    return udpStack.getSpecifiedLocalIp();
 }
 
 // May pull from incomming fifo
@@ -283,7 +277,7 @@ int SipUdpConnection::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_
 Sptr<SipMsgContainer>
 SipUdpConnection::receiveMessage() {
    Sptr<SipMsgContainer> sipMsg;
-   NetworkAddress sender("0.0.0.0");
+   struct sockaddr_in sender;
 
    int len = udpStack.receiveFrom( rcvBuf, MAX_UDP_RCV_BUF, &sender, 0 /* flags */);
             
@@ -306,10 +300,13 @@ SipUdpConnection::receiveMessage() {
          SipTransactionId id(*sm);
          sipMsg = new SipMsgContainer(id);
          
-         sm->setReceivedIPName( sender.getIpName() );
-         sm->setReceivedIPPort( Data(sender.getPort()) );
+         string senderip(vtoStringIp(ntohl(sender.sin_addr.s_addr)));
+         short senderport = ntohs(sender.sin_port);
+
+         sm->setReceivedIPName(senderip);
+         sm->setReceivedIPPort(senderport);
          cpLog(LOG_INFO, "Received UDP Message:\n\n<- HOST[%s] PORT[%d]\n\n%s",
-               sender.getIpName().c_str(), sender.getPort(), rcvBuf);
+               senderip.c_str(), senderport, rcvBuf);
          
          sipMsg->setMsgIn(sm);
       }
@@ -347,16 +344,14 @@ SipUdpConnection::send(Sptr<SipMsgContainer> msg, const Data& host,
         }
 
         msg->cacheEncode();
-        try {
-            if (msg->getNetworkAddr() == 0 ) {
-                msg->setNetworkAddr(new NetworkAddress(nhost.convertString(), nport));
-            }
-        }
-        catch(NetworkAddress::UnresolvedException& e) {
-            //cpLog(LOG_ERR, "host: %s\n nhost: %s", host, nhost);
-            cpLog(LOG_ERR, "Destination (%s) is not reachable, reason:%s.",
-                  nhost.logData(), e.getDescription().c_str());
-            return -1;
+        if (msg->getNetworkAddr() == 0 ) {
+           Sptr<NetworkAddress> na = new NetworkAddress(nhost.convertString(), nport);
+           if (na->getIp4Address() == 0) {
+              cpLog(LOG_ERR, "Destination (%s) is not reachable.",
+                    nhost.logData());
+              return -1;
+           }
+           msg->setNetworkAddr(na);
         }
     }
 

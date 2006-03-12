@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
+    "$Id: RtcpTransmitter.cxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -67,8 +67,6 @@ static const char* const RtcpTransmitter_cxx_Version =
 
 // networking
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 #include "cpLog.h"
 #include "vsock.hxx"

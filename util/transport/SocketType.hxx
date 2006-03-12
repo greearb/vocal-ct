@@ -53,7 +53,7 @@
 
 
 static const char* const SocketType_hxx_Version = 
-    "$Id: SocketType.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: SocketType.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "Writer.hxx"
@@ -62,7 +62,9 @@ static const char* const SocketType_hxx_Version =
 #include <sys/types.h>
 #endif
 
+#ifndef __MINGW32__
 #include <sys/socket.h>
+#endif
 #include <string>
 
 

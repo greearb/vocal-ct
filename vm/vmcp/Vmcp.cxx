@@ -80,7 +80,7 @@ int Vmcp::wait(int port)
 	return -1;
     }
     int one = 1;			// option value of 1
-    ::setsockopt (m_xSfd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof (one));
+    ::setsockopt (m_xSfd, SOL_SOCKET, SO_REUSEADDR, (char*)(&one), sizeof (one));
     if( ::bind(m_xSfd,(sockaddr *)&sin,sizeof(sin)) == - 1) 
     {
 	cpLog(LOG_ERR,"Error 2");
@@ -98,17 +98,17 @@ int Vmcp::accept()
 {
     int fd;
     sockaddr_in sin;
-#if defined(__APPLE__)
-    int sinsize=0;
+#if defined(__APPLE__) || defined(__MINGW32__)
+    int sinsize = 0;
 #else
-    unsigned int sinsize=0;
+    unsigned int sinsize = 0;
 #endif
 
     bool again = true;
 
     while( again ) 
     { 
-	fd = ::accept(m_xSfd,(sockaddr *)&sin,&sinsize);
+	fd = ::accept(m_xSfd, (sockaddr *)&sin, &sinsize);
 	if( fd == -1  )
 	{
 	    if( errno != EINTR )
@@ -129,19 +129,17 @@ int Vmcp::accept()
     return fd;
 }
 
-int Vmcp::connect(unsigned int port)
-{
-    return connect(INADDR_ANY,port);
+int Vmcp::connect(unsigned int port) {
+    return connect((uint32)(INADDR_ANY), port);
 }
 
-int Vmcp::connect(const char *server,unsigned int port)
+int Vmcp::connect(const char *server, unsigned int port)
 {
     hostent *ent=gethostbyname(server);
-    return connect(*(unsigned long *)ent->h_addr,port);
+    return connect(*(uint32 *)ent->h_addr, port);
 }
 
-int Vmcp::connect(unsigned int addr,unsigned int port)
-{
+int Vmcp::connect(uint32 addr, unsigned int port) {
     sockaddr_in in;
 
     in.sin_family = AF_INET;

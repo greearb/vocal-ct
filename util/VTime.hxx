@@ -56,7 +56,7 @@
 
 
 static const char* const VTimeHeaderVersion =
-    "$Id: VTime.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+    "$Id: VTime.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
 
 
 
@@ -76,15 +76,11 @@ gettimeofday (struct timeval *tv, struct timezone *tz);
 #else
 
 #include "global.h"
+#include "misc.hxx"
 #include <sys/time.h>
 
 #endif
 // __vxworks
-
-#ifdef WIN32
-int
-gettimeofday (struct timeval *tv, struct timezone *tz);
-#endif // WIN32
 
 #include <sys/types.h>
 #include "vtypes.h"

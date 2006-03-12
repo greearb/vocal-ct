@@ -49,10 +49,6 @@
  */
 
 
-static const char* const MediaController_cxx_Version = 
-    "$Id: MediaController.cxx,v 1.8 2005/08/18 21:52:03 bmartel Exp $";
-
-
 #include "MediaController.hxx"
 #include "SdpHandler.hxx"
 #include "CodecG711U.hxx"
@@ -142,13 +138,15 @@ MediaController::MediaController(uint16 tos, uint32 priority,
    }
 #endif
 
+#ifdef USE_SPEEX
    Sptr<CodecAdaptor> cAdp4 = new CodecSpeex();
    itr = prio_map.find(cAdp4->getType());
    if (itr != prio_map.end()) {
       cAdp4->setPriority((*itr).second);
       registerCodec(cAdp4);
    }
-   
+#endif
+
    Sptr<CodecAdaptor> cAdp5 = new CodecG726_16();
    itr = prio_map.find(cAdp5->getType());
    if (itr != prio_map.end()) {
@@ -275,8 +273,6 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
                            __FILE__, __LINE__);
    }
 
-   //TODO:  There is still a race here, cause another process could jump in
-   // and steal the port! --Ben
    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,
                                                   localDevToBindTo, debug, vadOptions);
 

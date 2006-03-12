@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.11 2006/02/07 01:33:21 greear Exp $";
+    "$Id: RtpSession.cxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -60,7 +60,6 @@ static const char* const RtpSession_cxx_Version =
 #include <unistd.h>
 #include <errno.h>
 
-#include <sys/socket.h>
 #include <sys/types.h>
 #include "vtypes.h"
 #include "cpLog.h"
@@ -251,30 +250,14 @@ int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
                                const string& local_ip,
                                const string& local_dev_to_bind_to,
                                int localMin, int localMax) {
-   int port = 0;
-   
    if ( recv == 0 ) {
-      try {
-         //let RtpReceiver() automatically generate a port number
-         recv = new RtpReceiver(tos, priority, local_ip, local_dev_to_bind_to,
-                                localMin, localMax,
-                                rtpPayloadPCMU, 8000, 1, 160);
-         port = recv->getPort();
-      }
-      catch ( UdpStackExceptionPortsInUse& ) {
-         if ( localMin == localMax )
-            cpLog( LOG_ERR, "port %d is not available", localMin );
-         else
-            cpLog( LOG_ERR, "No ports between %d and %d are available",
-                   localMin, localMax);
-         recv = 0;
-      }
+      //let RtpReceiver() automatically generate a port number
+      recv = new RtpReceiver(tos, priority, local_ip, local_dev_to_bind_to,
+                             localMin, localMax,
+                             rtpPayloadPCMU, 8000, 1, 160);
    }
-   else {
-      port = recv->getPort();
-   }
-   
-   return port;
+
+   return recv->getPort();
 }
 
 int RtpSession::releaseRtpPort() {
@@ -295,25 +278,21 @@ RtpSession::reserveRtcpPort(uint16 tos, uint32 priority,
    int port = 0;
 
    if ( rtcpRecv == 0 ) {
-      try {
-         if (rtcpLocalPort != 0) {
-            if (portRange != 0)
-               rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
-                                            rtcpLocalPort,
-                                            rtcpLocalPort + portRange);
-            else
-               rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
-                                            rtcpLocalPort);
-            }
-         
-         port = rtcpRecv->getPort();
-      }
-      catch ( UdpStackExceptionPortsInUse& ) {
-         if ( portRange == 0 )
-            cpLog( LOG_ERR, "port %d is not available", rtcpLocalPort );
+      if (rtcpLocalPort != 0) {
+         if (portRange != 0)
+            rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                         rtcpLocalPort,
+                                         rtcpLocalPort + portRange);
          else
-            cpLog( LOG_ERR, "no ports between %d and %d are available",
-                   rtcpLocalPort, rtcpLocalPort + portRange );
+            rtcpRecv = new RtcpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+                                         rtcpLocalPort);
+      }
+      
+      port = rtcpRecv->getPort();
+
+      if (port == 0) {
+         cpLog( LOG_ERR, "no ports between %d and %d are available",
+                rtcpLocalPort, rtcpLocalPort + portRange);
          rtcpRecv = 0;
       }
    }

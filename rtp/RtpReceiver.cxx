@@ -50,7 +50,7 @@
  */
 
 static const char* const RtpReceiver_cxx_Version =
-    "$Id: RtpReceiver.cxx,v 1.11 2005/08/23 06:39:42 greear Exp $";
+    "$Id: RtpReceiver.cxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 
 #include "global.h"
@@ -469,6 +469,10 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     return packetSize;
 }//retrieve
 
+#ifdef __MINGW32__
+#warning "Investigate receive-from and MSG_DONTWAIT for MINGW."
+#define MSG_DONTWAIT 0
+#endif
 
 int RtpReceiver::getPacket(RtpPacket& pkt) {
    // check for network activity
@@ -477,6 +481,7 @@ int RtpReceiver::getPacket(RtpPacket& pkt) {
    int len;
    len = myStack->receiveFrom ((char*)pkt.getHeader(), pkt.getPacketAlloc(), NULL,
                                MSG_DONTWAIT);
+
    if (len == 0) {
       cpLog(LOG_DEBUG_STACK, "NOTE:  Received -EAGAIN when trying to read rtp packet.\n");
       return 0;

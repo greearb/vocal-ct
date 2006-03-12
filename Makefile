@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2004/11/16 01:57:49 greear Exp $
+# $Id: Makefile,v 1.7 2006/03/12 07:41:28 greear Exp $
 
 
 BUILD = build
@@ -195,9 +195,6 @@ netMgnt:  snmpplusplus
 cdrlib:
 	cd cdr/cdrLib; $(MAKE)
 
-libxml:
-	cd contrib/
-
 psutil: contrib_xml util
 	cd provisioning/util; $(MAKE)
 
@@ -220,7 +217,7 @@ osp: openssl
 common: 
 	cd policy/common ; $(MAKE)
 
-libpdp: contrib
+libpdp:
 	cd policy/libpdp ; $(MAKE)
 ifeq ($(USE_RSVPLIB),1)
 libOSP: osp common
@@ -230,10 +227,10 @@ libOSP: common
 	-(cd policy/libOSP; $(MAKE))
 endif
 
-copsstack: util contrib
+copsstack: util
 	cd policy/copsstack; $(MAKE)
 
-trip: util contrib 
+trip: util 
 	cd tripstack; $(MAKE) all
 
 policy: libpdp common libOSP copsstack
@@ -242,19 +239,19 @@ policy: libpdp common libOSP copsstack
 policy_test: libpep common libOSP copsstack
 	cd policy/test ; $(MAKE)
 
-util: contrib
+util:
 	@( test -d util && test -f util/Makefile ) || ( echo; echo; echo "please check out the util directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co util" ; echo;echo && exit -1 )
 	cd util; $(MAKE)
 
-util_test: contrib
+util_test:
 	@( test -d util && test -f util/Makefile ) || ( echo; echo; echo "please check out the util directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co util" ; echo;echo && exit -1 )
 	cd util; $(MAKE) test
 
-rtp: contrib util
+rtp: util
 	@( test -d rtp && test -f rtp/Makefile ) || ( echo; echo; echo "please check out the rtp directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co rtp" ; echo;echo && exit -1 )
 	cd rtp; $(MAKE)
 
-rtp_test: contrib util
+rtp_test: util
 	@( test -d rtp && test -f rtp/Makefile ) || ( echo; echo; echo "please check out the rtp directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co rtp" ; echo;echo && exit -1 )
 	cd rtp; $(MAKE) test
 
@@ -294,7 +291,7 @@ rtp_demo: rtp
 	(cd rtp; $(MAKE) install)
 	(cd rtp/test ; $(MAKE) ; $(MAKE) install)
 
-libmgcp: contrib sdp util
+libmgcp: sdp util
 	@( test -d mgcp && test -f mgcp/Makefile ) || ( echo; echo; echo "please check out the mgcp directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co mgcp" ; echo;echo && exit -1 )
 	cd mgcp; $(MAKE) mgcp
 
@@ -312,16 +309,16 @@ mgcp_test:
 	@( test -d mgcp && test -f mgcp/Makefile ) || ( echo; echo; echo "please check out the mgcp directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co mgcp" ; echo;echo && exit -1 )
 	cd mgcp; $(MAKE) test
 
-proxy_base: heartbeat contrib sdp2 sip util 
+proxy_base: sdp2 sip util 
 	@( test -d sip/base && test -f sip/base/LICENSE ) || ( echo; echo; echo "please check out the proxyBase directory first" ; echo;echo && exit -1 )
 	cd sip/base; $(MAKE)
 
-sip: heartbeat contrib sdp2  util
+sip: sdp2  util
 	@( test -d sip/sipstack && test -f sip/sipstack/LICENSE ) || ( echo; echo; echo "please check out the sip directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co sip" ; echo;echo && exit -1 )
 	cd sip/sipstack; $(MAKE)
 	cd sip/base; $(MAKE)
 
-sip_test: contrib sdp2 util
+sip_test: sdp2 util
 	@( test -d sip/sipstack && test -f sip/sipstack/LICENSE ) || ( echo; echo; echo "please check out the sip directory first by doing cvs -d :pserver:<random-login>:/home/cvsroot co sip" ; echo;echo && exit -1 )
 	cd sip/test; $(MAKE) test
 
@@ -341,7 +338,7 @@ http_test: http
 #	cd sip/b2b/; $(MAKE)
 
 sipset: uagui 
-gua: psutil proxy_base newsndfile libsoundcard rtp libmedia libsipua 
+gua: proxy_base newsndfile libsoundcard rtp libmedia libsipua 
 	@( test -d sip/gua/ && test -f sip/gua/Makefile ) || ( echo; echo; echo "please check out the sip/gua directory first" ; echo;echo && exit -1 )
 	cd sip/gua/; $(MAKE)
 libsipua: util 
@@ -363,7 +360,7 @@ ua_test:
 	@( test -d sip/ua/ && test -f sip/ua/Makefile ) || ( echo; echo; echo "please check out the ua directory first" ; echo;echo && exit -1 )
 	cd sip/ua/; $(MAKE) test
 
-callAgent:  heartbeat pslib sip  libmgcp rtp sdp util
+callAgent:  sip  libmgcp rtp sdp util
 	@( test -d translators/mgcp/ && test -f translators/mgcp/Makefile ) || ( echo; echo; echo "please check out the translators/mgcp directory first" ; echo;echo && exit -1 )
 	cd translators/mgcp; $(MAKE)
 
@@ -483,13 +480,13 @@ vme: vmcp
 vmcp:
 	cd vm/vmcp ; $(MAKE)
 
-mail: contrib contrib_imap
+mail: contrib_imap
 	cd vm/mail ; $(MAKE)
 
 base64encoder:
 	cd tools/base64encoder ; $(MAKE)
 
-media_server: contrib vme vmcp mail base64encoder
+media_server: vme vmcp mail base64encoder
 	cd vm/media_server ; $(MAKE)
 
 prov: provcommon dbmodules util
@@ -499,7 +496,7 @@ ps: util pslib
 	cd provisioning/pserver ; $(MAKE)
 	cd provisioning/conversion ; $(MAKE)
 
-cdr: cdrlib contrib
+cdr: cdrlib
 	cd cdr/cdrServer ; $(MAKE)
 
 openssl:

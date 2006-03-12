@@ -52,7 +52,7 @@
  */
 
 static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.7 2005/08/23 00:27:55 greear Exp $";
+    "$Id: RtpReceiver.hxx,v 1.8 2006/03/12 07:41:28 greear Exp $";
 
 
 #include <sys/types.h>
@@ -299,7 +299,7 @@ protected:
    // Previous seq received.  Will not hide dups, reorder,
    // dropped sequenc numbers, etc.  Used for accounting
    // purposes only at this time.
-   __uint16_t realPrevSeqRecv;
+   uint16 realPrevSeqRecv;
 
    /// previous sequence numer played
    RtpSeqNumber prevSeqPlay;
