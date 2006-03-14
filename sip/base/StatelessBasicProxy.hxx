@@ -52,15 +52,10 @@
  */
 
 
-static const char* const StatelessBasicProxy_hxx_Version =
-    "$Id: StatelessBasicProxy.hxx,v 1.4 2005/03/03 19:59:49 greear Exp $";
-
-
 #include "Data.hxx"
 #include "Operator.hxx"
 #include "SipTransceiver.hxx"
 #include "cpLog.h"
-#include <HeartbeatThread.hxx>
 #include "BaseProxy.hxx"
 
 namespace Vocal
@@ -131,7 +126,7 @@ public:
    StatelessBasicProxy(uint16 tos, uint32 priority,
                        const string&            local_ip,
                        const string&            local_dev_to_bind_to,
-                       ServerType              myType,
+                       //ServerType              myType,
                        unsigned short          defaultSipPort = 5060,
                        Data                    applName = "unknown", 
                        bool                    filteron = true, 
@@ -160,8 +155,8 @@ public:
    // smart-pointer references will cause memory leaks.
    virtual void clear();
 
-   virtual void startHeartbeat(); //start sending
-   virtual void stopHeartbeat(); //stop sending
+   //virtual void startHeartbeat(); //start sending
+   //virtual void stopHeartbeat(); //stop sending
 
    ///
    virtual void process(Sptr < SipProxyEvent > event);

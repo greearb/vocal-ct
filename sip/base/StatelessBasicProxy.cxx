@@ -50,7 +50,7 @@
 
 
 static const char* const StatelessBasicProxy_cxx_Version =
-    "$Id: StatelessBasicProxy.cxx,v 1.10 2005/03/03 19:59:49 greear Exp $";
+    "$Id: StatelessBasicProxy.cxx,v 1.11 2006/03/14 01:14:04 greear Exp $";
 
 
 #include "CommandLine.hxx"
@@ -64,7 +64,7 @@ using namespace Vocal;
 StatelessBasicProxy::StatelessBasicProxy(uint16 tos, uint32 priority,
                                          const string& local_ip,
                                          const string& local_dev_to_bind_to,
-                                         ServerType              myType,
+                                         //ServerType              myType,
                                          unsigned short defaultSipPort,
                                          Data applName,
                                          bool filterOn, 
@@ -78,14 +78,16 @@ StatelessBasicProxy::StatelessBasicProxy(uint16 tos, uint32 priority,
    
    mySipThread = new SipThread(mySipStack, this, false);    
 
-   cpLog(LOG_INFO, "Initializing heartbeat mechanism");
-   HeartbeatThread::initialize(local_ip, local_dev_to_bind_to,
-                               myType,
-                               HB_RX|HB_TX|HB_HOUSEKEEPING, NULL);
-   HeartbeatThread::instance().addServerContainer(SERVER_RS);  // Listen for Register Servers
-   HeartbeatThread::instance().addServerContainer(SERVER_POS); // Listen for Provision servers
+   //cpLog(LOG_INFO, "Initializing heartbeat mechanism");
+   //HeartbeatThread::initialize(local_ip, local_dev_to_bind_to,
+   //                            myType,
+   //                            HB_RX|HB_TX|HB_HOUSEKEEPING, NULL);
+   //HeartbeatThread::instance().addServerContainer(SERVER_RS);  // Listen for Register Servers
+   //HeartbeatThread::instance().addServerContainer(SERVER_POS); // Listen for Provision servers
 }//constructor
 
+
+#if 0
 
 /** Calls the heartbeat tx run method.
  */
@@ -96,7 +98,7 @@ void StatelessBasicProxy::startHeartbeat() {
 void StatelessBasicProxy::stopHeartbeat() {
    HeartbeatThread::instance().stopTxHeartbeat();
 }
-
+#endif
 
 StatelessBasicProxy::~StatelessBasicProxy() {
    // Nothing to do
@@ -106,8 +108,8 @@ int StatelessBasicProxy::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* e
                                 int& maxdesc, uint64& timeout, uint64 now) {
    mySipThread->setFds(input_fds, output_fds, exc_fds, maxdesc, timeout, now);
 
-   HeartbeatThread::instance().setFds(input_fds, output_fds, exc_fds,
-                                      maxdesc, timeout, now);
+   //HeartbeatThread::instance().setFds(input_fds, output_fds, exc_fds,
+   //                                   maxdesc, timeout, now);
    return 0;
 }
 
@@ -122,7 +124,7 @@ void StatelessBasicProxy::clear() {
 
 void StatelessBasicProxy::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                                uint64 now) {
-   HeartbeatThread::instance().tick(input_fds, output_fds, exc_fds, now);
+   //HeartbeatThread::instance().tick(input_fds, output_fds, exc_fds, now);
    mySipThread->tick(input_fds, output_fds, exc_fds, now);
 }
 
