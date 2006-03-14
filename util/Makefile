@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile,v 1.10 2006/03/14 18:05:22 greear Exp $
 
 BUILD = ../build
 
@@ -56,10 +56,8 @@ SRC += \
         FileDataStore.cxx \
         Garbage.cxx \
         GarbageCan.cxx \
-        HostMatch.cxx \
         Literal.cxx\
         MemoryManager.cxx \
-        NetworkConfig.cxx \
         Runnable.cxx \
         SystemException.cxx \
         SystemStatus.cxx \
@@ -109,7 +107,6 @@ SRC += \
         transport/Connection.cxx \
         transport/ConnectionBrokenException.cxx \
         transport/DatagramSocket.cxx \
-        transport/IP6Address.cxx \
         transport/IPAddress.cxx \
         transport/MACAddress.cxx \
         transport/NetworkAddress.cxx \
@@ -196,7 +193,6 @@ transport/AddressFamily.hxx \
 transport/ConnectionBrokenException.hxx \
 transport/Connection.hxx \
 transport/DatagramSocket.hxx \
-transport/IP6Address.hxx \
 transport/IPAddress.hxx \
 transport/MACAddress.hxx \
 transport/NetworkAddress.h \

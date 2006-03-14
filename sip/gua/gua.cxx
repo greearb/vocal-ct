@@ -59,7 +59,6 @@
 
 // To allow us to clean up in a definate manner (helps with memory leak debugging)
 #include "controlState/ControlStateFactory.hxx"
-#include <NetworkConfig.hxx>
 #include <UaStateFactory.hxx>
 #include <UaCallControl.hxx>
 #include <MediaController.hxx>

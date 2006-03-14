@@ -48,17 +48,11 @@
  *
  */
 
-static const char* const SipVia_cxx_Version = 
-    "$Id: SipVia.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
-
-
-
 #include "global.h"
 #include "Data.hxx"
 #include "cpLog.h"
 #include "SipVia.hxx"
 #include "symbols.hxx"
-#include "HostMatch.hxx"
 #include "SipParserMode.hxx"
 #include "NetworkAddress.h"
 

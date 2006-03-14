@@ -48,13 +48,9 @@
  *
  */
 
-static const char* const SipUrl_cxx_Version =
-    "$Id: SipUrl.cxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
-
 #include "global.h"
 #include "SipUrl.hxx"
 #include "symbols.hxx"
-#include "HostMatch.hxx"
 #include "cpLog.h"
 #include "Data.hxx"
 #include <cassert>

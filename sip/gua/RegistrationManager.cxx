@@ -49,16 +49,11 @@
  *
  */
 
-static const char* const RegistrationManager_cxx_Version =
-    "$Id: RegistrationManager.cxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "SipVia.hxx"
 #include "SystemInfo.hxx"
 #include "RegistrationManager.hxx"
 #include "UaConfiguration.hxx"
 #include "UaFacade.hxx"
-#include "NetworkConfig.hxx"
 
 using namespace Vocal;
 using namespace Vocal::UA;

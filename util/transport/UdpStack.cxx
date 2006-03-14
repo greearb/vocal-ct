@@ -118,7 +118,6 @@ typedef int socklen_t;
 #include "UdpStack.hxx"
 #include "cpLog.h"
 #include "vsock.hxx"
-#include "NetworkConfig.hxx"
 
 // 16/1/04 fpi
 // WorkAround Win32

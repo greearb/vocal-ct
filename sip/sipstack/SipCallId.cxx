@@ -48,14 +48,10 @@
  *
  */
 
-static const char* const SipCallId_cxx_Version =
-    "$Id: SipCallId.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
-
 #include "global.h"
 #include "SipCallId.hxx"
 #include "SipMsg.hxx"
 #include "symbols.hxx"
-#include "HostMatch.hxx"
 #include "RandomHex.hxx"
 #include "SystemInfo.hxx"
 

@@ -55,7 +55,6 @@
 #include "global.h"
 #include "cpLog.h"
 #include "NetworkAddress.h"
-#include "NetworkConfig.hxx"
 #include "SystemInfo.hxx"
 #include <misc.hxx>
 

@@ -50,13 +50,12 @@
 
 
 static const char* const TransportAddress_cxx_Version = 
-    "$Id: TransportAddress.cxx,v 1.2 2006/03/14 00:20:07 greear Exp $";
+    "$Id: TransportAddress.cxx,v 1.3 2006/03/14 18:05:22 greear Exp $";
 
 
 #include "global.h"
 #include "TransportAddress.hxx"
 #include "IPAddress.hxx"
-#include "IP6Address.hxx"
 
 
 using Vocal::Transport::TransportAddress;

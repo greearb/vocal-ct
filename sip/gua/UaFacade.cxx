@@ -49,10 +49,6 @@
  */
 
 
-static const char* const UaFacade_cxx_Version = 
-    "$Id: UaFacade.cxx,v 1.17 2006/03/12 07:41:28 greear Exp $";
-
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
@@ -96,9 +92,6 @@ static const char* const UaFacade_cxx_Version =
 #include "LF/LANforgeCustomDevice.hxx"
 #include "LF/LFVoipHelper.hxx"
 #endif
-
-#include "NetworkConfig.hxx"
-
 
 #ifdef USE_VM
 #include "VmcpDevice.hxx"

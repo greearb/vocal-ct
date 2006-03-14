@@ -66,7 +66,6 @@
 
 #include "global.h"
 #include "NetworkAddress.h"
-#include "NetworkConfig.hxx"
 #include "cpLog.h"
 
 #include "vsock.hxx"

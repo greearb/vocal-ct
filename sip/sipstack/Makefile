@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2004/11/19 01:54:38 greear Exp $
+# $Id: Makefile,v 1.9 2006/03/14 18:05:22 greear Exp $
 
 BUILD = ../../build
 
@@ -44,7 +44,6 @@ SRC = \
     SipAccept.cxx\
     SipAcceptEncoding.cxx\
     SipAcceptLanguage.cxx\
-    SipAgent.cxx\
     SipAllow.cxx\
     SipAlso.cxx\
     SipAuthorization.cxx\
@@ -107,7 +106,6 @@ SRC = \
     SipServer.cxx\
     SipSession.cxx \
     SipSessionExpires.cxx \
-    SipSnmpDetails.cxx\
     SipStatusLine.cxx\
     SipSubject.cxx\
     SipSubsNotifyEvent.cxx\

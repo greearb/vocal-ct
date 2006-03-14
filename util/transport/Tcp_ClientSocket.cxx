@@ -66,7 +66,6 @@
 #include "Tcp_ClientSocket.hxx"
 #include "VEnvVar.hxx"
 #include "NetworkAddress.h"
-#include "NetworkConfig.hxx"
 #include "cpLog.h"
 
 TcpClientSocket::TcpClientSocket(uint16 tos, uint32 priority,

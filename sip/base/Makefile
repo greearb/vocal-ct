@@ -34,7 +34,6 @@ SRC = \
 	BaseCommandLine.cxx \
 	StateMachnData.cxx \
 	BaseAuthentication.cxx \
-	StatelessBasicProxy.cxx \
 	CommonFunctions.cxx
 
 ifeq ($(USE_HEARTBEAT),1)

@@ -75,7 +75,6 @@
 #include "VEnvVar.hxx"
 #include "cpLog.h"
 #include "NetworkAddress.h"
-#include "NetworkConfig.hxx"
 
 #define LISTENQ   15
 TcpServerSocket::TcpServerSocket(uint16 tos, uint32 priority,

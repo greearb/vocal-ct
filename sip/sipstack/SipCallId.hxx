@@ -53,12 +53,11 @@
 
 #include "global.h"
 static const char* const SipCallIdVersion =
-"$Id: SipCallId.hxx,v 1.3 2004/11/04 05:16:41 greear Exp $";
+"$Id: SipCallId.hxx,v 1.4 2006/03/14 18:05:22 greear Exp $";
 
 
 
 #include "Data.hxx"
-#include "HostMatch.hxx"
 #include "SipHeader.hxx"
 #include "VException.hxx"
 
