@@ -214,7 +214,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
    int rcvbuf = 0;
    int rcvbufnew = 240 * 1024;
    int sndbuf = 0;
-   int len;
+   socklen_t len;
 
    char dbg[128];
    snprintf(dbg, 128, "UdpStack: %s:%i-%i",
@@ -383,7 +383,6 @@ int UdpStack::doServer ( int minPort, int maxPort) {
     aName.freeze(false);
 
     // find a port to use
-    int err = 0;
     int portOk = false;
 
     // struct addrinfo is defined in lwres/netdb.h
@@ -743,7 +742,7 @@ int UdpStack::receiveFrom ( char* buffer,
     } while( (len == -1) && (WSAGetLastError() == WSAECONNRESET ) );
 #else */   
     int len = 0;
-    int frlen = sizeof(*sender);
+    socklen_t frlen = sizeof(*sender);
     if (!sender) {
        frlen = 0;
     }
@@ -1139,85 +1138,43 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
    //#ifndef WIN32
 
 #if defined(__linux__)
-    if(NetworkConfig::instance().getAddrFamily() == PF_INET)
-    {
-        cpLog(LOG_INFO, "Interface (%s) index (%d) joining multicast group (%s)",
-                     iface->getIpName().c_str(), ifaceInexe,
-                     group.getIpName().c_str());
-        struct ip_mreqn mreqn;
-        struct sockaddr_storage groupAddr;
-        group.getSockAddr(&groupAddr);
-        memcpy(&mreqn.imr_multiaddr,
-               &(((struct sockaddr_in*)&groupAddr)->sin_addr),
-               sizeof(struct in_addr));
-        struct sockaddr_storage intfAddr;
-        iface->getSockAddr(&intfAddr);
-        memcpy(&mreqn.imr_address,
-               &((struct sockaddr_in*)&intfAddr)->sin_addr,
-               sizeof(struct in_addr));
-        mreqn.imr_ifindex = ifaceInexe;
-
-        int ret;
-        ret = setsockopt (getSocketFD(),
-                          IPPROTO_IP,
-                          IP_ADD_MEMBERSHIP,
-                          (char*) & mreqn,
-                          sizeof(struct ip_mreqn));
-        if(ret < 0) {
-           cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
-                 VSTRERROR);
-        }
-        else {
-           cpLog(LOG_INFO, "Joined multi-cast group");
-        }
-    }
-    else {
-        //Join to multi-cast group
-        struct ipv6_mreq mreq6;
-        string mCastGroup("ff13::1");
-        if(inet_pton(AF_INET6, mCastGroup.c_str(), &mreq6.ipv6mr_multiaddr) < 0)
-        {
-            cpLog(LOG_ERR, "Failed to get the address for multicast group %s", mCastGroup.c_str());
-            return;
-        }
-        cpLog(LOG_INFO, "Interface (%s) index (%d) joining multicast group (%s)",
-                     iface->getIpName().c_str(), ifaceInexe,
-                     mCastGroup.c_str());
-        if(ifaceInexe > 0)
-        {
-            mreq6.ipv6mr_interface = ifaceInexe;
-        }
-        else
-        {
-            mreq6.ipv6mr_interface = 0;
-        }
-        int ret;
-        ret = setsockopt (getSocketFD(),
-                          IPPROTO_IPV6,
-                          IPV6_ADD_MEMBERSHIP,
-                          (char*) & mreq6,
-                          sizeof(mreq6));
-        if(ret < 0) {
-           cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
-                 VSTRERROR);
-        }
-        else {
-           cpLog(LOG_INFO, "Joined multi-cast group");
-        }
-    }
+   // TODO:  This probably doesn't work. --Ben
+   cpLog(LOG_INFO, "Interface (%s) index (%d) joining multicast group (%s)",
+         iface->getIpName().c_str(), ifaceInexe,
+         group.getIpName().c_str());
+   struct ip_mreqn mreqn;
+   uint32 nip = htonl(group.getIp4Address());
+   memcpy(&mreqn.imr_multiaddr, &nip, sizeof(nip));
+   nip = htonl(iface->getIp4Address());
+   memcpy(&mreqn.imr_address, &nip, sizeof(nip));
+   mreqn.imr_ifindex = ifaceInexe;
+   
+   int ret;
+   ret = setsockopt (getSocketFD(),
+                     IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     (char*) & mreqn,
+                     sizeof(struct ip_mreqn));
+   if(ret < 0) {
+      cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
+            VSTRERROR);
+   }
+   else {
+      cpLog(LOG_INFO, "Joined multi-cast group");
+   }
 #else
-struct ip_mreq mreq;
-    mreq.imr_multiaddr.s_addr = (group.getIp4Address());
-
-    mreq.imr_interface.s_addr = (iface->getIp4Address());
-    //    mreq.imr_ifindex = ifaceInexe;
-
-    int ret;
-    ret = setsockopt (getSocketFD(),
-                      IPPROTO_IP,
-                      IP_ADD_MEMBERSHIP,
-                      (char*) & mreq,
-                      sizeof(struct ip_mreq));
+   struct ip_mreq mreq;
+   mreq.imr_multiaddr.s_addr = (group.getIp4Address());
+   
+   mreq.imr_interface.s_addr = (iface->getIp4Address());
+   //    mreq.imr_ifindex = ifaceInexe;
+   
+   int ret;
+   ret = setsockopt (getSocketFD(),
+                     IPPROTO_IP,
+                     IP_ADD_MEMBERSHIP,
+                     (char*) & mreq,
+                     sizeof(struct ip_mreq));
 #endif
 //#endif // !WIN32
 }

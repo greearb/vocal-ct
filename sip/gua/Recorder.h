@@ -53,9 +53,6 @@
 
 
 
-static const char* const Recorder_h_Version =
-    "$Id: Recorder.h,v 1.3 2006/02/07 01:33:21 greear Exp $";
-
 #include "global.h"
 #include <string>
 

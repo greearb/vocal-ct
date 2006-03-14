@@ -21,15 +21,18 @@
 #include <sstream>
 #include <iostream.h>
 #include <fstream.h>
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <errno.h>
 #include <unistd.h>
 #include <Data.hxx>
-#include <sys/select.h>
 #include "TimeVal.hxx"
 #include <stdio.h>
+
 
 #endif
 
@@ -396,6 +399,7 @@ void vusleep(int milliseconds) {
 
 #ifndef LINK_WITH_LANFORGE_MISC
 
+#ifdef __WIN32__
 int vgettimeofday(struct timeval* tv, void* null) {
 
    // Get baseline time, in seconds.
@@ -428,6 +432,9 @@ int vkill(int pid, int sig) {
 int vflock(int pid, int lk) {
    return 0;
 }
+
+#endif
+
 
 uint64 vgetCurMs() {
    struct timeval tv;

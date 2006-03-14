@@ -52,9 +52,7 @@
  */
 
 
-static const char* const IP6Address_hxx_Version = 
-    "$Id: IP6Address.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
+#if 0
 
 #include "TransportAddress.hxx"
 
@@ -210,5 +208,6 @@ class IP6Address : public Vocal::Transport::TransportAddress
 } // namespace Transport
 } // namespace Vocal
 
+#endif
 
 #endif // !defined(IP6ADDRESS_DOT_H)

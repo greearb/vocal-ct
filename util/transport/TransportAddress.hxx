@@ -53,7 +53,7 @@
 
 
 static const char* const TransportAddress_hxx_Version = 
-    "$Id: TransportAddress.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
+    "$Id: TransportAddress.hxx,v 1.3 2006/03/14 00:20:07 greear Exp $";
 
 
 #include "TransportCommon.hxx"
@@ -81,7 +81,6 @@ class Socket;
 /** Interface class for all forms of transport addresses.<br><br>
  *
  *  @see    Vocal::Transport::IPAddress
- *  @see    Vocal::Transport::IP6Address
  *  @see    Vocal::Transport::AddressFamily
  *  @see    Vocal::Transport::Socket
  *  @see    Vocal::SystemException

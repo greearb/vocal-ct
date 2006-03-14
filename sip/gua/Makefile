@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.12 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile,v 1.13 2006/03/14 00:20:07 greear Exp $
 
-USE_VM=1
+USE_VM=
 BUILD = ../../build
 CXXFLAGS += -I../../libmedia 
 LDLIBS_LAST +=  -lm
@@ -19,7 +19,7 @@ endif
 INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
            $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/gua 
 
-ifeq ($(VOCAL_USE_SEEX),true)
+ifeq ($(VOCAL_USE_SPEEX),yes)
 INCDIRS += -DUSE_SPEEX $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += -lspeex
@@ -143,6 +143,7 @@ controlState/StateUasRinging.cxx \
 controlState/StateInHold.cxx \
 UaCli.cxx \
 PlayQueue.cxx \
+Recorder.cxx \
 FileMediaDevice.cxx
 
 ifeq ($(OSTYPE),Linux)
@@ -150,8 +151,7 @@ SRC += LinAudioDevice.cxx
 endif
 
 ifeq ($(USE_VM),1)
-SRC += VmcpDevice.cxx \
-       Recorder.cxx
+SRC += VmcpDevice.cxx
 endif
 ifeq ($(USE_MPEGLIB),1)
 SRC += VideoDevice.cxx 

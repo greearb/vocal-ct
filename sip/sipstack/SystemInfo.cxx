@@ -59,6 +59,10 @@
 #include "SystemInfo.hxx"
 #include <misc.hxx>
 
+#ifndef __WIN32__
+#include <netdb.h>
+#endif
+
 using namespace Vocal;
 
 // 24/11/03 fpi
@@ -93,7 +97,8 @@ SystemInfo::SystemInfo() {
     char tmp[NI_MAXHOST];
     err = gethostname(tmp, NI_MAXHOST);
     if (err != 0) {
-        cerr << "ERROR:  Failed to gethostname, err: " << err << "  " << VSTRERROR << endl;
+        cerr << "ERROR:  Failed to gethostname, err: " << err << "  "
+             << VSTRERROR << endl;
         tmp[0] = 0;
     }
     else {

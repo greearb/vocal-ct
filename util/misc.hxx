@@ -32,9 +32,12 @@ typedef __uint32_t uint32;
 typedef __uint16_t uint16;
 typedef __uint8_t uint8;
 
+#define closesocket close
+#define vsleep sleep
 #define vgettimeofday gettimeofday
 #define VSTRERROR strerror(errno)
 #define ERRNO errno
+#define WSAEWOULDBLOCK EWOULDBLOCK
 
 #else
 

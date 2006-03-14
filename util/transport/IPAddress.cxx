@@ -50,7 +50,7 @@
 
 
 static const char* const IPAddress_cxx_Version = 
-    "$Id: IPAddress.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
+    "$Id: IPAddress.cxx,v 1.3 2006/03/14 00:20:07 greear Exp $";
 
 
 #include "global.h"
@@ -66,6 +66,11 @@ static const char* const IPAddress_cxx_Version =
 #include <cerrno>
 #include <strstream>
 
+#ifndef __WIN32__
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 
 using Vocal::Transport::IPAddress;
 using Vocal::Transport::TransportAddress;

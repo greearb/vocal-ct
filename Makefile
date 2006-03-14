@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile,v 1.8 2006/03/14 00:20:07 greear Exp $
 
 
 BUILD = build
@@ -13,7 +13,7 @@ endif
 #     to non-threaded model at this time. --Ben
 
 .PHONY : netMgnt proxy_agent snmp support mgcp proxy_base rtp libsoundcard\
-	 subdirs cleanall clean doc cppdoc contrib contrib_equiv mgcp_demo\
+	 subdirs cleanall clean doc cppdoc contrib contrib_equiv contrib_speex mgcp_demo\
 	 rtp_demo releasedir util sdp sdp2 sip siptest co login usage\
 	 mgcp_test rtp_test sdp_test sip_test util_test tdiff_correct.log\
 	 docdir ps cdrlib pslib libpep ps cdr osp libOSP common libpdp\
@@ -164,6 +164,9 @@ test_report:
 
 contrib: releasedir
 	cd contrib; $(MAKE)
+
+contrib_speex:
+	cd contrib; $(MAKE) speex_targ
 
 contrib_xerces_c:
 	cd contrib; $(MAKE) xerces-c
@@ -338,13 +341,15 @@ http_test: http
 #	cd sip/b2b/; $(MAKE)
 
 sipset: uagui 
-gua: proxy_base newsndfile libsoundcard rtp libmedia libsipua 
+gua: proxy_base newsndfile libsoundcard contrib_speex rtp libmedia libsipua 
 	@( test -d sip/gua/ && test -f sip/gua/Makefile ) || ( echo; echo; echo "please check out the sip/gua directory first" ; echo;echo && exit -1 )
 	cd sip/gua/; $(MAKE)
 libsipua: util 
 	@( test -d sip/libsipua && test -f sip/libsipua/Makefile ) || ( echo; echo; echo "please check out the libsipua directory first " ; echo;echo && exit -1 )
 	cd sip/libsipua; $(MAKE)
-libmedia:
+
+# contrib builds speex if we are configured for that codec...
+libmedia: contrib_speex
 	@( test -d libmedia && test -f libmedia/Makefile ) || ( echo; echo; echo "please check out the libmedia directory first " ; echo;echo && exit -1 )
 	cd libmedia ; $(MAKE) 
 

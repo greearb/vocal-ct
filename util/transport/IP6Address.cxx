@@ -49,9 +49,9 @@
  */
 
 
-static const char* const IP6Address_cxx_Version = 
-    "$Id: IP6Address.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+#warning "Dead code."
 
+#if 0
 
 #if defined(__linux__)
 
@@ -306,3 +306,4 @@ IP6Address::writeTo(std::ostream & out) const
 }
 
 #endif // defined(__linux__)
+#endif

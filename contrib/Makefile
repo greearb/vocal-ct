@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile,v 1.8 2006/03/14 00:20:07 greear Exp $
 
 BUILD = ../build
 include $(BUILD)/Makefile.pre
@@ -34,7 +34,7 @@ XML_VER=2.6.20
 
 #CODE_DEPENDS = libxml
 CODE_DEPENDS =
-ifeq ($(VOCAL_USE_SPEEX),true)
+ifeq ($(VOCAL_USE_SPEEX),yes)
 CODE_DEPENDS = speex_targ
 endif
 #CODE_DEPENDS += Equivalence
@@ -177,7 +177,12 @@ libcext_lgpl.$(OS_ARCH):
 
 
 # Speex support
+ifeq ($(VOCAL_USE_SPEEX),yes)
 speex_targ: ../lib.$(TARGET_NAME)/libspeex.so.1
+else
+speex_targ:
+	echo "Not building speex."
+endif
 
 speex_targB: speex.$(TARGET_NAME);
 	(cd speex.$(TARGET_NAME); CC="$(CC)" $(MAKE); CC="$(CC)" $(MAKE) install)

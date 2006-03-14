@@ -53,12 +53,16 @@
 
 
 static const char* const TickCount_hxx_Version = 
-    "$Id: TickCount.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
+    "$Id: TickCount.hxx,v 1.4 2006/03/14 00:20:07 greear Exp $";
 
 
 #include "vtypes.h"
 #include <unistd.h>
 #include <misc.hxx>
+
+#ifndef __WIN32__
+#include <sys/times.h>
+#endif
 
 /** Infrastructure common to VOCAL.<br><br>
  */

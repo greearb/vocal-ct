@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const Recorder_cxx_Version =
-    "$Id: Recorder.cxx,v 1.2 2005/07/06 19:09:55 greear Exp $";
 
 
 #include "global.h"

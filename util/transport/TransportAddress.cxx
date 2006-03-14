@@ -50,7 +50,7 @@
 
 
 static const char* const TransportAddress_cxx_Version = 
-    "$Id: TransportAddress.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
+    "$Id: TransportAddress.cxx,v 1.2 2006/03/14 00:20:07 greear Exp $";
 
 
 #include "global.h"
@@ -62,9 +62,6 @@ static const char* const TransportAddress_cxx_Version =
 using Vocal::Transport::TransportAddress;
 using Vocal::Transport::Socket;
 using Vocal::Transport::IPAddress;
-#if defined(__linux__)
-using Vocal::Transport::IP6Address;
-#endif
 using Vocal::Transport::AddressFamily;
 
 
@@ -90,14 +87,6 @@ TransportAddress::create(int addressFamily)
 	    newAddress = new IPAddress();
 	    break;
 	}
-
-    	#if defined(__linux__)
-	case AF_INET6:
-	{
-	    newAddress = new IP6Address();
-	    break;
-	}
-    	#endif // defined(__linux__)
 
 	default:
 	{
