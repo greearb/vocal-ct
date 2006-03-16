@@ -48,9 +48,7 @@
  *
  */
 
-static const char* const UaConfiguration_cxx_Version =
-    "$Id: UaConfiguration.cxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
-
+#include <errno.h>
 #include "global.h"
 #include <cassert>
 #include <cstdio>
