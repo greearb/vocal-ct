@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.13 2006/03/14 00:20:07 greear Exp $
+# $Id: Makefile,v 1.14 2006/04/04 20:17:28 greear Exp $
 
 USE_VM=
 BUILD = ../../build
@@ -200,7 +200,11 @@ endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
+ifeq ($(ARCH),i386-mingw32msvc)
+LIBDIRS += $(VOICEAGE_BASE)/Win32/libs
+else
 LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
+endif
 LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
 endif
 

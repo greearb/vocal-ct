@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile,v 1.9 2006/04/04 20:17:28 greear Exp $
 
 BUILD = ../build
 
@@ -39,7 +39,11 @@ endif
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
 MKSHLIB_INCDIRS += ${VOICEAGE_BASE}/source
+ifeq ($(ARCH),i386-mingw32msvc)
+LIBDIRS += ${VOICEAGE_BASE}/Win32/libs
+else
 LIBDIRS += ${VOICEAGE_BASE}/Linux/libs
+endif
 INCDIRS += ${VOICEAGE_BASE}/source
 
 MKSHLIB_LIBS += -lCodecLib -lg729a -lg729utils
