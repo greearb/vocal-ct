@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.6 2006/04/06 06:10:18 greear Exp $
+# $Id: Makefile.tools,v 1.7 2006/04/06 19:44:30 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -95,8 +95,12 @@ ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
     START_LD_STATIC=
     CLOSE_LD_STATIC=
 else
+ifeq ($(ARCH),i386-mingw32msvc)
+    LDLIBS_LAST += -lstdc++
+else
     LDLIBS += -nodefaultlibs
     LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm -lgcc_s
+endif
     START_LD_STATIC=$(LD_STATIC)
     CLOSE_LD_STATIC=$(LD_DYNAMIC)
 endif
