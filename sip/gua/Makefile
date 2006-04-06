@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.14 2006/04/04 20:17:28 greear Exp $
+# $Id: Makefile,v 1.15 2006/04/06 06:10:18 greear Exp $
 
 USE_VM=
 BUILD = ../../build
-CXXFLAGS += -I../../libmedia 
+CXXFLAGS += -I../../libmedia
 LDLIBS_LAST +=  -lm
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
@@ -13,7 +13,7 @@ include $(BUILD)/Makefile.pre
 ifeq ($(OSTYPE),SunOS)
 PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 RTP UTIL LIBCEXT
 else
-PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 NEWSNDFILE LIBSNDCARD RTP UTIL LIBCEXT OPENSSL
+PACKAGES += MEDIALIB PROXYBASE SIPUA SIP SDP2 LIBSNDCARD RTP UTIL LIBCEXT OPENSSL
 endif
 
 INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
@@ -22,12 +22,12 @@ INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
 ifeq ($(VOCAL_USE_SPEEX),yes)
 INCDIRS += -DUSE_SPEEX $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
-LDLIBS_LAST += -lspeex
+LDLIBS_LAST += $(START_LD_STATIC) -lspeex $(CLOSE_LD_STATIC)
 endif
 
 LIBDIRS += $(VOCAL_SNDFILE_LIB_DIR)
 INCDIRS += $(VOCAL_SNDFILE_INC_DIR)
-LDLIBS_LAST += -lsndfile
+LDLIBS += $(START_LD_STATIC) -lsndfile $(CLOSE_LD_STATIC)
 
 CODE_SUBDIRS =  controlState 
 
@@ -108,15 +108,6 @@ LDLIBS_LAST += \
                -lgmodule \
                -lX11 -lXext -lXft -ldl 
 endif
-
-# Voice Age Codec Support !
-# 
-ifeq ($(VOCAL_USE_VOICEAGE),yes)
-#  Add new entries here if your VoiceAge files are found elsewhere.
-LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
-LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
-endif
-
 
 
 TESTPROGRAMS = \
@@ -205,15 +196,9 @@ LIBDIRS += $(VOICEAGE_BASE)/Win32/libs
 else
 LIBDIRS += $(VOICEAGE_BASE)/Linux/libs
 endif
-LDLIBS_LAST += -lCodecLib -lg729a -lg729utils -lg729_os_depend
+LDLIBS_LAST += $(START_LD_STATIC) -lCodecLib -lg729a -lg729utils -lg729_os_depend $(CLOSE_LD_STATIC)
 endif
 
-
-ifeq ($(VOCAL_BUILD_SHARED_LIBS),yes)
-	LDLIBS := -Wl,-Bdynamic $(LDLIBS)
-else
-	LDLIBS := -Wl,-Bstatic $(LDLIBS)
-endif
 
 #rules for making gui front-end
 

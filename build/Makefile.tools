@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.5 2006/03/12 07:41:28 greear Exp $
+# $Id: Makefile.tools,v 1.6 2006/04/06 06:10:18 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -77,22 +77,28 @@ endif
 
 # Give the runtime linker a clue as to where to find the vocal
 # libraries.
+ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
 LDLIBS_LAST += -Wl,-rpath,/usr/local/vocal/bin/lib
-
+endif
 
 COMPILE_SMALL_FLAG = -Os -fno-inline -fno-keep-static-consts
+
 ifneq  ($(OSTYPE),Darwin)
 LD_STATIC       = -Wl,-Bstatic
 LD_DYNAMIC      = -Wl,-Bdynamic
-else
 endif
+
 MAKE_SEPARATE_DEPENDENCY = 1
 ifeq ($(OSTYPE),Linux)
 ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
-    LDLIBS_LAST    += -lstdc++
+    LDLIBS_LAST += -lstdc++
+    START_LD_STATIC=
+    CLOSE_LD_STATIC=
 else
-#    LDLIBS_LAST    += -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic
-    LDLIBS_LAST    += -lstdc++
+    LDLIBS += -nodefaultlibs
+    LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm -lgcc_s
+    START_LD_STATIC=$(LD_STATIC)
+    CLOSE_LD_STATIC=$(LD_DYNAMIC)
 endif
 endif
 endif
@@ -122,42 +128,7 @@ COMPILE_SMALL_FLAG = -Os -fno-inline
 
 endif
 
-####################################### GNU 3.0 toolChain ############################
-
-ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu3)
-CC		= gcc3 
-CXX		= g++3 
-MKSHLIB		= $(CC) $(FPIC) -shared
-DEP		= $(CXX) 
-LINKER		= $(CXX)
-AR		= ar
-ARFLAGS		= rv
-DFLAGS		= -MM
-DMANGLE		=
-INSTALL		= install
-LNDIR		= $(shell pwd)/$(ROOT)/tools/lndir.sh
-CFLAGS		+= -Wall -MMD $(FPIC)
-CXXFLAGS	+= -Wall -MMD $(FPIC)
-HAS_REPO        = true
-DEBUG_FLAG	= -g
-REPO_FLAG       = -frepo $(FPIC)
-COMPILE_SMALL_FLAG = -Os -fno-inline -fno-keep-static-consts
-LD_STATIC       = -Wl,-Bstatic
-LD_DYNAMIC      = -Wl,-Bdynamic
-MAKE_SEPARATE_DEPENDENCY = 1
-RANLIB		= ranlib
-
-ifeq ($(OSTYPE),Linux)
-ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
-    LDLIBS_LAST    += -lstdc++
-else
-#    LDLIBS_LAST    += -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic
-    LDLIBS_LAST    += -lstdc++
-endif
-endif
-endif
-
-####################################### GNU ARM cross-compiler for ipaq linux and sharp zaurus ############################
+##### GNU ARM cross-compiler for ipaq linux and sharp zaurus ############################
 
 
 
