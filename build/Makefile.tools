@@ -1,4 +1,4 @@
-# $Id: Makefile.tools,v 1.7 2006/04/06 19:44:30 greear Exp $
+# $Id: Makefile.tools,v 1.8 2006/04/06 21:52:35 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -99,7 +99,12 @@ ifeq ($(ARCH),i386-mingw32msvc)
     LDLIBS_LAST += -lstdc++
 else
     LDLIBS += -nodefaultlibs
+ifeq ($(CC),gcc -m32)
+    # Special hack for cross-compiling to 32-bit on x86-64
+    LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm
+else
     LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm -lgcc_s
+endif
 endif
     START_LD_STATIC=$(LD_STATIC)
     CLOSE_LD_STATIC=$(LD_DYNAMIC)
