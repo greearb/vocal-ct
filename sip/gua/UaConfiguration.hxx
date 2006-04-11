@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const UaConfigurationVersion =
-    "$Id: UaConfiguration.hxx,v 1.6 2005/08/20 06:57:42 greear Exp $";
-
 #include <string>
 #include <list>
 

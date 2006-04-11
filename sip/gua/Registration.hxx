@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const Registration_hxx_Version =
-    "$Id: Registration.hxx,v 1.4 2004/06/19 00:51:07 greear Exp $";
 #include <Data.hxx>
 #include <RegisterMsg.hxx>
 #include <StatusMsg.hxx>

@@ -49,8 +49,6 @@
  *
  */
 
-static const char* const Registration_cxx_Version =
-    "$Id: Registration.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -206,7 +204,8 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
         if ( status != 401 && status != 407 ) {
             delay = DEFAULT_DELAY;
             cpLog( LOG_ERR, "Register failed, status: %d", status );
-            cpLog( LOG_ERR, "Will try again in 60 seconds" );
+            cpLog( LOG_ERR, "Will try again in %d seconds.", delay );
+            cpLog(LOG_ERR, "StatusMsg:\n%s\n", msg.toString().c_str());
         }
     }
 
@@ -216,6 +215,8 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
         Data user = UaConfiguration::instance().getValue(UserNameTag);
         Data password = UaConfiguration::instance().getValue(PasswordTag);
 
+        cpLog( LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
+               status, user.c_str(), password.c_str());
 	if (!authenticateMessage(msg, *registerMsg, user, password)) {
 	    // i could not find auth information, so delay
             delay = DEFAULT_DELAY;
@@ -229,14 +230,12 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
             // default delay to allow the user time to figure it
             // out.
 
-            cpLog(LOG_ERR, 
-                  "Authentication may have failed, check configuration info"
-                );
+            cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
             delay = DEFAULT_DELAY;
         }
 
-        cpLog( LOG_WARNING, 
-	       "Will try Registration again with authentication information" );
+        cpLog(LOG_WARNING,
+               "Will try Registration again with authentication information" );
 
     }
 

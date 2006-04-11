@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const RegisterMsg_cxx_Version =
-    "$Id: RegisterMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "Data.hxx"
 #include "RegisterMsg.hxx"
 #include "SipCSeq.hxx"

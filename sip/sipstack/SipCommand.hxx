@@ -52,7 +52,7 @@
  */
 
 static const char* const SipCommand_hxx_Version
-= "$Id: SipCommand.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
+= "$Id: SipCommand.hxx,v 1.4 2006/04/11 23:15:04 greear Exp $";
 
 #include <vector>
 #include "SipMsg.hxx"
@@ -483,12 +483,5 @@ class SipCommand : public SipMsg
 };
     
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

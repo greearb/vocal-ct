@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const Authenticate_hxx_Version
-    = "$Id: Authenticate.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "StatusMsg.hxx"
 #include "SipCommand.hxx"
 #include "Data.hxx"
@@ -66,12 +63,5 @@ bool authenticateMessage(const StatusMsg& status,
 			 Data user,
 			 Data password);
 }
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

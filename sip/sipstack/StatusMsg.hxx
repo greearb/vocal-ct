@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const StatusMsg_hxx_Version
-    = "$Id: StatusMsg.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
-
 #include <vector>
 #include "cpLog.h"
 #include "SipStatusLine.hxx"

@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CallAgent_hxx_Version =
-    "$Id: CallAgent.hxx,v 1.3 2004/11/08 20:39:13 greear Exp $";
-
 #include "global.h"
 #include <map>
 #include "Sptr.hxx"

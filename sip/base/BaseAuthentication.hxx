@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const BaseAuthentication_hxx_Version =
-    "$Id: BaseAuthentication.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "Data.hxx"
 #include "SipCommand.hxx"
 #include "Sptr.hxx"

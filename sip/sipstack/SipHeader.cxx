@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const sipHeaderCxxVersion =
-    "$Id: SipHeader.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
-
 #include "global.h"
 #include "SipHeader.hxx"
 #include "SipAccept.hxx"
@@ -460,11 +457,3 @@ SipHeader::decodeHeader( SipHeaderType type, const Data& value, const string& lo
     }
     return header;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

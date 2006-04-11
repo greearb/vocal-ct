@@ -53,9 +53,6 @@
 
 #include "SipCommand.hxx"
 
-static const char* const RegisterMsgVersion
-= "$Id: RegisterMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 namespace Vocal
 {
 /**
@@ -112,8 +109,7 @@ namespace Vocal
     //See interface RegistrationManager::addRegistration() for more details
     </pre>
 */
-class RegisterMsg : public SipCommand
-{
+class RegisterMsg : public SipCommand {
     public:
         //
         enum RegisterMsgForward { registerMsgForward };
@@ -155,10 +151,4 @@ class RegisterMsg : public SipCommand
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

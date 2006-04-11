@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipCommand_cxx_version =
-    "$Id: SipCommand.cxx,v 1.5 2005/06/07 20:14:50 greear Exp $";
-
 #include "global.h"
 #include <cstdlib>
 #include <vector>

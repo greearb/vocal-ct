@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const BaseAuthentication_cxx_Version =
-    "$Id: BaseAuthentication.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
 
 #include "BaseAuthentication.hxx"
 #include "SipProxyAuthenticate.hxx"
@@ -74,8 +72,7 @@ addAuthorization(const StatusMsg& errorMsg,
     Data qop;
 //    Data user;
 
-    if(!useProxyAuthenticate)
-    {
+    if (!useProxyAuthenticate) {
 	SipWwwAuthenticate proxyAuth = errorMsg.getWwwAuthenticate();
 	
 	authScheme = proxyAuth.getAuthScheme();
@@ -86,8 +83,7 @@ addAuthorization(const StatusMsg& errorMsg,
 	qop = proxyAuth.getTokenValue("qop");
 //	user = proxyAuth.getTokenValue("username");
     }
-    else
-    {
+    else {
 	SipProxyAuthenticate proxyAuth = errorMsg.getProxyAuthenticate();
 	
 	authScheme = proxyAuth.getAuthScheme();
@@ -101,8 +97,7 @@ addAuthorization(const StatusMsg& errorMsg,
 
     cpLog(LOG_DEBUG, " Scheme is : %s", authScheme.logData());
 
-    if ( authScheme == AUTH_DIGEST )
-    {
+    if ( authScheme == AUTH_DIGEST ) {
 	Data method = cmdMsg.getRequestLine().getMethod();
     
 	Sptr< BaseUrl > baseUrl = cmdMsg.getRequestLine().getUrl();
@@ -114,22 +109,19 @@ addAuthorization(const StatusMsg& errorMsg,
 	Data cnonce;
     
 	cpLog( LOG_DEBUG, "qop: %s", qop.logData() );
-	if (qop.length())
-	{
+	if (qop.length()) {
 	    //cnonce, and noncecount are SHOULD
 	    noncecount = "00000001";
 	    cnonce = opaque;
             LocalScopeAllocator lo;
 	    unsigned int pos = string(qop.getData(lo)).find("auth");
 	
-	    if  (pos  != string::npos)
-	    {
+	    if  (pos  != string::npos) {
 		qop = "auth";
 		//the client can also find if this has a auth-int, and
 		//if it wants to support it, can set qop to auth-int.
 	    }
-	    else
-	    {
+	    else {
 		qop = "";
 	    }
 	}
@@ -146,21 +138,18 @@ addAuthorization(const StatusMsg& errorMsg,
 	cpLog( LOG_DEBUG, "noncecount: %s", noncecount.logData() );
 	cpLog( LOG_DEBUG, "opaque: %s", opaque.logData() );
     
-	if(!useProxyAuthenticate)
-	{
+	if(!useProxyAuthenticate) {
 	    cmdMsg.setAuthDigest(nonce, username, password, method, 
                                  realm, reqUri, qop, cnonce, alg,
                                  noncecount, opaque);
 	}
-	else
-	{
+	else {
 	    cmdMsg.setProxyAuthDigest(nonce, username, password, method, 
 				      realm, reqUri, qop, cnonce, alg,
 				      noncecount, opaque);
 	}
     }
-    else if (authScheme == AUTH_BASIC)
-    {
+    else if (authScheme == AUTH_BASIC) {
 	cmdMsg.setAuthBasic(username, password);
     }
 }
@@ -184,11 +173,3 @@ addWwwAuthorization(const StatusMsg& errorMsg,
 {
     addAuthorization(errorMsg, cmdMsg, username, password, false);
 }
-		      
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

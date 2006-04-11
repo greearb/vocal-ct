@@ -185,7 +185,6 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
 
    if ((registration->getStatusCode()  == 401) ||
        (registration->getStatusCode()  == 407)) {
-      delay = 0;
       cpLog(LOG_DEBUG, "The new delay is %d, status code: %d",
             delay, registration->getStatusCode());
       registration->setNextRegister(vgetCurMs() + (delay * 1000));

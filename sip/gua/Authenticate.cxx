@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const Authenticate_cxx_Version
-    = "$Id: Authenticate.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "Authenticate.hxx"
 #include "SipDigest.hxx"
 #include "BaseAuthentication.hxx"
@@ -70,15 +67,13 @@ bool Vocal::authenticateMessage(const StatusMsg& status,
     SipWwwAuthenticate wwwAuth = status.getWwwAuthenticate();
     SipProxyAuthenticate proxyAuth = status.getProxyAuthenticate();
     
-    if( wwwAuth.encode() != "")
-    {
+    if( wwwAuth.encode() != "") {
         // do something about the Www-Authenticate: header
         addWwwAuthorization(status, command, user, password);
         return true;
     }
     
-    if( proxyAuth.encode() != "")
-    {
+    if( proxyAuth.encode() != "") {
         cpLog(LOG_DEBUG, "Proxy Challenged with 407");
         // do something about the Proxy-Authenticate: header
         addProxyAuthorization(status, command, user, password);
@@ -89,11 +84,3 @@ bool Vocal::authenticateMessage(const StatusMsg& status,
     // purposes of authenticating the message.  return false.
     return false;
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

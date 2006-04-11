@@ -49,9 +49,6 @@
  */
 
 
-static const char* const CallAgent_cxx_Version =
-    "$Id: CallAgent.cxx,v 1.8 2005/06/07 20:14:50 greear Exp $";
-
 #include "ByeMsg.hxx"
 #include "InviteMsg.hxx"
 #include "CancelMsg.hxx"

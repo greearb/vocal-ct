@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const RegistrationManager_hxx_Version =
-    "$Id: RegistrationManager.hxx,v 1.3 2004/06/18 07:06:04 greear Exp $";
 #include <vector>
 #include <map>
 
