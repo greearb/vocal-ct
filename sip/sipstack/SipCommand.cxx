@@ -1034,8 +1034,11 @@ SipCommand::setProxyAuthDigest(const Data& nonce, const Data& user,
 
     SipDigest sipDigest;
 
-    Data response = sipDigest.form_SIPdigest(nonce, user, pwd, method,
-                    requestURI, realm, qop, cnonce, alg, noncecount);
+    Data response = sipDigest.form_SIPdigest(nonce.c_str(), user.c_str(),
+                                             pwd.c_str(), method.c_str(),
+                                             requestURI.c_str(), realm.c_str(),
+                                             qop.c_str(), cnonce.c_str(),
+                                             alg.c_str(), noncecount.c_str());
 
     cpLog(LOG_DEBUG_STACK, "setAuthDigest::Response = %s\n", 
 	  response.logData());
@@ -1089,8 +1092,11 @@ SipCommand::setAuthDigest(const Data& nonce, const Data& user,
 
     SipDigest sipDigest;
 
-    Data response = sipDigest.form_SIPdigest(nonce, user, pwd, method,
-                    requestURI, realm, qop, cnonce, alg, noncecount);
+    Data response = sipDigest.form_SIPdigest(nonce.c_str(), user.c_str(),
+                                             pwd.c_str(), method.c_str(),
+                                             requestURI.c_str(), realm.c_str(),
+                                             qop.c_str(), cnonce.c_str(),
+                                             alg.c_str(), noncecount.c_str());
 
     cpLog(LOG_DEBUG_STACK, "setAuthDigest::Response = %s\n", 
 	  response.logData());
@@ -1216,16 +1222,16 @@ SipCommand::checkAuthDigest(const Data& nonce,
 
         SipDigest sipDigest;
 
-        Data response = sipDigest.form_SIPdigest(nonce, 
-                                                 user, 
-                                                 pwd, 
-                                                 method,
-                                                 requestURI, 
-                                                 realm, 
-                                                 Data(""),
-                                                 Data(""), 
-                                                 algorithm,
-                                                 Data(""));
+        Data response = sipDigest.form_SIPdigest(nonce.c_str(), 
+                                                 user.c_str(), 
+                                                 pwd.c_str(), 
+                                                 method.c_str(),
+                                                 requestURI.c_str(), 
+                                                 realm.c_str(), 
+                                                 "",
+                                                 "",
+                                                 algorithm.c_str(),
+                                                 "");
 
         cpLog(LOG_DEBUG_STACK, "Message digest    == %s", 
               checksum.logData());

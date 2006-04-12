@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const SipDigestVersion =
-    "$Id: SipDigest.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
 
 #include "digest.hxx"
 #include "Data.hxx"
@@ -62,31 +60,23 @@ namespace Vocal
 {
 
 ///
-class SipDigest
-{
+class SipDigest {
     public:
         ///
         SipDigest();
         ///
         ~SipDigest();
         ///
-        Data form_SIPdigest(const Data& nonce, const Data& user,
-                            const Data& pwd, const Data& method,
-                            const Data& requestURI,
-                            const Data& realm,
-                            const Data& qop,
-                            const Data& cnonce,
-                            const Data& alg,
-                            const Data& noncecount);
+        Data form_SIPdigest(const char* nonce, const char* user,
+                            const char* pwd, const char* method,
+                            const char* requestURI,
+                            const char* realm,
+                            const char* qop,
+                            const char* cnonce,
+                            const char* alg,
+                            const char* noncecount);
 };
  
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

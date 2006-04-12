@@ -52,6 +52,7 @@
 #include "BaseAuthentication.hxx"
 #include "SipProxyAuthenticate.hxx"
 #include "SipCommand.hxx"
+#include <RandomHex.hxx>
 
 using namespace Vocal;
 
@@ -108,9 +109,10 @@ addAuthorization(const StatusMsg& errorMsg,
     
 	cpLog( LOG_DEBUG, "qop: %s", qop.logData() );
 	if (qop.length()) {
-	    //cnonce, and noncecount are SHOULD
+	    //cnonce, and noncecount are SHOULD.
+            // Seems they are MUST if qop exists. --Ben
 	    noncecount = "00000001";
-	    cnonce = opaque;
+	    cnonce = RandomHex::get(16);
             LocalScopeAllocator lo;
 	    unsigned int pos = string(qop.getData(lo)).find("auth");
 	

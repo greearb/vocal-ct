@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipDigest_cxx_version =
-    "$Id: SipDigest.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "SipDigest.hxx"
 #include "cpLog.h"
@@ -71,51 +68,29 @@ SipDigest::~SipDigest()
 
 
 Data 
-SipDigest::form_SIPdigest( const Data& nonce, 
-                           const Data& user,
-			   const Data& pwd, 
-                           const Data& method,
-			   const Data& requestURI,
-			   const Data& realm,
-			   const Data& qop,
-			   const Data& cnonce,
-			   const Data& alg,
-			   const Data& noncecount)
+SipDigest::form_SIPdigest( const char* nonce, 
+                           const char* user,
+			   const char* pwd, 
+                           const char* method,
+			   const char* requestURI,
+			   const char* realm,
+			   const char* qop,
+			   const char* cnonce,
+			   const char* alg,
+			   const char* noncecount)
 {
     HASHHEX HA1;
     HASHHEX HA2 = "";
     HASHHEX response;
 
-    char algstr[1024];
-    char userstr[1024];
-    char realmstr[1024];
-    char pwdstr[1024];
-    char noncestr[1024];
-    char cnoncestr[1024];
-    char noncecountstr[1024];
-    char qopstr[1024];
-    char methodstr[1024];
-    char reqURIstr[1024];
-
-    alg.getData(algstr,1024);
-    user.getData(userstr,1024);
-    realm.getData(realmstr,1024);
-    pwd.getData(pwdstr,1024);
-    nonce.getData(noncestr,1024);
-    cnonce.getData(cnoncestr,1024);
-    noncecount.getData(noncecountstr,1024);
-    qop.getData(qopstr,1024);
-    method.getData(methodstr,1024);
-    requestURI.getData(reqURIstr,1024);
-
-    DigestCalcHA1(algstr, userstr, realmstr, pwdstr, noncestr, cnoncestr, HA1);
+    DigestCalcHA1(alg, user, realm, pwd, nonce, cnonce, HA1);
     DigestCalcResponse(HA1, 
-                       noncestr, 
-                       noncecountstr, 
-                       cnoncestr, 
-                       qopstr, 
-                       methodstr, 
-                       reqURIstr, 
+                       nonce, 
+                       noncecount, 
+                       cnonce, 
+                       qop, 
+                       method, 
+                       requestURI, 
                        HA2, 
                        response);
 
@@ -124,10 +99,3 @@ SipDigest::form_SIPdigest( const Data& nonce,
     return response;
 }
 
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
