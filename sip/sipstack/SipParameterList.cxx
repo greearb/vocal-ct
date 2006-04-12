@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipParameterList_cxx_Version =
-    "$Id: SipParameterList.cxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
-
 #include "global.h"
 #include "SipParameterList.hxx"
 

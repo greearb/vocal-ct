@@ -70,7 +70,6 @@ addAuthorization(const StatusMsg& errorMsg,
     Data alg;
     Data opaque;
     Data qop;
-//    Data user;
 
     if (!useProxyAuthenticate) {
 	SipWwwAuthenticate proxyAuth = errorMsg.getWwwAuthenticate();
@@ -81,7 +80,6 @@ addAuthorization(const StatusMsg& errorMsg,
 	alg = proxyAuth.getTokenValue("algorithm");
 	opaque = proxyAuth.getTokenValue("opaque");
 	qop = proxyAuth.getTokenValue("qop");
-//	user = proxyAuth.getTokenValue("username");
     }
     else {
 	SipProxyAuthenticate proxyAuth = errorMsg.getProxyAuthenticate();
@@ -92,10 +90,10 @@ addAuthorization(const StatusMsg& errorMsg,
 	alg = proxyAuth.getTokenValue("algorithm");
 	opaque = proxyAuth.getTokenValue("opaque");
 	qop = proxyAuth.getTokenValue("qop");
-//	user = proxyAuth.getTokenValue("username");
     }
 
-    cpLog(LOG_DEBUG, " Scheme is : %s", authScheme.logData());
+    cpLog(LOG_ERR, " NOTE:  Auth Scheme is: %s  alg: %s  proxyAuth: %d",
+          authScheme.logData(), alg.c_str(), useProxyAuthenticate);
 
     if ( authScheme == AUTH_DIGEST ) {
 	Data method = cmdMsg.getRequestLine().getMethod();
@@ -151,6 +149,9 @@ addAuthorization(const StatusMsg& errorMsg,
     }
     else if (authScheme == AUTH_BASIC) {
 	cmdMsg.setAuthBasic(username, password);
+    }
+    else {
+        cpLog(LOG_ERR, "ERROR:  Un-handled authScheme: %s\n", authScheme.c_str());
     }
 }
 

@@ -1043,45 +1043,35 @@ SipCommand::setProxyAuthDigest(const Data& nonce, const Data& user,
     //set this as response in authorization.    
     authorization->setAuthScheme(AUTH_DIGEST);
 
-    if(user != "")
-    {
-        authorization->setTokenDetails("username", user); //1
+    if(user != "") {
+       authorization->setTokenDetails("username", user); //1
     }
-    if(realm != "")
-    {
-        authorization->setTokenDetails("realm", realm);  //2
+    if(realm != "") {
+       authorization->setTokenDetails("realm", realm);  //2
     }
-    if(nonce != "")
-    {
-        authorization->setTokenDetails("nonce", nonce);  //3
+    if(nonce != "") {
+       authorization->setTokenDetails("nonce", nonce);  //3
     }
-    if(response != "")
-    {
-        authorization->setTokenDetails("response", response); //4
+    if(response != "") {
+       authorization->setTokenDetails("response", response); //4
     }
-    if(qop != "")
-    {
-        authorization->setTokenDetails("qop", qop); //5
+    if(qop != "") {
+       authorization->setTokenDetails("qop", qop); //5
     }
-    if(requestURI != "")
-    {
-        authorization->setTokenDetails("uri", requestURI); //6
+    if(requestURI != "") {
+       authorization->setTokenDetails("uri", requestURI); //6
     }
-    if(cnonce != "")
-    {
-        authorization->setTokenDetails("cnonce", cnonce); //7
+    if(cnonce != "") {
+       authorization->setTokenDetails("cnonce", cnonce); //7
     }
-    if(noncecount != "")
-    {
-        authorization->setTokenDetails("nc", noncecount); //8
+    if(noncecount != "") {
+       authorization->setTokenDetails("nc", noncecount); //8
     }
-    if(opaque != "")
-    {
-        authorization->setTokenDetails("opaque", opaque); //9
+    if(opaque != "") {
+       authorization->setTokenDetails("opaque", opaque); //9
     }
-    if(alg != "")
-    {
-        authorization->setTokenDetails("algorithm", alg); // 10
+    if(alg != "") {
+       authorization->setTokenDetails("algorithm", alg); // 10
     }
 }
 
@@ -1108,44 +1098,34 @@ SipCommand::setAuthDigest(const Data& nonce, const Data& user,
     //set this as response in authorization.    
     authorization->setAuthScheme(AUTH_DIGEST);
     
-    if(user != "")
-    {
-        authorization->setTokenDetails("username", user); //1
+    if(user != "") {
+       authorization->setTokenDetails("username", user); //1
     }
-    if(realm != "")
-    {
-        authorization->setTokenDetails("realm", realm);  //2
+    if(realm != "") {
+       authorization->setTokenDetails("realm", realm);  //2
     }
-    if(nonce != "")
-    {
-        authorization->setTokenDetails("nonce", nonce);  //3
+    if(nonce != "") {
+       authorization->setTokenDetails("nonce", nonce);  //3
     }
-    if(response != "")
-    {
-        authorization->setTokenDetails("response", response); //4
+    if(response != "") {
+       authorization->setTokenDetails("response", response); //4
     }
-    if(qop != "")
-    {
-        authorization->setTokenDetails("qop", qop); //5
+    if(qop != "") {
+       authorization->setTokenDetails("qop", qop); //5
     }
-    if(requestURI != "")
-    {
-        authorization->setTokenDetails("uri", requestURI); //6
+    if(requestURI != "") {
+       authorization->setTokenDetails("uri", requestURI); //6
     }
-    if(cnonce != "")
-    {
-        authorization->setTokenDetails("cnonce", cnonce); //7
+    if(cnonce != "") {
+       authorization->setTokenDetails("cnonce", cnonce); //7
     }
-    if(noncecount != "")
-    {
-        authorization->setTokenDetails("nc", noncecount); //8
+    if(noncecount != "") {
+       authorization->setTokenDetails("nc", noncecount); //8
     }
-    if(opaque != "")
-    {
-        authorization->setTokenDetails("opaque", opaque); //9
+    if(opaque != "") {
+       authorization->setTokenDetails("opaque", opaque); //9
     }
-    if(alg != "")
-    {
+    if(alg != "") {
         authorization->setTokenDetails("algorithm", alg); // 10
     }
 }

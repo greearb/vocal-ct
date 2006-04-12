@@ -82,5 +82,6 @@ bool Vocal::authenticateMessage(const StatusMsg& status,
 
     // if it reaches here, I was unable to extract information for the
     // purposes of authenticating the message.  return false.
+    cpLog(LOG_ERR, "ERROR:  Couldn't extract enough info to authenticate!\n");
     return false;
 }

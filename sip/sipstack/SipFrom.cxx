@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipFrom_cxx_Version =
-    "$Id: SipFrom.cxx,v 1.4 2004/08/18 07:18:51 greear Exp $";
-
 #include "global.h"
 #include "SipFrom.hxx"
 #include "symbols.hxx"
@@ -579,7 +576,12 @@ Data SipFrom::encode() const
 	sipFrom = FROM;
 	sipFrom += SP;
 	Data dispName = getDisplayName();
-        sipFrom += dispName;
+        if (dispName != "") {
+           sipFrom += "\"";
+           sipFrom += dispName;
+           sipFrom += "\"";
+           sipFrom += SP;
+        }
 	sipFrom += "<";
 	sipFrom += fromUrl->encode();
 	sipFrom+= ">";

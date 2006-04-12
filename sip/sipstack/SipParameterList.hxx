@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipParameterList_hxx_Version =
-    "$Id: SipParameterList.hxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
-
 #include <map>
 
 #include "global.h"
@@ -74,35 +71,32 @@ enum SipParameterListErrorType
 };
 
 ///
-class SipParameterListParserException : public VException
-{
-    public:
-        ///
-        SipParameterListParserException( const string& msg,
-                                         const string& file,
-                                         const int line,
-                                         const int error = 0 );
-    
-        ///
-        SipParameterListParserException( const string& msg,
-                                         const string& file,
-                                         const int line,
-                                         SipParameterListErrorType i)
-            : VException( msg, file, line, static_cast < int > (i))
-            {
-                value = i;
-            }
+class SipParameterListParserException : public VException {
+public:
+   ///
+   SipParameterListParserException( const string& msg,
+                                    const string& file,
+                                    const int line,
+                                    const int error = 0 );
+   
+   ///
+   SipParameterListParserException( const string& msg,
+                                    const string& file,
+                                    const int line,
+                                    SipParameterListErrorType i)
+         : VException( msg, file, line, static_cast < int > (i)) {
+      value = i;
+   }
+   
+   ///
+   SipParameterListErrorType getError() const {
+      return value;
+   }
 
-        ///
-        SipParameterListErrorType getError() const
-            {
-                return value;
-            }
-
-        ///
-        string getName() const ;
-    private:
-        SipParameterListErrorType value;
+   ///
+   string getName() const ;
+private:
+   SipParameterListErrorType value;
 
 };
 
@@ -113,49 +107,49 @@ class SipParameterListParserException : public VException
     match up to NIST's approach, so we'll take it.  */
 
 class SipParameterList : public std::map <Data, Data> {
-    public:
-	/// Create one with default values
-        SipParameterList(char delimiter=';');
-	///
-	SipParameterList(const Data& data, char delimiter=';') throw(SipParameterListParserException &) ;
-	///
-	SipParameterList(const SipParameterList& src );
-    
-	///
-	~SipParameterList();
-
-	/** return the encoded string version of this. This call
-            should only be used inside the stack and is not part of
-            the API */
-	Data encode() const ;
-
-	///parser functions
-        // Returns < 0 on error.
-	int decode(Data data, char delimiter=';', bool eatWhitespace=true);
-
-        ///
-        Data getValue(const Data& key) const;
-
-        ///
-        void setValue(const Data& key, const Data& value);
-
-        /// clear the value for key 
-        void clearValue(const Data& key);
-
-        ///
-        const SipParameterList&  operator=(const SipParameterList& src) {
-            if(this != &src) {
-                // 24/11/03 fpi
-                // WorkAround Win32
-                // ! std::map<Data, Data>::operator=(src);
-                map<Data, Data>::operator=(src);
-                myDelimiter = src.myDelimiter; 
-            }
-            return *this;
-        }
-
-    private:
-        char     myDelimiter;
+public:
+   /// Create one with default values
+   SipParameterList(char delimiter=';');
+   ///
+   SipParameterList(const Data& data, char delimiter=';') throw(SipParameterListParserException &) ;
+   ///
+   SipParameterList(const SipParameterList& src );
+   
+   ///
+   ~SipParameterList();
+   
+   /** return the encoded string version of this. This call
+       should only be used inside the stack and is not part of
+       the API */
+   Data encode() const ;
+   
+   ///parser functions
+   // Returns < 0 on error.
+   int decode(Data data, char delimiter=';', bool eatWhitespace=true);
+   
+   ///
+   Data getValue(const Data& key) const;
+   
+   ///
+   void setValue(const Data& key, const Data& value);
+   
+   /// clear the value for key 
+   void clearValue(const Data& key);
+   
+   ///
+   const SipParameterList&  operator=(const SipParameterList& src) {
+      if(this != &src) {
+         // 24/11/03 fpi
+         // WorkAround Win32
+         // ! std::map<Data, Data>::operator=(src);
+         map<Data, Data>::operator=(src);
+         myDelimiter = src.myDelimiter; 
+      }
+      return *this;
+   }
+   
+private:
+   char     myDelimiter;
 };
 
  

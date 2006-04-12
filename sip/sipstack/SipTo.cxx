@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipTo_cxx_Version =
-    "$Id: SipTo.cxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
-
 #include "global.h"
 #include "SipTo.hxx"
 #include "symbols.hxx"
@@ -712,9 +709,11 @@ SipTo::encode() const
 	sipTo = TO;
 	sipTo += SP;
 	
-	if (displayName.length())
-	{
-	    sipTo += displayName;
+	if (displayName.length()) {
+           sipTo += "\"";
+           sipTo += displayName;
+           sipTo += "\"";
+           sipTo += SP;
 	}
 	sipTo += "<";
 	    
