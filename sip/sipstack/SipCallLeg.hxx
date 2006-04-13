@@ -52,13 +52,7 @@
  */
 
 #include "global.h"
-static const char* const SipCallLegVersion =
-    "$Id: SipCallLeg.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
-
-
-
 #include "Data.hxx"
-
 #include "SipFrom.hxx"
 #include "SipCallId.hxx"
 #include "SipCSeq.hxx"

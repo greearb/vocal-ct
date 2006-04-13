@@ -51,10 +51,6 @@
  *
  */
 
-static const char* const SipTo_hxx_Version =
-    "$Id: SipTo.hxx,v 1.4 2004/06/16 06:51:26 greear Exp $";
-
-
 #include "global.h"
 #include "Data.hxx"
 #include "BaseUrl.hxx"
@@ -234,10 +230,4 @@ private:
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 #endif

@@ -49,10 +49,6 @@
  */
 
 
-static const char* const UaCallControl_cxx_Version =
-    "$Id: UaCallControl.cxx,v 1.13 2005/06/07 20:14:50 greear Exp $";
-
-
 #include "SipEvent.hxx" 
 #include "CallTimerEvent.hxx" 
 #include "CallDB.hxx" 

@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const StateTrying_cxx_Version = 
-"$Id: StateTrying.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
 
 #include <stdio.h>
 
@@ -105,25 +103,20 @@ StateTrying::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
     assert(statusMsg != 0);
     int statusCode = statusMsg->getStatusLine().getStatusCode();
     cpLog(LOG_DEBUG, "StateTrying::recvStatus[%s]", statusMsg->encode().logData());
-    if(statusCode == 200)
-    {
+    if(statusCode == 200) {
         agent.inCall();
     }
-    else if((statusCode == 401) || (statusCode == 407))
-    {
+    else if ((statusCode == 401) || (statusCode == 407)) {
         agent.doAuthentication(statusMsg);
     }
-    else if((statusCode == 302) && (msg->getCSeq().getMethod() == INVITE_METHOD) )
-    {
+    else if((statusCode == 302) && (msg->getCSeq().getMethod() == INVITE_METHOD) ) {
         //TODO, for now do nothing
     }
-    else if(statusCode > 200)
-    {
+    else if(statusCode > 200) {
         agent.doCancel();
     }
     else if((statusCode == 180)||
-            (statusCode == 183))
-    {
+            (statusCode == 183)) {
         ringing(agent);
     }
 }

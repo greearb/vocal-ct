@@ -407,8 +407,7 @@ void UaFacade::process(Sptr < SipProxyEvent > event) {
 }//process
 
 
-void
-UaFacade::postMsg(Sptr<SipMsg> sMsg) {
+void UaFacade::postMsg(Sptr<SipMsg> sMsg) {
     assert(sMsg != 0);
     strstream s;
 

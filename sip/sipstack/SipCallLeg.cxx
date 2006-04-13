@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipCallLeg_cxx_Version =
-    "$Id: SipCallLeg.cxx,v 1.4 2004/10/25 23:21:14 greear Exp $";
-
 #include "global.h"
 #include "symbols.hxx"
 #include "SipUrl.hxx"
@@ -90,16 +87,14 @@ SipCallLeg::SipCallLeg( const SipCallLeg& src)
 
 
 SipCallLeg&
-SipCallLeg::operator=( const SipCallLeg& rhs )
-{
-    if (&rhs != this)
-    {
-        from = rhs.from;
-        to = rhs.to;
-        callId = rhs.callId;
-        cseq = rhs.cseq;
-    }
-    return (*this);
+SipCallLeg::operator=( const SipCallLeg& rhs ) {
+   if (&rhs != this) {
+      from = rhs.from;
+      to = rhs.to;
+      callId = rhs.callId;
+      cseq = rhs.cseq;
+   }
+   return (*this);
 }
 
 
@@ -121,11 +116,13 @@ SipCallLeg::setFrom( const SipFrom& newfrom )
 }
 
 
-bool
-SipCallLeg::operator == (const SipCallLeg& src) const {
+bool SipCallLeg::operator == (const SipCallLeg& src) const {
    cpLog(LOG_DEBUG, "in SipCallLeg::operator == ");
    if ( getCallId() == src.getCallId()) {
       if (cseq == src.cseq) {
+         // Calling this a match.
+         return true;
+#if 0
          // If the to or from ends in :5060, ignore it, because that is
          // the default, and other stacks may not put it on...
          char cooked_to[to.size() + 1];
@@ -197,6 +194,7 @@ SipCallLeg::operator == (const SipCallLeg& src) const {
                }
             }
          }
+#endif
       }
       else {
          cpLog(LOG_DEBUG_STACK, "cseq don't match, cseq: %s  src.cseq: %s",
@@ -218,70 +216,64 @@ SipCallLeg::operator != (const SipCallLeg& src) const
 }
 
 
-bool
-SipCallLeg::operator < (const SipCallLeg& rhs) const
-{
-    Data lhsTo = to;
-    Data lhsFrom = from;
-    if ( callId < rhs.callId )
-    {
-        cpLog( LOG_DEBUG, "CallId < rhs.CallId" );
-        return true;
-    }
-    else if ( callId == rhs.callId )
-    {
-        if(cseq < rhs.cseq)
-        {
-            cpLog( LOG_DEBUG, "cseq < rhs.cseq" );
+bool SipCallLeg::operator < (const SipCallLeg& rhs) const {
+   Data lhsTo = to;
+   Data lhsFrom = from;
+
+   // If operator==, then return false.
+   if (*this == rhs) {
+      return false;
+   }
+
+   if ( callId < rhs.callId ) {
+      cpLog( LOG_DEBUG, "CallId < rhs.CallId" );
+      return true;
+   }
+   else if ( callId == rhs.callId ) {
+      if (cseq < rhs.cseq) {
+         cpLog( LOG_DEBUG, "cseq < rhs.cseq" );
+         return true;
+      }
+      else {
+         cpLog( LOG_DEBUG, "Call ID  && cseq match" );
+         
+         Data rhsTo = rhs.to;
+         Data rhsFrom = rhs.from;
+         
+         /*
+           cpLog( LOG_DEBUG, "    To  : %s", to.logData() );
+           cpLog( LOG_DEBUG, "    From: %s", from.logData() );
+           cpLog( LOG_DEBUG, "rhs To  : %s", rhsTo.logData() );
+           cpLog( LOG_DEBUG, "rhs From: %s", rhsFrom.logData() );
+         */
+         
+         if ( lhsFrom < lhsTo ) {
+            // Sort this
+            Data temp( lhsTo );
+            lhsTo = lhsFrom;
+            lhsFrom = temp;
+         }
+         if ( rhsFrom < rhsTo ) {
+            // Sort rhs
+            Data temp( rhsTo );
+            rhsTo = rhsFrom;
+            rhsFrom = temp;
+         }
+         
+         if ( lhsTo < rhsTo ) {
             return true;
-        }
-        else
-        {
-            cpLog( LOG_DEBUG, "Call ID  && cseq match" );
-
-            Data rhsTo = rhs.to;
-            Data rhsFrom = rhs.from;
-
-        /*
-               cpLog( LOG_DEBUG, "    To  : %s", to.logData() );
-               cpLog( LOG_DEBUG, "    From: %s", from.logData() );
-               cpLog( LOG_DEBUG, "rhs To  : %s", rhsTo.logData() );
-               cpLog( LOG_DEBUG, "rhs From: %s", rhsFrom.logData() );
-        */
-
-            if ( lhsFrom < lhsTo )
-            {
-                // Sort this
-                Data temp( lhsTo );
-                lhsTo = lhsFrom;
-                lhsFrom = temp;
+         }
+         else if ( lhsTo == rhsTo ) {
+            if ( lhsFrom < rhsFrom ) {
+               return true;
             }
-            if ( rhsFrom < rhsTo )
-            {
-                // Sort rhs
-                Data temp( rhsTo );
-                rhsTo = rhsFrom;
-                rhsFrom = temp;
+            else if ( lhsFrom == rhsFrom ) {
+               return false;
             }
-
-            if ( lhsTo < rhsTo )
-            {
-                return true;
-            }
-            else if ( lhsTo == rhsTo )
-            {
-                if ( lhsFrom < rhsFrom )
-                {
-                    return true;
-                }
-                else if ( lhsFrom == rhsFrom )
-                {
-                    return false;
-                }
-            }
-        }
-    }
-    return false;
+         }
+      }
+   }
+   return false;
 }
 
 

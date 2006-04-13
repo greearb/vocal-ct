@@ -49,10 +49,6 @@
  */
 
 
-
-static const char* const UacStateTrying_cxx_Version =
-    "$Id: UacStateTrying.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
-
 #include "UacStateTrying.hxx"
 #include "UaStateFactory.hxx"
 #include "BasicAgent.hxx"
@@ -62,112 +58,129 @@ static const char* const UacStateTrying_cxx_Version =
 using namespace Vocal::UA;
 using Vocal::UA::UacStateTrying;
 
-int
-UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    cpLog(LOG_DEBUG, "UacStateTrying::recvRequest");
-    if((msg->getType() == SIP_CANCEL) ||
-       (msg->getType() == SIP_BYE))
-    {
-        Sptr<SipCommand> sipCmd;
-        sipCmd.dynamicCast(agent.getRequest());
-        Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd); 
-        cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-        agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
-        return 0;
-    }
-    else
-    {
-        cpLog(LOG_ERR, "Expecting Cancel, got wrong message type");
-        return -EINVAL;
-    }
+int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+   cpLog(LOG_DEBUG, "UacStateTrying::sendRequest");
+   if ((msg->getType() == SIP_CANCEL) ||
+      (msg->getType() == SIP_BYE)) {
+      Sptr<SipCommand> sipCmd;
+      sipCmd.dynamicCast(agent.getRequest());
+      Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd); 
+      cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
+      agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
+      return 0;
+   }
+   else if (msg->getType() == SIP_INVITE) {
+      Sptr<SipCommand> sipCmd;
+      sipCmd.dynamicCast(msg);
+      if (sipCmd.getPtr()) {
+         // Valid reason includes having to authenticate the previous INVITE that got us into this state...
+         cpLog(LOG_ERR, "WARNING:  Sending SIP_INVITE from UacStateTrying, assume is Authentication.\n");
+         agent.getSipTransceiver()->sendAsync(sipCmd.getPtr());
+         cpLog(LOG_ERR, "WARNING:  Done sending SIP_INVITE from UacStateTrying.\n");
+         return 0;
+      }
+      else {
+         cpLog(LOG_ERR, "Couldn't convert msg:\n%s\nto a SipCommand!\n", msg->toString().c_str());
+         return -EINVAL;
+      }
+   }
+   else {
+      cpLog(LOG_ERR, "Expecting Cancel or Bye, got wrong message type: %d  msg:\n%s\n",
+            msg->getType(), msg->toString().c_str());
+      return -EINVAL;
+   }
 }
 
 void 
 UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(msg);
-    assert(statusMsg != 0);
-    int statusCode = statusMsg->getStatusLine().getStatusCode();
-    cpLog(LOG_DEBUG, "UacStateTrying::recvStatus:%d", statusCode);
-    if(statusCode == 200 )
-    {
-        //Save final response for future BYE
-        agent.setResponse(msg);
-        agent.saveRouteList(msg, true);
-        Sptr<SipSdp> sdp;
-        sdp.dynamicCast(msg->getContentData(0));
-        agent.setRemoteSdp(sdp);
-        
-        //Received a request, get the received IP and
-        //Set it in SDP
-        Data receivedIp = msg->getReceivedIPName();
+                 throw (CInvalidStateException&) {
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(msg);
+   assert(statusMsg != 0);
+   int statusCode = statusMsg->getStatusLine().getStatusCode();
+   cpLog(LOG_DEBUG, "UacStateTrying::recvStatus:%d", statusCode);
+   if (statusCode == 200 ) {
+      //Save final response for future BYE
+      agent.setResponse(msg);
+      agent.saveRouteList(msg, true);
+      Sptr<SipSdp> sdp;
+      sdp.dynamicCast(msg->getContentData(0));
+      agent.setRemoteSdp(sdp);
+      
+      //Received a request, get the received IP and
+      //Set it in SDP
+      Data receivedIp = msg->getReceivedIPName();
 //        assert(strstr(receivedIp.c_str(), ":") == NULL);
-        agent.fixSdpForNat(msg, receivedIp);
+      agent.fixSdpForNat(msg, receivedIp);
 
-        //Notify CC
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-            ba->receivedStatus(agent, msg);
-        }
-        agent.setCallLegState(C_LIVE);
-        //Transit to Incall
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
-    }
-    else if(statusCode > 200) {
-        if (statusCode != 408) {
-            //Send ACK message
-            Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
-            SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
-            Sptr<SipCommand> sCommand;
-            sCommand.dynamicCast(agent.getRequest());
-            assert(sCommand != 0);
-	    addSelfInVia(agent, ackMsg.getPtr());
-            ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
-            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s" ,
-                  statusCode, ackMsg->encode().logData());
-        }
-	if (statusCode == 302){
-	    SipContactList contactList = statusMsg->getContactList();
-	    if(!contactList.empty()) {
-	        changeState(agent, UaStateFactory::instance().getState(U_STATE_REDIRECT)); 
-	    }
-            else {
-	        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE)); 
-                Sptr<BasicAgent> ba = agent.getControllerAgent();
-                if (ba != 0) {
-                   ba->callFailed();
-                }
-                return;
+      //Notify CC
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg);
+      }
+      agent.setCallLegState(C_LIVE);
+      //Transit to Incall
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
+   }
+   else if (statusCode > 200) {
+      if (statusCode != 408) {
+         //Send ACK message
+         Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
+         SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
+         Sptr<SipCommand> sCommand;
+         sCommand.dynamicCast(agent.getRequest());
+         assert(sCommand != 0);
+         addSelfInVia(agent, ackMsg.getPtr());
+         ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
+         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+         cpLog(LOG_INFO, "Sent Ack for status (%d), ack-msg:\n%s\n" ,
+               statusCode, ackMsg->encode().logData());
+      }
+
+      // Deal with AUTH requests.
+      if ((statusCode == 401) || (statusCode == 407)) {
+         // Don't change state..basic agent will send the auth.
+         cpLog(LOG_ERR, "NOTE:  Received auth-needed status code: %d.  Not changing state, assume agent will authenticate.\n", statusCode);
+      }
+      else if (statusCode == 302){
+         SipContactList contactList = statusMsg->getContactList();
+         if (!contactList.empty()) {
+            changeState(agent, UaStateFactory::instance().getState(U_STATE_REDIRECT)); 
+         }
+         else {
+            changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE)); 
+            Sptr<BasicAgent> ba = agent.getControllerAgent();
+            if (ba != 0) {
+               ba->callFailed();
             }
-	}
-	else{
-        //Transit to Idle
-	    changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-	}
-        //Notify CC
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->receivedStatus(agent, msg);
-        }
-    }
-    else {
-        //For 1xx
-        //Notify CC
-        if ((statusCode >= 180)) {
-            //Transit to ringing
-            changeState(agent, UaStateFactory::instance().getState(U_STATE_RINGING));
-        }
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->receivedStatus(agent, msg);
-        }
-    }
+            return;
+         }
+      }
+      else{
+         //Transit to Idle
+         changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+      }
+
+      //Notify CC
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg);
+      }
+   }
+   else {
+      //For 1xx
+      //Notify CC
+      if ((statusCode >= 180)) {
+         //Transit to ringing
+         changeState(agent, UaStateFactory::instance().getState(U_STATE_RINGING));
+      }
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg);
+      }
+   }
 }
 
 

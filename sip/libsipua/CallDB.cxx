@@ -49,10 +49,6 @@
  */
 
 
-static const char* const CallDB_cxx_Version =
-    "$Id: CallDB.cxx,v 1.3 2004/10/25 23:21:14 greear Exp $";
-
-
 #include "UaDef.hxx" 
 #include "CallDB.hxx" 
 
@@ -139,23 +135,21 @@ CallDB::addPeer(Sptr<UaBase> userAgent, Sptr<UaBase> peerAgent)
 }
 
 Sptr<MultiLegCallData> 
-CallDB::getMultiLegCallData(const SipCallLeg& callLeg)
-{
-    //cerr << "CallDB::getMultiLegCallData:" << myMultiLegCallDataMap.size() << endl; 
-    Sptr<MultiLegCallData> retVal = 0;
-    MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(callLeg);
-    if(itr != myMultiLegCallDataMap.end())
-    {
+CallDB::getMultiLegCallData(const SipCallLeg& callLeg) {
+   //cerr << "CallDB::getMultiLegCallData:" << myMultiLegCallDataMap.size() << endl; 
+   Sptr<MultiLegCallData> retVal = 0;
+   MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(callLeg);
+   if (itr != myMultiLegCallDataMap.end()) {
         retVal = (*itr).second;
-    }
-    else {
-       cpLog(LOG_DEBUG, "CallDB Call Leg not found %s, sz: %d",
-             callLeg.encode().logData(), myMultiLegCallDataMap.size());
-       for (itr = myMultiLegCallDataMap.begin(); itr != myMultiLegCallDataMap.end(); itr++) {
-          cpLog(LOG_DEBUG, "Possible match: %s", (*itr).first.encode().c_str());
-       }
-    }
-    return retVal;
+   }
+   else {
+      cpLog(LOG_DEBUG, "CallDB Call Leg match not found %s, sz: %d",
+            callLeg.encode().logData(), myMultiLegCallDataMap.size());
+      for (itr = myMultiLegCallDataMap.begin(); itr != myMultiLegCallDataMap.end(); itr++) {
+         cpLog(LOG_DEBUG, "Possible match: %s", (*itr).first.encode().c_str());         
+      }
+   }
+   return retVal;
 }
 
 void 

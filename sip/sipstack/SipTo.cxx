@@ -708,11 +708,17 @@ SipTo::encode() const
     {
 	sipTo = TO;
 	sipTo += SP;
-	
-	if (displayName.length()) {
-           sipTo += "\"";
-           sipTo += displayName;
-           sipTo += "\"";
+
+        Data dispName(displayName);
+        dispName.removeSpaces();
+	if (dispName.length()) {
+           if (dispName[0] != '\"') {
+              sipTo += "\"";
+           }
+           sipTo += dispName;
+           if (dispName[dispName.length() - 1] != '\"') {
+              sipTo += "\"";
+           }
            sipTo += SP;
 	}
 	sipTo += "<";

@@ -49,10 +49,6 @@
  */
 
 
-
-static const char* const UaStateInCall_cxx_Version =
-    "$Id: UaStateInCall.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
-
 #include "UaStateInCall.hxx"
 #include "UaStateFactory.hxx"
 #include "SystemInfo.hxx"

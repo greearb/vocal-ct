@@ -279,6 +279,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
     case sendonly : {
        if ( desHost ) {
           // set the remote address
+          cpLog(LOG_ERR, "WARNING:  sendonly Udp stack\n");
           doClient(*desHost);
        }
        else {
@@ -313,7 +314,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
        break;
     }
     default :
-       cpLog(LOG_ERR, "undefined mode for udp stack");
+       cpLog(LOG_ERR, "ERROR:  undefined mode for udp stack");
        break;
    }//switch
 
@@ -360,10 +361,8 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
 }
 
 int UdpStack::doServer ( int minPort, int maxPort) {
-    /*
-        cpLog (LOG_DEBUG_STACK, "UdpStack::doServer");
-        cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
-    */
+   cpLog (LOG_DEBUG_STACK, "UdpStack::doServer, this: %p", this);
+   cpLog (LOG_DEBUG_STACK, "minPort = %d, maxPort = %d", minPort, maxPort);
 
     // this is a server
     if ( (minPort == -1) && (maxPort == -1) ) {
@@ -404,8 +403,8 @@ int UdpStack::doServer ( int minPort, int maxPort) {
        my_ip_addr.sin_addr.s_addr = htonl(lip);
        my_ip_addr.sin_port = htons(localPort);
        
-       cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%s desiredLocalIp: %s",
-             socketFd, localPort, desiredLocalIp.c_str());
+       cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%d desiredLocalIp: %s, this: %p",
+             socketFd, localPort, desiredLocalIp.c_str(), this);
        
        
        if (bind(socketFd, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
@@ -428,6 +427,12 @@ int UdpStack::doServer ( int minPort, int maxPort) {
                 cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
                       dv, strerror(errno));
              }
+             else {
+                cpLog(LOG_DEBUG, "Successfully bound to device: %s\n", dv);
+             }
+          }
+          else {
+             cpLog(LOG_DEBUG, "WARNING:  local device not specified.\n");
           }
 #endif
 
@@ -473,8 +478,8 @@ void UdpStack::doClient ( const NetworkAddress& desHost) {
     remoteAddr = desHost;
 }
 
-void
-UdpStack::connectPorts() {
+void UdpStack::connectPorts() {
+   cpLog(LOG_ERR, "NOTE:  In UdpStack::connectPorts.\n");
    if ((mode == recvonly) || (mode == inactive)) {
       cpLog(LOG_ERR, "The UdpStack is recvonly or inactive.");
       return ;
@@ -691,6 +696,7 @@ UdpStack::receive ( const char* buf, const int bufSize, int flags ) {
       numPacketsReceived += 1;
    }
 
+#if 0
    if ( (logFlag) && (len > 0) ) {
       strstream lenln1;
       lenln1 << ++rcvCount << " " << len << "\n" << char(0);
@@ -699,6 +705,7 @@ UdpStack::receive ( const char* buf, const int bufSize, int flags ) {
       in_log->write(separator, 6);
       lenln1.freeze(false);
    }
+#endif
 
    return len;
 }
@@ -793,6 +800,7 @@ int UdpStack::receiveFrom ( char* buffer,
        numPacketsReceived += 1;
     }
 
+#if 0
     if ( (logFlag) && (len > 0) ) {
        strstream lenln2;
        lenln2 << ++rcvCount << " " << len << "\n" << char(0);
@@ -801,6 +809,7 @@ int UdpStack::receiveFrom ( char* buffer,
        in_log->write(separator, 6);
        lenln2.freeze(false);
     }
+#endif
 
     return len;
 }//receiveFrom
@@ -982,6 +991,8 @@ UdpStack::queueTransmit ( const char* buf, const int length ) {
 int UdpStack::doTransmit(const char* buf, int ln) {
 
    int count = send(socketFd, (char *)buf, ln, 0 /* flags */ );
+   cpLog(LOG_DEBUG, "UdpStack::doTransmit, ln: %d  sent: %d  boundLocal: %d  this: %p\n",
+         ln, count, boundLocal, this);
 
    if ( count != ln ) {
       int err = ERRNO;
@@ -1000,6 +1011,7 @@ int UdpStack::doTransmit(const char* buf, int ln) {
       numPacketsTransmitted += 1;
    }
 
+#if 0
    if ( (logFlag) && (count > 0) ) {
       strstream lenln3;
       lenln3 << ++sndCount << " " << count << char(0);
@@ -1014,6 +1026,7 @@ int UdpStack::doTransmit(const char* buf, int ln) {
       out_log->write(buf, count);
       out_log->write(separator, 6);
    }
+#endif
    return count;
 }//doTransmit
 
@@ -1086,6 +1099,8 @@ int UdpStack::doTransmitTo( const char* buffer,
                        0 ,  // flags
                        (struct sockaddr*) &dest_addr,
                        sizeof(dest_addr));
+   cpLog(LOG_DEBUG, "UdpStack::doTransmitTo, ln: %d  sent: %d  boundLocal: %d  this: %p dest: %s\n",
+         length, count, boundLocal, this, dest->toString().c_str());
 
    if ( count != length ) {
       int err = ERRNO;
@@ -1107,6 +1122,7 @@ int UdpStack::doTransmitTo( const char* buffer,
       numPacketsTransmitted += 1;
    }
 
+#if 0
    if ( (logFlag) && (count > 0) ) {
       strstream lenln4;
       lenln4 << ++sndCount << " " << count << char(0);
@@ -1121,6 +1137,7 @@ int UdpStack::doTransmitTo( const char* buffer,
       out_log->write(buffer, count);
       out_log->write(separator, 6);
    }
+#endif
 
    return count;
 }//transmitTo

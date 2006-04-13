@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipUdpConnection_cxx_Version =
-    "$Id: SipUdpConnection.cxx,v 1.13 2006/03/12 07:41:28 greear Exp $";
-
 #include "global.h"
 #include "SipUdpConnection.hxx"
 #include "SystemInfo.hxx"

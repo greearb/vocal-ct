@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipSentRequestDB_cxx_version =
-    "$Id: SipSentRequestDB.cxx,v 1.9 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipSentRequestDB.hxx"

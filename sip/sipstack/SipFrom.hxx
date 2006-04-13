@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipFrom_hxx_version =
-    "$Id: SipFrom.hxx,v 1.4 2004/08/18 07:18:51 greear Exp $";
-
 
 #include <map>
 

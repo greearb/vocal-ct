@@ -52,9 +52,6 @@
  */
 
 
-static const char* const BasicAgent_hxx_Version =
-    "$Id: BasicAgent.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include "UaBase.hxx"
@@ -110,7 +107,7 @@ public:
    virtual void reqResume(Sptr<SipMsg>& msg) { };
    ///
    virtual void timerExpired() { };
-   
+
    ///
    unsigned long getId() const { return myAuthId; };
    

@@ -576,10 +576,15 @@ Data SipFrom::encode() const
 	sipFrom = FROM;
 	sipFrom += SP;
 	Data dispName = getDisplayName();
+        dispName.removeSpaces();
         if (dispName != "") {
-           sipFrom += "\"";
+           if (dispName[0] != '\"') {
+              sipFrom += "\"";
+           }
            sipFrom += dispName;
-           sipFrom += "\"";
+           if (dispName[dispName.length() - 1] != '\"') {
+              sipFrom += "\"";
+           }
            sipFrom += SP;
         }
 	sipFrom += "<";

@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CallDB_hxx_Version =
-    "$Id: CallDB.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
-
 #include "global.h"
 #include <map>
 

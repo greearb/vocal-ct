@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipTransceiver_cxx_Version =
-    "$Id: SipTransceiver.cxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <cstdlib>
@@ -186,12 +184,6 @@ void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage) {
    Sptr<SipMsgContainer> msgPtr = sentRequestDB.processSend(sm);
 
    if (msgPtr != 0) {
-      //// should this only be for actually sent messages? /////////
-      //if (sipAgent != 0) {
-      //   updateSnmpData(sm, OUTS);
-      //}
-      //////////////////////////////////////////////////////////////
-	
       send(msgPtr);
    }
 }//sendAsync

@@ -49,9 +49,6 @@
  */
 
 
-static const char* const UaBase_cxx_Version =
-    "$Id: UaBase.cxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
-
 #include "InviteMsg.hxx" 
 #include "StatusMsg.hxx" 
 #include "AckMsg.hxx" 

@@ -483,7 +483,7 @@ int CallAgent::sendBusy() {
 
 
 void CallAgent::doAuthentication(Sptr<StatusMsg> sMsg) {
-   //User has been challenged, send the inviate with Authorization header
+   //User has been challenged, send the invite with Authorization header
    Data user = UaConfiguration::instance().getValue(UserNameTag);
    Data password = UaConfiguration::instance().getValue(PasswordTag);
    Sptr<SipCommand> sCommand;
@@ -493,7 +493,7 @@ void CallAgent::doAuthentication(Sptr<StatusMsg> sMsg) {
    sCommand->setCSeq(cSeq);
 
    assert(sCommand != 0);
-   authenticateMessage(*sMsg,*sCommand, user, password);
+   authenticateMessage(*sMsg, *sCommand, user, password);
    placeCall();
 }
 
@@ -653,8 +653,9 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
 }
 
 void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
-   cpLog(LOG_DEBUG, "CallAgent::hold() this should be invoke in UAS Hold");
-   
+   cpLog(LOG_DEBUG, "CallAgent::hold() this should be invoked in UAS Hold");
+   cpLog(LOG_ERR, "WARNING:  Ignoring hold attempt (invite while already in call).\n");
+#if 0   
    try {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(myInvokee->getRequest());
@@ -677,6 +678,7 @@ void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
    catch (CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
    }
+#endif
 }//hold
 
 void CallAgent::startSession(SdpSession& localSdp, SdpSession& remoteSdp) {
