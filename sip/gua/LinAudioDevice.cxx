@@ -123,7 +123,7 @@ void LinAudioDevice::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds
    if (audioActive) {
        if (mySoundCard.getFd() < 0) {
            cpLog(LOG_ERR, "ERROR:  Soundacard's FD < 0, stopping!\n");
-           stop();
+           stop("LinAudioDevice::tick, sound-card FD < 0");
        }
        else {
            if (FD_ISSET(mySoundCard.getFd(), input_fds)) {
@@ -161,22 +161,19 @@ LinAudioDevice::start(VCodecType codec_type)
     return 0;
 } // end LinAudioDevice::start()
 
-int
-LinAudioDevice::stop()
-{
+int LinAudioDevice::stop(const char* reason) {
 
-    if( !audioActive )
-    {
-        return 1;
-    }
+   if( !audioActive ) {
+      return 1;
+   }
 
-    //Stop the base class
-    MediaDevice::stop();
+   //Stop the base class
+   MediaDevice::stop(reason);
 
-    cerr << "%%% Stopping audio" << endl;
-    audioActive = false;
-    mySoundCard.reopen();
-    return 0;
+   cerr << "%%% Stopping audio, reson: " << reason << endl;
+   audioActive = false;
+   mySoundCard.reopen();
+   return 0;
 } 
 
 void 

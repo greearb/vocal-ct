@@ -49,7 +49,7 @@
  *
  */
 static const char* const FileMediaDevice_cxx_Version = 
-    "$Id: FileMediaDevice.cxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
+    "$Id: FileMediaDevice.cxx,v 1.8 2006/05/27 00:02:01 greear Exp $";
 
 
 
@@ -185,16 +185,16 @@ FileMediaDevice::start(VCodecType codec_type) {
 //               rtp packets.
 //***************************************************************************
 
-int FileMediaDevice::stop() {
+int FileMediaDevice::stop(const char* reason) {
    if (!audioActive) {
       cpLog(LOG_DEBUG, "stop: No audio active, ignored the request");
       return 1;
    }
 
-   MediaDevice::stop();
+   MediaDevice::stop(reason );
 
    // mark audio as deactivated.
-   cpLog(LOG_DEBUG, "Audio Stop received.");
+   cpLog(LOG_DEBUG, "Audio Stop received, reason: %s", reason);
    audioActive = false;
 
    player.stop();

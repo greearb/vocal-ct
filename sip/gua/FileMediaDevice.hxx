@@ -51,7 +51,7 @@
  *
  */
 static const char* const FileMediaDevice_hxx_Version =
-    "$Id: FileMediaDevice.hxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
+    "$Id: FileMediaDevice.hxx,v 1.6 2006/05/27 00:02:01 greear Exp $";
 
 #include "RtpSession.hxx"
 #include "UaHardwareEvent.hxx"
@@ -87,7 +87,7 @@ public:
    /** stops audio channel on device
     *  returns 0 if successful, errorcode otherwise
     */
-   int stop();
+   int stop(const char* reason);
 
    ///Returns the device ID
    int getMyId() const { return myId; }

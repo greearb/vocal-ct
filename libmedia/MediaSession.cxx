@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.13 2006/03/12 07:41:28 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.14 2006/05/27 00:02:01 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -313,32 +313,30 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
 }//addToSession
 
 
-int 
-MediaSession::tearDown()
-{
-    assertNotDeleted();
-    cpLog(LOG_DEBUG, "Tearing down the session:%d" , mySessionId);
+int MediaSession::tearDown() {
+   assertNotDeleted();
+   cpLog(LOG_DEBUG, "Tearing down the session:%d" , mySessionId);
 
-    // Stop them both...
-    if (myMediaDevice != 0) {
-        myMediaDevice->stop();
-    }
-
-    // Now, clear out the references.
-    if (myRtpSession != 0) {
-        delete myRtpSession;
-        myRtpSession = NULL;
-    }
-
-    if (myMediaDevice != 0) {
-        myMediaDevice->assignedTo(-1);
-        myMediaDevice->setBusy(false);
-        myMediaDevice = 0;
-    }
-
-    myLocalRes->setBusy(false, "tear down");
-    assertNotDeleted();
-    return 1;
+   // Stop them both...
+   if (myMediaDevice != 0) {
+      myMediaDevice->stop("MediaSession::teardown");
+   }
+   
+   // Now, clear out the references.
+   if (myRtpSession != 0) {
+      delete myRtpSession;
+      myRtpSession = NULL;
+   }
+   
+   if (myMediaDevice != 0) {
+      myMediaDevice->assignedTo(-1);
+      myMediaDevice->setBusy(false);
+      myMediaDevice = 0;
+   }
+   
+   myLocalRes->setBusy(false, "tear down");
+   assertNotDeleted();
+   return 1;
 }
 
 // This assumes that the data is already right for myCodec.

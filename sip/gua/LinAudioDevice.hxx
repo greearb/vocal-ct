@@ -51,7 +51,7 @@
  *
  */
 static const char* const LinAudioDeviceVersion =
-    "$Id: LinAudioDevice.hxx,v 1.3 2006/02/07 01:33:21 greear Exp $";
+    "$Id: LinAudioDevice.hxx,v 1.4 2006/05/27 00:02:01 greear Exp $";
 
 #include "Rtp.hxx"
 #include "SoundCard.hxx"
@@ -95,7 +95,7 @@ public:
    /** Stops audio channel on device
     * @return 0 if successful, errorcode otherwise
     */
-   int stop();
+   int stop(const char* reason);
 
    /** suspend audio channel on device
     * @return 0 if successful, errorcode otherwise

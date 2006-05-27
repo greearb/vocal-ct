@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaDevice_cxx_Version =
-    "$Id: MediaDevice.cxx,v 1.4 2006/02/07 01:33:21 greear Exp $";
+    "$Id: MediaDevice.cxx,v 1.5 2006/05/27 00:02:01 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -61,9 +61,8 @@ static const char* const MediaDevice_cxx_Version =
 
 using namespace Vocal::UA;
 
-MediaDevice::~MediaDevice()
-{
-   stop();
+MediaDevice::~MediaDevice() {
+   stop("MediaDevice destructor");
 }
 
 
@@ -82,8 +81,7 @@ MediaDevice::start(VCodecType codec_type) {
    return 0;
 }
 
-int 
-MediaDevice::stop() {
+int MediaDevice::stop(const char* reason) {
    //clear the cache
    mySession = NULL;
    return 1;

@@ -53,7 +53,7 @@
 
 
 static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
+    "$Id: MediaDevice.hxx,v 1.6 2006/05/27 00:02:01 greear Exp $";
 
 #include <stdio.h>
 #include "Sptr.hxx"
@@ -132,7 +132,7 @@ public:
    virtual int start(VCodecType codec_type);
 
    ///Returns 0 if successfully stopped
-   virtual int stop();
+   virtual int stop(const char* reason);
    ///Returns 0 if successfull
    virtual int suspend() = 0;
    ///Returns 0 if successfull
