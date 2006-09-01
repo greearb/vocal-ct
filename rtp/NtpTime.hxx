@@ -52,12 +52,16 @@
  */
 
 static const char* const NtpTime_hxx_Version =
-    "$Id: NtpTime.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
+    "$Id: NtpTime.hxx,v 1.3 2006/09/01 19:51:02 greear Exp $";
 
 
 #include <sys/types.h>
 #include "vtypes.h"
 #include <misc.hxx>
+
+class NtpTime;
+
+NtpTime getNtpTime();
 
 ///
 class NtpTime
@@ -107,7 +111,6 @@ class NtpTime
         friend bool operator==( const NtpTime& rhs , const NtpTime& lhs );
         friend bool operator<( const NtpTime& rhs , const NtpTime& lhs );
         friend bool operator>( const NtpTime& rhs , const NtpTime& lhs );
-        friend NtpTime getNtpTime();
 };
 
 

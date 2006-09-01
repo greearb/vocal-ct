@@ -56,7 +56,7 @@
 
 
 static const char* const TimerHeaderVersion =
-    "$Id: Timer.h,v 1.4 2006/03/12 07:41:28 greear Exp $";
+    "$Id: Timer.h,v 1.5 2006/09/01 19:51:02 greear Exp $";
 
 
 
@@ -64,6 +64,7 @@ static const char* const TimerHeaderVersion =
 #include "debug.h"
 #include "VTime.hxx"
 #include <unistd.h>
+#include <assert.h>
 
 #include "global.h"
 #include <list>

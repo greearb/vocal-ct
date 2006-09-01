@@ -164,7 +164,7 @@ public:
    static bool is_valid_ip4_addr (const Data& ip_addr);
 
    static const Data& getLocalHostName();
-   static string NetworkAddress::resolveHostName(uint32 addr);
+   static string resolveHostName(uint32 addr);
 
 private:
    NetworkAddress(); // Restricted access (not implemented)

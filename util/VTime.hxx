@@ -56,7 +56,7 @@
 
 
 static const char* const VTimeHeaderVersion =
-    "$Id: VTime.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
+    "$Id: VTime.hxx,v 1.3 2006/09/01 19:51:02 greear Exp $";
 
 
 
@@ -104,10 +104,7 @@ class VTime
         {}
 
         /// Create a new VTime object with the current system time.
-        VTime()
-        {
-            *this = getVTime();
-        }
+        VTime();
 
         /// Access functions
         u_int32_t getSeconds()
@@ -145,11 +142,11 @@ class VTime
         friend bool operator<( const VTime& lhs , const VTime& rhs );
         friend bool operator>( const VTime& lhs , const VTime& rhs );
 
-        /// returns a VTime object based on the current system time
-        friend VTime getVTime();
-
-
 };
+
+/// returns a VTime object based on the current system time
+VTime getVTime();
+
 
 // V_TIME_H_
 #endif

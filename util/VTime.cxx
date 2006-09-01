@@ -50,10 +50,6 @@
  */
 
 
-static const char version[] =
-    "$Id: VTime.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
-
-
 
 #include "global.h"
 #include <cassert>
@@ -61,6 +57,12 @@ static const char version[] =
 #include <stdio.h>
 #include <iostream>
 #include "VTime.hxx"
+
+
+/// Create a new VTime object with the current system time.
+VTime::VTime() {
+   *this = getVTime();
+}
 
 
 void VTime::print()
