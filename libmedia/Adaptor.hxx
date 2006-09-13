@@ -52,9 +52,6 @@
  */
 
 
-static const char* const Adaptor_hxx_Version = 
-    "$Id: Adaptor.hxx,v 1.7 2006/02/24 22:27:52 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include <list>
@@ -92,14 +89,24 @@ namespace UA
          s.len = length;
          s.samples = sampleCount;
          s.ct = codec_type;
-         buf = new char[length];
-         memcpy(buf, buffer, length);
+         if (s.len) {
+            buf = new char[length];
+            memcpy(buf, buffer, length);
+         }
+         else {
+            buf = NULL;
+         }
       }
 
       RtpPldBuffer(const RtpPldBuffer& rhs) {
          s = rhs.s;
-         buf = new char[s.len];
-         memcpy(buf, rhs.buf, s.len);
+         if (s.len) {
+            buf = new char[s.len];
+            memcpy(buf, rhs.buf, s.len);
+         }
+         else {
+            buf = NULL;
+         }
       }
 
       virtual ~RtpPldBuffer() {

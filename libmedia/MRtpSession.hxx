@@ -57,9 +57,6 @@
 #include "Adaptor.hxx"
 #include "Def.hxx"
 
-static const char* const MRtpSessionVersion =
-    "$Id: MRtpSession.hxx,v 1.12 2006/02/07 01:33:21 greear Exp $";
-
 #include "Sptr.hxx"
 
 class RtpSession;
@@ -198,6 +195,8 @@ protected:
 
    ///
    MDTMFInterface* myDTMFInterface;
+
+   VADOptions* getVadOptions() { return vadOptions; }
 
 private:
    bool isSilence(char *buffer, int noOfSamples, int perSampleSize);

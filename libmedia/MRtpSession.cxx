@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.17 2006/02/07 01:33:21 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.18 2006/09/13 23:59:13 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -308,17 +308,17 @@ bool MRtpSession::isSilence(char *buffer, int noOfSamples, int perSampleSize)
 // Use sinkData if that is not the case.
 int MRtpSession::sinkCooked(const char* data, int length, int samples,
                             VCodecType type) {
-   if (type != myCodec->getType()) {
-      cpLog(LOG_ERR, "ERROR:  Invalid type: %d  codec->type: %d\n",
-            type, myCodec->getType());
-      return -1;
+   // Check for silence pkt, ie VAD
+   if (length == 0) {
+      consecutiveSilentSentSamples += samples;
+      rtpStack->notifyVADSuppression(length);
+      return 0;
    }
    else {
-      // Check for silence pkt, ie VAD
-      if (length == 0) {
-         consecutiveSilentSentSamples += samples;
-         rtpStack->notifyVADSuppression(length);
-         return 0;
+      if (type != myCodec->getType()) {
+         cpLog(LOG_ERR, "ERROR:  Invalid type: %d  codec->type: %d\n",
+               type, myCodec->getType());
+         return -1;
       }
       else {
          consecutiveSilentSamples = 0;
@@ -420,6 +420,10 @@ MRtpSession::sinkData(char* data, int length, VCodecType type,
             // If the input and output codecs are the same, then we transmit the
             // input data instead of re-encoding.
             if (type == myCodec->getType()) {
+               if (payload_cache) {
+                  payload_cache->addRtpPldBuffer(data, length, 160,
+                                                 myCodec->getType());
+               }
                retVal = rtpStack->transmitRaw(data, length);
             }
             else {

@@ -52,9 +52,6 @@
  */
 
 
-static const char* const MediaSession_hxx_Version = 
-    "$Id: MediaSession.hxx,v 1.8 2006/02/07 01:33:21 greear Exp $";
-
 #include "global.h"
 #include "Sptr.hxx"
 #include "NetworkRes.hxx"

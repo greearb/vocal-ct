@@ -166,8 +166,7 @@ public:
    bool isVadOn() { return vad_options.getVADOn(); }
 
    void updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_rtp);
-   Sptr<CachedEncodedRtp> findRtpCache(const string& fname, bool vad,
-                                       VCodecType codec);
+   Sptr<CachedEncodedRtp> findRtpCache(const string& fname, VCodecType codec);
 
 #ifdef USE_LANFORGE
    void setLFThread(LFVoipThread* lft);

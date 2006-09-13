@@ -695,12 +695,14 @@ int UaFacade::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 
-Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
+Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname,
                                               VCodecType codec) {
    // Ok..need to add this to our cache
    char buf[fname.size() + 100];
-   if (vad) {
-      sprintf(buf, "%s.VAD.%i", fname.c_str(), (int)(codec));
+   if (vad_options.getVADOn()) {
+      sprintf(buf, "%s.VAD.%i.%i.%i",
+              fname.c_str(), vad_options.getVADMsBeforeSuppression(),
+              vad_options.getForceSendMs(), (int)(codec));
    }
    else {
       sprintf(buf, "%s.%i", fname.c_str(), (int)(codec));
@@ -736,7 +738,7 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
                if (f.gcount() == 0) {
                   // Maybe it does eof handling wierd?
                   cpLog(LOG_ERR, "WARNING:  Read zero..must be end of file, sofar: %d\n",
-                     sofar);
+                        sofar);
                }
                else {
                   cpLog(LOG_ERR, "ERROR:  Failed to read complete buffer, read: %d  file: %s  assuming cache corrupted, sofar: %d\n",
@@ -765,9 +767,16 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
                      }
                      else {
                         sofar += b.len;
-                        cpLog(LOG_DEBUG, "read in payload, length: %d\n", b.len);
+                        cpLog(LOG_DEBUG, "read in payload, length: %d  codecType: %d\n",
+                              b.len, b.ct);
                         rv->addBuffer(new RtpPldBuffer(tmp, b.len, b.samples, b.ct));
                      }
+                  }
+                  else {
+                     // VAD pkt
+                     cpLog(LOG_DEBUG, "read in VAD pkt, length: %d  codecType: %d\n",
+                           b.len, b.ct);
+                     rv->addBuffer(new RtpPldBuffer(NULL, b.len, 0, b.ct));
                   }
                }
             }
@@ -784,7 +793,6 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
          fclose(lck); // Seems to free up the pointer...
          lck = NULL;
       }
-
    }
    return rv;
 }//findRtpCache
@@ -792,30 +800,33 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname, bool vad,
 
 void UaFacade::updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_rtp) {
 
-   bool vad = false;
    VCodecType codec = G711U;
-   // See if we are using VAD or not.
    list<RtpPldBuffer*>::const_iterator cii;
    for(cii = encoded_rtp.begin(); cii != encoded_rtp.end(); cii++) {
       codec = ((*cii)->getCodecType());
-      if ((*cii)->getLength() == 0) {
-         // Silence
-         vad = true;
-         break;
-      }
+      break;
+      //if ((*cii)->getLength() == 0) {
+      //   // Silence
+      //   vad = true;
+      //   break;
+      //}
    }
 
-   Sptr<CachedEncodedRtp> c = findRtpCache(fname, vad, codec);
+   Sptr<CachedEncodedRtp> c = findRtpCache(fname, codec);
 
    if (!c.getPtr()) {
       // Ok..need to add this to our cache
       char buf[fname.size() + 100];
-      if (vad) {
-         sprintf(buf, "%s.VAD.%i", fname.c_str(), (int)(codec));
+      if (vad_options.getVADOn()) {
+         sprintf(buf, "%s.VAD.%i.%i.%i", fname.c_str(),
+                 vad_options.getVADMsBeforeSuppression(),
+                 vad_options.getForceSendMs(), (int)(codec));
       }
       else {
          sprintf(buf, "%s.%i", fname.c_str(), (int)(codec));
       }
+
+      //cpLog(LOG_ERR, "Creating RTP cache, fname: %s\n", buf);
 
       c = new CachedEncodedRtp(buf, encoded_rtp);
       string k(buf);
@@ -842,8 +853,12 @@ void UaFacade::updateRtpCache(const string& fname, list<RtpPldBuffer*> encoded_r
             for(cii = encoded_rtp.begin(); cii != encoded_rtp.end(); cii++) {
                RtpPldBuffer* bc = *cii;
                RtpPldBufferStorage b = bc->getStorage();
+               //cpLog(LOG_ERR, "Writing buffer-storage, size: %i\n", sizeof(b));
                f.write((char*)(&b), sizeof(b));
-               f.write(bc->getBuffer(), bc->getLength());
+               if (bc->getLength()) {
+                  //cpLog(LOG_ERR, "Writing buffer payload, length: %i\n", bc->getLength());
+                  f.write(bc->getBuffer(), bc->getLength());
+               }
                if (f.fail()) {
                   cpLog(LOG_ERR, "ERROR:  Failed to write rtp cache, err: %s\n",
                         strerror(errno));
