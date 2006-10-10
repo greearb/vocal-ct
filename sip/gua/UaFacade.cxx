@@ -344,12 +344,30 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
 
       // Enable the codecs we care about...
       map<VCodecType, int> priority_map;
-      priority_map[G711U] = atoi(UaConfiguration::instance().getValue(G711uPrioTag).c_str());
-      priority_map[SPEEX] = atoi(UaConfiguration::instance().getValue(SpeexPrioTag).c_str());
-      priority_map[G726_16] = atoi(UaConfiguration::instance().getValue(G726_16PrioTag).c_str());
-      priority_map[G726_24] = atoi(UaConfiguration::instance().getValue(G726_24PrioTag).c_str());
-      priority_map[G726_32] = atoi(UaConfiguration::instance().getValue(G726_32PrioTag).c_str());
-      priority_map[G726_40] = atoi(UaConfiguration::instance().getValue(G726_40PrioTag).c_str());
+      int pr = atoi(UaConfiguration::instance().getValue(G711uPrioTag).c_str());
+      if (pr != -1) {
+         priority_map[G711U] = pr;
+      }
+      pr = atoi(UaConfiguration::instance().getValue(SpeexPrioTag).c_str());
+      if (pr != -1) {
+         priority_map[SPEEX] = pr;
+      }
+      pr = atoi(UaConfiguration::instance().getValue(G726_16PrioTag).c_str());
+      if (pr != -1) {
+         priority_map[G726_16] = pr;
+      }
+      pr = atoi(UaConfiguration::instance().getValue(G726_24PrioTag).c_str());
+      if (pr != -1) {
+         priority_map[G726_24] = pr;
+      }
+      pr  = atoi(UaConfiguration::instance().getValue(G726_32PrioTag).c_str());
+      if (pr != -1 ) {
+         priority_map[G726_32] = pr;
+      }
+      pr  = atoi(UaConfiguration::instance().getValue(G726_40PrioTag).c_str());
+      if (pr != -1) {
+         priority_map[G726_40] = pr;
+      }
       
       /* Restrict this to use with LANforge only, to better protect the
        * licensed codec.  LANforge has it's own licensing scheme, if someone
@@ -357,7 +375,10 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
        * use that instead. --Ben
        */
       if (UaConfiguration::instance().getValue(UseLANforgeDeviceTag) != "0") {
-         priority_map[G729] = atoi(UaConfiguration::instance().getValue(G729aPrioTag).c_str());
+         pr = atoi(UaConfiguration::instance().getValue(G729aPrioTag).c_str());
+         if (pr != -1) {
+            priority_map[G729] = pr;
+         }
       }
 
       priority_map[DTMF_TONE] = 0;
