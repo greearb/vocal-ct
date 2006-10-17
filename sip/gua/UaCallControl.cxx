@@ -614,7 +614,7 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
    via.setBranch(viaBranch);
    msg->setVia( via );
    
-   SipUserAgent uAgent("Vovia-SIP-SoftPhone/0.1 (www.vovida.org)",
+   SipUserAgent uAgent("LANforge-SIP-SoftPhone/0.1 (www.vovida.org)",
                        UaConfiguration::instance().getMyLocalIp());
    msg->setUserAgent(uAgent);
    
