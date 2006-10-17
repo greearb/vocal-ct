@@ -110,6 +110,7 @@ using namespace Vocal::UA;
 
 
 Sptr<UaFacade> UaFacade::myInstance;
+char* UaFacade::VOIP_ID_STRING = "LANforge-SIP-SoftPhone/4.4.11 (www.candelatech.com)";
 
 void UaFacade::destroy() {
    if (myInstance.getPtr()) {
@@ -400,6 +401,51 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
    DEBUG_MEM_USAGE("Done creating UaFacade.");
    cpLog(LOG_ERR, "UaFacade:  Done with constructor...\n");
 }
+
+
+Sptr<SipFrom> UaFacade::generateSipFrom() {
+   string sipPort = UaConfiguration::instance().getValue(LocalSipPortTag);
+   string un(UaConfiguration::instance().getValue(UserNameTag));
+   Sptr<SipFrom> fromUrl;
+
+   unsigned int pos = un.find_first_of("@");
+   if (pos != string::npos) {
+      Sptr<BaseUrl> su = UaCallControl::parseUrl(un);
+      if (su == 0) {
+         string mFrom("sip:");
+         mFrom += un;
+         su = UaCallControl::parseUrl(mFrom);
+         if (su == 0) {
+            cpLog(LOG_ERR, "WARNING:  Could not parse 'from' -:%s:-, will treat as just a phone number.\n",
+                  un.c_str());
+         }
+      }
+      if (su != 0) {
+         fromUrl = new SipFrom(su, UaConfiguration::instance().getMyLocalIp());
+      }
+   }
+   if (fromUrl == 0) {
+      fromUrl = new SipFrom("", UaConfiguration::instance().getMyLocalIp());
+      fromUrl->setHost(Data(UaConfiguration::instance().getMyLocalIp()));
+      fromUrl->setUser(un);
+      //if(sipPort != "5060") {
+      fromUrl->setPort(sipPort.c_str());
+      //}
+   }
+   return fromUrl;
+}//generateSipFrom
+
+
+string UaFacade::getBareUserName() {
+   Data user = UaConfiguration::instance().getValue(UserNameTag);
+   int q = user.find_first_of("@");
+   if (q != Data::npos) {
+      Data du = user.substring(0, q);
+      user = du;
+   }
+   return user.c_str();
+}
+
 
 
 #ifdef USE_LANFORGE

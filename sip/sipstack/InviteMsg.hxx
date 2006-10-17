@@ -58,9 +58,6 @@
 #include "SipSessionExpires.hxx"
 #include "SipMinSE.hxx"
 
-static const char* const InviteMsg_hxx_Version =
-    "$Id: InviteMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 
 namespace Vocal
 {
@@ -165,12 +162,5 @@ class InviteMsg : public SipCommand
 };
  
 }// namespace Vocal
-
-/* Local Variables: */
-/* c-file-style:"stroustrup" */
-/* c-basic-offset:4 */
-/* c-file-offsets:((inclass . ++)) */
-/* indent-tabs-mode:nil */
-/* End: */
 
 #endif

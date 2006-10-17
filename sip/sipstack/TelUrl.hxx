@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const TelUrl_hxx_Version =
-    "$Id: TelUrl.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
 
 #include <string>
 #include "global.h"
@@ -182,11 +180,5 @@ class TelUrl : public BaseUrl
  
 } // namespace Vocal
 
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

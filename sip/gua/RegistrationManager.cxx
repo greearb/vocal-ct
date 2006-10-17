@@ -244,10 +244,11 @@ RegistrationManager::addRegistration(int check) {
    string port = config.getValue(LocalSipPortTag);
     
    SipFrom sipfrom = registerMsg->getFrom();
+   Sptr<SipFrom> sfp = UaFacade::generateSipFrom();
    sipfrom.setDisplayName( config.getValue(DisplayNameTag) );
-   sipfrom.setUser( config.getValue(UserNameTag) );
-   sipfrom.setHost( config.getMyLocalIp() );
-   sipfrom.setPort( port );
+   sipfrom.setUser(sfp->getUser());
+   sipfrom.setHost(sfp->getHost());
+   sipfrom.setPort(sfp->getPort());
    registerMsg->setFrom( sipfrom );
 
    // Set To header
@@ -255,7 +256,7 @@ RegistrationManager::addRegistration(int check) {
    SipUrl regToUrl( regToUrlStr, config.getMyLocalIp() );
    SipTo sipto = registerMsg->getTo();
    sipto.setDisplayName( config.getValue(DisplayNameTag) );
-   sipto.setUser( config.getValue(UserNameTag) );
+   sipto.setUser(sipfrom.getUser());
    sipto.setHost( regToUrl.getHost() );
    sipto.setPortData( regToUrl.getPort() );
    registerMsg->setTo( sipto );
@@ -272,7 +273,7 @@ RegistrationManager::addRegistration(int check) {
    Sptr< SipUrl > contactUrl = new SipUrl("", config.getMyLocalIp());
    SipContact myContact("", config.getMyLocalIp());
    if (!check) {
-      contactUrl->setUserValue( config.getValue(UserNameTag), "phone" );
+      contactUrl->setUserValue(UaFacade::getBareUserName(), "phone" );
       if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
          contactUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
       }

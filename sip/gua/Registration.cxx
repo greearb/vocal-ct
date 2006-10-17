@@ -59,6 +59,7 @@
 #include "Authenticate.hxx"
 #include "SipRequestLine.hxx"
 #include "UaConfiguration.hxx"
+#include "UaFacade.hxx"
 
 using namespace Vocal;
 using namespace Vocal::UA;
@@ -138,9 +139,7 @@ Registration::findMyContact(const StatusMsg& msg) const {
 }
 
 
-int
-Registration::updateRegistrationMsg(const StatusMsg& msg) {
-    const int DEFAULT_DELAY = 60000;   // 60 sec.
+int Registration::updateRegistrationMsg(const StatusMsg& msg) {
     int delay = 0;
 
     status = msg.getStatusLine().getStatusCode();
@@ -212,31 +211,30 @@ Registration::updateRegistrationMsg(const StatusMsg& msg) {
     // for 401 message, we need to extract the proxy authentication info and
     // add to the register message
     if ( status == 401 || status == 407 ) {
-        Data user = UaConfiguration::instance().getValue(UserNameTag);
-        Data password = UaConfiguration::instance().getValue(PasswordTag);
+       Data user = UaFacade::getBareUserName();
+       Data password = UaConfiguration::instance().getValue(PasswordTag);
 
-        cpLog( LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
-               status, user.c_str(), password.c_str());
-	if (!authenticateMessage(msg, *registerMsg, user, password)) {
-	    // i could not find auth information, so delay
-            delay = DEFAULT_DELAY;
-	}
+       cpLog( LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
+              status, user.c_str(), password.c_str());
+       if (!authenticateMessage(msg, *registerMsg, user, password)) {
+          // i could not find auth information, so delay
+          delay = DEFAULT_DELAY;
+       }
+       
+       int cseq ( msg.getCSeq().getCSeqData().convertInt() );
+       if ( cseq > 1 ) {
+          
+          // This is not the first 401 that we received (we may
+          // have supplied a bad username or password). Set the
+          // default delay to allow the user time to figure it
+          // out.
+          
+          cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
+          delay = DEFAULT_DELAY;
+       }
 
-	int cseq ( msg.getCSeq().getCSeqData().convertInt() );
-        if ( cseq > 1 ) {
-
-            // This is not the first 401 that we received (we may
-            // have supplied a bad username or password). Set the
-            // default delay to allow the user time to figure it
-            // out.
-
-            cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
-            delay = DEFAULT_DELAY;
-        }
-
-        cpLog(LOG_WARNING,
-               "Will try Registration again with authentication information" );
-
+       cpLog(LOG_WARNING, "Will try Registration again with authentication information");
+       
     }
 
     return delay;

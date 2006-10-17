@@ -577,22 +577,16 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
       sUrl->setHost(UaConfiguration::instance().getValue(ProxyServerTag));
    }
    
-   string sipPort = UaConfiguration::instance().getValue(LocalSipPortTag);
+   int sipPorti = atoi(UaConfiguration::instance().getValue(LocalSipPortTag).c_str());
    string rtpPort =  UaConfiguration::instance().getValue(MinRtpPortTag);
    
    Sptr<InviteMsg> msg = new InviteMsg( toUrl, UaConfiguration::instance().getMyLocalIp(),
-                                        atoi( sipPort.c_str()) ,atoi(rtpPort.c_str()) );
-   SipFrom from("", UaConfiguration::instance().getMyLocalIp());
-   from.setHost(Data(UaConfiguration::instance().getMyLocalIp()));
-   from.setUser( UaConfiguration::instance().getValue(UserNameTag));
-   from.setDisplayName(UaConfiguration::instance().getValue(DisplayNameTag));
+                                        sipPorti ,atoi(rtpPort.c_str()) );
+
+   Sptr<SipFrom> fromUrl = UaFacade::generateSipFrom();
+
+   fromUrl->setDisplayName(UaConfiguration::instance().getValue(DisplayNameTag));
    
-   //if(sipPort != "5060")
-   //{
-   from.setPort(sipPort.c_str());
-   //}
-   
-   int sipPorti = atoi(sipPort.c_str());
    
    CryptoRandom random;
    unsigned char tempTag[NUM_TAG_RANDOMNESS];
@@ -601,8 +595,8 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
    if (len > 0) {
       fromTag = convertToHex(tempTag, NUM_TAG_RANDOMNESS);
    }
-   from.setTag(fromTag);
-   msg->setFrom( from );
+   fromUrl->setTag(fromTag);
+   msg->setFrom(*(fromUrl.getPtr()));
    
    
    // Set transport in Via:
@@ -614,13 +608,14 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
    via.setBranch(viaBranch);
    msg->setVia( via );
    
-   SipUserAgent uAgent("LANforge-SIP-SoftPhone/0.1 (www.vovida.org)",
+   SipUserAgent uAgent(UaFacade::VOIP_ID_STRING,
                        UaConfiguration::instance().getMyLocalIp());
    msg->setUserAgent(uAgent);
    
+
    // Set Contact header
    Sptr< SipUrl > myUrl = new SipUrl("", UaConfiguration::instance().getMyLocalIp());
-   myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
+   myUrl->setUserValue(UaFacade::getBareUserName());
    SipContact myContact("", UaConfiguration::instance().getMyLocalIp());
    if ( UaConfiguration::instance().getValue(NATAddressIPTag).length()) {
       myUrl->setHost( Data(UaConfiguration::instance().getValue(NATAddressIPTag)));
@@ -631,6 +626,7 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
    myContact.setUrl( myUrl.getPtr() );
    msg->setNumContact( 0 );    // Clear old contact
    msg->setContact( myContact );
+
 
    SipRequestLine& reqLine = msg->getMutableRequestLine();
    reqLine.setTransportParam(UaConfiguration::instance().getValue(SipTransportTag));
@@ -730,43 +726,37 @@ UaCallControl::getActiveCall(Sptr<SipMsg> sipMsg) {
    return 0;
 }
 
-Sptr<BaseUrl>
-UaCallControl::parseUrl(const string& to)
-{
-    cpLog(LOG_DEBUG, "Parsing URL:%s", to.c_str());
-    string::size_type pos = to.find_first_of(":");
-    Sptr<BaseUrl> toUrl;
-    try 
-    {
-        //First try to parse Url
-        //if it is not a valid URL it will throw an
-        //exception
-        SipParserMode::instance().setStrictMode(true);
-        string left = to.substr(0, pos);
-        if(left == "sip")
-        {
-            cpLog(LOG_DEBUG, "SIP_URL:%s", to.c_str());
-            toUrl = new SipUrl(to, UaConfiguration::instance().getMyLocalIp());
-        }
-        else if(left == "tel")
-        {
-            cpLog(LOG_DEBUG, "TEL_URL:%s", to.c_str());
-            toUrl = new TelUrl(to);
-        }
-        else
-        {
-            cpLog(LOG_DEBUG, "UNKNOWN URL:%s", to.c_str());
-            SipParserMode::instance().setStrictMode(false);
-            return 0;
-        }
-        SipParserMode::instance().setStrictMode(false);
-    }
-    catch (VException& e)
-    {
-        cpLog(LOG_DEBUG, "UNKNOWN URL:%s", to.c_str());
-        return 0;
-    }
-    return toUrl;
-}
+Sptr<BaseUrl> UaCallControl::parseUrl(const string& to) {
+   cpLog(LOG_DEBUG, "Parsing URL:%s", to.c_str());
+   string::size_type pos = to.find_first_of(":");
+   Sptr<BaseUrl> toUrl;
+   try {
+      //First try to parse Url
+      //if it is not a valid URL it will throw an
+      //exception
+      SipParserMode::instance().setStrictMode(true);
+      string left = to.substr(0, pos);
+      if (left == "sip") {
+         cpLog(LOG_DEBUG, "SIP_URL:%s", to.c_str());
+         toUrl = new SipUrl(to, UaConfiguration::instance().getMyLocalIp());
+      }
+      else if(left == "tel") {
+         cpLog(LOG_DEBUG, "TEL_URL:%s", to.c_str());
+         toUrl = new TelUrl(to);
+      }
+      else {
+         cpLog(LOG_DEBUG, "UNKNOWN URL:%s", to.c_str());
+         SipParserMode::instance().setStrictMode(false);
+         return 0;
+      }
+      SipParserMode::instance().setStrictMode(false);
+   }
+   catch (VException& e) {
+      cpLog(LOG_DEBUG, "UNKNOWN URL:%s", to.c_str());
+      return 0;
+   }
+   return toUrl;
+}//parseUrl
+
 
 

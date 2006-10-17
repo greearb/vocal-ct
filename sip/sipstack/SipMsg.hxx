@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const SipMsgVersion 
-= "$Id: SipMsg.hxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
 
 #include "Data.hxx"
 #include "NetworkAddress.h"

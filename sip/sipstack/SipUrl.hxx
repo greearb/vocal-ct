@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const SipUrl_hxx_Version =
-    "$Id: SipUrl.hxx,v 1.3 2004/06/10 23:16:17 greear Exp $";
 
 #include <string>
 #include "global.h"
@@ -85,219 +83,218 @@ enum SipUrlErrorType
 };
 
 ///
-class SipUrlParserException : public VException
-{
-    public:
-        ///
-        SipUrlParserException( const string& msg,
-                               const string& file,
-                               const int line,
-                               const int error = 0 );
+class SipUrlParserException : public VException {
+public:
+   ///
+   SipUrlParserException( const string& msg,
+                          const string& file,
+                          const int line,
+                          const int error = 0 );
     
-        ///
-        SipUrlParserException( const string& msg,
-                               const string& file,
-                               const int line,
-                               SipUrlErrorType i)
-        : VException( msg, file, line, static_cast < int > (i))
-        {
-            value = i;
-        }
-        ///
-        SipUrlErrorType getError() const
-        {
-            return value;
-        }
-        ///
-        string getName() const ;
-    private:
-        SipUrlErrorType value;
+   ///
+   SipUrlParserException( const string& msg,
+                          const string& file,
+                          const int line,
+                          SipUrlErrorType i)
+         : VException( msg, file, line, static_cast < int > (i))
+      {
+         value = i;
+      }
+   ///
+   SipUrlErrorType getError() const
+      {
+         return value;
+      }
+   ///
+   string getName() const ;
+private:
+   SipUrlErrorType value;
 
 };
 
 /// data container for URLs of type sip:
 class SipUrl : public BaseUrl
 {
-    public:
+public:
 
-	///
-        // local_ip cannot be "" here, must be the local IP we are bound to locally
-        // or 'hostaddress' if we are not specifically bound.
-	explicit SipUrl(const Data& data, const string& local_ip, bool lr=false)
-            throw (SipUrlParserException &) ;
-	///
-	SipUrl(const SipUrl& );
+   ///
+   // local_ip cannot be "" here, must be the local IP we are bound to locally
+   // or 'hostaddress' if we are not specifically bound.
+   explicit SipUrl(const Data& data, const string& local_ip, bool lr=false)
+      throw (SipUrlParserException &) ;
+   ///
+   SipUrl(const SipUrl& );
     
-	///
-	virtual ~SipUrl();
+   ///
+   virtual ~SipUrl();
 
-        // Help up-cast safely.
-        virtual bool isSipUrl() const { return true; }
+   // Help up-cast safely.
+   virtual bool isSipUrl() const { return true; }
 
-	///
-        bool areEqual(Sptr<BaseUrl>) const;
-        ///
-        bool isLessThan(Sptr<BaseUrl>) const;
-	/// comparison operator is used by others
-	virtual bool areEqual(const BaseUrl& other) const;
+   ///
+   bool areEqual(Sptr<BaseUrl>) const;
+   ///
+   bool isLessThan(Sptr<BaseUrl>) const;
+   /// comparison operator is used by others
+   virtual bool areEqual(const BaseUrl& other) const;
 
-        ///
-	bool operator<(const SipUrl& srcUrl) const;
-	///
-	bool operator>(const SipUrl& srcUrl) const;
+   ///
+   bool operator<(const SipUrl& srcUrl) const;
+   ///
+   bool operator>(const SipUrl& srcUrl) const;
     
-	///
-	bool operator ==(const SipUrl& srcUrl) const;
+   ///
+   bool operator ==(const SipUrl& srcUrl) const;
     
-	///
-	SipUrl& operator =(const SipUrl& srcUrl);
+   ///
+   SipUrl& operator =(const SipUrl& srcUrl);
 
-        ///
-        Sptr<BaseUrl> duplicate() const;
-	///
-	Data getUserValue() const ;  
-	///
-	bool setUserValue(const Data& newuser, const Data& newUserParam = "") ; 
-	///
-	void setUser(Sptr<BaseUser> newUser);
-	///
-	Sptr <BaseUser> getUser() const;
-	///
-        Sptr<EmbeddedObj> getEscObj() {return EscObj;}
-        ///
-        const Data& getHost() const ;
-        ///
-        void setEscObj(Sptr<EmbeddedObj> newescobj);
-        ///
-	void setHost(const Data& newhost) ;
-	///
-	const Data& getPort() const ;
+   ///
+   Sptr<BaseUrl> duplicate() const;
+   ///
+   Data getUserValue() const ;  
+   ///
+   bool setUserValue(const Data& newuser, const Data& newUserParam = "") ; 
+   ///
+   void setUser(Sptr<BaseUser> newUser);
+   ///
+   Sptr <BaseUser> getUser() const;
+   ///
+   Sptr<EmbeddedObj> getEscObj() {return EscObj;}
+   ///
+   const Data& getHost() const ;
+   ///
+   void setEscObj(Sptr<EmbeddedObj> newescobj);
+   ///
+   void setHost(const Data& newhost) ;
+   ///
+   const Data& getPort() const ;
     
-	///
-	void setPort(const Data& newport) ;
+   ///
+   void setPort(const Data& newport) ;
 
-	void setPort(uint16 newport);
+   void setPort(uint16 newport);
     
-	///
-	const Data& getPasswd() const ;
+   ///
+   const Data& getPasswd() const ;
     
-	///
-	void setPasswd(const Data& newpasswd) ;
+   ///
+   void setPasswd(const Data& newpasswd) ;
     
-	///
-	const Data& getTransportParam() const ;
+   ///
+   const Data& getTransportParam() const ;
     
-	///
-	void setTransportParam(const Data& newtransport) ;
+   ///
+   void setTransportParam(const Data& newtransport) ;
     
-	///
-	const Data& getMaddrParam() const ;
+   ///
+   const Data& getMaddrParam() const ;
     
-	///
-	void setMaddrParam(const Data& newmaddr) ;
+   ///
+   void setMaddrParam(const Data& newmaddr) ;
 
-        ///
-        bool isLooseRouterPresent() const;
+   ///
+   bool isLooseRouterPresent() const;
         
-	///
-	bool operator != (const SipUrl& srcUrl) const
-        { return !(*this == srcUrl);}
+   ///
+   bool operator != (const SipUrl& srcUrl) const
+      { return !(*this == srcUrl);}
     
 
-	///
-	const Data& getTtlData() const ;
+   ///
+   const Data& getTtlData() const ;
     
-	///
-	void setTtlParam(const Data& newttl) throw(SipUrlParserException&);
+   ///
+   void setTtlParam(const Data& newttl) throw(SipUrlParserException&);
     
-	///
-	const Data& getTtlParam() const;
+   ///
+   const Data& getTtlParam() const;
     
-	///        
-	const Data& getUserParam() const ;
+   ///        
+   const Data& getUserParam() const ;
     
-	///
-	void setUserParam(const Data& newuserParm) ;
+   ///
+   void setUserParam(const Data& newuserParm) ;
     
-	///
-	const Data& getMethodParam() const ;
+   ///
+   const Data& getMethodParam() const ;
     
-	///
-	void setMethodParam(const Data& newmethodParm);
+   ///
+   void setMethodParam(const Data& newmethodParm);
     
-	///
-	const Data& getOtherParam() const ;
+   ///
+   const Data& getOtherParam() const ;
     
-	///
-	void setOtherParam(const Data& newotherParm);
+   ///
+   void setOtherParam(const Data& newotherParm);
     
-	///
-	void setOtherName(const Data& newOtherName) ;
+   ///
+   void setOtherName(const Data& newOtherName) ;
     
-	///
-	const Data& getOtherName() const;
+   ///
+   const Data& getOtherName() const;
     
-	///
-	const Data& getHeaders() const ;
+   ///
+   const Data& getHeaders() const ;
     
-	///
-	void setHeaders(const Data& newheader) ;
+   ///
+   void setHeaders(const Data& newheader) ;
     
     
-	/// return the encoded string version of this. This call should only be
-	///used inside the stack and is not part of the API 
-	Data encode() const ;
+   /// return the encoded string version of this. This call should only be
+   ///used inside the stack and is not part of the API 
+   Data encode() const ;
     
-	///
-	Data getNameAddr() const;
+   ///
+   Data getNameAddr() const;
 
-        /// get a unique key for a transaction id
-        Data getUniqueKey() const;
+   /// get a unique key for a transaction id
+   Data getUniqueKey() const;
     
-	///
-	Data getUrlParam() const;
+   ///
+   Data getUrlParam() const;
     
-	/// 
-	void initializeFrom();
+   /// 
+   void initializeFrom();
     
-	///
-	void initializeTo();
+   ///
+   void initializeTo();
         
-	/// get name and address without the port if it is the default
-	Data getNameAddrNoPort() const;
+   /// get name and address without the port if it is the default
+   Data getNameAddrNoPort() const;
 
-	///parser functions
-	void decode(const Data& data);
-	///
-	UrlType getType() const;
-	///
+   ///parser functions
+   void decode(const Data& data);
+   ///
+   UrlType getType() const;
+   ///
 
-        NetworkAddress asNetworkAddress() const;
-    private:
+   NetworkAddress asNetworkAddress() const;
+private:
 
-        string local_ip; //As configured, not decoded by anything.
+   string local_ip; //As configured, not decoded by anything.
 
-        Data schemeName;
-        Sptr<BaseUser> user;
-        Data passwd;
-        Data host;
-        Data port;
-        // URL Parameters
-        Data transportParam;
-        Data ttlParam;
-        Data maddrParam;
-        Data userParam;
-        Data methodParam;
-        Data otherParam;
-        Data otherName;
-        Data headers;
-        bool lrParam;
-        bool ipv6Addr;
-        Sptr<EmbeddedObj> EscObj;
-        ///
-        bool fastDecode( Data myData );
-        ///
-        bool parseIpv6Address(Data& inData);
+   Data schemeName;
+   Sptr<BaseUser> user;
+   Data passwd;
+   Data host;
+   Data port;
+   // URL Parameters
+   Data transportParam;
+   Data ttlParam;
+   Data maddrParam;
+   Data userParam;
+   Data methodParam;
+   Data otherParam;
+   Data otherName;
+   Data headers;
+   bool lrParam;
+   bool ipv6Addr;
+   Sptr<EmbeddedObj> EscObj;
+   ///
+   bool fastDecode( Data myData );
+   ///
+   bool parseIpv6Address(Data& inData);
 
 };
 

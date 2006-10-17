@@ -130,16 +130,17 @@ CallAgent::doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp
    sCommand.dynamicCast(myInvokee->getRequest());
    assert(sCommand != 0);
    statusMsg = new StatusMsg(*sCommand, 200);
+
    // Set Contact header
    Sptr< SipUrl > myUrl = new SipUrl("", myInvokee->getMyLocalIp());
-   myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
+   myUrl->setUserValue(UaFacade::getBareUserName());
    myUrl->setHost(myInvokee->getMyLocalIp());
    myUrl->setPort(Data(myInvokee->getMySipPort()));
    SipContact myContact("", myInvokee->getMyLocalIp());
    myContact.setUrl( myUrl.getPtr() );
    statusMsg->setNumContact( 0 );    // Clear old contact
    statusMsg->setContact( myContact );
-   SipServer lServer("Vovida-SIP-SoftPhone/0.1", myInvokee->getMyLocalIp());
+   SipServer lServer(UaFacade::VOIP_ID_STRING, myInvokee->getMyLocalIp());
    statusMsg->setServer(lServer);
 
    SipSdp localSdp(myInvokee->getMyLocalIp());
@@ -370,7 +371,7 @@ void CallAgent::acceptCall() {
 
       // Set Contact header
       Sptr< SipUrl > myUrl = new SipUrl("", myInvokee->getMyLocalIp());
-      myUrl->setUserValue( UaConfiguration::instance().getValue(UserNameTag) );
+      myUrl->setUserValue(UaFacade::getBareUserName());
       myUrl->setHost(myInvokee->getMyLocalIp());
       myUrl->setPort(Data(myInvokee->getMySipPort()));
       SipContact myContact("", myInvokee->getMyLocalIp());
@@ -378,7 +379,7 @@ void CallAgent::acceptCall() {
       statusMsg->setNumContact( 0 );    // Clear old contact
       statusMsg->setContact( myContact );
 
-      SipServer lServer("Vovida-SIP-SoftPhone/0.1", myInvokee->getMyLocalIp());
+      SipServer lServer(UaFacade::VOIP_ID_STRING, myInvokee->getMyLocalIp());
       statusMsg->setServer(lServer);
 
       Sptr<SipSdp> remoteSdp;
@@ -484,7 +485,7 @@ int CallAgent::sendBusy() {
 
 void CallAgent::doAuthentication(Sptr<StatusMsg> sMsg) {
    //User has been challenged, send the invite with Authorization header
-   Data user = UaConfiguration::instance().getValue(UserNameTag);
+   Data user = UaFacade::getBareUserName();
    Data password = UaConfiguration::instance().getValue(PasswordTag);
    Sptr<SipCommand> sCommand;
    sCommand.dynamicCast(myInvokee->getRequest());

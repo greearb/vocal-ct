@@ -93,6 +93,9 @@ class UaCli;
  */
 class UaFacade : public BaseFacade {
 public:
+
+   static char* VOIP_ID_STRING;
+
    ///
    static UaFacade& instance();
 
@@ -101,10 +104,12 @@ public:
                           unsigned short  defaultSipPort,
                           bool filteron, bool nat);
 
+   static string getBareUserName();
 
    ///
    string className() { return "UaFacade"; }
 
+   static Sptr<SipFrom> generateSipFrom();
 
    /**
       Frees the memory associated with singelton instance.
