@@ -139,14 +139,14 @@ public:
    // Received from the stack
    virtual void process(Sptr < SipProxyEvent > event);
 
-   ///
-   void postMsg(Sptr<SipMsg> sMsg);
+   /** If !sending, assume we are receiving this */
+   void postMsg(Sptr<SipMsg> sMsg, bool sending);
 
    ///
    void postMsg(const string& msg);
 
    ///
-   void postInfo(Sptr<SipMsg> sMsg);
+   //void postInfo(Sptr<SipMsg> sMsg);
 
    void notifyCallEnded();
 

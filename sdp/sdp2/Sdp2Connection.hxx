@@ -52,7 +52,7 @@
  */
 
 static const char* const Sdp2Connection_hxx_Version =
-    "$Id: Sdp2Connection.hxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
+    "$Id: Sdp2Connection.hxx,v 1.2 2006/10/28 02:03:22 greear Exp $";
 
 #include <vector>
 #include <strstream>
@@ -196,7 +196,7 @@ class SdpConnection
         void setUnicast(Data addr)
         {
             address = addr;
-            assert(address != "127.0.0.1");
+            //assert(address != "127.0.0.1");
         }
         ///
         void setMulticast(const char* addr, int ttl, int numAddr = 1)

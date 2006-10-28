@@ -158,7 +158,7 @@ void CallAgent::placeCall() {
    cpLog(LOG_DEBUG, "CallAgent::placeCall()");
    Sptr<SipMsg> sipMsg = myInvokee->getRequest();
    myInvokee->sendMsg(sipMsg);
-   facade->postInfo(sipMsg);
+   facade->postMsg(sipMsg, true);
 }
 
 
@@ -176,7 +176,7 @@ void CallAgent::doBye() {
    cpLog(LOG_DEBUG_STACK, "CallAgent::doBye(), this: %p", this);
    Sptr<SipMsg> bMsg = myInvokee->sendBye();
    if (bMsg != 0) {
-      facade->postInfo(bMsg);
+      facade->postMsg(bMsg, true);
    }
 
    endCall();
@@ -299,7 +299,7 @@ void CallAgent::callFailed() {
 ///
 void CallAgent::receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg) {
    //Notify GUI
-   facade->postMsg(msg);
+   facade->postMsg(msg, false);
    myState->recvReq(*this, msg);
 }
 
@@ -335,7 +335,7 @@ void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) {
       }
 
       //Notify GUI
-      facade->postMsg(msg);
+      facade->postMsg(msg, false);
       if (msg->getCSeq().getMethod() == CANCEL_METHOD) {
          facade->postMsg("L_HANGUP CANCEL");
       }
@@ -352,7 +352,7 @@ int CallAgent::sendCancel() {
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<CancelMsg> cMsg = new CancelMsg(*sCommand);
    rv = myInvokee->sendMsg(cMsg.getPtr());
-   facade->postInfo(cMsg.getPtr());
+   facade->postMsg(cMsg.getPtr(), true);
    return rv;
 }
 
@@ -420,7 +420,7 @@ void CallAgent::acceptCall() {
       
       statusMsg->setContentData(&localSdp, 0);
       myInvokee->sendMsg(statusMsg.getPtr());
-      facade->postInfo(statusMsg.getPtr());
+      facade->postMsg(statusMsg.getPtr(), true);
    }
    catch(CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
@@ -459,7 +459,7 @@ int CallAgent::sendBusy() {
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 486);
    myInvokee->sendMsg(sMsg.getPtr());
-   facade->postInfo(sMsg.getPtr());
+   facade->postMsg(sMsg.getPtr(), true);
    myState->cancel(*this);
    
    // Ughhh, kill a recursive loop
@@ -673,7 +673,7 @@ void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
       strstream str;
       str << "R_HOLD " << ends;
       facade->postMsg(str.str());
-      facade->postInfo(statusMsg.getPtr());
+      facade->postMsg(statusMsg.getPtr(), true);
       myState->inHold(*this);
    }
    catch (CInvalidStateException& e) {

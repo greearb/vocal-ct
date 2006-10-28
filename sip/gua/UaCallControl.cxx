@@ -101,7 +101,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       if (sipEvent != 0) {
          Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
          if (sipMsg != 0) {
-            UaFacade::instance().postInfo(sipMsg);
+            UaFacade::instance().postMsg(sipMsg, false);
             return true;
          }
          else {
@@ -127,13 +127,13 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
       assert(sipMsg != 0);
       if (sipMsg->getType() != SIP_INVITE) {
-         UaFacade::instance().postInfo(sipMsg);
+         UaFacade::instance().postMsg(sipMsg, false);
          if (sipMsg->getType() == SIP_REGISTER) {
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
             UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
-            UaFacade::instance().postInfo(sMsg.getPtr());
+            UaFacade::instance().postMsg(sMsg.getPtr(), true);
             cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
                   sMsg->encode().logData());
             return true;

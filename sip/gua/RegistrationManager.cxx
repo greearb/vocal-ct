@@ -110,7 +110,7 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
    if (sipStack != 0) {
       cpLog(LOG_DEBUG, "sending register message");
       sipStack->sendAsync( registerMsg.getPtr() );
-      UaFacade::instance().postInfo(registerMsg.getPtr());
+      UaFacade::instance().postMsg(registerMsg.getPtr(), true);
    }
 
    registration->setNextRegister(now + registration->getDelay());

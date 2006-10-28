@@ -474,9 +474,17 @@ void UaFacade::process(Sptr < SipProxyEvent > event) {
 }//process
 
 
-void UaFacade::postMsg(Sptr<SipMsg> sMsg) {
+/* If !sending, assume we are receiving this */
+void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
     assert(sMsg != 0);
     strstream s;
+
+    if (sending) {
+       s << "SENDING ";
+    }
+    else {
+       s << "RECEIVING ";
+    }
 
     cpLog(LOG_DEBUG,  "MSG :%s" , sMsg->encode().logData());
     if (sMsg->getType() == SIP_STATUS) { 
@@ -570,7 +578,7 @@ void UaFacade::postMsg(Sptr<SipMsg> sMsg) {
     else {
        if ((sMsg->getType() == SIP_BYE) ||
            (sMsg->getType() == SIP_CANCEL)) {
-          s << "R_HANGUP " << sMsg->encode().logData() << endl << ends;
+          s << "HANGUP " << sMsg->encode().logData() << endl << ends;
        }
        else {
           s << "INFO " << sMsg->encode().logData() << endl << ends;
@@ -586,7 +594,7 @@ void UaFacade::notifyCallEnded() {
    postMsg("CALL_ENDED");
 }
 
-
+#if 0
 void UaFacade::postInfo(Sptr<SipMsg> sMsg) {
    assert(sMsg != 0);
    strstream s;
@@ -594,9 +602,9 @@ void UaFacade::postInfo(Sptr<SipMsg> sMsg) {
    postMsg(s.str());
    s.freeze(false);
 }
+#endif
 
-void
-UaFacade::postMsg(const string& msg) {
+void UaFacade::postMsg(const string& msg) {
    cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());
    if ((myMode == CALL_MODE_UA) || (myMode == CALL_MODE_LANFORGE)) {
       // TODO:  Post to GUI if we support that again in the future.
