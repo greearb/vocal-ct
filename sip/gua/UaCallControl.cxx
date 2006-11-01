@@ -260,7 +260,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       Sptr<SipCommand> sCmd;
       sCmd.dynamicCast(sipMsg);
       if (busy(sCmd)) {
-         cpLog(LOG_INFO, "Agent is busy, ignoring the call\n");
+         cpLog(LOG_ERR, "Agent is busy, ignoring the call\n");
          return true;
       }
       Sptr<InviteMsg> inMg;
