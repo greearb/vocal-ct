@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const RtpPacket_hxx_Version =
-    "$Id: RtpPacket.hxx,v 1.3 2005/08/23 00:27:55 greear Exp $";
-
 #include "rtpTypes.h"
 #include  <assert.h>
 #include <string>

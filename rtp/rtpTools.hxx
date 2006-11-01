@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const rtpTools_hxx_Version =
-    "$Id: rtpTools.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
 
 #include "rtpTypes.h"
 

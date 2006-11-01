@@ -145,9 +145,6 @@ public:
    ///
    void postMsg(const string& msg);
 
-   ///
-   //void postInfo(Sptr<SipMsg> sMsg);
-
    void notifyCallEnded();
 
    // Add the event to our queue.  Will process it next tick()

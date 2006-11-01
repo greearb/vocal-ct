@@ -49,7 +49,7 @@
  */
 
 static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.18 2006/09/13 23:59:13 greear Exp $";
+    "$Id: MRtpSession.cxx,v 1.19 2006/11/01 02:07:45 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -71,7 +71,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                          NetworkRes& remote ,
                          Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                          u_int32_t ssrc,
-                         VADOptions *_vadOptions)
+                         VADOptions *_vadOptions, int jitter_buffer_sz)
     : Adaptor("MRtpSession", "MRtpSession", RTP, NONE), mySessionId(sessionId),
       rtp_rx_packet(1012),
       consecutiveSilentSamples(0),
@@ -134,7 +134,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
                                remoteRtcpPort,
                                localRtcpPort, (RtpPayloadType)(pType),
                                cAdp->getClockRate(), cAdp->getPerSampleSize(),
-                               cAdp->getSampleSize());
+                               cAdp->getSampleSize(), jitter_buffer_sz);
 
     myDTMFInterface = new MDTMFInterface(this);
     rtpStack->setDTMFInterface(myDTMFInterface);

@@ -127,6 +127,7 @@ static const char* UaConfigurationTagString [] =
 	"VAD_ON",
 	"VADMsBeforeSuppression",
         "VADForceSendAfterMs",
+        "JitterBufferSzPkts",
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -194,11 +195,11 @@ UaConfiguration::parseConfig()
     setValue(VAD_ON_TAG, "0");
     setValue(VADMsBeforeSuppressionTag, "250");
     setValue(VADForceSendAfterMsTag, "5000");
+    setValue(JitterBufferSzTag, "8");
 
-    if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) )
-    {
-        // Stop UA
-        exit( -1 );
+    if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) ) {
+       // Stop UA
+       exit( -1 );
     }
 
     show();
@@ -278,6 +279,7 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "--- Behaviour Control Options ---" );
     cpLog( LOG_INFO, "       VAD_ON      : %s", getValue(VAD_ON_TAG).c_str());
     cpLog( LOG_INFO, "       VADMsBeforeSuppression: %s", getValue(VADMsBeforeSuppressionTag).c_str());
+    cpLog( LOG_INFO, "       JitterBufferSzPkts: %s", getValue(JitterBufferSzTag).c_str());
 
 
     cpLog( LOG_INFO, "\n\n");

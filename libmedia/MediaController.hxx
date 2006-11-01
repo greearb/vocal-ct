@@ -99,7 +99,8 @@ public:
                           const string& local_dev_to_bind_to,
                           int minRtpPort, int maxRtpPort,
                           map<VCodecType, int>& prio_map,
-                          VADOptions* vadOptions = NULL);
+                          VADOptions* vadOptions,
+                          int jitter_buffer_sz);
 
    ///
    string className() { return "MediaController"; }
@@ -177,7 +178,7 @@ private:
                    const string& local_dev_to_bind_to,
                    int minRtpPort, int maxRtpPort,
                    map<VCodecType, int>& prio_map,
-                   VADOptions* vadOptions);
+                   VADOptions* vadOptions, int jitter_buffer_sz);
 
    ///
    static MediaController* myInstance;
@@ -213,6 +214,7 @@ private:
    uint16 _tos;
    uint32 _skb_priority;
    VADOptions* vadOptions;
+   int jitter_buffer_sz;
 };
 
 }

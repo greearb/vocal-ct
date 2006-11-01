@@ -81,12 +81,13 @@ void MediaController::initialize(uint16 tos, uint32 priority,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map,
-                                 VADOptions* vadOptions)
+                                 VADOptions* vadOptions, int _jitter_buffer_sz)
 {
    assert(myInstance == 0);
    if (myInstance == 0) {
       myInstance = new MediaController(tos, priority, local_ip, local_dev_to_bind_to,
-                                       minRtpPort, maxRtpPort, prio_map, vadOptions);
+                                       minRtpPort, maxRtpPort, prio_map,
+                                       vadOptions, _jitter_buffer_sz);
    }
 }
 
@@ -95,7 +96,7 @@ MediaController::MediaController(uint16 tos, uint32 priority,
                                  const string& local_dev_to_bind_to,
                                  int minRtpPort, int maxRtpPort,
                                  map<VCodecType, int>& prio_map,
-                                 VADOptions* vadOptions)
+                                 VADOptions* vadOptions, int _jitter_buffer_sz)
       : local_ip(_local_ip),
         localDevToBindTo(local_dev_to_bind_to),
         _tos(tos), _skb_priority(priority),
@@ -103,6 +104,8 @@ MediaController::MediaController(uint16 tos, uint32 priority,
 {
    cpLog(LOG_DEBUG, "MediaController::MediaController");
    myRollingSessionId = 1;
+   jitter_buffer_sz = _jitter_buffer_sz;
+
    //get the list of reserved ports
    for(int i = minRtpPort; i < maxRtpPort; i = i+2) {
       //Check to see if port is free
@@ -274,7 +277,8 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
    }
 
    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,
-                                                  localDevToBindTo, debug, vadOptions);
+                                                  localDevToBindTo, debug,
+                                                  vadOptions, jitter_buffer_sz);
 
    assert(myMediaSessionMap.count(sId) == 0);
    myMediaSessionMap[sId] = mSession;

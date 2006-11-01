@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const RtpReceiver_hxx_Version =
-    "$Id: RtpReceiver.hxx,v 1.8 2006/03/12 07:41:28 greear Exp $";
-
 
 #include <sys/types.h>
 #include <map>
@@ -82,12 +79,14 @@ protected:
    char data[MAX_RTP_DATA];
 
    bool is_silence_fill;
-   bool is_logically_empty; // Some codecs want to generate fill themselves. 
    bool is_in_use; //Ie, does this sample logically exist?
+   uint32 rtp_seq_no;
+   uint32 rtp_time;
 
 public:
    RtpData() : len(0), is_silence_fill(false),
-               is_logically_empty(false), is_in_use(false) { }
+               is_in_use(false),
+               rtp_seq_no(0), rtp_time(0) { }
 
    void setData(const char* incomming_data, int data_len) {
       assert(data_len <= MAX_RTP_DATA);
@@ -96,11 +95,14 @@ public:
    }
    void setSilenceFill(bool b) { is_silence_fill = b; }
    void setIsInUse(bool b) { is_in_use = b; }
-   void setIsLogicallyEmpty(bool b) { is_logically_empty = b; }
+   void setRtpSequence(uint32 s) { rtp_seq_no = s; }
+   void setRtpTime(uint32 s) { rtp_time = s; }
 
    bool isInUse() const { return is_in_use; }
-   bool isLogicallyEmpty() const { return is_logically_empty; }
    bool isSilenceFill() const { return is_silence_fill; }
+
+   uint32 getRtpSequence() const { return rtp_seq_no; }
+   uint32 getRtpTime() const { return rtp_time; }
 
    int getCurLen() const { return len; }
    const char* getData() const { return data; }
@@ -123,7 +125,7 @@ public:
                 const string& local_dev_to_bind_to,
                 int localPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,
-                int samplesize);
+                int samplesize, int jitter_buffer_sz);
 
    /** using port range
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
@@ -132,17 +134,17 @@ public:
                 const string& local_dev_to_bind_to,
                 int localMinPort, int localMaxPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,
-                int samplesize);
+                int samplesize, int jitter_buffer_sz);
 
    /** Giving UdpStack ptr */
    RtpReceiver (Sptr<UdpStack> udp, RtpPayloadType _format,
                 int _clockrate, int per_sample_size,
-                int samplesize);
+                int samplesize, int jitter_buffer_sz );
 
    /// consturctor init (don't call this function)
    void constructRtpReceiver (RtpPayloadType _format,
                               int clockrate, int per_sample_size,
-                              int samplesize);
+                              int samplesize, int jitter_buffer_sz);
    ///
    virtual ~RtpReceiver ();
 
@@ -194,7 +196,7 @@ public:
    NtpTime rtp2ntp (const RtpTime& time);
 
    /// Clears out jitter buffer
-   void clearBuffer();
+   void clearJitterBuffer();
 
    /// Prints out the jitter buffer.
    void printBuffer(int log_level);
@@ -204,10 +206,6 @@ public:
 
    ///
    void setRTCPrecv (RtcpReceiver* rtcpRecv);
-
-   //
-   //void setCodecString (const char* codecStringInput);
-
 
    int getClockRate() const { return clockRate; }
    int getPerSampleSize() const { return perSampleSize; }
@@ -241,10 +239,10 @@ public:
    unsigned int getJitterPktsInQueueCount() const;
    unsigned int getCurMaxPktsInQueue() const { return cur_max_jbs; }
 
-protected:
+   uint16 getPrevSeqRecv() { return realPrevSeqRecv; }
+   uint32 getRecvCycles() { return recv_cycles; }
 
-   unsigned int cur_max_jbs; // How big (logically) is our jitter buffer
-   RtpData* jitterBuffer[JITTER_BUFFER_MAX];
+protected:
 
    /// max number of sequential lost packets allowed
    int seq_loss_max;
@@ -281,35 +279,13 @@ protected:
    /// number of bytes of payload received
    int payloadReceived;
 
-   /// last packet RtpTime received 
-   RtpTime prevPacketRtpTime;
-   /// last RtpTime play
-   RtpTime prevRtpTime;
-   /// last NtpTime play
-   NtpTime prevNtpTime;
-
-   // previous sequence number received (after some processing)
-   RtpSeqNumber prevSeqRecv;
-   // We subtract sometimes, so make sure that a -1 is not promoted to more than
-   // 16 bits of bits, since the RTP sequence number is really a 16-bit unsigned
-   // number.
-   void setPrevSeqRecv(RtpSeqNumber rsn) { prevSeqRecv = (rsn & 0xFFFF); }
-
-
    // Previous seq received.  Will not hide dups, reorder,
    // dropped sequenc numbers, etc.  Used for accounting
    // purposes only at this time.
    uint16 realPrevSeqRecv;
-
-   /// previous sequence numer played
-   RtpSeqNumber prevSeqPlay;
+   uint32 recv_cycles;
 
    // Various stats
-   /// number of received sequence number cycles
-   unsigned int recvCycles;
-   /// number of played sequence number cycles
-   unsigned int playCycles;
-
    unsigned int silencePatched; // How many times did we fill in silence?
    unsigned int insertedOooPkt; // How many times did we insert an out-of-order pkt?
    unsigned int comfortNoiseDropped; // Comfort noise dropped count.
@@ -369,6 +345,13 @@ protected:
    void incrementInPos();
    void incrementPlayPos();
    unsigned int calculatePreviousInPos(int packets_ago) const;
+   int insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq);
+   int appendRtpData(RtpPacket& pkt);
+   int setRtpData(RtpPacket& pkt, int idx);
+   unsigned int cur_max_jbs; // How big (logically) is our jitter buffer
+   RtpData* jitterBuffer[JITTER_BUFFER_MAX];
+
+   RtpData* getLastRtpData();
 };
 
 

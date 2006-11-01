@@ -50,7 +50,7 @@
  */
 
 static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.5 2006/03/12 07:41:28 greear Exp $";
+    "$Id: RtcpTransmitter.cxx,v 1.6 2006/11/01 02:07:45 greear Exp $";
 
 
 #include "global.h"
@@ -264,8 +264,8 @@ int RtcpTransmitter::addSR (RtcpPacket* p, int npadSize)
           reportBlock->cumLost[2] = lost & 0xff;
           reportBlock->cumLost[1] = (lost & 0xff00) >> 8;
           reportBlock->cumLost[0] = (lost & 0xff0000) >> 16;
-          reportBlock->recvCycles = htons(recvInfoSpec->recvCycles);
-          reportBlock->lastSeqRecv = htons(recvInfoSpec->prevSeqRecv);
+          reportBlock->recvCycles = htons(recvInfoSpec->getRecvCycles());
+          reportBlock->lastSeqRecv = htons(recvInfoSpec->getPrevSeqRecv());
 
           // fracational
           // reportBlock->jitter = htonl((u_int32_t)recvInfoSpec->jitter);
@@ -327,7 +327,7 @@ u_int32_t RtcpTransmitter::calcLostFrac (Sptr<RtpTranInfo> s)
 
     RtpReceiver* r = s->recv;
 
-    u_int32_t expected = ((r->recvCycles + r->prevSeqRecv) - r->seedSeq + 1);
+    u_int32_t expected = ((r->getRecvCycles() + r->getPrevSeqRecv()) - r->seedSeq + 1);
     u_int32_t expected_interval, received_interval, lost_interval;
 
     expected_interval = expected - s->expectedPrior;
@@ -352,7 +352,7 @@ u_int32_t RtcpTransmitter::calcLostCount (Sptr<RtpTranInfo> s)
 
     RtpReceiver* r = s->recv;
 
-    u_int32_t expected = ((r->recvCycles + r->prevSeqRecv) - r->seedSeq + 1);
+    u_int32_t expected = ((r->getRecvCycles() + r->getPrevSeqRecv()) - r->seedSeq + 1);
     return expected - r->packetReceived;
 }
 

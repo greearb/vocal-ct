@@ -90,7 +90,7 @@ public:
                 uint16 tos, uint32 priority,
                 const string& local_dev_to_bind_to,
                 const char* debug,
-                VADOptions *vadOptions = NULL);
+                VADOptions *vadOptions, int jitter_buffer_sz);
 
 
    ///Add a media device to the session
@@ -198,7 +198,7 @@ private:
    string localDevToBindTo;
    uint16 _tos;
    uint32 _skb_priority;
-
+   int jitter_buffer_sz;
    VADOptions* vadOptions;
 };
 

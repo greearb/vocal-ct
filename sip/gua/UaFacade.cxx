@@ -384,10 +384,12 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
 
       priority_map[DTMF_TONE] = 0;
 
+      int jitter_buffer_sz = atoi(UaConfiguration::instance().getValue(JitterBufferSzTag).c_str());
+
       DEBUG_MEM_USAGE("Initializing media controller");
       MediaController::initialize(tos, priority, cfg_local_ip, cfg_local_rtp_dev,
                                   minRtpPort, maxRtpPort, priority_map,
-                                  &vad_options);
+                                  &vad_options, jitter_buffer_sz);
 
       cpLog(LOG_DEBUG, "Initialized UaFacade");
    }
@@ -593,16 +595,6 @@ void UaFacade::notifyCallEnded() {
    cpLog(LOG_DEBUG, "UaFacade::notifyCallEnded...\n");
    postMsg("CALL_ENDED");
 }
-
-#if 0
-void UaFacade::postInfo(Sptr<SipMsg> sMsg) {
-   assert(sMsg != 0);
-   strstream s;
-   s << sMsg->encode().logData() << endl << ends;
-   postMsg(s.str());
-   s.freeze(false);
-}
-#endif
 
 void UaFacade::postMsg(const string& msg) {
    cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());

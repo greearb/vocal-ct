@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.14 2006/05/27 00:02:01 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.15 2006/11/01 02:07:45 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -80,13 +80,14 @@ MediaSession::MediaSession(int sessionId,
                            uint16 tos, uint32 priority,
                            const string& local_dev_to_bind_to,
                            const char* debug,
-                           VADOptions *vadOptions) 
+                           VADOptions *vadOptions, int _jitter_buffer_sz) 
       : mySessionId(sessionId),
         myRtpSession(NULL),
         localDevToBindTo(local_dev_to_bind_to),
         _tos(tos), _skb_priority(priority),
         vadOptions(vadOptions) {
    _cnt++;
+   jitter_buffer_sz = _jitter_buffer_sz;
 
    cpLog(LOG_DEBUG_STACK, "MediaSession constructor, sessionId: %d  debug: %s  cnt: %d  this: %p\n",
          sessionId, debug, _cnt, this);
@@ -308,7 +309,7 @@ MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
                                        localDevToBindTo,
                                        remoteRes,
                                        cAdp, fmt, mySSRC,
-                                       vadOptions);
+                                       vadOptions, jitter_buffer_sz);
     }
 }//addToSession
 

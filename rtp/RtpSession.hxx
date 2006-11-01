@@ -51,11 +51,6 @@
  *
  */
 
-static const char* const RtpSession_hxx_Version =
-    "$Id: RtpSession.hxx,v 1.7 2006/02/07 01:33:21 greear Exp $";
-
-
-
 #include "rtpTypes.h"
 #include "Rtp.hxx"
 #include "Rtcp.hxx"
@@ -141,7 +136,7 @@ public:
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort,
                RtpPayloadType format, int clockrate, int per_sample_size,
-               int samplesize);
+               int samplesize, int jitter_buffer_sz);
 
    /**@param ports All ports are optional by passing 0.  Port range is
     *        availiable here.
@@ -153,7 +148,7 @@ public:
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort, int portRange,
                RtpPayloadType format, int clockrate, int per_sample_size,
-               int samplesize);
+               int samplesize, int jitter_buffer_sz);
 
    /** consturctor init (don't call this function)
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
@@ -165,7 +160,7 @@ public:
                              int localPort, int rtcpRemotePort, int rtcpLocalPort,
                              int portRange, RtpPayloadType format,
                              int clockrate, int per_sample_size,
-                             int samplesize);
+                             int samplesize, int jitter_buffer_sz);
    ///
    virtual ~RtpSession ();
         
@@ -207,7 +202,7 @@ public:
                     const string& local_dev_to_bind_to,
                     int localMinPort, int rtcpLocalPort, int portRange,
                     RtpPayloadType format, int clockrate, int per_sample_size,
-                    int samplesize);
+                    int samplesize, int jitter_buffer_sz);
 
    /** set transmitters
     * @param local_ip  Local IP to bind to, use "" for system default.

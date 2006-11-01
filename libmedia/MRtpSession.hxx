@@ -111,6 +111,7 @@ public:
     * @param rtpPayloadType  For non-standard codecs, the number must be
     *               negotiated.  If so, pass something in here.  Currently
     *               the Speex codec requires it.
+    * @param jitter_buffer_sz (in packets)
     */
    MRtpSession(int sessionId, NetworkRes& local, 
                uint16 tos, uint32 priority,
@@ -118,7 +119,7 @@ public:
                NetworkRes& remote ,
                Sptr<CodecAdaptor> cAdp, int rtpPayloadType,
                u_int32_t ssrc,
-               VADOptions *vadOptions);
+               VADOptions *vadOptions, int jitter_buffer_sz);
 
    virtual ~MRtpSession();
 
