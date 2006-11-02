@@ -249,7 +249,7 @@ int RtpReceiver::readNetwork() {
    // Check for very early rtp pkts.  If so, clean out buffer and start fresh.
    if (lastPkt && (RtpSeqDifference(tmpPkt.getSequence(), lastPkt->getRtpSequence()) > (int)(cur_max_jbs))) {
       // Clear out jitter buffer
-      cpLog(LOG_ERR, "NOTE:  Got an early pkt, seq: %u prevSeq: %u  jitter-buffer-sz: %u, emptying jitter buffer to start clean.\n",
+      cpLog(LOG_ERR, "WARNING:  Got an early pkt, seq: %u prevSeq: %u  jitter-buffer-sz: %u, emptying jitter buffer to start clean.\n",
             tmpPkt.getSequence(), lastPkt->getRtpSequence(), cur_max_jbs);
       clearJitterBuffer();
       lastPkt = NULL;
@@ -259,7 +259,7 @@ int RtpReceiver::readNetwork() {
 
       // A real pkt arrived...pre-fill 1/2 of our jitter buffer
       // with silence.  This primes our jitter buffer for future drops/reorders.
-      cpLog(LOG_ERR, "NOTE:  Priming empty jitter buffer with: %d silence packets.\n",
+      cpLog(LOG_ERR, "WARNING:  Priming empty jitter buffer with: %d silence packets.\n",
             cur_max_jbs/2);
       int numprev = cur_max_jbs/2;
       for (unsigned int i = 0; i < cur_max_jbs/2; i++) {
@@ -297,7 +297,7 @@ int RtpReceiver::readNetwork() {
                break;
             }
             
-            cpLog( LOG_ERR, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
+            cpLog( LOG_DEBUG_STACK, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
                    tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
                    seq, prevSeqRecv);
             
@@ -341,7 +341,7 @@ int RtpReceiver::readNetwork() {
          else {
             int idx = calculatePreviousInPos(sd);
 
-            cpLog(LOG_ERR, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d\n",
+            cpLog(LOG_DEBUG_STACK, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d\n",
                   idx, prevSeqRecv, tmpPkt.getSequence(), sd);
             setRtpData(tmpPkt, idx);
             insertedOooPkt++;
@@ -419,7 +419,7 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
 }
 
 int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
-   cpLog(LOG_ERR, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
+   cpLog(LOG_DEBUG_STACK, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
          rtp_time, rtp_seq, inPos, playPos);            
    if (jitterBuffer[inPos] == NULL) {
       jitterBuffer[inPos] = new RtpData();
@@ -439,14 +439,18 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     // deque next packet from the jitter buffer.
    RtpData* jbp;
    if (inPos == playPos) {
-      cpLog (LOG_ERR, "Recv jitter buffer is empty when trying to retrieve, dbg: %s", dbg);
+      cpLog (LOG_DEBUG_STACK, "Recv jitter buffer is empty when trying to retrieve, dbg: %s", dbg);
       receiverError = recv_bufferEmpty;
       pkt.setIsSilenceFill(true);
 
 #ifdef USE_LANFORGE
       if (rtpStatsCallbacks) {
-         uint64 now = vgetCurMs();
-         rtpStatsCallbacks->notifyJBUnderruns(now, 1);
+         if (readRealVoiceAlready) {
+            uint64 now = vgetCurMs();
+            // Silence played, due to jb under-run.
+            rtpStatsCallbacks->notifyJBUnderruns(now, 1);
+            rtpStatsCallbacks->notifySilencePlayed(now, 1);
+         }
       }
 #endif
 
@@ -473,7 +477,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    pkt.setSequence(jbp->getRtpSequence());
 
    if (pkt.isSilenceFill()) {
-      cpLog(LOG_ERR, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
+      cpLog(LOG_DEBUG_STACK, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
             packetSize, jbp->getRtpSequence(), playPos, inPos,
             cur_max_jbs);
       // Report some stats
@@ -608,7 +612,7 @@ int RtpReceiver::updateSource (RtpPacket& pkt) {
             rtpStatsCallbacks->notifyDuplicateRtp(now, 1);
          }
          else if (psr < tm1) {
-            cpLog(LOG_ERR, "Dropped RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
+            cpLog(LOG_DEBUG_STACK, "Dropped RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
                   psr, ts, packetReceived);
             rtpStatsCallbacks->notifyDroppedRtp(now, tm1 - psr);
          }
@@ -617,13 +621,13 @@ int RtpReceiver::updateSource (RtpPacket& pkt) {
             // but check.
             if (psr > (ts + (short)(32000))) {
                // Was a wrap and drop, unlucky bastard!
-               cpLog(LOG_ERR, "Dropped RTP (B), psr: %d  ts: %d, pktRcvd: %d\n",
+               cpLog(LOG_DEBUG_STACK, "Dropped RTP (B), psr: %d  ts: %d, pktRcvd: %d\n",
                      psr, ts, packetReceived);
                rtpStatsCallbacks->notifyDroppedRtp(now, (uint16)((0xFFFF - psr)) + tm1);
             }
             else {
                // Must be out-of-order
-               cpLog(LOG_ERR, "OOO RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
+               cpLog(LOG_DEBUG_STACK, "OOO RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
                      psr, ts, packetReceived);
                rtpStatsCallbacks->notifyOOORtp(now, 1);
             }
