@@ -498,7 +498,16 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    }
    receiverError = recv_success;
 
+   // Mark this pkt as un-used.
+   jbp->setIsInUse(false);
+
    incrementPlayPos();
+
+#ifdef USE_LANFORGE
+   if (rtpStatsCallbacks) {
+      rtpStatsCallbacks->notifyCurJBSize(getJitterPktsInQueueCount());
+   }
+#endif
 
    return packetSize;
 }//retrieve

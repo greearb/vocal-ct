@@ -568,6 +568,7 @@ public:
    virtual void notifySilencePlayed(uint64& now, int num_silence) = 0;
    virtual void notifyJBUnderruns(uint64& now, int num) = 0;
    virtual void notifyJBOverruns(uint64& now, int num) = 0;
+   virtual void notifyCurJBSize(uint16 i) = 0;
 };
 
 extern RtpStatsCallbacks* rtpStatsCallbacks;
