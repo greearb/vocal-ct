@@ -145,7 +145,7 @@ void RtpReceiver::constructRtpReceiver (RtpPayloadType _format,
     
     // Init our stats counters.
     silencePatched = insertedOooPkt = comfortNoiseDropped = 0;
-    packetBadlyMisordered = packetTooOld = jitterBufferEmpty = 0;
+    packetBadlyMisordered = packetTooOld = 0;
 
     // set format and baseSampleRate
     setFormat(_format);
@@ -398,6 +398,17 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
    if (jitterBuffer[idx] == NULL) {
       jitterBuffer[idx] = new RtpData();
    }
+
+#ifdef USE_LANFORGE
+   if (jitterBuffer[idx]->isInUse() &&
+       (!jitterBuffer[idx]->isSilenceFill())) {
+      // Overflow.
+      if (rtpStatsCallbacks) {
+         uint64 now = vgetCurMs();
+         rtpStatsCallbacks->notifyJBOverruns(now, 1);
+      }
+   }
+#endif
    
    jitterBuffer[idx]->setData(pkt.getPayloadLoc(), pkt.getPayloadUsage());
    jitterBuffer[idx]->setSilenceFill(false);
@@ -430,9 +441,15 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    if (inPos == playPos) {
       cpLog (LOG_ERR, "Recv jitter buffer is empty when trying to retrieve, dbg: %s", dbg);
       receiverError = recv_bufferEmpty;
-      jitterBufferEmpty++; // Accounting
-      
       pkt.setIsSilenceFill(true);
+
+#ifdef USE_LANFORGE
+      if (rtpStatsCallbacks) {
+         uint64 now = vgetCurMs();
+         rtpStatsCallbacks->notifyJBUnderruns(now, 1);
+      }
+#endif
+
       return 1;
    }
 
@@ -459,8 +476,18 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
       cpLog(LOG_ERR, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
             packetSize, jbp->getRtpSequence(), playPos, inPos,
             cur_max_jbs);
+      // Report some stats
+#ifdef USE_LANFORGE
+      if (rtpStatsCallbacks) {
+         if (readRealVoiceAlready) {
+            uint64 now = vgetCurMs();
+            rtpStatsCallbacks->notifySilencePlayed(now, 1);
+         }
+      }
+#endif
    }
    else {
+      readRealVoiceAlready = true;
       cpLog(LOG_DEBUG_STACK, "Jitter buffer returning voice packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
             packetSize, jbp->getRtpSequence(), playPos, inPos,
             cur_max_jbs);
@@ -683,6 +710,7 @@ void RtpReceiver::initSource (RtpPacket& pkt) {
     // set receiving codec
 
     clearJitterBuffer();
+    readRealVoiceAlready = false;
 
     lastTransit = 0;
     jitter = 0;

@@ -291,7 +291,6 @@ protected:
    unsigned int comfortNoiseDropped; // Comfort noise dropped count.
    unsigned int packetBadlyMisordered; // So badly out of order we clear past history.
    unsigned int packetTooOld; //Have already played past this one, dropping it.
-   unsigned int jitterBufferEmpty; // How many times was JB empty when we tried to read?
 
    /// relative transmission time for prev packet
    int lastTransit;
@@ -350,6 +349,7 @@ protected:
    int setRtpData(RtpPacket& pkt, int idx);
    unsigned int cur_max_jbs; // How big (logically) is our jitter buffer
    RtpData* jitterBuffer[JITTER_BUFFER_MAX];
+   bool readRealVoiceAlready;
 
    RtpData* getLastRtpData();
 };

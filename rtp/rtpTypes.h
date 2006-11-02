@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const rtpTypes_h_Version =
-    "$Id: rtpTypes.h,v 1.4 2005/08/23 07:34:43 greear Exp $";
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -566,7 +564,10 @@ public:
    // Out-of-order RTP packet detected.
    virtual void notifyOOORtp(uint64& now, int drops_detected) = 0;
 
-   
+   // Jitter-buffer stats
+   virtual void notifySilencePlayed(uint64& now, int num_silence) = 0;
+   virtual void notifyJBUnderruns(uint64& now, int num) = 0;
+   virtual void notifyJBOverruns(uint64& now, int num) = 0;
 };
 
 extern RtpStatsCallbacks* rtpStatsCallbacks;
