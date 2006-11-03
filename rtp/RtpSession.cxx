@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const RtpSession_cxx_Version =
-    "$Id: RtpSession.cxx,v 1.13 2006/11/01 02:07:45 greear Exp $";
-
 
 #include "global.h"
 #include <iostream>

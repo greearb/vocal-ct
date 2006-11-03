@@ -75,6 +75,8 @@
 #include <sstream>
 
 
+#define LOG_DEBUG_JB LOG_DEBUG_STACK
+
 string RtpData::toString() const {
    ostringstream oss;
    oss << " len: " << len << " is_in_use: " << is_in_use
@@ -142,10 +144,10 @@ void RtpReceiver::constructRtpReceiver (RtpPayloadType _format,
     for (int i = 0; i<JITTER_BUFFER_MAX; i++) {
        jitterBuffer[i] = NULL;
     }
+    readRealVoiceAlready = false;
     
     // Init our stats counters.
-    silencePatched = insertedOooPkt = comfortNoiseDropped = 0;
-    packetBadlyMisordered = packetTooOld = 0;
+    comfortNoiseDropped = 0;
 
     // set format and baseSampleRate
     setFormat(_format);
@@ -259,13 +261,17 @@ int RtpReceiver::readNetwork() {
 
       // A real pkt arrived...pre-fill 1/2 of our jitter buffer
       // with silence.  This primes our jitter buffer for future drops/reorders.
-      cpLog(LOG_ERR, "WARNING:  Priming empty jitter buffer with: %d silence packets.\n",
-            cur_max_jbs/2);
-      int numprev = cur_max_jbs/2;
-      for (unsigned int i = 0; i < cur_max_jbs/2; i++) {
-         insertSilenceRtpData(tmpPkt.getRtpTime() - (sampleSize * numprev),
-                              tmpPkt.getSequence() - numprev);
-         numprev--;
+      int p = cur_max_jbs/2 - 1;
+      if (p > 0) {
+         cpLog(LOG_ERR, "WARNING:  Priming empty jitter buffer with: %d silence packets.\n",
+               p);
+         int numprev = p;
+      
+         for (int i = 0; i < p; i++) {
+            insertSilenceRtpData(tmpPkt.getRtpTime() - (sampleSize * numprev),
+                                 tmpPkt.getSequence() - numprev);
+            numprev--;
+         }
       }
       appendRtpData(tmpPkt);
    }
@@ -307,7 +313,6 @@ int RtpReceiver::readNetwork() {
             lastPkt = getLastRtpData();
             prevSeqRecv = lastPkt->getRtpSequence();
             prevPacketRtpTime = lastPkt->getRtpTime();
-            silencePatched++; //Accounting
          }//while, do silence filling on missing slots.
          
          if (prevPacketRtpTime != (tmpPkt.getRtpTime() - sampleSize)) {
@@ -344,7 +349,6 @@ int RtpReceiver::readNetwork() {
             cpLog(LOG_DEBUG_STACK, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d\n",
                   idx, prevSeqRecv, tmpPkt.getSequence(), sd);
             setRtpData(tmpPkt, idx);
-            insertedOooPkt++;
          }
       }
    }//else
@@ -393,22 +397,25 @@ int RtpReceiver::appendRtpData(RtpPacket& pkt) {
 }
 
 int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
-   cpLog(LOG_DEBUG_STACK, "setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+   cpLog(LOG_DEBUG_JB, "setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
          pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
    if (jitterBuffer[idx] == NULL) {
       jitterBuffer[idx] = new RtpData();
    }
 
-#ifdef USE_LANFORGE
    if (jitterBuffer[idx]->isInUse() &&
        (!jitterBuffer[idx]->isSilenceFill())) {
       // Overflow.
+      cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+            getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+            pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+#ifdef USE_LANFORGE
       if (rtpStatsCallbacks) {
          uint64 now = vgetCurMs();
          rtpStatsCallbacks->notifyJBOverruns(now, 1);
       }
-   }
 #endif
+   }
    
    jitterBuffer[idx]->setData(pkt.getPayloadLoc(), pkt.getPayloadUsage());
    jitterBuffer[idx]->setSilenceFill(false);
@@ -419,7 +426,7 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
 }
 
 int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
-   cpLog(LOG_DEBUG_STACK, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
+   cpLog(LOG_DEBUG_JB, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
          rtp_time, rtp_seq, inPos, playPos);            
    if (jitterBuffer[inPos] == NULL) {
       jitterBuffer[inPos] = new RtpData();
@@ -438,8 +445,9 @@ int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
 int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     // deque next packet from the jitter buffer.
    RtpData* jbp;
-   if (inPos == playPos) {
-      cpLog (LOG_DEBUG_STACK, "Recv jitter buffer is empty when trying to retrieve, dbg: %s", dbg);
+   if (getJitterPktsInQueueCount() == 0) {
+      cpLog (LOG_DEBUG_JB, "WARNING: Recv jitter buffer is empty when trying to retrieve, inPos: %d, readVoiceAlready: %d dbg: %s",
+             inPos, readRealVoiceAlready, dbg);
       receiverError = recv_bufferEmpty;
       pkt.setIsSilenceFill(true);
 
@@ -461,7 +469,14 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    pkt.clear();
 
    jbp = jitterBuffer[playPos];
-   assert(jbp);
+   if (jbp->isSilenceFill()) {
+      // Maybe consume an extra silence if our jitter buffer is > 1/2 full.
+      if ((cur_max_jbs >= 2) && (getJitterPktsInQueueCount() > ((cur_max_jbs/2) + 1))) {
+         jbp->setIsInUse(false);
+         incrementPlayPos();
+         jbp = jitterBuffer[playPos];
+      }
+   }
    assert(jbp->isInUse());
 
    int packetSize = jbp->getCurLen();
@@ -477,7 +492,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    pkt.setSequence(jbp->getRtpSequence());
 
    if (pkt.isSilenceFill()) {
-      cpLog(LOG_DEBUG_STACK, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
+      cpLog(LOG_DEBUG_JB, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
             packetSize, jbp->getRtpSequence(), playPos, inPos,
             cur_max_jbs);
       // Report some stats
@@ -492,7 +507,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    }
    else {
       readRealVoiceAlready = true;
-      cpLog(LOG_DEBUG_STACK, "Jitter buffer returning voice packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
+      cpLog(LOG_DEBUG_JB, "Jitter buffer returning voice packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
             packetSize, jbp->getRtpSequence(), playPos, inPos,
             cur_max_jbs);
    }
@@ -843,7 +858,12 @@ unsigned int RtpReceiver::calculatePreviousInPos(int packets_ago) const {
 
 unsigned int RtpReceiver::getJitterPktsInQueueCount() const {
    if (inPos == playPos) {
-      return 0;
+      if (jitterBuffer[inPos] && jitterBuffer[inPos]->isInUse()) {
+         return cur_max_jbs; // full
+      }
+      else {
+         return 0; //empty
+      }
    }
 
    if (inPos < playPos) {

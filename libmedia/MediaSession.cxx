@@ -50,7 +50,7 @@
  */
 
 static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.15 2006/11/01 02:07:45 greear Exp $";
+    "$Id: MediaSession.cxx,v 1.16 2006/11/03 00:44:00 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -400,58 +400,36 @@ int MediaSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
 }
 
 
-/** Allow the receiver to throttle based on the current size of the
- * jitter buffer.  This timeout will be passed to select.
- */
-uint64 MediaSession::getPreferredTimeout(unsigned int jitter_pkts_in_queue,
-                                         unsigned int queue_max) {
-   uint64 rv = 0;
-   if (myMediaDevice.getPtr()) {
-      rv += myMediaDevice->getDataRate();
+void MediaSession::startSession(VSdpMode mode) {
+   assertNotDeleted();
+   if (myRtpSession != 0) {
+      myMediaDevice->start(myRtpSession->getCodec()->getType());
+      myRtpSession->setMode(mode); 
    }
+   else {
+      cpLog(LOG_ERR, "WARNING:  myRtpSession is NULL in startSession");
+      // Default to use G711 U codec.
+      myMediaDevice->start(G711U);
+   }
+}
 
-   // If the queue is empty, then might as well go ahead and read...will
-   // just consume a silence packet...
-   if (jitter_pkts_in_queue > 0) {
-      // Now, deal with some adaptive code to try to keep the jitter buffer half full.
-      unsigned int desired = queue_max >> 1; // Half of max
-      if (jitter_pkts_in_queue < (desired - desired/2)) {
-         rv +=  4;
-      }
-      else if (jitter_pkts_in_queue > (desired + desired/2)) {
-         rv -= 4;
-      }
+uint32 MediaSession::getPerPacketTimeMs() {
+
+   uint64 rv = 20;
+   if (myMediaDevice.getPtr()) {
+      rv = myMediaDevice->getDataRate();
    }
    return rv;
+}//getPerPacketTimeMs
+
+void MediaSession::suspend() {
+   myMediaDevice->suspend(); 
 }
 
-
-void
-MediaSession::startSession(VSdpMode mode)
-{
-    assertNotDeleted();
-    if (myRtpSession != 0) {
-        myMediaDevice->start(myRtpSession->getCodec()->getType());
-        myRtpSession->setMode(mode); 
-    }
-    else {
-        cpLog(LOG_ERR, "WARNING:  myRtpSession is NULL in startSession");
-        // Default to use G711 U codec.
-        myMediaDevice->start(G711U);
-    }
-}
-
-void
-MediaSession::suspend()
-{
-    myMediaDevice->suspend(); 
-}
-void
-MediaSession::resume(SdpSession& remoteSdp)
-{
-    if (myRtpSession != 0)
-        myRtpSession->adopt(remoteSdp);
-    myMediaDevice->resume(); 
+void MediaSession::resume(SdpSession& remoteSdp) {
+   if (myRtpSession != 0)
+      myRtpSession->adopt(remoteSdp);
+   myMediaDevice->resume(); 
 }
 
 SdpSession 

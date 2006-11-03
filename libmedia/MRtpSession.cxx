@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const MRtpSession_cxx_Version =
-    "$Id: MRtpSession.cxx,v 1.19 2006/11/01 02:07:45 greear Exp $";
-
 #include "global.h"
 #include <cassert>
 #include "RtpPacket.hxx"
@@ -199,11 +196,13 @@ void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    //cpLog(LOG_DEBUG_STACK, "MrtpSession::tick, mySession: %p", mySession.getPtr());
    // Only drain jitter buffer every XXX miliseconds.
    if (mySession.getPtr()) {
-      uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                   rtpStack->getCurMaxPktsInQueue());
+      uint64 pref = mySession->getPerPacketTimeMs();
+      if (lastRtpRetrieve == 0) {
+         lastRtpRetrieve = now;
+      }
       if ((lastRtpRetrieve + pref) <= now) {
          retrieveRtpSample();
-         lastRtpRetrieve = now;
+         lastRtpRetrieve += pref;
       }
       else {
          //cpLog(LOG_ERR, "Too soon to retrieve sample, lastRtpRetrieve: %llu  pref: %llu  now: %llu",
@@ -222,8 +221,10 @@ int MRtpSession::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
    }
    
    if (mySession.getPtr()) {
-      uint64 pref = mySession->getPreferredTimeout(rtpStack->getJitterPktsInQueueCount(),
-                                                   rtpStack->getCurMaxPktsInQueue());
+      uint64 pref = mySession->getPerPacketTimeMs();
+      if (lastRtpRetrieve == 0) {
+         lastRtpRetrieve = now;
+      }
       if (pref + lastRtpRetrieve > now) {
          timeout = min(timeout, (pref + lastRtpRetrieve) - now);
       }

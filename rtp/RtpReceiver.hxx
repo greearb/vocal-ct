@@ -286,11 +286,7 @@ protected:
    uint32 recv_cycles;
 
    // Various stats
-   unsigned int silencePatched; // How many times did we fill in silence?
-   unsigned int insertedOooPkt; // How many times did we insert an out-of-order pkt?
    unsigned int comfortNoiseDropped; // Comfort noise dropped count.
-   unsigned int packetBadlyMisordered; // So badly out of order we clear past history.
-   unsigned int packetTooOld; //Have already played past this one, dropping it.
 
    /// relative transmission time for prev packet
    int lastTransit;
@@ -337,9 +333,10 @@ protected:
    RtpPacket tmpPkt;
 
    // Indexes into our Jitter Buffer.
-   // When inPos == playPos, the buffer is 'empty'.
-   unsigned int inPos;
-   unsigned int playPos;
+   // If inPos == playPos, then it is EITHER empty or Full.
+   //  If the buffer at [inPos] is in use, then it is full, else empty.
+   unsigned int inPos; // Location to insert next.
+   unsigned int playPos; // Location to play next.
 
    void incrementInPos();
    void incrementPlayPos();

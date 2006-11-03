@@ -141,12 +141,7 @@ public:
                              VCodecType type);
 
 
-
-   /** Allow the receiver to throttle based on the current size of the
-    * jitter buffer.  This timeout will be passed to select.
-    */
-   virtual uint64 getPreferredTimeout(unsigned int jitter_pkts_in_queue,
-                                      unsigned int queue_max);
+   virtual uint32 getPerPacketTimeMs();
 
    /**Based on the given mode ( VSDP_SND, VSDP_RECV,VSDP_SND_RECV), generate
     *local SDP data. Used when initiating a call.
