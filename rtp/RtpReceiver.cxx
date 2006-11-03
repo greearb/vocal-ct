@@ -403,18 +403,31 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
       jitterBuffer[idx] = new RtpData();
    }
 
-   if (jitterBuffer[idx]->isInUse() &&
-       (!jitterBuffer[idx]->isSilenceFill())) {
-      // Overflow.
-      cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
-            getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
-            pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
-#ifdef USE_LANFORGE
-      if (rtpStatsCallbacks) {
-         uint64 now = vgetCurMs();
-         rtpStatsCallbacks->notifyJBOverruns(now, 1);
+   if (jitterBuffer[idx]->isInUse()) {
+      if (jitterBuffer[idx]->isSilenceFill()) {
+         // Don't count this as overflow since we're just munching silence.
+         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run (of a silence pkt), cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+               getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+               pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
       }
+      else {
+         // Overflow.
+         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+               getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+               pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+#ifdef USE_LANFORGE
+         if (rtpStatsCallbacks) {
+            uint64 now = vgetCurMs();
+            rtpStatsCallbacks->notifyJBOverruns(now, 1);
+         }
 #endif
+      }
+
+      // If playPos is at this index, then we need to move it forward, since this is about to
+      // be the head of the queue instead of the tail.
+      if (playPos == (uint32)(idx)) {
+         incrementPlayPos();
+      }
    }
    
    jitterBuffer[idx]->setData(pkt.getPayloadLoc(), pkt.getPayloadUsage());
@@ -475,9 +488,15 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
          jbp->setIsInUse(false);
          incrementPlayPos();
          jbp = jitterBuffer[playPos];
+         cpLog(LOG_DEBUG_JB, "NOTE:  Dropping silence pkt, next-pkt, seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
+               jbp->getRtpSequence(), playPos, inPos, cur_max_jbs);
       }
    }
-   assert(jbp->isInUse());
+   if (!jbp->isInUse()) {
+      cpLog(LOG_DEBUG_JB, "FATAL:  Trying to return a jitter buffer that is not in use: seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d",
+            jbp->getRtpSequence(), playPos, inPos, cur_max_jbs);
+      assert("returning jitter-buffer that is not in use" == "fatal");
+   }
 
    int packetSize = jbp->getCurLen();
 

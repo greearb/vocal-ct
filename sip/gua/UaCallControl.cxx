@@ -158,7 +158,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
                UaFacade::instance().getRegistrationManager()->handleRegistrationResponse(*statusMsg);
             }
             else if (sipMsg->getCSeq().getMethod() == CANCEL_METHOD) {
-               UaFacade::instance().postMsg("L_HANGUP ");
+               UaFacade::instance().postMsg("R_HANGUP CANCEL");
             }
          }
          else if (sipMsg->getType() == SIP_SUBSCRIBE) {
