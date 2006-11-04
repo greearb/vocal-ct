@@ -75,7 +75,7 @@
 #include <sstream>
 
 
-#define LOG_DEBUG_JB LOG_DEBUG_STACK
+#define LOG_DEBUG_JB LOG_ERR
 
 string RtpData::toString() const {
    ostringstream oss;
