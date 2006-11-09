@@ -81,7 +81,7 @@ string RtpData::toString() const {
    ostringstream oss;
    oss << " len: " << len << " is_in_use: " << is_in_use
        << " silence_fill: " << is_silence_fill << "  seq_no: " << rtp_seq_no
-       << " rtp_time: " << rtp_time << endl;
+       << " rtp_time: " << rtp_time;
    return oss.str();
 }
 
@@ -560,6 +560,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    }
 #endif
 
+   verifyJbSanity("retrieve");
    return packetSize;
 }//retrieve
 
@@ -822,7 +823,10 @@ void RtpReceiver::printBuffer(int err_level) {
          inPos, playPos, getJitterPktsInQueueCount());
    for (int i = 0; i<(int)(cur_max_jbs); i++) {
       if (jitterBuffer[i]) {
-         cpLog(err_level, "jitterBuffer[%d] %s", i, jitterBuffer[i]->toString().c_str());
+         cpLog(err_level, "jitterBuffer[%d] = %s", i, jitterBuffer[i]->toString().c_str());
+      }
+      else {
+         cpLog(err_level, "jitterBuffer[%d] = NULL", i);
       }
    }
 }
@@ -895,13 +899,14 @@ void RtpReceiver::verifyJbSanity(const char* dbg) {
       }
 
       // And, verify the rest are not in use.
-      for (unsigned int q = 0; q<(cnt - cur_max_jbs); q++) {
+      for (unsigned int q = 0; q<(cur_max_jbs - cnt); q++) {
          unsigned int i = inPos + q;
          if (i >= cur_max_jbs) {
             i -= cur_max_jbs;
          }
          if (jitterBuffer[i] && jitterBuffer[i]->isInUse()) {
-            cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane, debug: %s", dbg);
+            cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane (not-full, not-in-use), idx: %i, debug: %s",
+                  i, dbg);
             printBuffer(LOG_ERR);
             assert("buffer is in invalid state in verifyJbSanity (not-full, not-in-use)" == "fatal");
          }
@@ -914,8 +919,6 @@ void RtpReceiver::incrementInPos() {
    if (inPos >= cur_max_jbs) {
       inPos = 0;
    }
-
-   verifyJbSanity("incrementInPos");
 }
 
 void RtpReceiver::incrementPlayPos(const char* dbg) {
@@ -923,7 +926,6 @@ void RtpReceiver::incrementPlayPos(const char* dbg) {
    if (playPos >= cur_max_jbs) {
       playPos = 0;
    }
-   verifyJbSanity("incrementInPos");
 }
 
 unsigned int RtpReceiver::calculatePreviousInPos(int packets_ago) const {
