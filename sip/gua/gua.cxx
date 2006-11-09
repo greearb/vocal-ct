@@ -114,10 +114,10 @@ int main(const int argc, const char**argv) {
 
    try {
       UaCommandLine::instance( (int)argc, (const char**)argv );
-      //Set the default log file size to be 3MB
+      //Set the default log file size to be XX MB
       DEBUG_MEM_USAGE("after argc");
       //cpLogSetFileSize (3000000);
-      cpLogSetFileSize (30000000);
+      cpLogSetFileSize (1000000);
       //Set the num of backup files to be 2
       cpLogSetNumOfBackupFiles (2);
 
