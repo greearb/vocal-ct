@@ -49,7 +49,7 @@
  */
 
 static const char* const SdpHandler_cxx_Version =
-    "$Id: SdpHandler.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: SdpHandler.cxx,v 1.2 2006/11/09 00:11:43 greear Exp $";
 
 #include "SdpHandler.hxx"
 #include "Sdp2Session.hxx"
@@ -66,7 +66,6 @@ using Vocal::SDP::SdpMedia;
 using Vocal::SDP::MediaAttributes;
 using Vocal::SDP::ValueAttribute;
 using Vocal::SDP::SdpRtpMapAttribute;
-using Vocal::MediaException;
 
 using namespace Vocal::UA;
 
@@ -251,11 +250,8 @@ checkType(const SdpSession& sdp, int& realPayloadType, Data eventName)
     return false;
 }
 
-void
-negotiateSdp(SdpSession& sdpSess, string localAddr, int localPort, 
-             const SdpSession& remoteSdp)
-     throw (MediaException&)
-{
+void negotiateSdp(SdpSession& sdpSess, string localAddr, int localPort, 
+                  const SdpSession& remoteSdp) {
     setHost(sdpSess, localAddr);
     //Based on the remote SDP and capability, create a
     //compatible Local SDP and reserve associated Media
@@ -266,55 +262,43 @@ negotiateSdp(SdpSession& sdpSess, string localAddr, int localPort,
     list < SdpMedia* > mList = remoteSdp.getMediaList();
     list<VCodecType> acList;
     MediaController& mInstance = MediaController::instance();
-    for(list < SdpMedia* >::iterator itr = mList.begin();
-             itr != mList.end(); itr++)
-    {
-        if((*itr)->getMediaType() == Vocal::SDP::MediaTypeAudio)
-        {
-            vector <int>* fmList = (*itr)->getFormatList();
-            if(fmList)
-            {
-                for(vector<int>::iterator itr = (*fmList).begin();
-                                  itr != (*fmList).end(); itr++)
-                {
-                    int supportedType = (*itr);
-                    int st2 = supportedType;
-
-                    //In case of dynamic payload type, the remote and local may may differect types of the
-                    //same codec
-                    if (mInstance.getMediaCapability().isSupported(st2, remoteSdp, supportedType))
-                    {
-                        acList.push_back(static_cast<VCodecType>(supportedType));
-                    }
+    for (list < SdpMedia* >::iterator itr = mList.begin();
+         itr != mList.end(); itr++) {
+       if ((*itr)->getMediaType() == Vocal::SDP::MediaTypeAudio) {
+          vector <int>* fmList = (*itr)->getFormatList();
+          if (fmList) {
+             for(vector<int>::iterator itr = (*fmList).begin();
+                 itr != (*fmList).end(); itr++) {
+                int supportedType = (*itr);
+                int st2 = supportedType;
+                
+                //In case of dynamic payload type, the remote and local may may differect types of the
+                //same codec
+                if (mInstance.getMediaCapability().isSupported(st2, remoteSdp, supportedType)) {
+                   acList.push_back(static_cast<VCodecType>(supportedType));
                 }
-            }
-        }
+             }
+          }
+       }
+    }
+    
+    if (acList.size() == 0) {
+       cpLog(LOG_ERR, "Can not support any of the codecs in the offer.");
     }
 
-    if(acList.size())
-    {
-        SdpMedia* sdpMedia = new SdpMedia();
-        sdpMedia->clearFormatList();
-        sdpMedia->setMediaType(Vocal::SDP::MediaTypeAudio);
-        sdpMedia->setPort( localPort );
-        sdpSess.addMedia(sdpMedia);
+    SdpMedia* sdpMedia = new SdpMedia();
+    sdpMedia->clearFormatList();
+    sdpMedia->setMediaType(Vocal::SDP::MediaTypeAudio);
+    sdpMedia->setPort( localPort );
+    sdpSess.addMedia(sdpMedia);
 
-        MediaAttributes* mediaAttrib = new MediaAttributes();
-        sdpMedia->setMediaAttributes(mediaAttrib);
-
-        for(list<VCodecType>::iterator itr = acList.begin(); 
-                     itr != acList.end(); itr++)
-        {
-            Sptr<CodecAdaptor> cAdp = mInstance.getMediaCapability().getCodec(*itr);
-            addMediaAttribute(sdpMedia, cAdp);
-        }
-    }
-    else
-    {
-        //Can not support any of the codecs in the offer 
-        cpLog(LOG_ERR, "Can not support any of the codecs in the offer.");
-        throw MediaException("Can not support any of the codecs in the offer.",
-                               __FILE__, __LINE__);
+    MediaAttributes* mediaAttrib = new MediaAttributes();
+    sdpMedia->setMediaAttributes(mediaAttrib);
+       
+    for (list<VCodecType>::iterator itr = acList.begin(); 
+         itr != acList.end(); itr++) {
+       Sptr<CodecAdaptor> cAdp = mInstance.getMediaCapability().getCodec(*itr);
+       addMediaAttribute(sdpMedia, cAdp);
     }
 
     sdpSess.setSessionName( "Vocal-Media-Lib");

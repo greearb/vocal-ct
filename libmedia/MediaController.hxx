@@ -63,7 +63,6 @@
 #include "MediaSession.hxx"
 #include "Sdp2Session.hxx"
 #include "MediaCapability.hxx"
-#include "MediaException.hxx"
 
 using Vocal::SDP::SdpSession;
 
@@ -117,14 +116,12 @@ public:
 
 
    ///Create a compatibl;e session after negotiating with remote SDP
-   SdpSession createSession(const SdpSession& remoteSdp, const char* debug)
-      throw (MediaException&) ;
+   SdpSession createSession(const SdpSession& remoteSdp, const char* debug);
 
    /**Create a brand new SDP session
     * using the RTP port range and MediaCapabilities registered.
     */
-   SdpSession createSession(const char* debug)
-      throw (MediaException&);
+   SdpSession createSession(const char* debug);
 
    ///Get SDP for an existing session identified by sId.
    SdpSession getSdp(unsigned int sId, VSdpMode=VSDP_SND_RECV);

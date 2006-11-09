@@ -52,7 +52,7 @@
  */
 
 static const char* const SdpHandler_hxx_Version =
-    "$Id: SdpHandler.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
+    "$Id: SdpHandler.hxx,v 1.2 2006/11/09 00:11:43 greear Exp $";
 
 #include "Data.hxx"
 #include "Sptr.hxx"
@@ -62,14 +62,12 @@ static const char* const SdpHandler_hxx_Version =
 
 using Vocal::SDP::SdpSession;
 using Vocal::SDP::SdpMedia;
-using Vocal::MediaException;
 using Vocal::UA::VSdpMode;
 
 void setHost(SdpSession& sipSdp, Data hostAddr);
 void setStandardSdp(SdpSession& sipSdp, Data hostAddr, int port, VSdpMode m=Vocal::UA::VSDP_SND_RECV);
 void negotiateSdp(SdpSession& sipSdp, string localAddr, int localPort, 
-                  const SdpSession& remoteSdp)
-                    throw (MediaException&);
+                  const SdpSession& remoteSdp);
 
 bool checkType(const SdpSession& sdp, int& realPayloadType, Data eventName);
 

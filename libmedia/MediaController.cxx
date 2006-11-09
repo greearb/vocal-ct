@@ -217,9 +217,7 @@ int MediaController::setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
 
 
 SdpSession
-MediaController::createSession(const SdpSession& remoteSdp, const char* debug) 
-    throw (MediaException&) 
-{
+MediaController::createSession(const SdpSession& remoteSdp, const char* debug) {
     //Based on the remote SDP and capability, create a
     //compatible Local SDP and reserve associated Media
     //Resources 
@@ -235,8 +233,7 @@ MediaController::createSession(const SdpSession& remoteSdp, const char* debug)
     return sdp;
 }
 
-SdpSession
-MediaController::createSession(const char* debug) throw (MediaException&) {
+SdpSession MediaController::createSession(const char* debug) {
     string localAddr;
     int    localPort;
     
@@ -271,9 +268,6 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
    if (localRes == 0) {
       cpLog(LOG_ERR, "No Network resource is free, debug: %s", debug);
       assert("No Ntwk Resource free" == "bug");
-
-      throw MediaException("No Network resource is free",
-                           __FILE__, __LINE__);
    }
 
    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,

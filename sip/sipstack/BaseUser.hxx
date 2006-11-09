@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const BaseUser_hxx_version =
-    "$Id: BaseUser.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-    
 #include "global.h"
 #include "Data.hxx"
 #include "Sptr.hxx"
@@ -97,12 +94,5 @@ bool
 operator<(const Sptr<BaseUser>& left, const Sptr<BaseUser>& right);
 
 } // namespace Vocal
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

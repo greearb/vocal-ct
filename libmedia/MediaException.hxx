@@ -51,10 +51,7 @@
  *
  */
 
-
-static const char* const MediaException_hxx_Version = 
-    "$Id: MediaException.hxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
-
+#if 0
 
 #include "VException.hxx"
 
@@ -67,37 +64,35 @@ namespace Vocal
 
 /** Exception caused by media handling error.<br><br>
  */
-class MediaException: public VException
-{
-    public:
+class MediaException: public VException {
+public:
     
-    	/** Create the exception.
-	 *
-	 *  @param  msg     Message to be logged
-	 *  @param  file    File name where exception was created.
-	 *  @param  line    Line number of the file where the exception was 
-	 *  	    	    created.
-	 *  @param  error   Usually an errno.
-	 */
-        MediaException(  
-	    const string	    & 	msg,
-    	    const string    	    & 	file,
-    	    const int 	    	    	line,
-    	    const int 	    	    	error = 0)
-        :   VException(msg, file, line, error)
-        { };
+   /** Create the exception.
+    *
+    *  @param  msg     Message to be logged
+    *  @param  file    File name where exception was created.
+    *  @param  line    Line number of the file where the exception was 
+    *  	    	    created.
+    *  @param  error   Usually an errno.
+    */
+   MediaException(const string	    & 	msg,
+                  const string    	    & 	file,
+                  const int 	    	    	line,
+                  const int 	    	    	error = 0)
+         :   VException(msg, file, line, error)
+      { };
     
 
-    	/** Name of this class of exception, "MediaException".
-    	 */
-    	string      	    	    getName() const
-        {
-            return ( "MediaException" );
-        }
+   /** Name of this class of exception, "MediaException".
+    */
+   string getName() const {
+      return "MediaException";
+   }
 };
 
 
 } // namespace Vocal
 
+#endif
 
 #endif // !defined(Media_EXCEPTION_DOT_H)

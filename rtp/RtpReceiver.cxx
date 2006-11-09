@@ -80,7 +80,8 @@
 string RtpData::toString() const {
    ostringstream oss;
    oss << " len: " << len << " is_in_use: " << is_in_use
-       << " silence_fill: " << is_silence_fill;
+       << " silence_fill: " << is_silence_fill << "  seq_no: " << rtp_seq_no
+       << " rtp_time: " << rtp_time << endl;
    return oss.str();
 }
 
@@ -353,6 +354,8 @@ int RtpReceiver::readNetwork() {
       }
    }//else
 
+   verifyJbSanity("readNetwork");
+
    packetReceived++;
    payloadReceived += len;
 
@@ -427,7 +430,7 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
       // be the head of the queue instead of the tail.
       if ((getJitterPktsInQueueCount() == cur_max_jbs) &&
           (playPos == (uint32)(idx))) {
-         incrementPlayPos();
+         incrementPlayPos("moving forward in setRtpData");
          cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos, we are full, cur-size: %d\n", getJitterPktsInQueueCount());
       }
    }
@@ -438,7 +441,7 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
    jitterBuffer[idx]->setRtpTime(pkt.getRtpTime());
    jitterBuffer[idx]->setRtpSequence(pkt.getSequence());
    return 0;
-}
+}//setRtpData
 
 int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
    cpLog(LOG_DEBUG_JB, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
@@ -495,7 +498,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
       // Maybe consume an extra silence if our jitter buffer is > 1/2 full.
       if ((cur_max_jbs >= 2) && (getJitterPktsInQueueCount() > ((cur_max_jbs/2) + 1))) {
          jbp->setIsInUse(false);
-         incrementPlayPos();
+         incrementPlayPos("dropping silence");
          jbp = jitterBuffer[playPos];
          cpLog(LOG_DEBUG_JB, "NOTE:  Dropping silence pkt, next-pkt, seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
                jbp->getRtpSequence(), playPos, inPos, cur_max_jbs, getJitterPktsInQueueCount());
@@ -549,7 +552,7 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    // Mark this pkt as un-used.
    jbp->setIsInUse(false);
 
-   incrementPlayPos();
+   incrementPlayPos("retrieve, returning pkt");
 
 #ifdef USE_LANFORGE
    if (rtpStatsCallbacks) {
@@ -815,17 +818,17 @@ void RtpReceiver::clearJitterBuffer() {
  
  
 void RtpReceiver::printBuffer(int err_level) {
-   for (int i = 0; i<JITTER_BUFFER_MAX; i++) {
+   cpLog(err_level, "inPos: %d  playPos: %d  cur-size: %d",
+         inPos, playPos, getJitterPktsInQueueCount());
+   for (int i = 0; i<(int)(cur_max_jbs); i++) {
       if (jitterBuffer[i]) {
-         cpLog(err_level, "[%d] %s\n", jitterBuffer[i]->toString().c_str());
+         cpLog(err_level, "jitterBuffer[%d] %s", i, jitterBuffer[i]->toString().c_str());
       }
    }
 }
 
 /* --- Session state functions ------------------------------------- */
-void RtpReceiver::emptyNetwork ()
-{
-
+void RtpReceiver::emptyNetwork (){
     // create empty holder packet
    char buf[1500];
 
@@ -856,18 +859,71 @@ void RtpReceiver::setCodecString(const char* codecStringInput) {
 }
 */
 
+
+void RtpReceiver::verifyJbSanity(const char* dbg) {
+   // Debugging
+   int cnt = getJitterPktsInQueueCount();
+   if ((cnt > 0) &&
+       ((!jitterBuffer[playPos]) || (!jitterBuffer[playPos]->isInUse()))) {
+      cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane, playPos funky, debug: %s", dbg);
+      printBuffer(LOG_ERR);
+      assert("buffer is in invalid state in verifyJbSanity (playPos)" == "fatal");
+   }
+
+   if (cnt == (int)(cur_max_jbs)) {
+      // Full
+      for (int q = 0; q<cnt; q++) {
+         if (!jitterBuffer[q] || !jitterBuffer[q]->isInUse()) {
+            cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane, debug: %s", dbg);
+            printBuffer(LOG_ERR);
+            assert("buffer is in invalid state in verifyJbSanity (full)" == "fatal");
+         }
+      }
+   }
+   else {
+      // Verify correct number are in use
+      for (int q = 0; q<cnt; q++) {
+         int i = inPos - q - 1;
+         if (i < 0) {
+            i += cur_max_jbs;
+         }
+         if (!jitterBuffer[i] || !jitterBuffer[i]->isInUse()) {
+            cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane, debug: %s", dbg);
+            printBuffer(LOG_ERR);
+            assert("buffer is in invalid state in verifyJbSanity (not-full, in-use)" == "fatal");
+         }
+      }
+
+      // And, verify the rest are not in use.
+      for (unsigned int q = 0; q<(cnt - cur_max_jbs); q++) {
+         unsigned int i = inPos + q;
+         if (i >= cur_max_jbs) {
+            i -= cur_max_jbs;
+         }
+         if (jitterBuffer[i] && jitterBuffer[i]->isInUse()) {
+            cpLog(LOG_ERR, "ERROR:  Jitter-buffer is not sane, debug: %s", dbg);
+            printBuffer(LOG_ERR);
+            assert("buffer is in invalid state in verifyJbSanity (not-full, not-in-use)" == "fatal");
+         }
+      }
+   }
+}
+
 void RtpReceiver::incrementInPos() {
    inPos++;
    if (inPos >= cur_max_jbs) {
       inPos = 0;
    }
+
+   verifyJbSanity("incrementInPos");
 }
 
-void RtpReceiver::incrementPlayPos() {
+void RtpReceiver::incrementPlayPos(const char* dbg) {
    playPos++;
    if (playPos >= cur_max_jbs) {
       playPos = 0;
    }
+   verifyJbSanity("incrementInPos");
 }
 
 unsigned int RtpReceiver::calculatePreviousInPos(int packets_ago) const {

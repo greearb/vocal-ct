@@ -238,6 +238,7 @@ public:
 
    unsigned int getJitterPktsInQueueCount() const;
    unsigned int getCurMaxPktsInQueue() const { return cur_max_jbs; }
+   void verifyJbSanity(const char* dbg);
 
    uint16 getPrevSeqRecv() { return realPrevSeqRecv; }
    uint32 getRecvCycles() { return recv_cycles; }
@@ -339,7 +340,7 @@ protected:
    unsigned int playPos; // Location to play next.
 
    void incrementInPos();
-   void incrementPlayPos();
+   void incrementPlayPos(const char* dbg);
    unsigned int calculatePreviousInPos(int packets_ago) const;
    int insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq);
    int appendRtpData(RtpPacket& pkt);

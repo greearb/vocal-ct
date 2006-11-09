@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const BaseUser_cxx_version =
-    "$Id: BaseUser.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "BaseUser.hxx"
 
@@ -73,10 +70,3 @@ Vocal::operator<(const Sptr<BaseUser>& left, const Sptr<BaseUser>& right)
     else if (left == 0) return true;
     else return left->isLessThan(right);
 }
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */

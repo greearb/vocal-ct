@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CodecAdaptor_hxx_Version = 
-    "$Id: CodecAdaptor.hxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include <map>
