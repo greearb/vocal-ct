@@ -53,9 +53,6 @@
 
 
 
-static const char* const ControlState_hxx_Version = 
-"$Id: ControlState.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "CInvalidStateException.hxx"
 #include "SipMsg.hxx"
 #include "cpLog.h"
@@ -70,56 +67,56 @@ class CallAgent;
     ControlState represent base class for UaCallController states. 
 */
 class ControlState {
-    public:
-         ///
-         virtual string className() { return "ControlState"; }
-
-         ///Destructor
-         virtual ~ControlState() { };
-
-         ///
-         virtual void acceptCall(CallAgent& agent) 
-                 throw (CInvalidStateException&);
-         ///
-         virtual void makeCall(CallAgent& agent)
-                 throw (CInvalidStateException&);
-         ///
-         virtual void fail(CallAgent& agent) 
-                 throw (CInvalidStateException&);
-         ///
-         virtual void ringing(CallAgent& agent) 
-                 throw (CInvalidStateException&);
-         ///
-         virtual void inCall(CallAgent& agent)
-                 throw (CInvalidStateException&);
-         ///
-	 virtual void inHold(CallAgent& agent)
-	         throw (CInvalidStateException&);
-	 ///
-         virtual void bye(CallAgent& agent)  
-                 throw (CInvalidStateException&);
-         ///
-         virtual void cancel(CallAgent& agent)  
-                 throw (CInvalidStateException&);
-
-         ///
-         virtual int end(CallAgent& agent)
-                 throw (CInvalidStateException&);
-
-         ///
-         virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-	///
-	virtual bool canBye() { return true; }
-    protected:
-         ///
-         void error(const string& errMsg);
-
-         ///
-         void changeState(CallAgent& agent, ControlState* newState);
+public:
+   ///
+   virtual string className() { return "ControlState"; }
+   
+   ///Destructor
+   virtual ~ControlState() { };
+   
+   ///
+   virtual void acceptCall(CallAgent& agent) 
+      throw (CInvalidStateException&);
+   ///
+   virtual void makeCall(CallAgent& agent)
+      throw (CInvalidStateException&);
+   ///
+   virtual void fail(CallAgent& agent) 
+      throw (CInvalidStateException&);
+   ///
+   virtual void ringing(CallAgent& agent) 
+      throw (CInvalidStateException&);
+   ///
+   virtual void inCall(CallAgent& agent)
+      throw (CInvalidStateException&);
+   ///
+   virtual void inHold(CallAgent& agent)
+      throw (CInvalidStateException&);
+   ///
+   virtual void bye(CallAgent& agent)  
+      throw (CInvalidStateException&);
+   ///
+   virtual void cancel(CallAgent& agent)  
+      throw (CInvalidStateException&);
+   
+   ///
+   virtual int end(CallAgent& agent)
+      throw (CInvalidStateException&);
+   
+   ///
+   virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual bool canBye() { return true; }
+protected:
+   ///
+   void error(const string& errMsg);
+   
+   ///
+   void changeState(CallAgent& agent, ControlState* newState);
 
 };
 

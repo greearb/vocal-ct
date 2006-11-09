@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const StateUasRinging_cxx_Version = 
-"$Id: StateUasRinging.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
 
 #include <stdio.h>
 
@@ -96,12 +94,9 @@ StateUasRinging::end(CallAgent& agent) throw (CInvalidStateException&)
 }
 
 
-void 
-StateUasRinging::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    if(msg->getType() == SIP_BYE)
-    { 
-        agent.doCancel();
-    }
+void StateUasRinging::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+   if(msg->getType() == SIP_BYE) { 
+      agent.doCancel();
+   }
 }

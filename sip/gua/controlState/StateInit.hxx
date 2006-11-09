@@ -53,9 +53,6 @@
 
 
 
-static const char* const StateInit_hxx_Version =
-    "$Id: StateInit.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "ControlState.hxx"
 
 namespace Vocal
@@ -68,32 +65,30 @@ namespace UA
 /**
     StateInit represent a startup state for call setup
 */
-class StateInit : public ControlState
-{
-    public:
-        ///
-        string className()
-        {
-            return "StateInit";
-        }
+class StateInit : public ControlState {
+public:
+   ///
+   string className() {
+      return "StateInit";
+   }
 
-        ///Destructor
-        virtual ~StateInit()
-        { }
+   ///Destructor
+   virtual ~StateInit()
+      { }
+   
+   ///
+   void ringing(CallAgent& agent)
+      throw (CInvalidStateException&);
+   
+   void makeCall(CallAgent& agent)
+      throw (CInvalidStateException&);
 
-        ///
-        void ringing(CallAgent& agent)
-        throw (CInvalidStateException&);
-
-        void makeCall(CallAgent& agent)
-        throw (CInvalidStateException&);
-
-        /// Returns < 0 on failure
-        int end(CallAgent& agent) 
-           throw (CInvalidStateException&) {
-           // Nothing to do, we are there!
-           return 0;
-        }
+   /// Returns < 0 on failure
+   int end(CallAgent& agent) 
+      throw (CInvalidStateException&) {
+      // Nothing to do, we are there!
+      return 0;
+   }
 };
 
 }

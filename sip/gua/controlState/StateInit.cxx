@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const StateInit_cxx_Version = 
-"$Id: StateInit.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
 #include <stdio.h>
 
 #include "StateInit.hxx"

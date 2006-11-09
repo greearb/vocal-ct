@@ -53,10 +53,6 @@
 
 
 
-static const char* const SipTransceiver_hxx_Version
-= "$Id: SipTransceiver.hxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
-
-
 #include <string>
 #include "global.h"
 #include "TransceiverSymbols.hxx"
@@ -112,11 +108,6 @@ public:
    ///
    virtual ~SipTransceiver();
    
-   /**
-    * Copy on write is "expensive", can we change this interface,
-    * specially since we know that most of these are in Sptr's
-    * already
-    */
    virtual void sendAsync(Sptr<SipCommand> sipMessage);
 
    // Interface so that we do not have to copy message again in stack

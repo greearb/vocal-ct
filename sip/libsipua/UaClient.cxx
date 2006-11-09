@@ -49,9 +49,6 @@
  */
 
 
-static const char* const UaClient_cxx_Version =
-    "$Id: UaClient.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
-
 #include "ByeMsg.hxx" 
 #include "StatusMsg.hxx" 
 #include "SystemInfo.hxx" 

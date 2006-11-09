@@ -173,17 +173,22 @@ void CallAgent::doBye() {
       return;
    }
 
+   bool could_post = false;
    cpLog(LOG_DEBUG_STACK, "CallAgent::doBye(), this: %p", this);
    Sptr<SipMsg> bMsg = myInvokee->sendBye();
    if (bMsg != 0) {
       facade->postMsg(bMsg, true);
+      could_post = true;
    }
 
    endCall();
-   strstream str;
-   str << "L_HANGUP BYE" << ends;
-   facade->postMsg(str.str());
-   str.freeze(false);
+
+   if (!could_post) {
+      strstream str;
+      str << "L_HANGUP BYE" << ends;
+      facade->postMsg(str.str());
+      str.freeze(false);
+   }
 }//doBye
 
 
@@ -290,6 +295,7 @@ void CallAgent::callFailed() {
             myState->className().c_str());
       // Continue
    }
+
    strstream str;
    str << "L_HANGUP CALL_FAILED" << ends;
    facade->postMsg(str.str());
@@ -336,9 +342,6 @@ void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) {
 
       //Notify GUI
       facade->postMsg(msg, false);
-      if (msg->getCSeq().getMethod() == CANCEL_METHOD) {
-         facade->postMsg("L_HANGUP CANCEL");
-      }
    }
    catch(CInvalidStateException& e) {
       cpLog(LOG_ERR, "Unexpacted status:%s", e.getDescription().c_str());

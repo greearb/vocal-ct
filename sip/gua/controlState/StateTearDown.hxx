@@ -53,9 +53,6 @@
 
 
 
-static const char* const StateTearDown_hxx_Version =
-    "$Id: StateTearDown.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "ControlState.hxx"
 #include "ControlStateFactory.hxx"
 #include "CallAgent.hxx"
@@ -70,28 +67,25 @@ namespace UA
 /**
     StateTearDown represents a state of tear-down call 
 */
-class StateTearDown : public ControlState
-{
-    public:
-        ///
-        string className()
-        {
-            return "StateTearDown";
-        }
+class StateTearDown : public ControlState {
+public:
+   ///
+   string className() {
+      return "StateTearDown";
+   }
 
-        ///Destructor
-        virtual ~StateTearDown()
-        { }
+   ///Destructor
+   virtual ~StateTearDown()
+      { }
 
-        ///
-        int end(CallAgent& agent)
-        throw (CInvalidStateException&)
-        {
-            cpLog(LOG_DEBUG, "StateTearDown::end");
-            changeState(agent, ControlStateFactory::instance().getState(INIT));
-            agent.setDeleted();
-            return 0;
-        }
+   ///
+   int end(CallAgent& agent)
+      throw (CInvalidStateException&) {
+      cpLog(LOG_DEBUG, "StateTearDown::end");
+      changeState(agent, ControlStateFactory::instance().getState(INIT));
+      agent.setDeleted();
+      return 0;
+   }
 
 };
 

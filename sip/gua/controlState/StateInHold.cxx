@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const StateInHold_cxx_Version = 
-"";
 #include <stdio.h>
 
 #include "StateInHold.hxx"

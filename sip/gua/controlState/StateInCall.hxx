@@ -53,9 +53,6 @@
 
 
 
-static const char* const StateInCall_hxx_Version =
-    "$Id: StateInCall.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "ControlState.hxx"
 
 namespace Vocal
@@ -68,32 +65,27 @@ namespace UA
 /**
     StateInCall represents an call in progress state 
 */
-class StateInCall : public ControlState
-{
-    public:
-        ///
-        string className()
-        {
-            return "StateInCall";
-        }
+class StateInCall : public ControlState {
+public:
+   ///
+   string className() {
+      return "StateInCall";
+   }
 
-        ///Destructor
-        virtual ~StateInCall() { }
+   ///Destructor
+   virtual ~StateInCall() { }
 
-        ///
-        void inHold(CallAgent& agent)
-            throw (CInvalidStateException&);
+   ///
+   void inHold(CallAgent& agent)
+      throw (CInvalidStateException&);
 
-        ///
-        void bye(CallAgent& agent)
-            throw (CInvalidStateException&);
-
-        /// Returns < 0 on failure
-        int end(CallAgent& agent) 
-            throw (CInvalidStateException&);
-
-
-
+   ///
+   void bye(CallAgent& agent)
+      throw (CInvalidStateException&);
+   
+   /// Returns < 0 on failure
+   int end(CallAgent& agent) 
+      throw (CInvalidStateException&);
 };
 
 }

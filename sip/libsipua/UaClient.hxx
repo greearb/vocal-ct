@@ -52,9 +52,6 @@
  */
 
 
-static const char* const UaClient_hxx_Version =
-    "$Id: UaClient.hxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
-
 #include "UaBase.hxx" 
 
 namespace Vocal {

@@ -53,9 +53,6 @@
 
 
 
-static const char* const StateTrying_hxx_Version =
-    "$Id: StateTrying.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "ControlState.hxx"
 
 namespace Vocal

@@ -49,9 +49,6 @@
  */
 
 
-static const char* const UaServer_cxx_Version =
-    "$Id: UaServer.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "ByeMsg.hxx" 
 #include "AckMsg.hxx" 
 #include "SipRoute.hxx" 
@@ -62,46 +59,43 @@ static const char* const UaServer_cxx_Version =
 using namespace Vocal::UA;
 
 Sptr<SipMsg>
-UaServer::sendBye()
-{
-    cpLog(LOG_DEBUG, "UaServer::sendBye()");
-    //Create BYE of the ACK
-    Sptr<AckMsg> ackMsg;
-    ackMsg.dynamicCast(myAckMsg);
-    if(ackMsg == 0)
-    {
-        cpLog(LOG_INFO, "UaServer:Incomplete transaction while BYE is called from callee");
-        return 0;
-    }
+UaServer::sendBye() {
+   cpLog(LOG_DEBUG, "UaServer::sendBye()");
+   //Create BYE of the ACK
+   Sptr<AckMsg> ackMsg;
+   ackMsg.dynamicCast(myAckMsg);
+   if (ackMsg == 0) {
+      cpLog(LOG_INFO, "UaServer:Incomplete transaction while BYE is called from callee");
+      return 0;
+   }
 
-    Sptr<ByeMsg> byeMsg = new ByeMsg(*ackMsg);
+   Sptr<ByeMsg> byeMsg = new ByeMsg(*ackMsg);
+   
+   if (myRouteList.size()) {
+      byeMsg->setRouteList(myRouteList);
+      //
+      SipRoute siproute = byeMsg->getRoute(0);
+      byeMsg->removeRoute(0);
+      
+      SipRequestLine& reqLine = byeMsg->getMutableRequestLine();
+      reqLine.setUrl( siproute.getUrl() );
+   }
 
-    if(myRouteList.size())
-    {
-        byeMsg->setRouteList(myRouteList);
-        //
-        SipRoute siproute = byeMsg->getRoute(0);
-        byeMsg->removeRoute(0);
+   //Clear VIA and set B2b as first via
+   byeMsg->flushViaList();
+   SipVia via("", getMyLocalIp());
+   via.setHost(getMyLocalIp());
+   via.setPort(getMySipPort());
+   byeMsg->setVia(via);
 
-        SipRequestLine& reqLine = byeMsg->getMutableRequestLine();
-        reqLine.setUrl( siproute.getUrl() );
-    } 
-
-    //Clear VIA and set B2b as first via
-    byeMsg->flushViaList();
-    SipVia via("", getMyLocalIp());
-    via.setHost(getMyLocalIp());
-    via.setPort(getMySipPort());
-    byeMsg->setVia(via);
-
-    //SP SipCSeq origSeq = getAck()->getCSeq();
-    //SP unsigned int cseq = origSeq.getNextCSeq();
-    unsigned int cseq = myLocalCSeq.getNextCSeq();
-    SipCSeq sipCSeq = byeMsg->getCSeq();
-    sipCSeq.setCSeq( cseq );
-    byeMsg->setCSeq( sipCSeq );
+   //SP SipCSeq origSeq = getAck()->getCSeq();
+   //SP unsigned int cseq = origSeq.getNextCSeq();
+   unsigned int cseq = myLocalCSeq.getNextCSeq();
+   SipCSeq sipCSeq = byeMsg->getCSeq();
+   sipCSeq.setCSeq( cseq );
+   byeMsg->setCSeq( sipCSeq );
 
 
-    myStack->sendAsync(byeMsg.getPtr());
-    return byeMsg.getPtr();
+   myStack->sendAsync(byeMsg.getPtr());
+   return byeMsg.getPtr();
 }

@@ -53,9 +53,6 @@
 
 
 
-static const char* const StateUacRinging_hxx_Version =
-    "$Id: StateUacRinging.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "ControlState.hxx"
 
 namespace Vocal
@@ -69,41 +66,37 @@ namespace UA
     StateUacRinging represents a state when request has come from Caller
     and call is being established.
 */
-class StateUacRinging : public ControlState
-{
-    public:
-        ///
-        string description() const
-        {
-            return "StateUacRinging";
-        }
+class StateUacRinging : public ControlState {
+public:
+   ///
+   string description() const {
+      return "StateUacRinging";
+   }
 
-        ///
-        string className()
-        {
-            return "StateUacRinging";
-        }
+   ///
+   string className() {
+      return "StateUacRinging";
+   }
 
-        ///Destructor
-        ~StateUacRinging()
-        { }
-        ;
+   ///Destructor
+   ~StateUacRinging()
+      { };
 
-        ///
-        void cancel(CallAgent& agent)
-        throw (CInvalidStateException&);
+   ///
+   void cancel(CallAgent& agent)
+      throw (CInvalidStateException&);
 
-        ///
-        int end(CallAgent& agent) 
-              throw (CInvalidStateException&);
+   ///
+   int end(CallAgent& agent) 
+      throw (CInvalidStateException&);
 
-        ///
-        void inCall(CallAgent& agent)
-        throw (CInvalidStateException&);
+   ///
+   void inCall(CallAgent& agent)
+      throw (CInvalidStateException&);
 
-        ///
-        virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
 
 };
 

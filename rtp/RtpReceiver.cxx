@@ -367,7 +367,7 @@ int RtpReceiver::readNetwork() {
       }
    }//else
 
-   verifyJbSanity("readNetwork");
+   verifyJbSanity(dbg.c_str());
 
    packetReceived++;
    payloadReceived += len;
@@ -443,8 +443,17 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
       // be the head of the queue instead of the tail.
       if ((getJitterPktsInQueueCount() == cur_max_jbs) &&
           (playPos == (uint32)(idx))) {
-         incrementPlayPos("moving forward in setRtpData");
-         cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos, we are full, cur-size: %d\n", getJitterPktsInQueueCount());
+
+         // Only increment play-posn if it's not a dup.
+         if (jitterBuffer[idx]->getRtpSequence() == pkt.getSequence()) {
+            cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer dup pkt received, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+                  getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+                  pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+         }
+         else {
+            incrementPlayPos("moving forward in setRtpData");
+            cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos, we are full, cur-size: %d\n", getJitterPktsInQueueCount());
+         }
       }
    }
    
