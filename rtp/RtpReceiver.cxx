@@ -75,7 +75,7 @@
 #include <sstream>
 
 
-#define LOG_DEBUG_JB LOG_DEBUG_STACK
+#define LOG_DEBUG_JB LOG_ERR
 
 string RtpData::toString() const {
    ostringstream oss;
@@ -248,7 +248,7 @@ int RtpReceiver::readNetwork() {
    // leave gaps and copy the next packet in all the gap
    // when the late packets come copy it into the correct pos
    RtpData* lastPkt = getLastRtpData();
-
+   string dbg;
    // Check for very early rtp pkts.  If so, clean out buffer and start fresh.
    if (lastPkt && (RtpSeqDifference(tmpPkt.getSequence(), lastPkt->getRtpSequence()) > (int)(cur_max_jbs))) {
       // Clear out jitter buffer
@@ -256,6 +256,7 @@ int RtpReceiver::readNetwork() {
             tmpPkt.getSequence(), lastPkt->getRtpSequence(), cur_max_jbs);
       clearJitterBuffer();
       lastPkt = NULL;
+      dbg += "cleared due to early-pkt\n";
    }
    
    if (lastPkt == NULL) {
@@ -267,6 +268,7 @@ int RtpReceiver::readNetwork() {
          cpLog(LOG_ERR, "WARNING:  Priming empty jitter buffer with: %d silence packets.\n",
                p);
          int numprev = p;
+         dbg += "priming with silence\n";
       
          for (int i = 0; i < p; i++) {
             insertSilenceRtpData(tmpPkt.getRtpTime() - (sampleSize * numprev),
@@ -274,6 +276,7 @@ int RtpReceiver::readNetwork() {
             numprev--;
          }
       }
+      dbg += "last-pkt null, appending pkt\n";
       appendRtpData(tmpPkt);
    }
    else {
@@ -287,10 +290,11 @@ int RtpReceiver::readNetwork() {
       uint32 prevPacketRtpTime = lastPkt->getRtpTime();
 
       if (RtpSeqGreater(seq, prevSeqRecv)) {
-         cpLog(LOG_DEBUG_STACK, "seq-greater:  tmpPkt.seq: %d  prevSeq: %d, inPos: %d"
+         cpLog(LOG_DEBUG_JB, "seq-greater:  tmpPkt.seq: %d  prevSeq: %d, inPos: %d"
                "  playPos: %d  cur_max_jbs: %d, queue_count: %d, sampleSize: %d",
                seq, prevSeqRecv, inPos, playPos, cur_max_jbs,
                getJitterPktsInQueueCount(), sampleSize);
+         dbg += "in order\n";
          
          // C.Cameron, hacked by Ben Greear
          while (RtpTimeGreater(tmpPkt.getRtpTime() - sampleSize,
@@ -308,6 +312,7 @@ int RtpReceiver::readNetwork() {
                    tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
                    seq, prevSeqRecv);
             
+            dbg += "silence-patching\n";
             insertSilenceRtpData(prevPacketRtpTime + sampleSize,
                                  prevSeqRecv + 1);
             
@@ -323,6 +328,7 @@ int RtpReceiver::readNetwork() {
                   prevSeqRecv, seq,
                   prevPacketRtpTime, tmpPkt.getRtpTime(), sampleSize );
             
+            dbg += "silence-patching failed to correct rtp-time\n";
             prevPacketRtpTime = tmpPkt.getRtpTime() - sampleSize;
             // On second thoughts, don't let a bogus packet kill us!
             // After a 1-2 day call, a Cisco phone dropped a few packets and
@@ -333,6 +339,7 @@ int RtpReceiver::readNetwork() {
          }
 
          // Add the real packet
+         dbg += "append-rtp-data\n";
          appendRtpData(tmpPkt);
       }//if seq-number was in order
       else {
@@ -343,12 +350,18 @@ int RtpReceiver::readNetwork() {
             // Find the index where we need to insert this.
             cpLog(LOG_ERR, "WARNING:  OOO Pkt is too old: %d seq: %d  lastPkt->seq: %d, dropping Pkt.\n",
                   sd, tmpPkt.getSequence(), lastPkt->getRtpSequence());
+            dbg += "ooo, too old\n";
          }
          else {
             int idx = calculatePreviousInPos(sd);
 
-            cpLog(LOG_DEBUG_STACK, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d cur_size: %d\n",
+            cpLog(LOG_DEBUG_JB, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d cur_size: %d\n",
                   idx, prevSeqRecv, tmpPkt.getSequence(), sd, getJitterPktsInQueueCount());
+            dbg += "ooo, inserted at: ";
+            dbg += idx;
+            dbg += " sd: ";
+            dbg += sd;
+            dbg += "\n";
             setRtpData(tmpPkt, idx);
          }
       }
