@@ -75,7 +75,7 @@
 #include <sstream>
 
 
-#define LOG_DEBUG_JB LOG_DEBUG_STACK
+#define LOG_DEBUG_JB LOG_ERR
 
 string RtpData::toString() const {
    ostringstream oss;
@@ -346,8 +346,8 @@ int RtpReceiver::readNetwork() {
          else {
             int idx = calculatePreviousInPos(sd);
 
-            cpLog(LOG_DEBUG_STACK, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d\n",
-                  idx, prevSeqRecv, tmpPkt.getSequence(), sd);
+            cpLog(LOG_DEBUG_STACK, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d cur_size: %d\n",
+                  idx, prevSeqRecv, tmpPkt.getSequence(), sd, getJitterPktsInQueueCount());
             setRtpData(tmpPkt, idx);
          }
       }
@@ -484,6 +484,13 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    pkt.clear();
 
    jbp = jitterBuffer[playPos];
+   if (!jbp->isInUse()) {
+      cpLog(LOG_ERR, "FATAL:  retrieve: current jb is not in use: seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
+            jbp->getRtpSequence(), playPos, inPos, cur_max_jbs, getJitterPktsInQueueCount());
+      printBuffer(LOG_ERR);
+      assert("retrieving jitter-buffer that is not in use" == "fatal");
+   }
+
    if (jbp->isSilenceFill()) {
       // Maybe consume an extra silence if our jitter buffer is > 1/2 full.
       if ((cur_max_jbs >= 2) && (getJitterPktsInQueueCount() > ((cur_max_jbs/2) + 1))) {
@@ -495,8 +502,9 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
       }
    }
    if (!jbp->isInUse()) {
-      cpLog(LOG_DEBUG_JB, "FATAL:  Trying to return a jitter buffer that is not in use: seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
+      cpLog(LOG_ERR, "FATAL:  Trying to return a jitter buffer that is not in use: seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
             jbp->getRtpSequence(), playPos, inPos, cur_max_jbs, getJitterPktsInQueueCount());
+      printBuffer(LOG_ERR);
       assert("returning jitter-buffer that is not in use" == "fatal");
    }
 
