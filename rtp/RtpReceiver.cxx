@@ -426,7 +426,7 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
 #endif
       }
 
-      // If playPos is at this index, then we need to move it forward, since this is about to
+      // If full, then we need to move it forward, since this is about to
       // be the head of the queue instead of the tail.
       if ((getJitterPktsInQueueCount() == cur_max_jbs) &&
           (playPos == (uint32)(idx))) {
@@ -450,6 +450,35 @@ int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
       jitterBuffer[inPos] = new RtpData();
    }
 
+   if (jitterBuffer[inPos]->isInUse()) {
+      if (jitterBuffer[inPos]->isSilenceFill()) {
+         // Don't count this as overflow since we're just munching silence.
+         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a silence pkt), cur-size: %d over-written pkt-seq: %d\n New pkt: setRtpData,  rtp_time: %d rtp_seq: %d  inPos: %d  playPos: %d",
+               getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
+               rtp_time, rtp_seq, inPos, playPos);
+      }
+      else {
+         // Overflow.
+         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a voice pkt), cur-size: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
+               getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
+               rtp_time, rtp_seq, inPos, playPos);
+#ifdef USE_LANFORGE
+         if (rtpStatsCallbacks) {
+            uint64 now = vgetCurMs();
+            rtpStatsCallbacks->notifyJBOverruns(now, 1);
+         }
+#endif
+      }
+
+      // If full, then we need to move it forward, since this is about to
+      // be the head of the queue instead of the tail.
+      if (getJitterPktsInQueueCount() == cur_max_jbs) {
+         incrementPlayPos("moving forward in setSilenceRtpData");
+         cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos (setSilenceRtpdata), we were/are full, cur-size: %d\n",
+               getJitterPktsInQueueCount());
+      }
+   }
+   
    jitterBuffer[inPos]->setSilenceFill(true);
    jitterBuffer[inPos]->setIsInUse(true);
    jitterBuffer[inPos]->setRtpTime(rtp_time);
