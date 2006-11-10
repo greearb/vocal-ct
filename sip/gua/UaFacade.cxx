@@ -410,7 +410,7 @@ Sptr<SipFrom> UaFacade::generateSipFrom() {
    string un(UaConfiguration::instance().getValue(UserNameTag));
    Sptr<SipFrom> fromUrl;
 
-   unsigned int pos = un.find_first_of("@");
+   int pos = un.find_first_of("@");
    if (pos != string::npos) {
       Sptr<BaseUrl> su = UaCallControl::parseUrl(un);
       if (su == 0) {
