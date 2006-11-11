@@ -411,7 +411,7 @@ Sptr<SipFrom> UaFacade::generateSipFrom() {
    Sptr<SipFrom> fromUrl;
 
    int pos = un.find_first_of("@");
-   if (pos != string::npos) {
+   if (pos != (int)(string::npos)) {
       Sptr<BaseUrl> su = UaCallControl::parseUrl(un);
       if (su == 0) {
          string mFrom("sip:");
