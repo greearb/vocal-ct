@@ -184,6 +184,13 @@ void MRtpSession::retrieveRtpSample() {
 }//retrieveRtpSample
 
 
+void MRtpSession::flushJitterBuffer() {
+   while (rtpStack->getRtpRecv()->getJitterPktsInQueueCount()) {
+      retrieveRtpSample();
+   }
+}
+
+
 void MRtpSession::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                        uint64 now) {
    readNetwork(input_fds); /** Handles both RTCP and RTP receive logic,

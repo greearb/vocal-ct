@@ -162,6 +162,8 @@ public:
    virtual int setFds(fd_set* input_fds, fd_set* output_fds, fd_set* exc_fds,
                       int& maxdesc, uint64& timeout, uint64 now);
 
+   virtual void flushJitterBuffer();
+
 protected:
    ///Process the data received over the wire
    void processRecv(RtpPacket& packet, const NetworkRes& sentBy);

@@ -49,8 +49,6 @@
  *
  */
 
-static const char* const MediaSession_cxx_Version =
-    "$Id: MediaSession.cxx,v 1.16 2006/11/03 00:44:00 greear Exp $";
 
 #include "global.h"
 #include <cassert>
@@ -117,206 +115,201 @@ MediaSession::~MediaSession() {
    }
 }
  
-void
-MediaSession::addToSession( Sptr<MediaDevice> mDevice)
-{
+void MediaSession::addToSession( Sptr<MediaDevice> mDevice) {
    assertNotDeleted();
-
-   if(mDevice != 0)
-   {
-       mDevice->setBusy(true);
-       mDevice->assignedTo(mySessionId);
-       myMediaDevice = mDevice;
+   
+   if (mDevice != 0) {
+      mDevice->setBusy(true);
+      mDevice->assignedTo(mySessionId);
+      myMediaDevice = mDevice;
    }
 }
 
 
-void
-MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp)
-{
-    assertNotDeleted();
-    int fromMedia = 2; // Debugging
-    int fmt = 0;
-    string fmt_name;
+void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
+   assertNotDeleted();
+   int fromMedia = 2; // Debugging
+   int fmt = 0;
+   string fmt_name;
 
-    if (myRtpSession != 0) {
-        cpLog(LOG_ERR, "Already has a session, ignoring...");
-        return;
-    }
+   if (myRtpSession != 0) {
+      cpLog(LOG_ERR, "Already has a session, ignoring...");
+      return;
+   }
 
-    // Set remote host and port
-    //   For now only support unicast
-    string remAddr;
-    string localAddr;
-    LocalScopeAllocator lo;
-    if (localSdp.getConnection())
-       localAddr = localSdp.getConnection()->getUnicast().getData(lo);
-    if (remoteSdp.getConnection())
-       remAddr = remoteSdp.getConnection()->getUnicast().getData(lo);
-
-    //Get the Negotiated Codec for each media type
-    //Get each media description from remoteSdp and map it to the
-    //localSdp SDP and create an MRtpSession
-    list < SdpMedia* > mList = remoteSdp.getMediaList();
-    MediaController& mInstance = MediaController::instance();
-    for(list < SdpMedia* >::iterator itr = mList.begin();
-                            itr != mList.end(); itr++)
-    {
-        SdpMedia* rMedia = (*itr);
-        string rAddr;
-        string lAddr;
-        int lPort = -1;
-        int rPort;
-        Sptr<CodecAdaptor> cAdp;
-        rPort = rMedia->getPort();
-        list < SdpMedia* > lmList = localSdp.getMediaList(); 
-        for(list < SdpMedia* >::iterator itr2 = lmList.begin();
-                            itr2 != lmList.end(); itr2++)
-        {
-            SdpMedia* lMedia = (*itr2);
-            if(lMedia->getMediaType() != rMedia->getMediaType())
-            {
-                continue;
-            }
-            //Get the very first codec of the media description
-            vector < int > * lfmList = lMedia->getFormatList();
-            if (!lfmList || (lfmList->size() == 0)) {
-               continue;
-            }
-
-            vector < int > * rfmList = rMedia->getFormatList();
-            if (!rfmList || (rfmList->size() == 0)) {
-               continue;
-            }
-
-            // So, we put our favorites first.  Assume the remote does
-            // the same.  So, find the codec that matches the remote's preference.
-            for (unsigned int q = 0; q<rfmList->size(); q++) {
-               for (unsigned int r = 0; r<lfmList->size(); r++) {
-                  if ((*rfmList)[q] == (*lfmList)[r]) {
-                     fmt = (*rfmList)[q];
-                     goto found_one;
-                  }
-               }
-            }
-
-            // The goto will jump over this if we actually find a match.
+   // Set remote host and port
+   //   For now only support unicast
+   string remAddr;
+   string localAddr;
+   LocalScopeAllocator lo;
+   if (localSdp.getConnection())
+      localAddr = localSdp.getConnection()->getUnicast().getData(lo);
+   if (remoteSdp.getConnection())
+      remAddr = remoteSdp.getConnection()->getUnicast().getData(lo);
+   
+   //Get the Negotiated Codec for each media type
+   //Get each media description from remoteSdp and map it to the
+   //localSdp SDP and create an MRtpSession
+   list < SdpMedia* > mList = remoteSdp.getMediaList();
+   MediaController& mInstance = MediaController::instance();
+   for(list < SdpMedia* >::iterator itr = mList.begin();
+       itr != mList.end(); itr++) {
+      SdpMedia* rMedia = (*itr);
+      string rAddr;
+      string lAddr;
+      int lPort = -1;
+      int rPort;
+      Sptr<CodecAdaptor> cAdp;
+      rPort = rMedia->getPort();
+      list < SdpMedia* > lmList = localSdp.getMediaList(); 
+      for(list < SdpMedia* >::iterator itr2 = lmList.begin();
+          itr2 != lmList.end(); itr2++) {
+         SdpMedia* lMedia = (*itr2);
+         if (lMedia->getMediaType() != rMedia->getMediaType()) {
             continue;
+         }
+         //Get the very first codec of the media description
+         vector < int > * lfmList = lMedia->getFormatList();
+         if (!lfmList || (lfmList->size() == 0)) {
+            continue;
+         }
+
+         vector < int > * rfmList = rMedia->getFormatList();
+         if (!rfmList || (rfmList->size() == 0)) {
+            continue;
+         }
+         
+         // So, we put our favorites first.  Assume the remote does
+         // the same.  So, find the codec that matches the remote's preference.
+         for (unsigned int q = 0; q<rfmList->size(); q++) {
+            for (unsigned int r = 0; r<lfmList->size(); r++) {
+               if ((*rfmList)[q] == (*lfmList)[r]) {
+                  fmt = (*rfmList)[q];
+                  goto found_one;
+               }
+            }
+         }
+
+         // The goto will jump over this if we actually find a match.
+         continue;
                
-          found_one:
-            char tbuf[50];
-            snprintf(tbuf, 49, "%d", fmt);
-            fmt_name = tbuf;
-
-            int sample_rate = 8000;
-
-            if (fmt >= rtpPayloadDynMin) {
-               SdpRtpMapAttribute attribute;
-               int lm_rv = lMedia->getRtpmapAttributeValue(fmt, attribute);
-               assert(lm_rv >= 0);
-
-               // Now, we got something like 'speex/8000'
-               if (strncasecmp(attribute.getEncodingName().c_str(), "speex", 5) == 0) {
-                  fmt_name = "SPEEX";
-                  sample_rate = attribute.getClockRate();
-               }
-               else {
-                  cpLog(LOG_ERR, "FATAL:  We do not know about this negotiated protocol: %s",
-                        attribute.getEncodingName().c_str());
-                  assert("unhandled encoding name for negotiated protocol");
-               }
-            }
-
-            cAdp = mInstance.getMediaCapability().getCodec(fmt_name);
-            cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
-                  fmt, fmt_name.c_str(), cAdp->getType());
-
-            if (cAdp->getType() == G726_16) {
-               // Make a copy, we have state in this codec.
-               cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-#ifdef USE_VOICE_AGE
-            else if (cAdp->getType() == G729) {
-               // Make a copy, we have state in the g729 codec.
-               cAdp = new CodecG729a(*((CodecG729a*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-#endif
-#ifdef USE_SPEEX
-            else if (cAdp->getType() == SPEEX) {
-               // Make a copy, we have state in the Speex codec.
-               cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-#endif
-            else if (cAdp->getType() == G726_24) {
-               // Make a copy, we have state in this codec.
-               cAdp = new CodecG726_24(*((CodecG726_24*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-            else if (cAdp->getType() == G726_32) {
-               // Make a copy, we have state in this codec.
-               cAdp = new CodecG726_32(*((CodecG726_32*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-            else if (cAdp->getType() == G726_40) {
-               // Make a copy, we have state in this codec.
-               cAdp = new CodecG726_40(*((CodecG726_40*)(cAdp.getPtr())));
-               cAdp->setRtpType(fmt);
-               cAdp->setClockRate(sample_rate);
-            }
-
-            if(lMedia->getConnection()) {
-                LocalScopeAllocator lo;
-                lAddr = lMedia->getConnection()->getUnicast().getData(lo);
-                fromMedia = 1;
+        found_one:
+         char tbuf[50];
+         snprintf(tbuf, 49, "%d", fmt);
+         fmt_name = tbuf;
+         
+         int sample_rate = 8000;
+         
+         if (fmt >= rtpPayloadDynMin) {
+            SdpRtpMapAttribute attribute;
+            int lm_rv = lMedia->getRtpmapAttributeValue(fmt, attribute);
+            assert(lm_rv >= 0);
+            
+            // Now, we got something like 'speex/8000'
+            if (strncasecmp(attribute.getEncodingName().c_str(), "speex", 5) == 0) {
+               fmt_name = "SPEEX";
+               sample_rate = attribute.getClockRate();
             }
             else {
-                lAddr = localAddr;
-                fromMedia = 0;
+               cpLog(LOG_ERR, "FATAL:  We do not know about this negotiated protocol: %s",
+                     attribute.getEncodingName().c_str());
+               assert("unhandled encoding name for negotiated protocol");
             }
-            lPort = lMedia->getPort();
-            break;
-        }
-        if(rMedia->getConnection())
-        {
+         }
+
+         cAdp = mInstance.getMediaCapability().getCodec(fmt_name);
+         cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
+               fmt, fmt_name.c_str(), cAdp->getType());
+         
+         if (cAdp->getType() == G726_16) {
+            // Make a copy, we have state in this codec.
+            cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+#ifdef USE_VOICE_AGE
+         else if (cAdp->getType() == G729) {
+            // Make a copy, we have state in the g729 codec.
+            cAdp = new CodecG729a(*((CodecG729a*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+#endif
+#ifdef USE_SPEEX
+         else if (cAdp->getType() == SPEEX) {
+            // Make a copy, we have state in the Speex codec.
+            cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+#endif
+         else if (cAdp->getType() == G726_24) {
+            // Make a copy, we have state in this codec.
+            cAdp = new CodecG726_24(*((CodecG726_24*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+         else if (cAdp->getType() == G726_32) {
+            // Make a copy, we have state in this codec.
+            cAdp = new CodecG726_32(*((CodecG726_32*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+         else if (cAdp->getType() == G726_40) {
+            // Make a copy, we have state in this codec.
+            cAdp = new CodecG726_40(*((CodecG726_40*)(cAdp.getPtr())));
+            cAdp->setRtpType(fmt);
+            cAdp->setClockRate(sample_rate);
+         }
+         
+         if (lMedia->getConnection()) {
             LocalScopeAllocator lo;
-            rAddr = rMedia->getConnection()->getUnicast().getData(lo);
-        }
-        else
-        {
-            rAddr = remAddr;
-        }
-
-        //Now if we have lAddr, rAddr, lport, rPort and codec adaptor
-        if((lAddr.size() ==0) || (rAddr.size() == 0) || (cAdp == 0)) {
-           cpLog(LOG_ERR, "Media is not setup correctly, lAddr: %s  rAddr: %s  cAdp: %p, fmt: %d\n",
-                 lAddr.c_str(), rAddr.c_str(), cAdp.getPtr(), fmt);
-           continue;
-        }
-
-        //Create an RTP session
-        NetworkRes localRes(lAddr, lPort);
-        NetworkRes remoteRes(rAddr, rPort);
-        myRtpSession = new MRtpSession(mySessionId, localRes,
-                                       _tos, _skb_priority,
-                                       localDevToBindTo,
-                                       remoteRes,
-                                       cAdp, fmt, mySSRC,
-                                       vadOptions, jitter_buffer_sz);
-    }
+            lAddr = lMedia->getConnection()->getUnicast().getData(lo);
+            fromMedia = 1;
+         }
+         else {
+            lAddr = localAddr;
+            fromMedia = 0;
+         }
+         lPort = lMedia->getPort();
+         break;
+      }
+      if (rMedia->getConnection()) {
+         LocalScopeAllocator lo;
+         rAddr = rMedia->getConnection()->getUnicast().getData(lo);
+      }
+      else {
+         rAddr = remAddr;
+      }
+      
+      //Now if we have lAddr, rAddr, lport, rPort and codec adaptor
+      if ((lAddr.size() ==0) || (rAddr.size() == 0) || (cAdp == 0)) {
+         cpLog(LOG_ERR, "Media is not setup correctly, lAddr: %s  rAddr: %s  cAdp: %p, fmt: %d\n",
+               lAddr.c_str(), rAddr.c_str(), cAdp.getPtr(), fmt);
+         continue;
+      }
+      
+      //Create an RTP session
+      NetworkRes localRes(lAddr, lPort);
+      NetworkRes remoteRes(rAddr, rPort);
+      myRtpSession = new MRtpSession(mySessionId, localRes,
+                                     _tos, _skb_priority,
+                                     localDevToBindTo,
+                                     remoteRes,
+                                     cAdp, fmt, mySSRC,
+                                     vadOptions, jitter_buffer_sz);
+   }
 }//addToSession
 
 
 int MediaSession::tearDown() {
    assertNotDeleted();
    cpLog(LOG_DEBUG, "Tearing down the session:%d" , mySessionId);
+
+   // Flush the jitter buffer.
+   if (myRtpSession != 0) {
+      myRtpSession->flushJitterBuffer();
+   }
 
    // Stop them both...
    if (myMediaDevice != 0) {
@@ -432,29 +425,25 @@ void MediaSession::resume(SdpSession& remoteSdp) {
    myMediaDevice->resume(); 
 }
 
-SdpSession 
-MediaSession::getSdp(VSdpMode mode)
-{
-    string localAddr;
-    int    localPort;
-    localAddr = myLocalRes->getIpName().c_str();
-    localPort = myLocalRes->getPort();
-    SdpSession sdp;
-    setStandardSdp(sdp, localAddr, localPort, mode);
-    sdp.setSessionId(mySessionId);
-    return sdp;
+SdpSession MediaSession::getSdp(VSdpMode mode) {
+   string localAddr;
+   int    localPort;
+   localAddr = myLocalRes->getIpName().c_str();
+   localPort = myLocalRes->getPort();
+   SdpSession sdp;
+   setStandardSdp(sdp, localAddr, localPort, mode);
+   sdp.setSessionId(mySessionId);
+   return sdp;
 }
  
 
-SdpSession 
-MediaSession::getSdp(SdpSession& remoteSdp)
-{
-    string localAddr;
-    int    localPort;
-    localAddr = myLocalRes->getIpName().c_str();
-    localPort = myLocalRes->getPort();
-    SdpSession sdp;
-    negotiateSdp(sdp, localAddr, localPort, remoteSdp);
-    sdp.setSessionId(mySessionId);
-    return sdp;
+SdpSession MediaSession::getSdp(SdpSession& remoteSdp) {
+   string localAddr;
+   int    localPort;
+   localAddr = myLocalRes->getIpName().c_str();
+   localPort = myLocalRes->getPort();
+   SdpSession sdp;
+   negotiateSdp(sdp, localAddr, localPort, remoteSdp);
+   sdp.setSessionId(mySessionId);
+   return sdp;
 }

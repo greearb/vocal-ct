@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const MediaDevice_cxx_Version =
-    "$Id: MediaDevice.cxx,v 1.5 2006/05/27 00:02:01 greear Exp $";
-
 #include "global.h"
 #include <cassert>
 

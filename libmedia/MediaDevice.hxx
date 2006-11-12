@@ -52,9 +52,6 @@
  */
 
 
-static const char* const MediaDevice_hxx_Version = 
-    "$Id: MediaDevice.hxx,v 1.6 2006/05/27 00:02:01 greear Exp $";
-
 #include <stdio.h>
 #include "Sptr.hxx"
 #include "cpLog.h"

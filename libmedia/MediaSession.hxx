@@ -175,9 +175,9 @@ private:
    MRtpSession*  myRtpSession;
    
    ///
-   Sptr<NetworkRes>         myLocalRes;
+   Sptr<NetworkRes> myLocalRes;
    ///
-   Sptr<MediaDevice>        myMediaDevice;
+   Sptr<MediaDevice> myMediaDevice;
    
    //Suppress copying
    MediaSession(const MediaSession &);
