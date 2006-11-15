@@ -61,7 +61,7 @@
 #include "UaConfiguration.hxx"
 #include "UaFacade.hxx"
 
-#define LOG_DBG_RM LOG_ERR
+#define LOG_DBG_RM LOG_DEBUG_STACK
 
 using namespace Vocal;
 using namespace Vocal::UA;
@@ -141,6 +141,7 @@ Registration::findMyContact(const StatusMsg& msg) const {
 }
 
 
+/* Returns delay in seconds. */
 int Registration::updateRegistrationMsg(const StatusMsg& msg) {
     int delay = 0;
 
@@ -158,7 +159,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
             //so we will use this work around for now and
             //fix it later.
             expires == msg.getExpires().getDelta();
-            cpLog(LOG_DG_RM, "Could not get expires for myContact, will use msg's Expires: %s",
+            cpLog(LOG_DBG_RM, "Could not get expires for myContact, will use msg's Expires: %s",
                   expires.c_str());
             if ( expires != "" ) {
                 SipExpires sipexpires("", registerMsg->getLocalIp());
@@ -176,7 +177,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
             registerMsg->setExpires(sipexpires);
         }
 
-        delay = getDelay();
+        delay = getDelayMs() / 1000;
 
         return delay;
     }
@@ -203,7 +204,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
         }
 
         if ( status != 401 && status != 407 ) {
-            delay = DEFAULT_DELAY;
+            delay = DEFAULT_DELAY_MS;
             cpLog( LOG_ERR, "Register failed, status: %d", status );
             cpLog( LOG_ERR, "Will try again in %d seconds.", delay );
             cpLog(LOG_ERR, "StatusMsg:\n%s\n", msg.toString().c_str());
@@ -220,7 +221,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
               status, user.c_str(), password.c_str());
        if (!authenticateMessage(msg, *registerMsg, user, password)) {
           // i could not find auth information, so delay
-          delay = DEFAULT_DELAY;
+          delay = DEFAULT_DELAY_MS;
        }
        
        int cseq ( msg.getCSeq().getCSeqData().convertInt() );
@@ -232,13 +233,13 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
           // out.
           
           cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
-          delay = DEFAULT_DELAY;
+          delay = DEFAULT_DELAY_MS;
        }
 
        cpLog(LOG_WARNING, "Will try Registration again with authentication information");
     }
 
-    return delay;
+    return delay / 1000; // Convert to seconds.
 }
 
 
@@ -269,7 +270,7 @@ bool Registration::operator == (Registration& right) const {
 }
 
 
-int egistration::getDelay() {
+int Registration::getDelayMs() {
    return 1000 * registerMsg->getExpires().getDelta().convertInt();   
 }
 

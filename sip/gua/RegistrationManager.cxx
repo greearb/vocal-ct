@@ -49,7 +49,7 @@
  *
  */
 
-#define LOG_DBG_RM LOG_ERR
+#define LOG_DBG_RM LOG_DEBUG_STACK
 
 #include "SipVia.hxx"
 #include "SystemInfo.hxx"
@@ -115,7 +115,7 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
       UaFacade::instance().postMsg(registerMsg.getPtr(), true);
    }
 
-   registration->setNextRegister(now + registration->getDelay());
+   registration->setNextRegister(now + registration->getDelayMs());
    return 0;
 }
 
@@ -167,8 +167,7 @@ RegistrationManager::flushRegistrationList() {
 }
 
 ///
-bool
-RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
+bool RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
 
    Sptr<Registration> registration = findRegistration(statusMsg);
 
@@ -177,12 +176,13 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
       return false;
    }
 
+   // Delay in seconds.
    int delay = registration->updateRegistrationMsg(statusMsg);
    cpLog(LOG_DBG_RM, "RegistrationManager::updating registration information, delay: %d",
          delay);
 
    if ( registration->getStatusCode() == 100 ) {
-      delay = DEFAULT_DELAY;
+      delay = DEFAULT_DELAY_MS / 1000;
    }
 
    if ((registration->getStatusCode()  == 401) ||
@@ -202,8 +202,7 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
 }//handleRegistrationResponse
 
 
-void
-RegistrationManager::addRegistration(int check) {
+void RegistrationManager::addRegistration(int check) {
    flushRegistrationList();
    UaConfiguration& config = UaConfiguration::instance();
 

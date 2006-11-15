@@ -64,7 +64,7 @@ namespace Vocal
 namespace UA
 {
 
-#define DEFAULT_DELAY  60000  /* 60 sec. */
+#define DEFAULT_DELAY_MS  60000  /* 60 sec. */
 
 
 /**

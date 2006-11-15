@@ -83,7 +83,7 @@ public:
    int getStatusCode() const {
       return status;
    };
-   int getDelay();
+   int getDelayMs();
 
    uint64 getNextRegister() const { return nextRegisterMs; }
    void setNextRegister(uint64 r);
