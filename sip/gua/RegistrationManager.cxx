@@ -49,6 +49,8 @@
  *
  */
 
+#define LOG_DBG_RM LOG_ERR
+
 #include "SipVia.hxx"
 #include "SystemInfo.hxx"
 #include "RegistrationManager.hxx"
@@ -62,7 +64,7 @@ using namespace Vocal::UA;
 RegistrationManager::RegistrationManager( Sptr < SipTransceiver > sipstack ) {
    sipStack = sipstack;
    
-   cpLog(LOG_DEBUG, "Starting Registration Mananger");
+   cpLog(LOG_DBG_RM, "Starting Registration Mananger");
    
    addRegistration(0);
 }
@@ -108,7 +110,7 @@ int RegistrationManager::doRegistration(Sptr<Registration> registration, uint64 
    Sptr<RegisterMsg> registerMsg = registration->getNextRegistrationMsg();
 
    if (sipStack != 0) {
-      cpLog(LOG_DEBUG, "sending register message");
+      cpLog(LOG_DBG_RM, "sending register message");
       sipStack->sendAsync( registerMsg.getPtr() );
       UaFacade::instance().postMsg(registerMsg.getPtr(), true);
    }
@@ -126,12 +128,12 @@ RegistrationManager::findRegistration(const StatusMsg& statusMsg) {
    while ( iter != registrationList.end() ) {
       Sptr<RegisterMsg> regMsg = (*iter)->getRegistrationMsg();
       if ( regMsg->computeCallLeg() == statusMsg.computeCallLeg() ) {
-         cpLog(LOG_DEBUG, "Found registration...\n");
+         cpLog(LOG_DBG_RM, "Found registration...\n");
          registration = (*iter);
          break;
       }
       else {
-         cpLog(LOG_DEBUG_STACK, "regMsg callLeg: %s  statusMsg callLeg: %s  didn't match.\n",
+         cpLog(LOG_DBG_RM, "regMsg callLeg: %s  statusMsg callLeg: %s  didn't match.\n",
                regMsg->computeCallLeg().toString().c_str(),
                statusMsg.computeCallLeg().toString().c_str());
          // So, match on Call-ID instead.  But this will be a backup.
@@ -142,7 +144,7 @@ RegistrationManager::findRegistration(const StatusMsg& statusMsg) {
             // is a good idea! --Ben
          }
          else {
-            cpLog(LOG_DEBUG_STACK, "regMsg callId: %s  statusMsg callId: %s  didn't match.\n",
+            cpLog(LOG_DBG_RM, "regMsg callId: %s  statusMsg callId: %s  didn't match.\n",
                   regMsg->getCallId().toString().c_str(),
                   statusMsg.getCallId().toString().c_str());
          }
@@ -171,12 +173,12 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
    Sptr<Registration> registration = findRegistration(statusMsg);
 
    if (registration == 0) {
-      cpLog(LOG_DEBUG, "Could not find registration for statusMsg\n");
+      cpLog(LOG_DBG_RM, "Could not find registration for statusMsg\n");
       return false;
    }
 
    int delay = registration->updateRegistrationMsg(statusMsg);
-   cpLog(LOG_DEBUG, "RegistrationManager::updating registration information, delay: %d",
+   cpLog(LOG_DBG_RM, "RegistrationManager::updating registration information, delay: %d",
          delay);
 
    if ( registration->getStatusCode() == 100 ) {
@@ -185,7 +187,7 @@ RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg) {
 
    if ((registration->getStatusCode()  == 401) ||
        (registration->getStatusCode()  == 407)) {
-      cpLog(LOG_DEBUG, "The new delay is %d, status code: %d",
+      cpLog(LOG_DBG_RM, "The new delay is %d, status code: %d",
             delay, registration->getStatusCode());
       registration->setNextRegister(vgetCurMs() + (delay * 1000));
    }
@@ -207,7 +209,7 @@ RegistrationManager::addRegistration(int check) {
 
    string regOn = config.getValue(RegisterOnTag);
    if (strcasecmp(regOn.c_str(), "FALSE") == 0) {
-      cpLog(LOG_INFO, "Registration is turned off");
+      cpLog(LOG_DBG_RM, "Registration is turned off");
       return;
    }
 

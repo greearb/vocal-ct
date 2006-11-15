@@ -61,6 +61,8 @@
 #include "UaConfiguration.hxx"
 #include "UaFacade.hxx"
 
+#define LOG_DBG_RM LOG_ERR
+
 using namespace Vocal;
 using namespace Vocal::UA;
 
@@ -156,7 +158,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
             //so we will use this work around for now and
             //fix it later.
             expires == msg.getExpires().getDelta();
-            cpLog(LOG_DEBUG, "Could not get expires for myContact, will use msg's Expires: %s",
+            cpLog(LOG_DG_RM, "Could not get expires for myContact, will use msg's Expires: %s",
                   expires.c_str());
             if ( expires != "" ) {
                 SipExpires sipexpires("", registerMsg->getLocalIp());
@@ -165,7 +167,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
             }
         }
         else {
-           cpLog(LOG_DEBUG, "Found expires in myContact: %s", expires.c_str());
+           cpLog(LOG_DBG_RM, "Found expires in myContact: %s", expires.c_str());
         }
 
         if ( expires != "" ) {
@@ -214,7 +216,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
        Data user = UaConfiguration::instance().getValue(UserNameTag);
        Data password = UaConfiguration::instance().getValue(PasswordTag);
 
-       cpLog( LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
+       cpLog(LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
               status, user.c_str(), password.c_str());
        if (!authenticateMessage(msg, *registerMsg, user, password)) {
           // i could not find auth information, so delay
@@ -234,39 +236,40 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
        }
 
        cpLog(LOG_WARNING, "Will try Registration again with authentication information");
-       
     }
 
     return delay;
 }
 
 
-void
-Registration::setRegistrationMsg(Sptr<RegisterMsg> msg)
-{
-    registerMsg = new RegisterMsg(*msg);
+void Registration::setRegistrationMsg(Sptr<RegisterMsg> msg) {
+   registerMsg = new RegisterMsg(*msg);
 
-    SipCSeq cseq = registerMsg->getCSeq();
+   SipCSeq cseq = registerMsg->getCSeq();
 
-    //always use the latest seqNum
-    cseq.setCSeq(seqNum);
-    registerMsg->setCSeq(cseq);
+   //always use the latest seqNum
+   cseq.setCSeq(seqNum);
+   registerMsg->setCSeq(cseq);
+}
+
+void Registration::setNextRegister(uint64 r) {
+   uint64 now = vgetCurMs() / 1000;
+   cpLog(LOG_DBG_RM, "Setting next register to: %d, now: %d\n",
+         (int)(r/1000), (int)(now));
+   nextRegisterMs = r;
 }
 
 
-bool
-Registration::operator == (Registration& right) const {
-    // Cast away const until someone fixes RegisterMsg's equality
-    // operator.
-    //
-    Registration &  left = const_cast<Registration &>(*this);
-    
-    return ( *(left.registerMsg) == *(right.registerMsg) );
+bool Registration::operator == (Registration& right) const {
+   // Cast away const until someone fixes RegisterMsg's equality
+   // operator.
+   //
+   Registration &  left = const_cast<Registration &>(*this); 
+   return ( *(left.registerMsg) == *(right.registerMsg) );
 }
 
 
-int
-Registration::getDelay() {
-    return 1000 * registerMsg->getExpires().getDelta().convertInt();   
+int egistration::getDelay() {
+   return 1000 * registerMsg->getExpires().getDelta().convertInt();   
 }
 

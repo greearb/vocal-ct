@@ -86,7 +86,7 @@ public:
    int getDelay();
 
    uint64 getNextRegister() const { return nextRegisterMs; }
-   void setNextRegister(uint64 r) { nextRegisterMs = r; }
+   void setNextRegister(uint64 r);
 
 private:
 
