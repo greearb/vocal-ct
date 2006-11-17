@@ -597,9 +597,18 @@ void CallAgent::doResume(Sptr<SipMsg>& msg) {
    myInvokee->setRemoteSdp(remoteSdp);
    assert(remoteSdp != 0);
    
-   unsigned int sId = 
-      myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
-   MediaController::instance().resumeSession(sId, remoteSdp->getSdpDescriptor());
+   unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
+   int rv;
+   rv = MediaController::instance().resumeSession(sId, myInvokee->getLocalSdp()->getSdpDescriptor(),
+                                                  remoteSdp->getSdpDescriptor());
+   if (rv < 0) {
+      cpLog(LOG_ERR, "ERROR:  resumeSession failed: %d,  Stopping call.", rv);
+      stopCall();
+   }
+   else {
+      facade->postMsg("INCALL_RESUME");
+      myState->inCall(*this);
+   }
 }//doResume
 
 
@@ -609,26 +618,6 @@ void CallAgent::dohold() {
    unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
    MediaController::instance().suspendSession(sId);
    myState->inHold(*this);
-}
-
-void CallAgent::requestResume(Sptr<SipMsg>& msg) {
-   try {
-      Sptr<SipCommand> sCommand;
-      sCommand.dynamicCast(myInvokee->getRequest());
-      assert(sCommand != 0);
-      Sptr<SipSdp> remoteSdp;
-      remoteSdp.dynamicCast(sCommand->getContentData(0));
-      assert(remoteSdp != 0);
-      Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg, remoteSdp->getSdpDescriptor());
-      myInvokee->sendMsg(statusMsg.getPtr());
-      int sessionId =
-         myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
-      MediaController::instance().resumeSession(sessionId, remoteSdp->getSdpDescriptor());
-      myState->inCall(*this);
-   }
-   catch (CInvalidStateException& e) {
-      cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
-   }
 }
 
 void CallAgent::reqResume(Sptr<SipMsg>& msg) {
@@ -643,13 +632,18 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
       Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                          remoteSdp->getSdpDescriptor());
       myInvokee->sendMsg(statusMsg.getPtr());
-      int sessionId =
-         myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
-      MediaController::instance().resumeSession(sessionId, remoteSdp->getSdpDescriptor());
-      strstream str;
-      str << "INCALL " << ends;
-      facade->postMsg(str.str());
-      myState->inCall(*this);
+      int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
+      int rv;
+      rv = MediaController::instance().resumeSession(sId, myInvokee->getLocalSdp()->getSdpDescriptor(),
+                                                     remoteSdp->getSdpDescriptor());
+      if (rv < 0) {
+         cpLog(LOG_ERR, "ERROR:  resumeSession failed: %d,  Stopping call.", rv);
+         stopCall();
+      }
+      else {
+         facade->postMsg("INCALL_RESUME");
+         myState->inCall(*this);
+      }
    }
    catch (CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
@@ -657,9 +651,6 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
 }
 
 void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
-   cpLog(LOG_DEBUG, "CallAgent::hold() this should be invoked in UAS Hold");
-   cpLog(LOG_ERR, "WARNING:  Ignoring hold attempt (invite while already in call).\n");
-#if 0   
    try {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(myInvokee->getRequest());
@@ -673,16 +664,13 @@ void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
       
       unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();	
       MediaController::instance().suspendSession(sId);
-      strstream str;
-      str << "R_HOLD " << ends;
-      facade->postMsg(str.str());
+      facade->postMsg("R_HOLD");
       facade->postMsg(statusMsg.getPtr(), true);
       myState->inHold(*this);
    }
    catch (CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
    }
-#endif
 }//hold
 
 void CallAgent::startSession(SdpSession& localSdp, SdpSession& remoteSdp) {

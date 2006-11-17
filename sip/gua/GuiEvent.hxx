@@ -52,9 +52,6 @@
  */
 
 
-static const char* const GuiEvent_hxx_Version =
-    "$Id: GuiEvent.hxx,v 1.2 2004/06/20 07:09:38 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include "SipProxyEvent.hxx"

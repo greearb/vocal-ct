@@ -128,9 +128,7 @@ void MediaSession::addToSession( Sptr<MediaDevice> mDevice) {
 
 void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
    assertNotDeleted();
-   int fromMedia = 2; // Debugging
    int fmt = 0;
-   string fmt_name;
 
    if (myRtpSession != 0) {
       cpLog(LOG_ERR, "Already has a session, ignoring...");
@@ -151,14 +149,15 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
    //Get each media description from remoteSdp and map it to the
    //localSdp SDP and create an MRtpSession
    list < SdpMedia* > mList = remoteSdp.getMediaList();
-   MediaController& mInstance = MediaController::instance();
-   for(list < SdpMedia* >::iterator itr = mList.begin();
+   for (list < SdpMedia* >::iterator itr = mList.begin();
        itr != mList.end(); itr++) {
       SdpMedia* rMedia = (*itr);
       string rAddr;
       string lAddr;
       int lPort = -1;
       int rPort;
+      int sample_rate = 8000;      
+
       Sptr<CodecAdaptor> cAdp;
       rPort = rMedia->getPort();
       list < SdpMedia* > lmList = localSdp.getMediaList(); 
@@ -194,82 +193,15 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
          continue;
                
         found_one:
-         char tbuf[50];
-         snprintf(tbuf, 49, "%d", fmt);
-         fmt_name = tbuf;
          
-         int sample_rate = 8000;
-         
-         if (fmt >= rtpPayloadDynMin) {
-            SdpRtpMapAttribute attribute;
-            int lm_rv = lMedia->getRtpmapAttributeValue(fmt, attribute);
-            assert(lm_rv >= 0);
-            
-            // Now, we got something like 'speex/8000'
-            if (strncasecmp(attribute.getEncodingName().c_str(), "speex", 5) == 0) {
-               fmt_name = "SPEEX";
-               sample_rate = attribute.getClockRate();
-            }
-            else {
-               cpLog(LOG_ERR, "FATAL:  We do not know about this negotiated protocol: %s",
-                     attribute.getEncodingName().c_str());
-               assert("unhandled encoding name for negotiated protocol");
-            }
-         }
-
-         cAdp = mInstance.getMediaCapability().getCodec(fmt_name);
-         cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
-               fmt, fmt_name.c_str(), cAdp->getType());
-         
-         if (cAdp->getType() == G726_16) {
-            // Make a copy, we have state in this codec.
-            cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
-#ifdef USE_VOICE_AGE
-         else if (cAdp->getType() == G729) {
-            // Make a copy, we have state in the g729 codec.
-            cAdp = new CodecG729a(*((CodecG729a*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
-#endif
-#ifdef USE_SPEEX
-         else if (cAdp->getType() == SPEEX) {
-            // Make a copy, we have state in the Speex codec.
-            cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
-#endif
-         else if (cAdp->getType() == G726_24) {
-            // Make a copy, we have state in this codec.
-            cAdp = new CodecG726_24(*((CodecG726_24*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
-         else if (cAdp->getType() == G726_32) {
-            // Make a copy, we have state in this codec.
-            cAdp = new CodecG726_32(*((CodecG726_32*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
-         else if (cAdp->getType() == G726_40) {
-            // Make a copy, we have state in this codec.
-            cAdp = new CodecG726_40(*((CodecG726_40*)(cAdp.getPtr())));
-            cAdp->setRtpType(fmt);
-            cAdp->setClockRate(sample_rate);
-         }
+         cAdp = getCodecAdaptor(fmt, lMedia, sample_rate);
          
          if (lMedia->getConnection()) {
             LocalScopeAllocator lo;
             lAddr = lMedia->getConnection()->getUnicast().getData(lo);
-            fromMedia = 1;
          }
          else {
             lAddr = localAddr;
-            fromMedia = 0;
          }
          lPort = lMedia->getPort();
          break;
@@ -300,6 +232,78 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
                                      vadOptions, jitter_buffer_sz);
    }
 }//addToSession
+
+
+Sptr<CodecAdaptor> MediaSession::getCodecAdaptor(int fmt, SdpMedia* lMedia,
+                                                 int& sample_rate) {
+   char tbuf[50];
+   snprintf(tbuf, 49, "%d", fmt);
+   string fmt_name = tbuf;
+   MediaController& mInstance = MediaController::instance();
+         
+   if (fmt >= rtpPayloadDynMin) {
+      SdpRtpMapAttribute attribute;
+      int lm_rv = lMedia->getRtpmapAttributeValue(fmt, attribute);
+      assert(lm_rv >= 0);
+            
+      // Now, we got something like 'speex/8000'
+      if (strncasecmp(attribute.getEncodingName().c_str(), "speex", 5) == 0) {
+         fmt_name = "SPEEX";
+         sample_rate = attribute.getClockRate();
+      }
+      else {
+         cpLog(LOG_ERR, "FATAL:  We do not know about this negotiated protocol: %s",
+               attribute.getEncodingName().c_str());
+         assert("unhandled encoding name for negotiated protocol");
+      }
+   }
+
+   Sptr<CodecAdaptor> cAdp = mInstance.getMediaCapability().getCodec(fmt_name);
+   cpLog(LOG_DEBUG_STACK, "NOTE:  Negotiated format: %d  name: %s  cAdp->type: %d\n",
+         fmt, fmt_name.c_str(), cAdp->getType());
+         
+   if (cAdp->getType() == G726_16) {
+      // Make a copy, we have state in this codec.
+      cAdp = new CodecG726_16(*((CodecG726_16*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+#ifdef USE_VOICE_AGE
+   else if (cAdp->getType() == G729) {
+      // Make a copy, we have state in the g729 codec.
+      cAdp = new CodecG729a(*((CodecG729a*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+#endif
+#ifdef USE_SPEEX
+   else if (cAdp->getType() == SPEEX) {
+      // Make a copy, we have state in the Speex codec.
+      cAdp = new CodecSpeex(*((CodecSpeex*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+#endif
+   else if (cAdp->getType() == G726_24) {
+      // Make a copy, we have state in this codec.
+      cAdp = new CodecG726_24(*((CodecG726_24*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+   else if (cAdp->getType() == G726_32) {
+      // Make a copy, we have state in this codec.
+      cAdp = new CodecG726_32(*((CodecG726_32*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+   else if (cAdp->getType() == G726_40) {
+      // Make a copy, we have state in this codec.
+      cAdp = new CodecG726_40(*((CodecG726_40*)(cAdp.getPtr())));
+      cAdp->setRtpType(fmt);
+      cAdp->setClockRate(sample_rate);
+   }
+   return cAdp;
+}//getCodecAdaptor
 
 
 int MediaSession::tearDown() {
@@ -419,10 +423,13 @@ void MediaSession::suspend() {
    myMediaDevice->suspend(); 
 }
 
-void MediaSession::resume(SdpSession& remoteSdp) {
-   if (myRtpSession != 0)
-      myRtpSession->adopt(remoteSdp);
+int MediaSession::resumeSession(SdpSession& localSdp, SdpSession& remoteSdp) {
+   int rv = -1;
+   if (myRtpSession != 0) {
+      rv = myRtpSession->adopt(localSdp, remoteSdp);
+   }
    myMediaDevice->resume(); 
+   return rv;
 }
 
 SdpSession MediaSession::getSdp(VSdpMode mode) {

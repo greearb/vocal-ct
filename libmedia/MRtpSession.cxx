@@ -89,39 +89,7 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
     int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
     int localRtcpPort = (localPort > 0) ? localPort + 1 : 0;
 
-    //RtpPayloadType pType;
-    int pType;  // 96 <-> 127 are dynamic, doesn't map well to an enum.
-    switch(cAdp->getType())
-    {
-        case G711U:
-            pType = rtpPayloadPCMU;
-            break;
-        case G711A:
-            pType = rtpPayloadPCMA;
-            break;
-        case G729:
-            pType = rtpPayloadG729;
-            break;
-        case G726_16:
-            pType = rtpPayloadG726_16;
-            break;
-        case G726_24:
-            pType = rtpPayloadG726_24;
-            break;
-        case G726_32:
-            pType = rtpPayloadG726_32;
-            break;
-        case G726_40:
-            pType = rtpPayloadG726_40;
-            break;
-        case SPEEX:
-            pType = rtpPayloadType; // Negotiated
-            assert((pType >= rtpPayloadDynMin) && (pType <= rtpPayloadDynMax));
-            break;
-        default:
-            pType = rtpPayloadPCMU;
-            break;
-    }
+    int pType = convertAdapterTypeToRtpType(cAdp->getType(), rtpPayloadType);
 
     rtpStack =  new RtpSession(tos, priority, myLocalAddress->getIpName().c_str(),
                                localDevToBindTo,
@@ -137,6 +105,43 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
     rtpStack->setDTMFInterface(myDTMFInterface);
     rtpStack->setMarkerOnce();
 }
+
+
+int MRtpSession::convertAdapterTypeToRtpType(VCodecType ct, int negotiatedRtpPayloadType) {
+   int pType;  // 96 <-> 127 are dynamic, doesn't map well to an enum.
+   switch(ct) {
+   case G711U:
+      pType = rtpPayloadPCMU;
+      break;
+   case G711A:
+      pType = rtpPayloadPCMA;
+      break;
+   case G729:
+      pType = rtpPayloadG729;
+      break;
+   case G726_16:
+      pType = rtpPayloadG726_16;
+      break;
+   case G726_24:
+      pType = rtpPayloadG726_24;
+      break;
+   case G726_32:
+      pType = rtpPayloadG726_32;
+      break;
+   case G726_40:
+      pType = rtpPayloadG726_40;
+      break;
+   case SPEEX:
+      pType = negotiatedRtpPayloadType; // Negotiated
+      assert((pType >= rtpPayloadDynMin) && (pType <= rtpPayloadDynMax));
+      break;
+   default:
+      pType = rtpPayloadPCMU;
+      break;
+   }//switch
+   return pType;
+}
+
 
 void MRtpSession::readNetwork(fd_set* fds) {
     RtpSessionState sessionState = rtpStack->getSessionState();
@@ -503,65 +508,128 @@ void MRtpSession::recvDTMF(int event) {
    }
 }
 
-void MRtpSession::adopt(SdpSession& remoteSdp) {
-   Data rAddress;
-   int rPort = -1;
-   //Check for address in Media part if found find else use the
-   //Global address
-   list<SdpMedia*> mediaList = remoteSdp.getMediaList();
-   for (list<SdpMedia*>::iterator itr = mediaList.begin(); itr != mediaList.end(); itr++) {
-      if ((*itr)->getMediaType() == Vocal::SDP::MediaTypeAudio) {
-         if ((*itr)->getConnection()) {
-            cpLog(LOG_DEBUG, "Connection address found in media attribute, using it");
-            rAddress = (*itr)->getConnection()->getUnicast();
-            break;
-         }
-         rPort = (*itr)->getPort();
-      }
-   }
+int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
 
-   if (rAddress.length() == 0) {
-      //Check to see if Session-level connection address is present
-      SdpConnection* conn = remoteSdp.getConnection();
-      if (conn) rAddress = conn->getUnicast();
-      if (rAddress.length()) {
-         cpLog(LOG_DEBUG, "Using Top-level connection address");
+   // Set remote host and port
+   //   For now only support unicast
+   string remAddr;
+   string localAddr;
+   LocalScopeAllocator lo;
+   if (localSdp.getConnection())
+      localAddr = localSdp.getConnection()->getUnicast().getData(lo);
+   if (remoteSdp.getConnection())
+      remAddr = remoteSdp.getConnection()->getUnicast().getData(lo);
+
+   //Get the Negotiated Codec for each media type
+   //Get each media description from remoteSdp and map it to the
+   //localSdp SDP and create an MRtpSession
+   list < SdpMedia* > mList = remoteSdp.getMediaList();
+   int fmt = 0;
+   for (list < SdpMedia* >::iterator itr = mList.begin();
+        itr != mList.end(); itr++) {
+      SdpMedia* rMedia = (*itr);
+      string rAddr;
+      string lAddr;
+      int lPort = -1;
+      int rPort;
+      int sample_rate = 8000;
+
+      Sptr<CodecAdaptor> cAdp;
+      rPort = rMedia->getPort();
+      list < SdpMedia* > lmList = localSdp.getMediaList(); 
+      for (list < SdpMedia* >::iterator itr2 = lmList.begin();
+           itr2 != lmList.end(); itr2++) {
+         SdpMedia* lMedia = (*itr2);
+         if (lMedia->getMediaType() != rMedia->getMediaType()) {
+            continue;
+         }
+         //Get the very first codec of the media description
+         vector < int > * lfmList = lMedia->getFormatList();
+         if (!lfmList || (lfmList->size() == 0)) {
+            continue;
+         }
+
+         vector < int > * rfmList = rMedia->getFormatList();
+         if (!rfmList || (rfmList->size() == 0)) {
+            continue;
+         }
+         
+         // So, we put our favorites first.  Assume the remote does
+         // the same.  So, find the codec that matches the remote's preference.
+         for (unsigned int q = 0; q<rfmList->size(); q++) {
+            for (unsigned int r = 0; r<lfmList->size(); r++) {
+               if ((*rfmList)[q] == (*lfmList)[r]) {
+                  fmt = (*rfmList)[q];
+                  goto found_one;
+               }
+            }
+         }
+
+         // The goto will jump over this if we actually find a match.
+         continue;
+               
+        found_one:
+         
+         cAdp = MediaSession::getCodecAdaptor(fmt, lMedia, sample_rate);
+         
+         if (lMedia->getConnection()) {
+            LocalScopeAllocator lo;
+            lAddr = lMedia->getConnection()->getUnicast().getData(lo);
+         }
+         else {
+            lAddr = localAddr;
+         }
+         lPort = lMedia->getPort();
+         break;
+      }//for
+      if (rMedia->getConnection()) {
+         LocalScopeAllocator lo;
+         rAddr = rMedia->getConnection()->getUnicast().getData(lo);
       }
       else {
-         cpLog(LOG_ERR, "Bad SDP");
+         rAddr = remAddr;
       }
+      
+      //Now if we have lAddr, rAddr, lport, rPort and codec adaptor
+      if ((lAddr.size() ==0) || (rAddr.size() == 0) || (cAdp == 0)) {
+         cpLog(LOG_ERR, "Media is not setup correctly, lAddr: %s  rAddr: %s  cAdp: %p, fmt: %d\n",
+               lAddr.c_str(), rAddr.c_str(), cAdp.getPtr(), fmt);
+         continue;
+      }
+
+      // Good to go.
+      
+      myRemoteAddress->setHostName(rAddr);
+      myRemoteAddress->setPort(rPort);
+      /*********Rajarshi************/
+      int remotePort  = myRemoteAddress->getPort();
+      int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
+      rtpStack->setSessionState(rtp_session_sendrecv);
+
+      rtpStack->setTransmiter(_tos, _skb_priority,
+                              myLocalAddress->getIpName().c_str(), localDevToBindTo,
+                              myRemoteAddress->getIpName().c_str(), remotePort,
+                              remoteRtcpPort,
+                              (RtpPayloadType)(convertAdapterTypeToRtpType(cAdp->getType(), fmt)),
+                              cAdp->getClockRate(), cAdp->getPerSampleSize(),
+                              cAdp->getSampleSize());
+      return 0;
+   }//for
+
+   cpLog(LOG_ERR, "ERROR:  in MRtpSession::adopt, couldn't find supproted media.");
+   return -1;
+}//adopt
+
+void MRtpSession::setMode(VSdpMode mode) {
+   switch (mode) {
+   case VSDP_SND:
+      rtpStack->setSessionState(rtp_session_sendonly);
+      break;
+   case VSDP_RECV:
+      rtpStack->setSessionState(rtp_session_recvonly);
+      break;
+   case VSDP_SND_RECV:
+      rtpStack->setSessionState(rtp_session_sendrecv);
+      break;
    }
-   myRemoteAddress->setHostName(rAddress);
-   myRemoteAddress->setPort(rPort);
-   /*********Rajarshi************/
-   int remotePort  = myRemoteAddress->getPort();
-   int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
-   rtpStack->setSessionState(rtp_session_sendrecv);
-   
-   // TODO:  I'm guessing we should ge the protocol and other info out of
-   // the SDP thing too...  What if we're not running PCMU? --Ben
-   cpLog(LOG_ERR, "WARNING:  in MRtpSession::adopt, not sure this method works right!");
-   rtpStack->setTransmiter(_tos, _skb_priority,
-                           myLocalAddress->getIpName().c_str(), localDevToBindTo,
-                           myRemoteAddress->getIpName().c_str(), remotePort,
-                           remoteRtcpPort, rtpPayloadPCMU, 8000, 1, 160);
-   /*****************************/
-
-}
-
-void
-MRtpSession::setMode(VSdpMode mode)
-{
-    switch(mode)
-    {
-        case VSDP_SND:
-            rtpStack->setSessionState(rtp_session_sendonly);
-        break;
-        case VSDP_RECV:
-            rtpStack->setSessionState(rtp_session_recvonly);
-        break;
-        case VSDP_SND_RECV:
-            rtpStack->setSessionState(rtp_session_sendrecv);
-        break;
-    }
 }

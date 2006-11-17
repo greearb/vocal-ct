@@ -145,8 +145,9 @@ public:
                          Sptr<CodecAdaptor> codec, bool silence_pkt,
                          RtpPayloadCache* payload_cache);
 
-   ///Re-initialise connection to remote party based on the remote SDP
-   void adopt(SdpSession& remoteSdp);
+   //Re-initialise connection to remote party based on the remote SDP
+   // Return < 0 on error.
+   int adopt(SdpSession& localSdp, SdpSession& remoteSdp);
 
    ///Set the operation mode (VSDP_SND, VSDP_RECV,VSDP_SND_RECV)
    void setMode(VSdpMode mode);
@@ -163,6 +164,8 @@ public:
                       int& maxdesc, uint64& timeout, uint64 now);
 
    virtual void flushJitterBuffer();
+
+   static int convertAdapterTypeToRtpType(VCodecType ct, int negotiatedRtpPayloadType);
 
 protected:
    ///Process the data received over the wire

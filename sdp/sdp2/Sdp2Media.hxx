@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const Sdp2Media_hxx_Version =
-    "$Id: Sdp2Media.hxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
-
 #include <strstream>
 #include <cassert>
 #include <list>
@@ -105,8 +102,7 @@ enum SdpMediaType
     @see SdpSession
 
   */
-class SdpMedia
-{
+class SdpMedia {
 
     public:
         ///
@@ -285,14 +281,5 @@ class SdpMedia
 
 
 }
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
-
 
 #endif

@@ -178,8 +178,8 @@ bool RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg)
 
    // Delay in seconds.
    int delay = registration->updateRegistrationMsg(statusMsg);
-   cpLog(LOG_DBG_RM, "RegistrationManager::updating registration information, delay: %d",
-         delay);
+   cpLog(LOG_ERR, "RegistrationManager::updating registration information, delay: %d, statusCode: %d",
+         delay, registration->getStatusCode());
 
    if ( registration->getStatusCode() == 100 ) {
       delay = DEFAULT_DELAY_MS / 1000;
@@ -195,8 +195,8 @@ bool RegistrationManager::handleRegistrationResponse(const StatusMsg& statusMsg)
       registration->setNextRegister(vgetCurMs() + (delay * 1000));
    }
    else {
-      // Register again in a day, ie basically wait forever.
-      registration->setNextRegister(vgetCurMs() + (60 * 60 * 24 * 1000));
+      // Register again in a few minutes.
+      registration->setNextRegister(vgetCurMs() + DEFAULT_DELAY_MS);
    }
    return true;
 }//handleRegistrationResponse

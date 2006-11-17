@@ -138,8 +138,6 @@ public:
 
    ///Handle 401/407 challenges
    void doAuthentication(Sptr<StatusMsg> sMsg);
-   ///
-   void requestResume( Sptr<SipMsg>& msg);
    
    static int getInstanceCount() { return _cnt; }
 

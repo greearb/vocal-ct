@@ -156,8 +156,8 @@ public:
    ///
    void suspendSession(unsigned int sId);
 
-   ///
-   void resumeSession(unsigned int sId, SdpSession& remoteSdp);
+   //  Returns < 0 on error (couldn't find appropriate codec?)
+   int resumeSession(unsigned int sId, SdpSession& localSdp, SdpSession& remoteSdp);
 
 private:
    /// NOTE:  localAddr and port will be modified accordingly.

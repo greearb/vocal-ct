@@ -80,34 +80,29 @@ StateInHold::end(CallAgent& agent) throw (CInvalidStateException&)
     return 0;
 }
 
-void
-StateInHold::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-    throw (CInvalidStateException&)
-{
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(msg);
-    assert(statusMsg != 0);
-    int statusCode = statusMsg->getStatusLine().getStatusCode();
-    cpLog(LOG_DEBUG, "StateInHold::recvStatus[%s]", statusMsg->encode().logData());
-    if((statusCode == 200) && (statusMsg->getCSeq().getMethod() == "INVITE"))
-    {
-	cpLog(LOG_DEBUG, "StateInHold::recvStatus() calling agent.doResume()");
-	//agent.setResponse(statusMsg);
-        agent.doResume(msg);
-    }else {
-	//TO DO
-	agent.callFailed();
-    }
-    
+void StateInHold::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(msg);
+   assert(statusMsg != 0);
+   int statusCode = statusMsg->getStatusLine().getStatusCode();
+   cpLog(LOG_DEBUG, "StateInHold::recvStatus[%s]", statusMsg->encode().logData());
+   if ((statusCode == 200) && (statusMsg->getCSeq().getMethod() == "INVITE")) {
+      cpLog(LOG_DEBUG, "StateInHold::recvStatus() calling agent.doResume()");
+      //agent.setResponse(statusMsg);
+      agent.doResume(msg);
+   }else {
+      //TO DO
+      agent.callFailed();
+   }
 }
-void
-StateInHold::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-    throw (CInvalidStateException&)
-{
-    cpLog(LOG_DEBUG, "StateInHold::recvReq");
-    if(msg->getType() == SIP_INVITE){
-	agent.requestResume( msg);
-    } else {
-	//to do 
-    }
+
+void StateInHold::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
+   throw (CInvalidStateException&) {
+   cpLog(LOG_DEBUG, "StateInHold::recvReq");
+   if (msg->getType() == SIP_INVITE){
+      agent.reqResume( msg);
+   } else {
+      //to do 
+   }
 }

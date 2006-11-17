@@ -58,8 +58,10 @@
 #include "Sdp2Session.hxx"
 #include "Def.hxx"
 #include "MRtpSession.hxx"
+#include <Sdp2Media.hxx>
 
 using Vocal::SDP::SdpSession;
+using Vocal::SDP::SdpMedia;
 
 namespace Vocal
 {
@@ -95,6 +97,7 @@ public:
 
    ///Add a media device to the session
    void addToSession( Sptr<MediaDevice> mDevice);
+   static Sptr<CodecAdaptor> getCodecAdaptor(int fmt, SdpMedia* lMedia, int& sample_rate);
 
    /**Based on the Local and remote SDP, creates an RTP session and
     * and associates the RTP session as one of the participants.
@@ -116,8 +119,10 @@ public:
    int tearDown();
    ///Suspend a session, can be resumed by calling resume()
    void suspend();
-   ///Resume a suspended session
-   void resume(SdpSession& remoteSdp);
+
+   //Resume a suspended session
+   // Returns < 0 on error (codec not supported, etc)
+   int resumeSession(SdpSession& localSdp, SdpSession& remoteSdp);
 
    /**Process data from a Media device or RTP stream
     * @param data - The raw data received from device or via RTP

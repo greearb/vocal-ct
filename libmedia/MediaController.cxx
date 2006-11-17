@@ -347,10 +347,9 @@ MediaController::suspendSession(unsigned int sId)
 {
     getSession(sId)->suspend();
 }
-void
-MediaController::resumeSession(unsigned int sId, SdpSession& remoteSdp)
-{
-    getSession(sId)->resume(remoteSdp);
+
+int MediaController::resumeSession(unsigned int sId, SdpSession& localSdp, SdpSession& remoteSdp) {
+   return getSession(sId)->resumeSession(localSdp, remoteSdp);
 }
 
 SdpSession
