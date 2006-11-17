@@ -520,6 +520,8 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
    if (remoteSdp.getConnection())
       remAddr = remoteSdp.getConnection()->getUnicast().getData(lo);
 
+   cpLog(LOG_ERR, "adopt:  localAddr: %s  remAddr: %s", localAddr.c_str(), remAddr.c_str());
+
    //Get the Negotiated Codec for each media type
    //Get each media description from remoteSdp and map it to the
    //localSdp SDP and create an MRtpSession
@@ -585,6 +587,7 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
       if (rMedia->getConnection()) {
          LocalScopeAllocator lo;
          rAddr = rMedia->getConnection()->getUnicast().getData(lo);
+         cpLog(LOG_ERR, "rMedia has connection, rAddr: %s", rAddr.c_str());
       }
       else {
          rAddr = remAddr;
@@ -598,10 +601,11 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
       }
 
       // Good to go.
-      
+      cpLog(LOG_ERR, "rAddr: %s  rPort: d", rAddr.c_str(), rPort);
+
       myRemoteAddress->setHostName(rAddr);
       myRemoteAddress->setPort(rPort);
-      /*********Rajarshi************/
+
       int remotePort  = myRemoteAddress->getPort();
       int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
       rtpStack->setSessionState(rtp_session_sendrecv);

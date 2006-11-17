@@ -50,9 +50,6 @@
 
 
 
-static const char* const UaStateRinging_cxx_Version =
-    "$Id: UaStateRinging.cxx,v 1.4 2004/11/04 07:51:18 greear Exp $";
-
 #include "UaStateRinging.hxx"
 #include "UaStateFactory.hxx"
 #include "BasicAgent.hxx"
@@ -111,7 +108,7 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 	    addSelfInVia(agent, ackMsg.getPtr());
 
             ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas Ringing, ack");
             cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
                   statusCode, ackMsg->encode().logData());
         }
@@ -128,7 +125,7 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
@@ -179,7 +176,7 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
        sendSMsg->setContact( me );
 		 
        cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-       agent.getSipTransceiver()->sendReply(sendSMsg);
+       agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
        agent.setResponse(sendSMsg.getPtr());
        
        agent.setCallLegState(C_LIVE);
@@ -239,7 +236,7 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 
     cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-    agent.getSipTransceiver()->sendReply(sendSMsg);
+    agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
     agent.setResponse(sendSMsg.getPtr());
     //Notify CC to start the call monitor
     Sptr<BasicAgent> ba = agent.getControllerAgent();
@@ -286,7 +283,7 @@ UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 
-int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
    throw (CInvalidStateException&) {
 
    //Some UAs may send BYE instead of CANCEL in Ringing
@@ -297,7 +294,7 @@ int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
       sipCmd.dynamicCast(agent.getRequest());
       Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
       cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-      agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+      agent.getSipTransceiver()->sendAsync(cMsg.getPtr(), dbg);
       //Transit to Failure
       changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
       return 0;

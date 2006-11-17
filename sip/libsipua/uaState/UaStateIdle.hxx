@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaStateIdle_hxx_Version =
-    "$Id: UaStateIdle.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -66,28 +63,25 @@ namespace UA {
 /**
     UaStateIdle represent a startup state for User Agent 
 */
-class UaStateIdle : public UaState
-{
-    public:
-        UaStateIdle() : UaState("UaStateIdle") { }
-
-        ///Destructor
-        ~UaStateIdle()
-        { }
-        ;
-
-        ///
-        virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-        ///
-        virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-        ///
-        virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-        ///
-        virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+class UaStateIdle : public UaState {
+public:
+   UaStateIdle() : UaState("UaStateIdle") { }
+   
+   ///Destructor
+   ~UaStateIdle() { }
+   
+   ///
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   ///
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
 
 };
 

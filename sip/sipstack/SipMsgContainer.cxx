@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipTransactionLevels_cxx_version =
-    "$Id: SipMsgContainer.cxx,v 1.3 2004/11/05 07:25:06 greear Exp $";
 
 #include "global.h"
 #include "SipMsgContainer.hxx"
@@ -59,7 +57,6 @@ using namespace Vocal;
 
 unsigned int SipMsgContainer::_cnt = 0;
 unsigned int SipMsgPair::_cnt = 0;
-unsigned int SipCallContainer::_cnt = 0;
 
 SipMsgContainer::SipMsgContainer(const SipTransactionId& id)
       : trans_id(id) {
@@ -129,76 +126,3 @@ string SipMsgContainer::toString() const {
 }
 
 
-///*******************  Sip Call Container  **********************///
-
-SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
-      : id(call_id) {
-   setSeq = false;
-   curSeqNum = 0;
-   _cnt++;
-   purgeAt = 0;
-}
-
-
-Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
-    list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
-    while (i != msgs.end()) {
-        Sptr<SipMsgPair> mp = *i;
-        if ((mp->request != 0) && mp->request->matches(id)) {
-           return (*i);
-        }
-        if ((mp->response != 0) && mp->response->matches(id)) {
-            return (*i);
-        }
-        i++;
-    }
-    return NULL;
-}//findMsgPair
-
-void SipCallContainer::stopAllRetrans() {
-   list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
-   while (i != msgs.end()) {
-      Sptr<SipMsgPair> mp = *i;
-      if ((mp->request != 0) && (mp->request->getRetransmitMax() != 0)) {
-         cpLog(LOG_DEBUG, "Stopping retransmit of msg due to stopAllRetrans\n");
-         mp->request->setRetransmitMax(0);
-      }
-      i++;
-   }
-}//stopAllRetrans
-
-Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
-    list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
-    while (i != msgs.end()) {
-        Sptr<SipMsgPair> mp = *i;
-        if ((mp->request != 0) &&
-            (mp->request->getMsgIn() != 0) &&
-            (mp->request->getMsgIn()->getType() == method)) {
-            return (*i);
-        }
-        if ((mp->response != 0) &&
-            (mp->response->getMsgIn() != 0) &&
-            (mp->response->getMsgIn()->getType() == method)) {
-            return (*i);
-        }
-        i++;
-    }
-    return NULL;
-}
-
-
-void SipCallContainer::addMsgPair(Sptr<SipMsgPair> m) {
-   msgs.push_back(m);
-   cpLog(LOG_DEBUG, "Added msg-pair: %p to SipCallContainer, this: %p, size: %d\n",
-         m.getPtr(), this, msgs.size());
-}
-
-
-
-void SipCallContainer::clear(const char* debug) {
-   cpLog(LOG_DEBUG, "Clearing SipCallContainer: %p, debug: %s\n",
-         this, debug);
-   msgs.clear();
-   setSeq = false;
-   curSeqNum = 0;
-}

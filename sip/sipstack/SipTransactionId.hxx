@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const SipTransactionId_hxx_version =
-    "$Id: SipTransactionId.hxx,v 1.6 2004/11/05 07:25:06 greear Exp $";
 
 #include "Data.hxx"
 #include <BugCatcher.hxx>
@@ -77,7 +75,7 @@ public:
     * this level will group together all the messages for a
     * single CallLeg.
     */
-   //typedef Data KeyTypeI;
+   typedef Data KeyTypeI;
 
    /**
     * the second level key type will consist of [CSeq
@@ -90,7 +88,7 @@ public:
 
    /**
     * the third level key will consist of [Cseq Method], and is
-    * required to * keep distinct request-response sequences
+    * required to keep distinct request-response sequences
     * during the same Cseq & branch.
     *
     * its been chosen to be Data and not "Method" (enum from
@@ -116,9 +114,9 @@ public:
    bool operator==(const SipTransactionId& sipTransactionId) const;
    bool operator<(const SipTransactionId& sipTransactionId) const;
 
-   //KeyTypeI& getLevel1() const;
-   KeyTypeII& getLevel2() const;
-   KeyTypeIII& getLevel3() const;
+   const KeyTypeI& getLevel1() const;
+   const KeyTypeII& getLevel2() const;
+   const KeyTypeIII& getLevel3() const;
    bool getValid() const;
 
    virtual void clear();
@@ -130,7 +128,7 @@ protected:
 
 private:
    bool               valid;
-   //mutable KeyTypeI   level1;
+   mutable KeyTypeI   level1;
    mutable KeyTypeII  level2;
    mutable KeyTypeIII level3;
 };

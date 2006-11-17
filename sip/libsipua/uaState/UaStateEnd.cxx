@@ -50,9 +50,6 @@
 
 
 
-static const char* const UaStateEnd_cxx_Version =
-    "$Id: UaStateEnd.cxx,v 1.2 2004/10/29 07:22:35 greear Exp $";
-
 #include "UaStateEnd.hxx"
 #include "StatusMsg.hxx"
 #include "UaBase.hxx"
@@ -80,7 +77,7 @@ UaStateEnd::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateEnd::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UaStateEnd::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
    //Nothing to DO

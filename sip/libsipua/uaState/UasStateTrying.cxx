@@ -50,9 +50,6 @@
 
 
 
-static const char* const UasStateTrying_cxx_Version =
-    "$Id: UasStateTrying.cxx,v 1.3 2004/10/29 07:22:35 greear Exp $";
-
 #include "UasStateTrying.hxx"
 #include "UaStateFactory.hxx"
 #include "BasicAgent.hxx"
@@ -93,7 +90,7 @@ UasStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
@@ -130,7 +127,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
        sendSMsg->setContact(me);
 		 
        cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-       agent.getSipTransceiver()->sendReply(sendSMsg);
+       agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
        agent.setResponse(sendSMsg.getPtr());
 
        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
@@ -178,7 +175,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         sendSMsg->setContact( me );
 
         cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-        agent.getSipTransceiver()->sendReply(sendSMsg);
+        agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
 	agent.setResponse(sendSMsg.getPtr());
         Sptr<BasicAgent> ba = agent.getControllerAgent();
         if (ba != 0) {

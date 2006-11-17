@@ -58,7 +58,7 @@
 using namespace Vocal::UA;
 using Vocal::UA::UacStateTrying;
 
-int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
    throw (CInvalidStateException&) {
    cpLog(LOG_DEBUG, "UacStateTrying::sendRequest");
    if ((msg->getType() == SIP_CANCEL) ||
@@ -67,7 +67,7 @@ int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
       sipCmd.dynamicCast(agent.getRequest());
       Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd); 
       cpLog(LOG_DEBUG, "Sending cancel:%s" , cMsg->encode().logData());
-      agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+      agent.getSipTransceiver()->sendAsync(cMsg.getPtr(), dbg);
       changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
       return 0;
    }
@@ -77,7 +77,7 @@ int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
       if (sipCmd.getPtr()) {
          // Valid reason includes having to authenticate the previous INVITE that got us into this state...
          cpLog(LOG_ERR, "WARNING:  Sending SIP_INVITE from UacStateTrying, assume is Authentication.\n");
-         agent.getSipTransceiver()->sendAsync(sipCmd.getPtr());
+         agent.getSipTransceiver()->sendAsync(sipCmd.getPtr(), dbg);
          cpLog(LOG_ERR, "WARNING:  Done sending SIP_INVITE from UacStateTrying.\n");
          return 0;
       }
@@ -134,7 +134,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
          assert(sCommand != 0);
          addSelfInVia(agent, ackMsg.getPtr());
          ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "UAC Trying:  408");
          cpLog(LOG_INFO, "Sent Ack for status (%d), ack-msg:\n%s\n" ,
                statusCode, ackMsg->encode().logData());
       }

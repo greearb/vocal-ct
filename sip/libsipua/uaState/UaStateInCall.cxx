@@ -164,7 +164,7 @@ void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
            
       cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(),
             infoStatusReply->encode().logData());
-      agent.getSipTransceiver()->sendReply(infoStatusReply);
+      agent.getSipTransceiver()->sendReply(infoStatusReply, "Uas In call, options");
            
       // 26/1/04 fpi
       // we do not notify the controllerAgent,
@@ -182,7 +182,7 @@ void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
    }//switch
 }//recvRequest
 
-int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
    throw (CInvalidStateException&) {
    int rv = 0; /* 0 == success */
    cpLog(LOG_DEBUG, "UaStateInCall::sendRequest");
@@ -234,7 +234,7 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
 
       cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
             agent.className().c_str(), invMsg->encode().logData());
-      agent.getSipTransceiver()->sendAsync(invMsg.getPtr());
+      agent.getSipTransceiver()->sendAsync(invMsg.getPtr(), dbg);
       changeState(agent, UaStateFactory::instance().getState(U_STATE_HOLD));
       
       break;
@@ -260,7 +260,8 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
 
       //addSelfInVia(ackMsg);
       //agent.getSipTransceiver()->sendAsync(ackMsg);
-      cpLog(LOG_DEBUG, "(%s) Sending Ack %s", agent.className().c_str(), ackMsg->encode().logData());
+      cpLog(LOG_ERR, "(%s) NOT Sending Ack, code is commented out??? %s",
+            agent.className().c_str(), ackMsg->encode().logData());
       break;
    }
    case SIP_CANCEL: {
@@ -268,7 +269,7 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
       Sptr<SipCommand> sipCmd;
       sipCmd.dynamicCast(agent.getRequest());
       Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
-      agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+      agent.getSipTransceiver()->sendAsync(cMsg.getPtr(), dbg);
       //Transit to End
       changeState(agent, UaStateFactory::instance().getState(U_STATE_END));
       break;
@@ -303,7 +304,7 @@ UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
        //Remove the top route
        ackMsg->removeRoute(0);
        ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-       agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+       agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas In Call, recvStatus > 200");
     }
 
     if (statusCode == 200) {
@@ -327,7 +328,7 @@ UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateInCall::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UaStateInCall::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInCall::sendStatus");
@@ -359,7 +360,7 @@ UaStateInCall::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         me.setUrl(mUrl.getPtr());
         sendSMsg->setNumContact( 0 );
         sendSMsg->setContact( me );
-        agent.getSipTransceiver()->sendReply(sendSMsg);
+        agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
     }
     else if(statusCode > 200) {
         agent.sendReplyForRequest(agent.getRequest(), statusCode);

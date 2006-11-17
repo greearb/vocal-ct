@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaStateInHold_hxx_Version =
-    "";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -66,27 +63,25 @@ namespace UA {
 /**
     UaStateInHold represent a hold state for User Agent Server/Client
 */
-class UaStateInHold : public UaState
-{
-    public:
-        UaStateInHold() : UaState("UaStateInHold") { }
-
-        ///Destructor
-        virtual ~UaStateInHold()
-        { }
+class UaStateInHold : public UaState {
+public:
+   UaStateInHold() : UaState("UaStateInHold") { }
+   
+   ///Destructor
+   virtual ~UaStateInHold() { }
         
-	virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-        
-         ///
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
 };
 
 }

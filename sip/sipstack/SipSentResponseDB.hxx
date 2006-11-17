@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipSentResponseDB_hxx_version =
-    "$Id: SipSentResponseDB.hxx,v 1.3 2004/06/01 07:23:31 greear Exp $";
-
 #include "SipTransactionDB.hxx"
 
 namespace Vocal

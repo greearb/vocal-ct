@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaStateRinging_hxx_Version =
-    "$Id: UaStateRinging.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -66,26 +63,25 @@ namespace UA {
 /**
     UaStateRinging represent ringing state for User Agent Server/Client
 */
-class UaStateRinging : public UaState
-{
-    public:
-        UaStateRinging() : UaState("UaStateRinging") { }
-
-        ///Destructor
-        virtual ~UaStateRinging() { }
-
-         ///
-         int sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         int sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+class UaStateRinging : public UaState {
+public:
+   UaStateRinging() : UaState("UaStateRinging") { }
+   
+   ///Destructor
+   virtual ~UaStateRinging() { }
+   
+   ///
+   int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   ///
+   void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
 
 };
 

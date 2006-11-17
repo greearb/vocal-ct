@@ -93,7 +93,7 @@ Sptr<SipMsg> UaClient::sendBye() {
    SipCSeq sipCSeq = byeMsg->getCSeq();
    sipCSeq.setCSeq( cseq );
    byeMsg->setCSeq( sipCSeq );
-   myStack->sendAsync(byeMsg.getPtr());
+   myStack->sendAsync(byeMsg.getPtr(), "UaClient::sendBye");
    cpLog(LOG_DEBUG, "MY LOCALCSeq 1st --. [%d]", myLocalCSeq.getCSeq());
    
    cpLog(LOG_DEBUG, "ByeMsg: %s\n", byeMsg->toString().c_str());

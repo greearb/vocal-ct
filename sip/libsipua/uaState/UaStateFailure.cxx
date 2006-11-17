@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFailure_cxx_Version =
-    "$Id: UaStateFailure.cxx,v 1.4 2004/11/04 07:51:18 greear Exp $";
+    "$Id: UaStateFailure.cxx,v 1.5 2006/11/17 06:31:04 greear Exp $";
 
 #include "UaStateFailure.hxx"
 #include "UaBase.hxx"
@@ -115,7 +115,7 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
          SipRequestLine rLine(SIP_ACK, sUrl.getPtr(), agent.getMyLocalIp());
          ackMsg->setRequestLine(rLine);
          
-         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "UaStateFailure::recvStatus");
       }
       //Notify CC
       Sptr<BasicAgent> ba = agent.getControllerAgent();
@@ -128,13 +128,13 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }//recvStatus
 
 
-int UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+int UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
    throw (CInvalidStateException&) {
    //DO nothing
    return -1;
 }
 
-int UaStateFailure::sendRequest(UaBase& agent, Sptr<SipMsg> msg) 
+int UaStateFailure::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
    throw (CInvalidStateException&) {
    cpLog(LOG_ERR, "ERROR:  called sendRequest in UaStateFailure, msg: %s",
          msg->toString().c_str());

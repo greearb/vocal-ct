@@ -1,6 +1,3 @@
-#ifndef _Sip_Transaction_DB__hxx
-#define _Sip_Transaction_DB__hxx
-
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
  * 
@@ -51,66 +48,82 @@
  *
  */
 
-#include "SipTransactionId.hxx"
-#include "SipMsgContainer.hxx"
+#include "global.h"
 #include "SipCallContainer.hxx"
-#include "SipMsgQueue.hxx"
+#include <sstream>
 
-namespace Vocal
-{
-    
-#define FILTER_RETRANS_COUNT 1
-#define MAX_RETRANS_COUNT    7
+using namespace Vocal;
 
-class SipTransactionDB : public BugCatcher {
-private:
-   SipTransactionDB();
-   SipTransactionDB(const SipTransactionDB&);
-   SipTransactionDB& operator= (const SipTransactionDB&);
-   bool operator==(const SipTransactionDB&) const;
+unsigned int SipCallContainer::_cnt = 0;
 
-public:
-   // local_ip cannot be "" here, must be the local IP we are bound to locally
-   // or 'hostaddress' if we are not specifically bound.
-   SipTransactionDB(const string& _local_ip);
-   virtual ~SipTransactionDB();
+SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
+      : id(call_id) {
+   setSeq = false;
+   curSeqNum = 0;
+   _cnt++;
+   purgeAt = 0;
+}
 
-   /**
-    * entry point for transceiver functionality
-    * it will be passed the Sptr reference from worker thread, and will return
-    * a pointer to a newly created Sip message container that needs to be passed
-    * to the transport layer
-    */
-   virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg) = 0;
 
-   /**
-    *  entry point for filter functionality
-    * it will be given the Sip message container received from transport layer,
-    * and either will return the transaction queue, or will return null and modify
-    * the Sip message container w/ the old message to be retransmitted
-    *
-    * (if the message is droped then msg queue AND the reference to msg in the
-    * container will both be 0) 
-    */
-   virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer) = 0;
+Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
+   list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+   while (i != msgs.end()) {
+      Sptr<SipMsgPair> mp = *i;
+      if ((mp->request != 0) && mp->request->matches(id)) {
+         return (*i);
+        }
+      if ((mp->response != 0) && mp->response->matches(id)) {
+         return (*i);
+      }
+      i++;
+   }
+   return NULL;
+}//findMsgPair
 
-   string toString();
+void SipCallContainer::stopAllRetrans() {
+   list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+   while (i != msgs.end()) {
+      Sptr<SipMsgPair> mp = *i;
+      if ((mp->request != 0) && (mp->request->getRetransmitMax() != 0)) {
+         cpLog(LOG_DEBUG, "Stopping retransmit of msg due to stopAllRetrans\n");
+         mp->request->setRetransmitMax(0);
+      }
+      i++;
+   }
+}//stopAllRetrans
 
-   Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
+Sptr<SipMsgPair> SipCallContainer::findMsgPair(Method method) {
+   list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
+   while (i != msgs.end()) {
+      Sptr<SipMsgPair> mp = *i;
+      if ((mp->request != 0) &&
+          (mp->request->getMsgIn() != 0) &&
+          (mp->request->getMsgIn()->getType() == method)) {
+         return (*i);
+      }
+      if ((mp->response != 0) &&
+          (mp->response->getMsgIn() != 0) &&
+          (mp->response->getMsgIn()->getType() == method)) {
+         return (*i);
+      }
+      i++;
+   }
+   return NULL;
+}
 
-   void addCallContainer(Sptr<SipCallContainer> cc);
 
-   void purgeOldCalls(uint64 now);
+void SipCallContainer::addMsgPair(Sptr<SipMsgPair> m) {
+   msgs.push_back(m);
+   cpLog(LOG_DEBUG, "Added msg-pair: %p to SipCallContainer, this: %p, size: %d\n",
+         m.getPtr(), this, msgs.size());
+}
 
-   void setPurgeTimer(const SipTransactionId& id);
 
-protected:
 
-   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> > table;
-
-   string local_ip;
-};
- 
-} // namespace Vocal
-
-#endif
+void SipCallContainer::clear(const char* debug) {
+   cpLog(LOG_DEBUG, "Clearing SipCallContainer: %p, debug: %s\n",
+         this, debug);
+   msgs.clear();
+   setSeq = false;
+   curSeqNum = 0;
+}

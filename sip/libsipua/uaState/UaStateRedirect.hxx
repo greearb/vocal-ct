@@ -53,8 +53,6 @@
 
 
 
-static const char* const UaStateRedirect_hxx_Version = "";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -64,21 +62,19 @@ namespace UA {
 /**
     UaStateRedirect represent a re-direct state for User Agent Server
 */
-class UaStateRedirect : public UaState
-{
-    public:
-        UaStateRedirect() : UaState("UaStateRedirect") { }
+class UaStateRedirect : public UaState {
+public:
+   UaStateRedirect() : UaState("UaStateRedirect") { }
+   
+   ///Destructor
+   virtual ~UaStateRedirect() { }
 
-        ///Destructor
-        virtual ~UaStateRedirect()
-        { }
-
-         ///
-         virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+   ///
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
 };
 
 }

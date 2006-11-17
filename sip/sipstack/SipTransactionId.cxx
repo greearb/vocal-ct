@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipTransactionId_cxx_version =
-    "$Id: SipTransactionId.cxx,v 1.5 2004/11/05 07:25:06 greear Exp $";
-
 #include "SipTransactionId.hxx"
 #include "SipMsg.hxx"
 #include "SipTo.hxx"
@@ -63,42 +60,39 @@ static const char* const SipTransactionId_cxx_version =
 using namespace Vocal;
 
 SipTransactionId :: SipTransactionId(const SipMsg& sipMsg) {
-    valid = true;
-    Sptr<BaseUrl> toUrl = sipMsg.getTo().getUrl();
+   valid = true;
+   Sptr<BaseUrl> toUrl = sipMsg.getTo().getUrl();
 
-#if 0
-    if (toUrl != 0) {
-        level1 = toUrl->getUniqueKey();
-    }
-    else {
-        level1 = "invalid-url";
-        valid = false;
-    }
+   if (toUrl != 0) {
+      level1 = toUrl->getUniqueKey();
+   }
+   else {
+      level1 = "invalid-url";
+      valid = false;
+   }
 
-    Sptr<BaseUrl> fromUrl = sipMsg.getFrom().getUrl();
-    if(fromUrl != 0)
-    {
-        level1+= fromUrl->getUniqueKey();
-    }
-    else
-    {
-        level1 += "invalid-url";
-        valid = false;
-    }
-    level1+= sipMsg.getCallId().getCallIdData();
-#endif
+   Sptr<BaseUrl> fromUrl = sipMsg.getFrom().getUrl();
+   if (fromUrl != 0) {
+      level1 += fromUrl->getUniqueKey();
+   }
+   else {
+      level1 += "invalid-url";
+      valid = false;
+   }
+   level1 += sipMsg.getCallId().getCallIdData();
 
-    level2 = sipMsg.getCSeq().getCSeqData() + "V"; // add 'V' to end of CSeq number
-    level2+= sipMsg.getVia(0).getBranch();
-    level3 = sipMsg.getCSeq().getMethod();
+   level2 = sipMsg.getCSeq().getCSeqData() + "V"; // add 'V' to end of CSeq number
+   level2+= sipMsg.getVia(0).getBranch();
+
+   level3 = sipMsg.getCSeq().getMethod();
 }
 
 
 SipTransactionId :: SipTransactionId(const SipTransactionId& sipTransactionId)
-    : valid(sipTransactionId.valid),
-      //level1(sipTransactionId.level1),
-      level2(sipTransactionId.level2),
-      level3(sipTransactionId.level3)
+      : valid(sipTransactionId.valid),
+        level1(sipTransactionId.level1),
+        level2(sipTransactionId.level2),
+        level3(sipTransactionId.level3)
 {
 }
 
@@ -109,96 +103,82 @@ SipTransactionId :: ~SipTransactionId()
 
 
 string SipTransactionId::toString() const {
-    string rv = "SipTransactionID: valid: ";
-    rv += valid ? "true" : "false";
-    //rv += " level1: ";
-    //rv += level1.c_str();
-    rv += " level2: ";
-    rv += level2.c_str();
-    rv += " level3: ";
-    rv += level3.c_str();
-    return rv;
+   string rv = "SipTransactionID: valid: ";
+   rv += valid ? "true" : "false";
+   rv += " level1: ";
+   rv += level1.c_str();
+   rv += " level2: ";
+   rv += level2.c_str();
+   rv += " level3: ";
+   rv += level3.c_str();
+   return rv;
 }
 
 
 void SipTransactionId::clear() {
-    valid = false;
-    //level1 = "";
-    level2 = "";
-    level3 = "";
+   valid = false;
+   level1 = "";
+   level2 = "";
+   level3 = "";
 }
 
 
 SipTransactionId&
 SipTransactionId :: operator= (const SipTransactionId& sipTransactionId) {
-    if (this != &sipTransactionId) {
-        valid  = sipTransactionId.valid;
-	//level1 = sipTransactionId.level1;
-	level2 = sipTransactionId.level2;
-	level3 = sipTransactionId.level3;
-    }
-    return *this;
+   if (this != &sipTransactionId) {
+      valid  = sipTransactionId.valid;
+      level1 = sipTransactionId.level1;
+      level2 = sipTransactionId.level2;
+      level3 = sipTransactionId.level3;
+   }
+   return *this;
 }
 
 bool
 SipTransactionId::operator==(const SipTransactionId& sipTransactionId) const {
-    return (valid  == sipTransactionId.valid  &&
-            //level1 == sipTransactionId.level1 &&
-            level2 == sipTransactionId.level2 &&
-            level3 == sipTransactionId.level3);
+   return (valid  == sipTransactionId.valid  &&
+           level1 == sipTransactionId.level1 &&
+           level2 == sipTransactionId.level2 &&
+           level3 == sipTransactionId.level3);
 }
 
 bool
-SipTransactionId::operator<(const SipTransactionId& sipTransactionId) const
-{
-    if (this == &sipTransactionId) {
-        return false;
-    }
-    else {
-        //if (level1 < sipTransactionId.level1)
-        //    return true;
-        //else if (level1 > sipTransactionId.level1)
-        //    return false;
-        //else
-        if (level2 < sipTransactionId.level2)
-            return true;
-        else if (level2 > sipTransactionId.level2)
-            return false;
-        else if (level3 < sipTransactionId.level3)
-            return true;
-        else if (level3 > sipTransactionId.level3)
-            return false;
-        else if (valid  < sipTransactionId.valid)
-            return true;
-        else
-            return false;
-    }
+SipTransactionId::operator<(const SipTransactionId& sipTransactionId) const {
+   if (this == &sipTransactionId) {
+      return false;
+   }
+   else {
+      if (level1 < sipTransactionId.level1)
+         return true;
+      else if (level1 > sipTransactionId.level1)
+         return false;
+      else if (level2 < sipTransactionId.level2)
+         return true;
+      else if (level2 > sipTransactionId.level2)
+         return false;
+      else if (level3 < sipTransactionId.level3)
+         return true;
+      else if (level3 > sipTransactionId.level3)
+         return false;
+      else if (valid  < sipTransactionId.valid)
+         return true;
+      else
+         return false;
+   }
 }
 
-#if 0
-SipTransactionId::KeyTypeI&
-SipTransactionId :: getLevel1() const
-{
-    return level1;
-}
-#endif
-
-SipTransactionId::KeyTypeII&
-SipTransactionId :: getLevel2() const
-{
-    return level2;
+const SipTransactionId::KeyTypeI& SipTransactionId::getLevel1() const {
+   return level1;
 }
 
-
-SipTransactionId::KeyTypeIII&
-SipTransactionId :: getLevel3() const
-{
-    return level3;
+const SipTransactionId::KeyTypeII& SipTransactionId::getLevel2() const {
+   return level2;
 }
 
+const SipTransactionId::KeyTypeIII& SipTransactionId::getLevel3() const {
+   return level3;
+}
 
-bool
-SipTransactionId :: getValid() const
-{
-    return valid;
+bool SipTransactionId::getValid() const {
+   return valid;
 }

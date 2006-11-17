@@ -180,53 +180,6 @@ struct SipMsgContainerComparitor {
 };
 
 
-class SipCallContainer : public BugCatcher {
-public:
-
-   SipCallContainer(const SipTransactionId& call_id);
-
-   virtual ~SipCallContainer() { _cnt--; }
-
-   void addMsgPair(Sptr<SipMsgPair> m);
-
-   Sptr<SipMsgPair> findMsgPair(const SipTransactionId& id);
-   Sptr<SipMsgPair> findMsgPair(Method method);
-
-   void stopAllRetrans();
-
-   void clear(const char* debug);
-
-   list<Sptr<SipMsgPair> >& getMsgList() { return msgs; }
-
-   int getCurSeqNum() { return curSeqNum; }
-   void setCurSeqNum(int i) { curSeqNum = i; setSeq = true; }
-
-   bool isSeqSet() { return setSeq; }
-
-   const SipTransactionId& getTransactionId() { return id; }
-
-   static int getInstanceCount() { return _cnt; }
-
-   void setPurgeTimer(uint64 t) { purgeAt = t; }
-   uint64 getPurgeTimer() const { return purgeAt; }
-
-protected:
-   list<Sptr<SipMsgPair> > msgs;
-   SipTransactionId id;
-
-   int curSeqNum; //Sequence number of last SIP message received.
-   bool setSeq; // Has it been set yet?
-   uint64 purgeAt; // Purge call if this time is non zero and is in the past
-
-private:
-   // Not implemented
-   SipCallContainer();
-   SipCallContainer(const SipCallContainer& rhs);
-   SipCallContainer& operator=(const SipCallContainer& rhs);
-
-   static unsigned int _cnt;
-};//SipCallContainer
- 
 } // namespace Vocal
 
 #endif

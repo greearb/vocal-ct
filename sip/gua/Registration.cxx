@@ -254,8 +254,7 @@ void Registration::setRegistrationMsg(Sptr<RegisterMsg> msg) {
 }
 
 void Registration::setNextRegister(uint64 r) {
-   uint64 now = vgetCurMs() / 1000;
-   int n = now/1000;
+   int n = vgetCurMs() / 1000;
    int _r = r/1000;
    cpLog(LOG_ERR, "Setting next register to: %d, now: %d  (%d)\n",
          _r, n, _r - n);

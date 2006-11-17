@@ -141,7 +141,7 @@ ControlState::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
 void
 ControlState::changeState(CallAgent& agent, ControlState* newState) 
 {
-    cpLog(LOG_DEBUG, "ControlState::ChangeState from (%s) -> (%s)", className().c_str(), newState->className().c_str());
+    cpLog(LOG_WARNING, "ControlState::ChangeState from (%s) -> (%s)", className().c_str(), newState->className().c_str());
     agent.setState(newState);
 }
 

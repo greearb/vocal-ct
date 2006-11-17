@@ -49,10 +49,6 @@
  */
 
 
-static const char* const CallContainer_cxx_Version =
-    "$Id: CallContainer.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
-
 #include "global.h"
 #include "CallContainer.hxx"
 #include "CancelMsg.hxx"
@@ -240,10 +236,10 @@ CallContainer::cancelCall(const Sptr < CallInfo > callInfo)
 
    Sptr<StatusMsg> errorMsg = new StatusMsg( *savedInvite, 480 );
    //errorMsg->removeVia( 0 );
-   sipStack->sendReply( errorMsg );
+   sipStack->sendReply( errorMsg, "CallContainer cancelCall, Reply" );
 
    Sptr<CancelMsg> cancelMsg = new CancelMsg( *savedInvite );
-   sipStack->sendAsync(cancelMsg.getPtr());
+   sipStack->sendAsync(cancelMsg.getPtr(), "CallContainer cancelCall, Async");
 
    cpLog(LOG_INFO, "Call cancelled");
 }

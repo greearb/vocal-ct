@@ -157,7 +157,7 @@ CallAgent::doholdresume200OKstuff(const Sptr<SipMsg>& msg, SdpSession& remoteSdp
 void CallAgent::placeCall() {
    cpLog(LOG_DEBUG, "CallAgent::placeCall()");
    Sptr<SipMsg> sipMsg = myInvokee->getRequest();
-   myInvokee->sendMsg(sipMsg);
+   myInvokee->sendMsg(sipMsg, "CA: place call");
    facade->postMsg(sipMsg, true);
 }
 
@@ -334,7 +334,7 @@ void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) {
          localseq.incrCSeq();
          agent.setLocalCSeq(localseq);
          inviteMsg->setCSeq(localseq);
-         agent.getSipTransceiver()->sendAsync(inviteMsg.getPtr());
+         agent.getSipTransceiver()->sendAsync(inviteMsg.getPtr(), "CallAgent::receivedStatus");
       }
       else if (statusMsg->getStatusLine().getStatusCode() == 480) {
          freeMedia();
@@ -354,7 +354,7 @@ int CallAgent::sendCancel() {
    Sptr<SipCommand> sCommand;
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<CancelMsg> cMsg = new CancelMsg(*sCommand);
-   rv = myInvokee->sendMsg(cMsg.getPtr());
+   rv = myInvokee->sendMsg(cMsg.getPtr(), "CA Send cancel");
    facade->postMsg(cMsg.getPtr(), true);
    return rv;
 }
@@ -422,7 +422,7 @@ void CallAgent::acceptCall() {
 #endif
       
       statusMsg->setContentData(&localSdp, 0);
-      myInvokee->sendMsg(statusMsg.getPtr());
+      myInvokee->sendMsg(statusMsg.getPtr(), "CA Accept Call");
       facade->postMsg(statusMsg.getPtr(), true);
    }
    catch(CInvalidStateException& e) {
@@ -461,7 +461,7 @@ int CallAgent::sendBusy() {
    Sptr<SipCommand> sCommand;
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 486);
-   myInvokee->sendMsg(sMsg.getPtr());
+   myInvokee->sendMsg(sMsg.getPtr(), "CA send busy");
    facade->postMsg(sMsg.getPtr(), true);
    myState->cancel(*this);
    
@@ -559,7 +559,7 @@ void CallAgent::processHold() {
    
    cpLog(LOG_DEBUG, "CallAgent::processHold() is Sending re-invite %s",
          inviteMsg->encode().logData());
-   myInvokee->sendMsg(inviteMsg.getPtr()); 
+   myInvokee->sendMsg(inviteMsg.getPtr(), "CA process hold"); 
 }
 
 void CallAgent::processResume() {
@@ -580,14 +580,12 @@ void CallAgent::processResume() {
    sipSdp->setSdpDescriptor(localSdp);
    
    cpLog(LOG_DEBUG, "Sending InviteMsg %s",inviteMsg->encode().logData() );
-   myInvokee->sendMsg(inviteMsg.getPtr());
+   myInvokee->sendMsg(inviteMsg.getPtr(), "process resume");
 }//processResume
 
 
 void CallAgent::doResume(Sptr<SipMsg>& msg) {
-   cpLog(LOG_DEBUG, "CallAgent::doResume() this should be invoke in UAC Resume ");
-   cpLog(LOG_DEBUG, "CallAgent::processHold() Response is %s",msg->encode().logData());
-   myState->inCall(*this);
+   cpLog(LOG_WARNING, "CallAgent::doResume(),  msg is %s", msg->encode().logData());
    Sptr<StatusMsg> smsg;
    smsg.dynamicCast(msg);
    cpLog(LOG_DEBUG, "CallAgent::processHold() is Sending re-invite %s",
@@ -621,7 +619,7 @@ void CallAgent::dohold() {
 }
 
 void CallAgent::reqResume(Sptr<SipMsg>& msg) {
-   cpLog(LOG_DEBUG, "CallAgent::reqResume() this should be invoke in UAS Resume");
+   cpLog(LOG_WARNING, "CallAgent::reqResume() this should be invoked in UAS Resume");
    try {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(myInvokee->getRequest());
@@ -631,7 +629,7 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
       assert(remoteSdp != 0);
       Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                          remoteSdp->getSdpDescriptor());
-      myInvokee->sendMsg(statusMsg.getPtr());
+      myInvokee->sendMsg(statusMsg.getPtr(), "reqResume");
       int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
       int rv;
       rv = MediaController::instance().resumeSession(sId, myInvokee->getLocalSdp()->getSdpDescriptor(),
@@ -660,7 +658,7 @@ void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
       assert(remoteSdp != 0);
       Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                          remoteSdp->getSdpDescriptor());
-      myInvokee->sendMsg(statusMsg.getPtr());
+      myInvokee->sendMsg(statusMsg.getPtr(), "hold");
       
       unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();	
       MediaController::instance().suspendSession(sId);

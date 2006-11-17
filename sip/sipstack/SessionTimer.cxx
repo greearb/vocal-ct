@@ -49,7 +49,7 @@
  */
 
 static const char* const SessionTimer_cxx_version =
-    "$Id: SessionTimer.cxx,v 1.5 2004/08/20 07:29:37 greear Exp $";
+    "$Id: SessionTimer.cxx,v 1.6 2006/11/17 06:31:04 greear Exp $";
 
 #include "global.h"
 #include "SessionTimer.hxx"
@@ -247,5 +247,5 @@ void SessionTimer::sendInvite(Sptr<VSessionData> sData) {
    sData->myInviteMsg->setCSeq(cSeq); 
    Sptr<SipCommand> sc;
    sc.dynamicCast(sData->myInviteMsg);
-   mTransceiver->sendAsync(sc);
+   mTransceiver->sendAsync(sc, "SessionTimer sending re-invite");
 }

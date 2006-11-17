@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaStateEnd_hxx_Version =
-    "$Id: UaStateEnd.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -66,22 +63,21 @@ namespace UA {
 /**
     UaStateEnd represent call end state for User Agent 
 */
-class UaStateEnd : public UaState
-{
-    public:
-        UaStateEnd() : UaState("UaStateEnd") { }
-
-        ///Destructor
-        virtual ~UaStateEnd()
-        { }
-
-         ///
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-
+class UaStateEnd : public UaState {
+public:
+   UaStateEnd() : UaState("UaStateEnd") { }
+   
+   ///Destructor
+   virtual ~UaStateEnd()
+      { }
+   
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   
 };
 
 }

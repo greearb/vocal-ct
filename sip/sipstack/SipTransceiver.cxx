@@ -171,7 +171,7 @@ SipTransceiver::~SipTransceiver() {
 }
 
 
-void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage) {
+void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const char* dbg) {
    if ( !(sipMessage->checkMaxForwards()) ) {
       cpLog(LOG_DEBUG_STACK, "SipTransceiver: sendAsync: %s",
             sipMessage->encode().c_str());
@@ -184,13 +184,13 @@ void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage) {
    Sptr<SipMsgContainer> msgPtr = sentRequestDB.processSend(sm);
 
    if (msgPtr != 0) {
-      send(msgPtr);
+      send(msgPtr, dbg);
    }
 }//sendAsync
 
 
 void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
-                               const Data& iport) {
+                               const Data& iport, const char* dbg) {
    cpLog(LOG_DEBUG_STACK, "Entering: %s, host: %s  Port: %s\n",
          __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
 
@@ -209,18 +209,12 @@ void SipTransceiver::sendAsync(Sptr<SipCommand> sipMessage, const Data& host,
    Sptr<SipMsgContainer> msgPtr = sentRequestDB.processSend(sipMessage.getPtr());
     
    if (msgPtr != 0) {
-      //// should this only be for actually sent messages? /////////
-      //if (sipAgent != 0) {
-      //   updateSnmpData(sipMessage.getPtr(), OUTS);
-      //}
-      //////////////////////////////////////////////////////////////
-
-      send(msgPtr, host, port);
+      send(msgPtr, host, port, dbg);
    }
 }//sendAsync
 
 
-void SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage) {
+void SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage, const char* dbg) {
    //TODO:  Should be symetric??
    //// should this not be symmetric to what we are doing in sendAsync????
    //// (its missing all the checks and the snmp update)
@@ -232,20 +226,20 @@ void SipTransceiver::sendReply(Sptr<StatusMsg> sipMessage) {
     
    Sptr<SipMsgContainer> sipMsg = sentResponseDB.processSend(sm);
    if (sipMsg != 0) {
-      send(sipMsg);
+      send(sipMsg, dbg);
    }
 }
 
-void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg) {
-   send(sipMsg, "", "");
+void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const char* dbg) {
+   send(sipMsg, "", "", dbg);
 }
 
 
 void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
-                          const Data& iport) {
+                          const Data& iport, const char* dbg) {
 
-   cpLog(LOG_DEBUG_STACK, "Entering %s, host: %s  port: %s\n",
-         __PRETTY_FUNCTION__, host.c_str(), iport.c_str());
+   cpLog(LOG_WARNING, "Sending message to host: %s  port: %s dbg: %s msg -:%s:-\n",
+         host.c_str(), iport.c_str(), dbg, sipMsg->toString().c_str());
 
    Data port(iport);
    if (port == "0") {
@@ -349,19 +343,6 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
 
    Sptr<SipMsg> sipPtr = msgPtr->getMsgIn();
 
-   /********************** TO DO ****************************
-    * not doing 'coz need to bring some stuff from udp impl
-    * to here, so will do after 500 cps
-    * msgPtr->msg.in = SipMsg::decode(msgPtr->msg.out);
-    *********************************************************/
-
-   /*****************************************************************
-    * how does this affect the transactions, i.e. it is only being
-    * done on received messages, so should this be before or after
-    * going thru the data base (i.e. is it visible to transactionDB)?
-    *****************************************************************/
-
-   /*********** decided to remove it from the stack ******************/
    cpLog(LOG_DEBUG, "SipTransceiver: Received: %s, natOn: %d",
          sipPtr->briefString().c_str(), natOn);
    if ( natOn == true) {
@@ -390,8 +371,10 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
    /**********************************************************************/
 	
       
-   cpLog(LOG_DEBUG, "SipTransceiver Received, after NAT handling: %s",
-         msgPtr->getMsgIn()->briefString().c_str());
+   cpLog(LOG_WARNING, "SipTransceiver Received, after NAT handling: %s",
+         msgPtr->getMsgIn()->toString().c_str());
+   //cpLog(LOG_WARNING, "SipTransceiver Received, after NAT handling: %s",
+   //      msgPtr->getMsgIn()->briefString().c_str());
    cpLog(LOG_DEBUG_STACK, "SipTransceiver: msg->out is; %s",
          msgPtr->getEncodedMsg().c_str());
    

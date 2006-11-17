@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const UaStateIdle_cxx_Version = 
-"$Id: UaStateIdle.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
 #include <stdio.h>
 
 #include "UaStateIdle.hxx"
@@ -84,8 +82,8 @@ UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateEx
 }
 
 int
-UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
-{
+UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+   throw (CInvalidStateException&) {
     cpLog(LOG_DEBUG, "(%s) UaStateIdle::sendRequest", agent.className().c_str());
     if(agent.isAClient() && (msg->getType() == SIP_INVITE))
     {
@@ -97,11 +95,11 @@ UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateEx
         if (outboundProxyAddr.length() && (outboundProxyAddr != "0.0.0.0"))
         {
             agent.getSipTransceiver()->sendAsync(sipCmd, outboundProxyAddr, 
-                                                  Data(outboundProxyPort));
+                                                 Data(outboundProxyPort), dbg);
         } 
         else
         {
-          agent.getSipTransceiver()->sendAsync(sipCmd);
+           agent.getSipTransceiver()->sendAsync(sipCmd, dbg);
         } 
         changeState(agent, UaStateFactory::instance().getState(U_STATE_C_TRYING));
         return 0;
@@ -116,7 +114,7 @@ UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateEx
 
 
 int
-UaStateIdle::sendStatus(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
+UaStateIdle::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) throw (CInvalidStateException&)
 {
     //Do Nothing
    return -1;

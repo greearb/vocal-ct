@@ -132,7 +132,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
-            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "uacl: 501 REG");
             UaFacade::instance().postMsg(sMsg.getPtr(), true);
             cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
                   sMsg->encode().logData());
@@ -166,7 +166,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
             int _myPort = atoi((UaConfiguration::instance().getValue(LocalSipPortTag)).c_str());
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
-            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "UACL subscribe");
             Sptr<SubscribeMsg> sbMsg;
             sbMsg.dynamicCast(sipMsg);
             SipSubsNotifyEvent ev("Notify", UaConfiguration::instance().getMyLocalIp());
@@ -235,14 +235,14 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
             nMsg->setContentData(&Txt);
 
             // Send Notify Message to whoever SUBSCRIBED
-            UaFacade::instance().getSipTransceiver()->sendAsync(nMsg.getPtr());
+            UaFacade::instance().getSipTransceiver()->sendAsync(nMsg.getPtr(), "UaCallControl, Notify");
               
          }
          else if (sipMsg->getType() == SIP_BYE) {
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 200);
-            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "UACL bye");
             cpLog(LOG_ERR, "Out of dialog message (%s)", sipMsg->encode().logData());
             cpLog(LOG_DEBUG, "Replying the Above msg to stop flodding (%s)\n", sMsg->encode().logData());
          }
@@ -250,7 +250,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
-            UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+            UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "UACL 501");
             cpLog(LOG_ERR, "Not Implemented message (%s)", sipMsg->encode().logData());
             cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
          }
@@ -273,7 +273,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
          Sptr<SipCommand> Cmd;
          Cmd.dynamicCast(sipMsg);
          Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
-         UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+         UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "UACL no sdp");
          cpLog(LOG_ERR, "No SDP in INVITE message (%s)", 
                sipMsg->encode().logData());
          cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", 
@@ -286,7 +286,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
          Sptr<SipCommand> Cmd;
          Cmd.dynamicCast(sipMsg);
          Sptr<StatusMsg> sMsg = new StatusMsg(*Cmd, 606);
-         UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
+         UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "UACL 606");
          cpLog(LOG_ERR, "No Port in the m line of SDP in INVITE message (%s)", 
                sipMsg->encode().logData());
          cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n", sMsg->encode().logData());
@@ -312,7 +312,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(sipMsg);
       Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 180);
-      cAgent->getInvokee()->sendMsg(sMsg.getPtr());
+      cAgent->getInvokee()->sendMsg(sMsg.getPtr(), "uacc: processEvent, 180");
       //UaFacade::instance().getSipTransceiver()->sendReply(sMsg);
 
       if ((UaFacade::instance().getMode() == CALL_MODE_ANNON) ||
@@ -459,7 +459,6 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
       Sptr<CallAgent> cAgent = getActiveCall();
       if (cAgent != 0) {
          cpLog(LOG_DEBUG, "Resuming Call:");
-         //BYE or CANCEL
          cAgent->processResume();
       }
       else {
@@ -683,7 +682,7 @@ UaCallControl::busy(Sptr<SipCommand> sipMsg)
     {
         cpLog(LOG_DEBUG, "A call is already active");
         Sptr<StatusMsg> statusMsg = new StatusMsg(*sipMsg, 486);
-        UaFacade::instance().getSipTransceiver()->sendReply(statusMsg);
+        UaFacade::instance().getSipTransceiver()->sendReply(statusMsg, "UACL busy");
         return true;
     }
     return false;

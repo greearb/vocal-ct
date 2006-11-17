@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaState_hxx_Version = 
-"$Id: UaState.hxx,v 1.3 2005/08/10 21:58:03 greear Exp $";
-
 #include "CInvalidStateException.hxx"
 #include "SipMsg.hxx"
 #include "SystemInfo.hxx"
@@ -76,50 +73,50 @@ class UaBase;
 </pre>
 */
 class UaState : public BugCatcher {
-    public:
-         ///
-         virtual const string& className() const { return _className; }
-
-         UaState(const char* class_name);
-
-         ///Destructor
-         virtual ~UaState() { };
-
-         ///
-         virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg) 
-                 throw (CInvalidStateException&);
-
-         /// Returns < 0 on failure
-         virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg) 
-                 throw (CInvalidStateException&);
-
-         ///
-         virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg) 
-                 throw (CInvalidStateException&);
-         ///
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg) 
-                 throw (CInvalidStateException&);
-
-	 void addSelfInVia(UaBase& agent, Sptr<SipCommand> cmd);
-
-         virtual string toString() { return className(); }
-
-    protected:
-         ///
-         void error(const string& errMsg);
-
-         ///
-         void info(const string& errMsg);
-
-         ///
-         void changeState(UaBase& agent, Sptr<UaState> newState);
-
-   private:
-         string _className;
-
-         UaState();
-         UaState(const UaState& src);
-         UaState& operator=(const UaState& src);
+public:
+   ///
+   virtual const string& className() const { return _className; }
+   
+   UaState(const char* class_name);
+   
+   ///Destructor
+   virtual ~UaState() { };
+   
+   ///
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg) 
+      throw (CInvalidStateException&);
+   
+   /// Returns < 0 on failure
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
+      throw (CInvalidStateException&);
+   
+   ///
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg) 
+      throw (CInvalidStateException&);
+   
+   void addSelfInVia(UaBase& agent, Sptr<SipCommand> cmd);
+   
+   virtual string toString() { return className(); }
+   
+protected:
+   ///
+   void error(const string& errMsg);
+   
+   ///
+   void info(const string& errMsg);
+   
+   ///
+   void changeState(UaBase& agent, Sptr<UaState> newState);
+   
+private:
+   string _className;
+   
+   UaState();
+   UaState(const UaState& src);
+   UaState& operator=(const UaState& src);
 };
 
 }

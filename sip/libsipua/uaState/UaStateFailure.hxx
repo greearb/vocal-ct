@@ -53,9 +53,6 @@
 
 
 
-static const char* const UaStateFailure_hxx_Version =
-    "$Id: UaStateFailure.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -66,24 +63,23 @@ namespace UA {
 /**
     UaStateFailure represent a Failure state for User Agent 
 */
-class UaStateFailure : public UaState
-{
-    public:
-        UaStateFailure() : UaState("UaStateFailure") { }
-
-        ///Destructor
-        virtual ~UaStateFailure() { }
-
-         ///Valid only for User Agent server
-         virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///Valid only for User Agent Client
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg) 
-                 throw (CInvalidStateException&);
+class UaStateFailure : public UaState {
+public:
+   UaStateFailure() : UaState("UaStateFailure") { }
+   
+   ///Destructor
+   virtual ~UaStateFailure() { }
+   
+   ///Valid only for User Agent server
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///Valid only for User Agent Client
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
+      throw (CInvalidStateException&);
 };
 
 }

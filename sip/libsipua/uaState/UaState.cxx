@@ -48,8 +48,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const UaState_cxx_Version = 
-"$Id: UaState.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
 #include <stdio.h>
 
 #include "UaState.hxx"
@@ -91,8 +89,7 @@ UaState::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
     error(className()+"::recvRequest");
 }
 
-int
-UaState::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+int UaState::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     error(className()+"::sendRequest");
@@ -108,19 +105,17 @@ UaState::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaState::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UaState::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     error(className()+"::sendStatus");
     return -1;
 }
 
-void
-UaState::changeState(UaBase& agent, Sptr<UaState> newState) 
-{
-    cpLog(LOG_DEBUG, "UaState::setState from (%s) -> (%s)",
-          className().c_str(), newState->className().c_str());
-    agent.setState(newState);
+void UaState::changeState(UaBase& agent, Sptr<UaState> newState) {
+   cpLog(LOG_WARNING, "UaState::setState from (%s) -> (%s)",
+         className().c_str(), newState->className().c_str());
+   agent.setState(newState);
 }
 
 void 

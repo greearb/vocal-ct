@@ -110,15 +110,15 @@ void UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg) {
    }
 }
 
-int UaBase::sendMsg(Sptr<SipMsg> sipMsg) {
+int UaBase::sendMsg(Sptr<SipMsg> sipMsg, const char* dbg) {
    cpLog(LOG_DEBUG_STACK , "(%s:%s:%p) Processing message %s ",
          className().c_str(), instanceName.c_str(), this,
          sipMsg->encode().logData());
    if (sipMsg->getType() == SIP_STATUS) {
-      return myState->sendStatus(*this, sipMsg);
+      return myState->sendStatus(*this, sipMsg, dbg);
    }
    else {
-      return myState->sendRequest(*this, sipMsg);
+      return myState->sendRequest(*this, sipMsg, dbg);
    }
 }//sendMsg
 
@@ -255,7 +255,7 @@ UaBase::createReInvite(const Sptr<InviteMsg>& invMsg) {
 void
 UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode, 
                             Sptr<SipContentData> contentData,
-									 bool memorizeResponse)
+                            bool memorizeResponse)
 {
     assert(sipMsg->getType() != SIP_STATUS);
     //Send status message
@@ -263,13 +263,12 @@ UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode,
     sipCmd.dynamicCast(sipMsg);
     assert(sipCmd != 0);
     Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
-    if(contentData != 0)
-    {
-        sendSMsg->setNumContentData(0);
-        sendSMsg->setContentData(contentData.getPtr());
+    if (contentData != 0) {
+       sendSMsg->setNumContentData(0);
+       sendSMsg->setContentData(contentData.getPtr());
     }
     cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-    myStack->sendReply(sendSMsg);
+    myStack->sendReply(sendSMsg, "UaBase::sendReplyForRequest");
     if (memorizeResponse) {
        setResponse(sendSMsg.getPtr());
     }
@@ -313,7 +312,7 @@ UaBase::ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp)
            ackMsg->setContentData(sipSdp.getPtr());
         }
 
-        myStack->sendAsync(ackMsg.getPtr());
+        myStack->sendAsync(ackMsg.getPtr(), "UaBase::ackStatus");
     }
 }
 

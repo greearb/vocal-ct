@@ -49,10 +49,6 @@
  */
 
 
-
-static const char* const UaStateInHold_cxx_Version =
-    "";
-
 #include "UaStateInHold.hxx"
 #include "UaStateFactory.hxx"
 #include "SystemInfo.hxx"
@@ -80,7 +76,7 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         if (statusMsg->getCSeq().getMethod() == INVITE_METHOD) {
             Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
 	    addSelfInVia(agent, ackMsg.getPtr());
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas In Hold, recv Status >= 200");
         }
     }
     if (statusCode == 200) {
@@ -104,7 +100,7 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
+UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInHold::sendStatus");
@@ -137,7 +133,7 @@ UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg)
         me.setUrl(mUrl.getPtr());
         sendSMsg->setNumContact( 0 );
         sendSMsg->setContact( me );
-        agent.getSipTransceiver()->sendReply(sendSMsg); 
+        agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
     }
     else if(statusCode > 200) {
         agent.sendReplyForRequest(agent.getRequest(), statusCode);
@@ -241,7 +237,7 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     int rv = 0;
@@ -285,7 +281,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
 
             cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
                   agent.className().c_str(), invMsg->encode().logData());
-            agent.getSipTransceiver()->sendAsync(invMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(invMsg.getPtr(), dbg);
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
 	    
         }
@@ -298,7 +294,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             assert(sMsg != 0);
             Sptr<AckMsg> ackMsg = new AckMsg(*sMsg, agent.getMyLocalIp());
 	    addSelfInVia(agent, ackMsg.getPtr());
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), dbg);
             cpLog(LOG_DEBUG, "(%s) Sending Ack %s",
                   agent.className().c_str(), ackMsg->encode().logData());
         }
@@ -309,7 +305,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<SipCommand> sipCmd;
             sipCmd.dynamicCast(agent.getRequest());
             Sptr<CancelMsg> cMsg = new CancelMsg(*sipCmd);
-            agent.getSipTransceiver()->sendAsync(cMsg.getPtr());
+            agent.getSipTransceiver()->sendAsync(cMsg.getPtr(), dbg);
             //Transit to End
             changeState(agent, UaStateFactory::instance().getState(U_STATE_END));
         }

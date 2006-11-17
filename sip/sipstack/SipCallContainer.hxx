@@ -1,5 +1,5 @@
-#ifndef _Sip_Transaction_DB__hxx
-#define _Sip_Transaction_DB__hxx
+#ifndef _Sip_CALL_CONTAINER_HXX
+#define _Sip_CALL_CONTAINER_HXX
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -51,66 +51,69 @@
  *
  */
 
+
 #include "SipTransactionId.hxx"
 #include "SipMsgContainer.hxx"
-#include "SipCallContainer.hxx"
-#include "SipMsgQueue.hxx"
+#include "SipMsg.hxx"
+#include "NetworkAddress.h"
+#include "cpLog.h"
+#include <misc.hxx>
+#include <list>
 
 namespace Vocal
 {
     
-#define FILTER_RETRANS_COUNT 1
-#define MAX_RETRANS_COUNT    7
+#define DEBUG_NEW_STACK LOG_DEBUG_STACK
 
-class SipTransactionDB : public BugCatcher {
-private:
-   SipTransactionDB();
-   SipTransactionDB(const SipTransactionDB&);
-   SipTransactionDB& operator= (const SipTransactionDB&);
-   bool operator==(const SipTransactionDB&) const;
 
+class SipCallContainer : public BugCatcher {
 public:
-   // local_ip cannot be "" here, must be the local IP we are bound to locally
-   // or 'hostaddress' if we are not specifically bound.
-   SipTransactionDB(const string& _local_ip);
-   virtual ~SipTransactionDB();
 
-   /**
-    * entry point for transceiver functionality
-    * it will be passed the Sptr reference from worker thread, and will return
-    * a pointer to a newly created Sip message container that needs to be passed
-    * to the transport layer
-    */
-   virtual Sptr<SipMsgContainer> processSend(const Sptr<SipMsg>& msg) = 0;
+   SipCallContainer(const SipTransactionId& call_id);
 
-   /**
-    *  entry point for filter functionality
-    * it will be given the Sip message container received from transport layer,
-    * and either will return the transaction queue, or will return null and modify
-    * the Sip message container w/ the old message to be retransmitted
-    *
-    * (if the message is droped then msg queue AND the reference to msg in the
-    * container will both be 0) 
-    */
-   virtual Sptr<SipMsgQueue> processRecv(Sptr<SipMsgContainer> msgContainer) = 0;
+   virtual ~SipCallContainer() { _cnt--; }
 
-   string toString();
+   void addMsgPair(Sptr<SipMsgPair> m);
 
-   Sptr<SipCallContainer> getCallContainer(const SipTransactionId& id);
+   Sptr<SipMsgPair> findMsgPair(const SipTransactionId& id);
+   Sptr<SipMsgPair> findMsgPair(Method method);
 
-   void addCallContainer(Sptr<SipCallContainer> cc);
+   void stopAllRetrans();
 
-   void purgeOldCalls(uint64 now);
+   void clear(const char* debug);
 
-   void setPurgeTimer(const SipTransactionId& id);
+   list<Sptr<SipMsgPair> >& getMsgList() { return msgs; }
+
+   int getCurSeqNum() { return curSeqNum; }
+   void setCurSeqNum(int i) { curSeqNum = i; setSeq = true; }
+
+   bool isSeqSet() { return setSeq; }
+
+   const SipTransactionId& getTransactionId() { return id; }
+
+   static int getInstanceCount() { return _cnt; }
+
+   void setPurgeTimer(uint64 t) { purgeAt = t; }
+   uint64 getPurgeTimer() const { return purgeAt; }
 
 protected:
+   list<Sptr<SipMsgPair> > msgs;
+   SipTransactionId id;
 
-   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> > table;
+   int curSeqNum; //Sequence number of last SIP message received.
+   bool setSeq; // Has it been set yet?
+   uint64 purgeAt; // Purge call if this time is non zero and is in the past
 
-   string local_ip;
-};
+private:
+   // Not implemented
+   SipCallContainer();
+   SipCallContainer(const SipCallContainer& rhs);
+   SipCallContainer& operator=(const SipCallContainer& rhs);
+
+   static unsigned int _cnt;
+};//SipCallContainer
  
 } // namespace Vocal
 
 #endif
+

@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipTransactionDB_cxx_version =
-    "$Id: SipTransactionDB.cxx,v 1.8 2004/11/08 20:39:13 greear Exp $";
 
 #include "global.h"
 #include "SipTransactionDB.hxx"
@@ -68,21 +66,31 @@ SipTransactionDB::~SipTransactionDB() {
 
 
 string SipTransactionDB::toString() {
-   // TODO:
-   return "BUG";
+   string rv;
+   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.begin();
+   while(i != table.end()) {
+      rv += i->first.c_str();
+      rv += "\n";
+      i++;
+   }
+   return rv;
 }
 
 
 Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
-   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.find(id.getLevel2());
+   string k = id.getLevel1().c_str();
+   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> >::iterator i = table.find(k);
    if (i != table.end()) {
       return i->second;
    }
+   cpLog(LOG_WARNING, "Could not find call container -:%s:-, table:\n%s",
+         k.c_str(), toString().c_str());
    return NULL;
 }
 
 void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
-   string k(m->getTransactionId().getLevel2().c_str());
+   string k(m->getTransactionId().getLevel1().c_str());
+   cpLog(LOG_WARNING, "Adding call container -:%s:-", k.c_str());
    table[k] = m;
 }
 
@@ -99,13 +107,13 @@ void SipTransactionDB::purgeOldCalls(uint64 now) {
    map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator tmpi;
    while(i != table.end()) {
       uint64 p = i->second->getPurgeTimer();
-      string key = i->second->getTransactionId().getLevel2().c_str();
+      string key = i->second->getTransactionId().getLevel1().c_str();
       if (p && (p < now)) {
          tmpi = i;
          i++;
          //TODO:  Make sure this does not invalidate iterator i.
          table.erase(tmpi);
-         cpLog(LOG_DEBUG, "Purged call: %s from transaction DB, size: %i\n",
+         cpLog(LOG_WARNING, "Purged call: %s from transaction DB, size: %i\n",
                key.c_str(), table.size());
       }
       else {

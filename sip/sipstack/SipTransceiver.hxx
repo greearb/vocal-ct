@@ -108,14 +108,14 @@ public:
    ///
    virtual ~SipTransceiver();
    
-   virtual void sendAsync(Sptr<SipCommand> sipMessage);
+   virtual void sendAsync(Sptr<SipCommand> sipMessage, const char* dbg);
 
    // Interface so that we do not have to copy message again in stack
    void sendAsync(Sptr<SipCommand> sipMessage, const Data& host/*=""*/,
-                  const Data& port /*=""*/);
+                  const Data& port /*=""*/, const char* dbg);
    
    // Interface so that we do not have to copy message again in stack
-   virtual void sendReply(Sptr<StatusMsg> sipMessage);
+   virtual void sendReply(Sptr<StatusMsg> sipMessage, const char* dbg);
 
    /**
     ** Return a queue of SipMsgs, basically containing the msg chain.
@@ -182,9 +182,9 @@ private:
 
    ///
    void send(Sptr<SipMsgContainer> msgPtr, const Data& host,
-             const Data& port);
+             const Data& port, const char* dbg);
 
-   void send(Sptr<SipMsgContainer> msgPtr);
+   void send(Sptr<SipMsgContainer> msgPtr, const char* dbg);
   
    /// SNMP details data member vriables
    //Sptr<SipAgent> sipAgent;

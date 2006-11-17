@@ -49,9 +49,6 @@
  */
 
 
-
-static const char* const UaStateRedirect_cxx_Version = "";
-
 #include "UaStateRedirect.hxx"
 #include "UaStateFactory.hxx"
 #include "BasicAgent.hxx"
@@ -62,7 +59,7 @@ using namespace Vocal::UA;
 using Vocal::UA::UaStateRedirect;
 
 int
-UaStateRedirect::sendRequest(UaBase& agent, Sptr<SipMsg> msg)
+UaStateRedirect::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
                  throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateRedirect::SendRequest");
@@ -106,7 +103,7 @@ UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
           assert(sCommand != 0);
           addSelfInVia(agent, ackMsg.getPtr());
           ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-          agent.getSipTransceiver()->sendAsync(ackMsg.getPtr());
+          agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas Redir, ack");
           cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
                 statusCode, ackMsg->encode().logData());
        }

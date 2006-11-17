@@ -96,6 +96,6 @@ UaServer::sendBye() {
    byeMsg->setCSeq( sipCSeq );
 
 
-   myStack->sendAsync(byeMsg.getPtr());
+   myStack->sendAsync(byeMsg.getPtr(), "UaServer::sendBye");
    return byeMsg.getPtr();
 }

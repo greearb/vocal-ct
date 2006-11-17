@@ -52,9 +52,6 @@
  */
 
 
-static const char* const UaBase_hxx_Version =
-    "$Id: UaBase.hxx,v 1.6 2004/11/08 20:39:13 greear Exp $";
-
 #include <string>
 #include <vector>
 #include "BaseFacade.hxx"
@@ -116,7 +113,7 @@ public:
    virtual void receivedMsg(const Sptr<SipMsg>& sipMsg);
 
    /// Returns < 0 on failure
-   virtual int sendMsg(Sptr<SipMsg> sipMsg);
+   virtual int sendMsg(Sptr<SipMsg> sipMsg, const char* dbg);
 
    ///Returns true if was UAC when created
    virtual bool isAClient() const { return (myAgentRole == A_CLIENT); }

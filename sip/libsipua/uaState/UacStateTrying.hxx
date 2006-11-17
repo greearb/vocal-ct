@@ -53,9 +53,6 @@
 
 
 
-static const char* const UacStateTrying_hxx_Version =
-    "$Id: UacStateTrying.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "UaState.hxx"
 
 namespace Vocal {
@@ -65,24 +62,23 @@ namespace UA {
 /**
     UacStateTrying represent a trying state for User Agent Client
 */
-class UacStateTrying : public UaState
-{
-    public:
-        UacStateTrying() : UaState("UacStateTrying") { }
-
-        ///Destructor
-        virtual ~UacStateTrying()
-        { }
-
-         ///
-         virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
-         ///
-         virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+class UacStateTrying : public UaState {
+public:
+   UacStateTrying() : UaState("UacStateTrying") { }
+   
+   ///Destructor
+   virtual ~UacStateTrying()
+      { }
+   
+   ///
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
+   ///
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
+      throw (CInvalidStateException&);
 };
 
 }
