@@ -610,6 +610,25 @@ void CallAgent::doResume(Sptr<SipMsg>& msg) {
 }//doResume
 
 
+void CallAgent::doResumeReinvite(Sptr<SipSdp> remoteSdp) {
+   myInvokee->setRemoteSdp(remoteSdp);
+   assert(remoteSdp != 0);
+   
+   unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();
+   int rv;
+   rv = MediaController::instance().resumeSession(sId, myInvokee->getLocalSdp()->getSdpDescriptor(),
+                                                  remoteSdp->getSdpDescriptor());
+   if (rv < 0) {
+      cpLog(LOG_ERR, "ERROR:  resumeSession failed: %d,  Stopping call.", rv);
+      stopCall();
+   }
+   else {
+      facade->postMsg("INCALL_RESUME");
+      myState->inCall(*this);
+   }
+}//doResumeReinvite
+
+
 void CallAgent::dohold() {
    cpLog(LOG_DEBUG, "CallAgent::dohold() this should be invoke in UAC Hold");
    //UAC just stop the Media since recevied 200 OK for RE-INVITE
@@ -658,13 +677,16 @@ void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
       assert(remoteSdp != 0);
       Sptr<StatusMsg> statusMsg = doholdresume200OKstuff(msg,
                                                          remoteSdp->getSdpDescriptor());
-      myInvokee->sendMsg(statusMsg.getPtr(), "hold");
+      myInvokee->sendMsg(statusMsg.getPtr(), "CallAgent::hold");
       
       unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();	
       MediaController::instance().suspendSession(sId);
       facade->postMsg("R_HOLD");
       facade->postMsg(statusMsg.getPtr(), true);
       myState->inHold(*this);
+
+      // This is a re-invite (always??)  So go ahead and resume.
+      doResumeReinvite(remoteSdp);
    }
    catch (CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());

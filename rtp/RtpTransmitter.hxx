@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const RtpTransmitter_hxx_Version =
-    "$Id: RtpTransmitter.hxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
-
 #include <sys/types.h>
 #include <map>
 

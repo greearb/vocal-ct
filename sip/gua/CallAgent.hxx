@@ -133,6 +133,7 @@ public:
    void processHold();
    ///
    void processResume();
+   void doResumeReinvite(Sptr<SipSdp> remoteSdp);
    ///
    bool isActive() const { return myActiveFlg; };
 

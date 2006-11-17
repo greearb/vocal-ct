@@ -601,7 +601,7 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
       }
 
       // Good to go.
-      cpLog(LOG_ERR, "rAddr: %s  rPort: d", rAddr.c_str(), rPort);
+      cpLog(LOG_ERR, "rAddr: %s  rPort: %d", rAddr.c_str(), rPort);
 
       myRemoteAddress->setHostName(rAddr);
       myRemoteAddress->setPort(rPort);

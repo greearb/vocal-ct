@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const RtpTransmitter_cxx_Version =
-    "$Id: RtpTransmitter.cxx,v 1.5 2006/02/07 01:33:21 greear Exp $";
-
 #include "global.h"
 #include <iostream>
 #include <stdlib.h>
@@ -168,10 +165,10 @@ RtpTransmitter::~RtpTransmitter () {
     cpLog(LOG_DEBUG_STACK, "Closed ssrc = %d", ssrc);
 }
 
-void
-RtpTransmitter::setRemoteAddr (const NetworkAddress& theAddr)
-{
-    remoteAddr = theAddr;
+void RtpTransmitter::setRemoteAddr (const NetworkAddress& theAddr) {
+   remoteAddr = theAddr;
+   myStack->setDestination(&remoteAddr);
+   cpLog(LOG_WARNING, "RtpTransmitter: %p  setting Remote Addr: %s\n", this, theAddr.toString().c_str());
 }
 
 /* --- send packet functions --------------------------------------- */
@@ -192,74 +189,71 @@ RtpPacket* RtpTransmitter::createPacket (int npadSize, int csrc_count)
 
 // takes api RTP packet and send to network
 // assumes payload size is already set
-int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag )
-{
+int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag ) {
+   if (!pkt.convertedToNBO()) {
+      rtp_htonl(&pkt);
+   }
 
-    if (!pkt.convertedToNBO()) {
-       rtp_htonl(&pkt);
-    }
+   // finish packet
 
-    // finish packet
+   if( !pkt.isTimestampSet() )
+      pkt.setRtpTime( prevRtpTime + sampleSize );
+   if( !pkt.isSequenceSet() )
+      pkt.setSequence( prevSequence + 1 );
+   if (pkt.getPayloadUsage() < 0) {
+      cpLog(LOG_ERR, "ERROR: Invalid data packet size %d", pkt.getPayloadUsage());
+      return -1;
+   }
 
-    if( !pkt.isTimestampSet() )
-        pkt.setRtpTime( prevRtpTime + sampleSize );
-    if( !pkt.isSequenceSet() )
-        pkt.setSequence( prevSequence + 1 );
-    if (pkt.getPayloadUsage() < 0) {
-        cpLog(LOG_ERR, "ERROR: Invalid data packet size %d", pkt.getPayloadUsage());
-        return -1;
-    }
+   //set marker once
+   if( markerOnce ) {
+      cpLog( LOG_DEBUG_STACK,"Setting marker bit once");
+      pkt.setMarkerFlag(1);
+      markerOnce = false;
+   }
 
-    //set marker once
-    if( markerOnce ) {
-        cpLog( LOG_DEBUG_STACK,"Setting marker bit once");
-        pkt.setMarkerFlag(1);
-        markerOnce = false;
-    }
-
-    // for packet reuse
-    pkt.setTimestampSet(false);
-    pkt.setSequenceSet(false);
-
-    // transmit packet
-    myStack->queueTransmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr);
-
-    // update counters
-    packetSent++;
+   // for packet reuse
+   pkt.setTimestampSet(false);
+   pkt.setSequenceSet(false);
+   
+   // transmit packet
+   myStack->queueTransmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr);
+   
+   // update counters
+   packetSent++;
 
 #ifdef USE_LANFORGE
-    uint64 now;
+   uint64 now;
 #endif
 
-    prevSequence = pkt.getSequence();
-    if( !eventFlag )
-    {
-        payloadSent += pkt.getPayloadUsage();
-        prevNtpTime = getNtpTime();
-        prevRtpTime = pkt.getRtpTime();
+   prevSequence = pkt.getSequence();
+   if( !eventFlag ) {
+      payloadSent += pkt.getPayloadUsage();
+      prevNtpTime = getNtpTime();
+      prevRtpTime = pkt.getRtpTime();
 
 #ifdef USE_LANFORGE
-        // Save a system call, since we just grabbed the timestamp anyway.
-        now = prevNtpTime.getMs();
+      // Save a system call, since we just grabbed the timestamp anyway.
+      now = prevNtpTime.getMs();
 #endif
-    }
-    else {
+   }
+   else {
 #ifdef USE_LANFORGE
-       now = vgetCurMs();
+      now = vgetCurMs();
 #endif
-    }
+   }
 
-    // set up return value
-    int result = pkt.getPayloadUsage();
+   // set up return value
+   int result = pkt.getPayloadUsage();
 
 #ifdef USE_LANFORGE
-    if (rtpStatsCallbacks) {
-       rtpStatsCallbacks->avgNewRtpTx(now, 1, result);
-    }
+   if (rtpStatsCallbacks) {
+      rtpStatsCallbacks->avgNewRtpTx(now, 1, result);
+   }
 #endif
 
-    // exit with success
-    return result;
+   // exit with success
+   return result;
 }
 
 

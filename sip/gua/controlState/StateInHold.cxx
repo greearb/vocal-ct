@@ -103,6 +103,6 @@ void StateInHold::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
    if (msg->getType() == SIP_INVITE){
       agent.reqResume( msg);
    } else {
-      //to do 
+      // todo
    }
 }
