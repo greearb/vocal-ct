@@ -64,7 +64,7 @@ using namespace Vocal::UA;
 
 using namespace Vocal;
 
-#define LOG_DBG_IC  LOG_WARNING
+#define LOG_DBG_IC  LOG_DEBUG_STACK
 
 void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
    throw (CInvalidStateException&) {

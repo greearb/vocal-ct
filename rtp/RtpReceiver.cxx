@@ -663,7 +663,7 @@ int RtpReceiver::getPacket(RtpPacket& pkt) {
    //   function may return 1, meaning packet
    //   out of seq tolr or source not valid
    if (updateSource(pkt)) {
-      cpLog(LOG_ERR, "****Packet is discarded or source not valid");
+      cpLog(LOG_WARNING, "****Packet is discarded or source not valid");
       return -EINVAL;
    }
 
@@ -776,8 +776,8 @@ int RtpReceiver::addSource(RtpPacket& pkt) {
    if (sourceSet) {
       if (probation < 4) {
          probation ++;
-         cpLog(LOG_ERR, "Rejecting new transmitter %u, keeping %u",
-               pkt.getSSRC(), ssrc);
+         cpLog(LOG_WARNING, "Rejecting new transmitter %u, keeping %u  probation: %d",
+               pkt.getSSRC(), ssrc, probation);
          return 1;
       }
       else {
