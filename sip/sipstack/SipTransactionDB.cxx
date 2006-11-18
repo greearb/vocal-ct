@@ -83,14 +83,14 @@ Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId
    if (i != table.end()) {
       return i->second;
    }
-   cpLog(LOG_WARNING, "Could not find call container -:%s:-, table:\n%s",
-         k.c_str(), toString().c_str());
+   cpLog(LOG_INFO, "%p, Could not find call container -:%s:-, table:\n%s",
+         this, k.c_str(), toString().c_str());
    return NULL;
 }
 
 void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
    string k(m->getTransactionId().getLevel1().c_str());
-   cpLog(LOG_WARNING, "Adding call container -:%s:-", k.c_str());
+   cpLog(LOG_INFO, "%p Adding call container -:%s:-", this, k.c_str());
    table[k] = m;
 }
 
@@ -113,8 +113,8 @@ void SipTransactionDB::purgeOldCalls(uint64 now) {
          i++;
          //TODO:  Make sure this does not invalidate iterator i.
          table.erase(tmpi);
-         cpLog(LOG_WARNING, "Purged call: %s from transaction DB, size: %i\n",
-               key.c_str(), table.size());
+         cpLog(LOG_INFO, "%p Purged call: %s from transaction DB, size: %i\n",
+               this, key.c_str(), table.size());
       }
       else {
          i++;

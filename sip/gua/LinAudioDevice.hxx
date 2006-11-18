@@ -50,8 +50,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const LinAudioDeviceVersion =
-    "$Id: LinAudioDevice.hxx,v 1.4 2006/05/27 00:02:01 greear Exp $";
 
 #include "Rtp.hxx"
 #include "SoundCard.hxx"
@@ -105,7 +103,7 @@ public:
    /** resume audio channel on device
     * @return 0 if successful, errorcode otherwise
     */
-   int resume();
+   int resume(VCodecType codec_type);
         
 
    ///Play data to the soundcard device

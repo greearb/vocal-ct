@@ -133,7 +133,7 @@ public:
    ///Returns 0 if successfull
    virtual int suspend() = 0;
    ///Returns 0 if successfull
-   virtual int resume() = 0;
+   virtual int resume(VCodecType codec_type) = 0;
 
 
 protected:

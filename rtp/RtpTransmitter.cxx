@@ -60,11 +60,6 @@
 #include <string.h>
 
 
-// network socket
-//#include <netinet/in.h>                // struct socketaddr_in
-//#include <sys/socket.h>
-//#include <netdb.h>
-
 #include "cpLog.h"
 #include "vsock.hxx"
 #include "NetworkAddress.h"
@@ -94,10 +89,7 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
 {
     assert(remoteHost);
 
-    // TODO:  What if the remote is not on the minimum port?  How do we
-    // TODO:  deal with that???
-
-    if(  receiver ) {
+    if (receiver) {
        myStack = receiver->getUdpStack();
        myStack->setDestination(&remoteAddr);
     }
@@ -106,7 +98,7 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
                                &remoteAddr, remoteMinPort,
                                remoteMaxPort, sendonly) ;
     }
-    constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
+    initRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
 }
 
 
@@ -123,7 +115,7 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
 {
    assert(remoteHost);
 
-   if(  receiver ) {
+   if (receiver) {
       myStack = receiver->getUdpStack();
       myStack->setDestination(&remoteAddr);
    }
@@ -132,11 +124,11 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
                               &remoteAddr, remotePort,
                               remotePort, sendonly) ;
    }
-   constructRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
+   initRtpTransmitter (_format, clockrate, per_sample_size, samplesize);
 }
 
 
-void RtpTransmitter::constructRtpTransmitter (RtpPayloadType _format, int clockrate,
+void RtpTransmitter::initRtpTransmitter (RtpPayloadType _format, int clockrate,
                                               int per_sample_size, int samplesize) {
    // set format and baseSampleRate
    format = _format;
@@ -168,7 +160,7 @@ RtpTransmitter::~RtpTransmitter () {
 void RtpTransmitter::setRemoteAddr (const NetworkAddress& theAddr) {
    remoteAddr = theAddr;
    myStack->setDestination(&remoteAddr);
-   cpLog(LOG_WARNING, "RtpTransmitter: %p  setting Remote Addr: %s\n", this, theAddr.toString().c_str());
+   cpLog(LOG_DEBUG_STACK, "RtpTransmitter: %p  setting Remote Addr: %s\n", this, theAddr.toString().c_str());
 }
 
 /* --- send packet functions --------------------------------------- */
@@ -217,6 +209,8 @@ int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag ) {
    pkt.setSequenceSet(false);
    
    // transmit packet
+   cpLog(LOG_DEBUG_STACK, "RtpTransmitter: %p sending to remoteAddr: %s",
+         this, remoteAddr.toString().c_str());
    myStack->queueTransmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr);
    
    // update counters

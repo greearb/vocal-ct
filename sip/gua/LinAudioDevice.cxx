@@ -249,7 +249,7 @@ int LinAudioDevice::suspend() {
 }
 
 int
-LinAudioDevice::resume()
+LinAudioDevice::resume(VCodecType codec_type)
 {
     cerr << "%%% Resuming audio" << endl;
     audioActive = true;

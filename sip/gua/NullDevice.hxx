@@ -50,8 +50,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const NullDeviceVersion =
-    "$Id: NullDevice.hxx,v 1.6 2006/05/27 00:02:01 greear Exp $";
 
 #include "MediaDevice.hxx"
 #include <iostream>
@@ -97,7 +95,7 @@ public:
    ///Returns 0 if successfully suspended
    int suspend() { return 0; }
    ///Returns 0 if successfully resumed
-   int resume() { return 0; };
+   int resume(VCodecType codec_type) { return 0; };
 
    ///
    void sinkData(char* data, int length, VCodecType type,

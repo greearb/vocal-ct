@@ -427,8 +427,8 @@ int MediaSession::resumeSession(SdpSession& localSdp, SdpSession& remoteSdp) {
    int rv = -1;
    if (myRtpSession != 0) {
       rv = myRtpSession->adopt(localSdp, remoteSdp);
+      myMediaDevice->resume(myRtpSession->getCodec()->getType());
    }
-   myMediaDevice->resume(); 
    return rv;
 }
 

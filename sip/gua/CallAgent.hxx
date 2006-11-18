@@ -102,7 +102,7 @@ public:
    ///
    void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
    ///
-   void hold(UaBase& agent, const Sptr<SipMsg>& msg);
+   void holdAndResumeReinvite(UaBase& agent, const Sptr<SipMsg>& msg);
    //@}
    void reqResume( Sptr<SipMsg>& msg);
 

@@ -102,7 +102,7 @@ public:
    ///
    virtual void endCall()=0;
    ///
-   virtual void hold(UaBase& agent, const Sptr<SipMsg>& msg) { };
+   virtual void holdAndResumeReinvite(UaBase& agent, const Sptr<SipMsg>& msg) { };
    ///
    virtual void reqResume(Sptr<SipMsg>& msg) { };
    ///

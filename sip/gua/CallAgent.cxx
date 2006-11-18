@@ -638,7 +638,7 @@ void CallAgent::dohold() {
 }
 
 void CallAgent::reqResume(Sptr<SipMsg>& msg) {
-   cpLog(LOG_WARNING, "CallAgent::reqResume() this should be invoked in UAS Resume");
+   cpLog(LOG_INFO, "CallAgent::reqResume() this should be invoked in UAS Resume");
    try {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(myInvokee->getRequest());
@@ -667,7 +667,7 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
    }
 }
 
-void CallAgent::hold(UaBase& agent, const Sptr<SipMsg>& msg) {
+void CallAgent::holdAndResumeReinvite(UaBase& agent, const Sptr<SipMsg>& msg) {
    try {
       Sptr<SipCommand> sCommand;
       sCommand.dynamicCast(myInvokee->getRequest());

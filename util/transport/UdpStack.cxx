@@ -289,8 +289,7 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
     }
     case recvonly : {
        if ( desHost ) {
-          cpLog(LOG_ERR,
-                "recvonly Udp stack, desHost is saved for future use.");
+          cpLog(LOG_ERR, "recvonly Udp stack, desHost is saved for future use.");
           doClient(*desHost);
        }
        else {
@@ -317,47 +316,6 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
        cpLog(LOG_ERR, "ERROR:  undefined mode for udp stack");
        break;
    }//switch
-
-
-// This is totally busted, need to set the file name somewhere!!
-#if 0
-   if (logFlag) {
-      strstream logFileNameRcv;
-      strstream logFileNameSnd;
-      
-      in_log = new ofstream(logFileNameRcv.str(), ios::app);
-      if (!in_log) {
-         cerr << "Cannot open file "
-              << logFileNameRcv.str() << endl;
-         logFileNameRcv.freeze(false);
-         logFlag = false;
-      }
-      else {
-         in_log->write ("UdpRcv\n", 7);
-         strstream lcPort;
-         lcPort << "localPort: " << getTxPort() << "\n" << char(0);
-         in_log->write(lcPort.str(), strlen(lcPort.str()));
-         lcPort.freeze(false);
-         logFileNameRcv.freeze(false);
-         rcvCount = 0;
-      }
-      
-      out_log = new ofstream(logFileNameSnd.str(), ios::app);
-      if (!out_log) {
-         cerr << "Cannot open file "
-              << logFileNameSnd.str() << endl;
-         logFileNameSnd.freeze(false);
-         logFlag = false;
-      }
-      else {
-         if (! logFlag)
-            logFlag = true;
-         out_log->write ("UdpSnd\n", 7);
-         logFileNameSnd.freeze(false);
-         sndCount = 0;
-      }
-   }
-#endif
 }
 
 int UdpStack::doServer ( int minPort, int maxPort) {
@@ -414,7 +372,7 @@ int UdpStack::doServer ( int minPort, int maxPort) {
        }
        else {
           // successful binding occured
-          cpLog(LOG_ERR, "NOTE:  bound to ip: %s(0x%x)  port: %d\n",
+          cpLog(LOG_WARNING, "NOTE:  bound to ip: %s(0x%x)  port: %d",
                 desiredLocalIp.c_str(), lip, localPort);
 
 #ifdef __linux__
@@ -506,6 +464,8 @@ void UdpStack::connectPorts() {
       cpLog(LOG_ERR,  errMsg.str());
    }   
    else {
+      cpLog(LOG_WARNING, "UdpStack, %p  Connected to remote: %s", remoteAddr.toString().c_str());
+
       // Bind to the local interface, if specified, and only if we have not already
       // bound.  This almost definately will NOT work with IP-v6 as it currently
       // is implemented.
@@ -991,7 +951,7 @@ UdpStack::queueTransmit ( const char* buf, const int length ) {
 int UdpStack::doTransmit(const char* buf, int ln) {
 
    int count = send(socketFd, (char *)buf, ln, 0 /* flags */ );
-   cpLog(LOG_DEBUG, "UdpStack::doTransmit, ln: %d  sent: %d  boundLocal: %d  this: %p\n",
+   cpLog(LOG_WARNING, "UdpStack::doTransmit, ln: %d  sent: %d  boundLocal: %d  this: %p\n",
          ln, count, boundLocal, this);
 
    if ( count != ln ) {
@@ -1099,8 +1059,9 @@ int UdpStack::doTransmitTo( const char* buffer,
                        0 ,  // flags
                        (struct sockaddr*) &dest_addr,
                        sizeof(dest_addr));
-   cpLog(LOG_DEBUG, "UdpStack::doTransmitTo, ln: %d  sent: %d  boundLocal: %d  this: %p dest: %s\n",
-         length, count, boundLocal, this, dest->toString().c_str());
+   cpLog(LOG_DEBUG_STACK, "UdpStack::doTransmitTo, ln: %d  sent: %d  boundLocal: %d  this: %p dest: %s (0x%x:%hx)\n",
+         length, count, boundLocal, this, dest->toString().c_str(),
+         dest_addr.sin_addr.s_addr, dest_addr.sin_port);
 
    if ( count != length ) {
       int err = ERRNO;

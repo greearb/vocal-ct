@@ -617,6 +617,15 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
                               (RtpPayloadType)(convertAdapterTypeToRtpType(cAdp->getType(), fmt)),
                               cAdp->getClockRate(), cAdp->getPerSampleSize(),
                               cAdp->getSampleSize());
+
+      int localPort  = myLocalAddress->getPort();
+      int localRtcpPort = ( localPort > 0) ? localPort + 1 : 0;
+      rtpStack->setReceiver(_tos, _skb_priority, myLocalAddress->getIpName().c_str(),
+                            localDevToBindTo, localPort, localRtcpPort, 0 /* range */,
+                            (RtpPayloadType)(convertAdapterTypeToRtpType(cAdp->getType(), fmt)),
+                            cAdp->getClockRate(), cAdp->getPerSampleSize(),
+                            cAdp->getSampleSize(), rtpStack->getCurMaxPktsInQueue());
+
       return 0;
    }//for
 

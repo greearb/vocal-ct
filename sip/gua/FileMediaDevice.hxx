@@ -50,8 +50,6 @@
  * <http://www.vovida.org/>.
  *
  */
-static const char* const FileMediaDevice_hxx_Version =
-    "$Id: FileMediaDevice.hxx,v 1.6 2006/05/27 00:02:01 greear Exp $";
 
 #include "RtpSession.hxx"
 #include "UaHardwareEvent.hxx"
@@ -115,7 +113,7 @@ private:
    void processAudio ();
 
 
-   int  resume() { return 0; }
+   int  resume(VCodecType codec_type) { return 0; }
    int  suspend() { return 0; }
 
    int audioActive;

@@ -125,10 +125,13 @@ void NetworkAddress::setHostName ( const Data& hostname ) {
    }
    else {
       pos = hostname.find(":", 0);
-      hostName = hostname.substr(0,pos);
-      tmpAddr = hostName;
       if (pos != Data::npos) {
+         hostName = hostname.substr(0,pos);
+         tmpAddr = hostName;
          setPort(atoi(hostname.substr(pos+1, Data::npos).c_str()));
+      }
+      else {
+         hostName = hostname;
       }
    }
   
@@ -137,7 +140,12 @@ void NetworkAddress::setHostName ( const Data& hostname ) {
       //cpLog (LOG_DEBUG_STACK, "Setting ipAddress to %s", tmpAddr.c_str());
       hostIPstring = tmpAddr;
       ipAddressSet = true;
-      vtoIpString(hostIPstring.c_str(), hostIP);
+      if (vtoIpString(hostIPstring.c_str(), hostIP) < 0) {
+         cpLog(LOG_ERR, "ERROR:  Could not resolve hostname: %s, error: %s\n",
+               hostName.c_str(), VSTRERROR);
+         // Set to zeros.
+         hostIP = 0;
+      }
       hostName = "";  //Set it later when someone asks for it
    }
    else {
@@ -203,11 +211,11 @@ int NetworkAddress::getPort () const {
 /** For debugging, can put this in logs, for instance */
 string NetworkAddress::toString() const {
     ostringstream oss;
-    oss << hostName << "(" << getIpName() << ")";
+    oss << hostName << "(" << hostIPstring << ")";
 
-    if ( aPort ) {
-        oss << ":" << aPort;
-    }
+    oss << ":" << aPort;
+
+    oss << " " << hostIP << " ip-set: " << ipAddressSet << endl;
 
     return oss.str();
 }
@@ -241,8 +249,20 @@ void NetworkAddress::initIpAddress() const {
 
    if (hostName.size() == 0) {
       // Haven't resolved it yet, IP address better be valid!
-      assert(is_valid_ip4_addr(hostIPstring));
-      ipAddressSet = true;
+      if (!is_valid_ip4_addr(hostIPstring)) {
+         cpLog(LOG_ERR, "ERROR:  invalid state, this: %s", toString().c_str());
+         assert(is_valid_ip4_addr(hostIPstring));
+      }
+      else {
+         // Resolve the IP addr
+         if (vtoIpString(hostIPstring.c_str(), hostIP) < 0) {
+            cpLog(LOG_ERR, "ERROR:  Could not resolve hostname: %s, error: %s\n",
+                  hostIPstring.c_str(), VSTRERROR);
+            // Set to zeros.
+            hostIP = 0;
+         }
+         ipAddressSet = true;
+      }
       return;
    }
 

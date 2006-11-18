@@ -173,11 +173,11 @@ public:
 
    void setRemoteAddr (const NetworkAddress& theAddr) ;
 
-private:
+   void initRtpTransmitter (RtpPayloadType format, int clockrate,
+                            int per_sample_size, int samplesize);
 
-   /// consturctor init
-   void constructRtpTransmitter (RtpPayloadType format, int clockrate,
-                                 int per_sample_size, int samplesize);
+
+private:
 
    /// local SRC number
    RtpSrc ssrc;

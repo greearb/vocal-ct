@@ -127,7 +127,7 @@ void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
       //Notify CC
       Sptr<BasicAgent> ba = agent.getControllerAgent();
       if (ba != 0) {
-         ba->hold(agent, msg);
+         ba->holdAndResumeReinvite(agent, msg);
       }
 
       changeState(agent, UaStateFactory::instance().getState(U_STATE_HOLD));

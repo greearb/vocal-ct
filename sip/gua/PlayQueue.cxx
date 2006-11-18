@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const PlayQueue_cxx_Version =
-    "$Id: PlayQueue.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include "PlayQueue.h"
@@ -174,11 +172,9 @@ bool PlayQueue::getData(unsigned char *buffer, int bytes_to_read) {
 }
 
 
-void PlayQueue::stop()
-{
-    m_bActive = false;
-    while ( !m_xFileQueue.empty() ) 
-    {
-	m_xFileQueue.pop();
-    }
+void PlayQueue::stop() {
+   m_bActive = false;
+   while ( !m_xFileQueue.empty() ) {
+      m_xFileQueue.pop();
+   }
 }

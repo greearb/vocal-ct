@@ -146,15 +146,6 @@ SipTransceiver::SipTransceiver(uint16 tos, uint32 priority,
 
     Vocal::theSystem.setSystemPort(siplistenPort);
 
-    char* port;
-    if((port = getenv("VOCAL_SIP_REPORTER")))
-    {
-#if 0
-        // I purged the debugging code...maybe put it back someday? --Ben
-        //debugMemUsage("Before debugger", "gua_mem.txt");
-#endif
-    }
-
     myLocalNamePort = nameport;
 
     lastPurge = 0;
@@ -238,7 +229,7 @@ void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const char* dbg) {
 void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
                           const Data& iport, const char* dbg) {
 
-   cpLog(LOG_WARNING, "Sending message to host: %s  port: %s dbg: %s msg -:%s:-\n",
+   cpLog(LOG_INFO, "Sending message to host: %s  port: %s dbg: %s msg -:%s:-\n",
          host.c_str(), iport.c_str(), dbg, sipMsg->toString().c_str());
 
    Data port(iport);
@@ -371,7 +362,7 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
    /**********************************************************************/
 	
       
-   cpLog(LOG_WARNING, "SipTransceiver Received, after NAT handling: %s",
+   cpLog(LOG_INFO, "SipTransceiver Received, after NAT handling: %s",
          msgPtr->getMsgIn()->toString().c_str());
    //cpLog(LOG_WARNING, "SipTransceiver Received, after NAT handling: %s",
    //      msgPtr->getMsgIn()->briefString().c_str());
@@ -387,13 +378,6 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
    else {
       msgQ = sentResponseDB.processRecv(msgPtr);
       cpLog(LOG_DEBUG_STACK, "SipTransceiver: not SIP_STATUS..\n");
-   }
-
-   if (msgQ != 0) {
-      //need to have snmpDetails for this.
-      //if (sipAgent != 0) {
-      //   updateSnmpData(sipPtr, INS);
-      //}
    }
 
    return msgQ;

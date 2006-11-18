@@ -454,13 +454,12 @@ RtpSessionState RtpSession::getSessionState () {
    return sessionState;
 }
 
-int
-RtpSession::setReceiver (uint16 tos, uint32 priority,
-                         const string& local_ip,
-                         const string& local_dev_to_bind_to,
-                         int localPort, int rtcpLocalPort, int portRange,
-                         RtpPayloadType format, int clockrate, int per_sample_size,
-                         int samplesize, int jitter_buffer_sz) {
+int RtpSession::setReceiver (uint16 tos, uint32 priority,
+                             const string& local_ip,
+                             const string& local_dev_to_bind_to,
+                             int localPort, int rtcpLocalPort, int portRange,
+                             RtpPayloadType format, int clockrate, int per_sample_size,
+                             int samplesize, int jitter_buffer_sz) {
    if ( !(sessionState == rtp_session_sendrecv
           || sessionState == rtp_session_recvonly) ) {
       cpLog(LOG_ERR, "wrong state of RTP stack.");
@@ -498,13 +497,12 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
          }
       }
    }
-   
+
    if (rtcpRecv) {
       cpLog(LOG_ERR, "WARNING:  Deleting rtcpRecv in RtpSession::setReceiver..\n");
       delete rtcpRecv;
       rtcpRecv = NULL;
-   }
-      
+   }      
 
    if (rtcpLocalPort != 0) {
       if (portRange != 0) {
@@ -543,14 +541,13 @@ RtpSession::setReceiver (uint16 tos, uint32 priority,
 }
 
 
-int
-RtpSession::setTransmiter(uint16 tos, uint32 priority,
-                          const string& local_ip,
-                          const string& local_dev_to_bind_to,
-                          const char* remoteHost, int remotePort,
-                          int rtcpRemotePort,
-                          RtpPayloadType format, int clockrate, int per_sample_size,
-                          int samplesize) {
+int RtpSession::setTransmiter(uint16 tos, uint32 priority,
+                              const string& local_ip,
+                              const string& local_dev_to_bind_to,
+                              const char* remoteHost, int remotePort,
+                              int rtcpRemotePort,
+                              RtpPayloadType format, int clockrate, int per_sample_size,
+                              int samplesize) {
    if ( !(sessionState == rtp_session_sendrecv
           || sessionState == rtp_session_sendonly) ) {
       cpLog(LOG_ERR, "wrong state of RTP stack.");
@@ -563,6 +560,9 @@ RtpSession::setTransmiter(uint16 tos, uint32 priority,
          tran->getUdpStack()->setDestination(remoteHost, remotePort);
          NetworkAddress netAddress(remoteHost, remotePort);
          tran->setRemoteAddr(netAddress);
+
+         // Update codec info.
+         tran->initRtpTransmitter(format, clockrate, per_sample_size, samplesize);
       }
       else {
          tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
@@ -602,10 +602,12 @@ RtpSession::setTransmiter(uint16 tos, uint32 priority,
       rtcpTran->setSdesNote(dummy);
    }
 
-   if (tran) cpLog (LOG_DEBUG_STACK, "RTP Tran Port: %d",
-                    tran->getUdpStack()->getDestinationPort());
-   if (rtcpTran) cpLog (LOG_DEBUG_STACK, "RTCP Tran Port: %d",
-                        rtcpTran->getUdpStack()->getDestinationPort());
+   if (tran)
+      cpLog (LOG_WARNING, "RtpSession::setTransmiter:  RTP Tran Port: %d",
+             tran->getUdpStack()->getDestinationPort());
+   if (rtcpTran)
+      cpLog (LOG_WARNING, "RtpSession::setTransmiter: RTCP Tran Port: %d",
+             rtcpTran->getUdpStack()->getDestinationPort());
    
    return 0;
 }
