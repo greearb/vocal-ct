@@ -117,6 +117,11 @@ public:
    const KeyTypeI& getLevel1() const;
    const KeyTypeII& getLevel2() const;
    const KeyTypeIII& getLevel3() const;
+
+   // Get the Call-ID.  Used to associate a message with a call so that we can
+   // set expire timers on all transactions in a call upon tear-down.
+   const string& getCallId() const { return call_id; }
+
    bool getValid() const;
 
    virtual void clear();
@@ -131,6 +136,7 @@ private:
    mutable KeyTypeI   level1;
    mutable KeyTypeII  level2;
    mutable KeyTypeIII level3;
+   string call_id; // Random bytes from Call-ID.
 };
  
 } // namespace Vocal

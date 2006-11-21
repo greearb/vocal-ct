@@ -49,11 +49,11 @@
  */
 
 
-static const char* const MultiLegCallData_cxx_Version =
-    "$Id: MultiLegCallData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
+#include "MultiLegCallData.hxx"
+#include <sstream>
 
-#include "MultiLegCallData.hxx" 
- 
+using namespace std;
+
 
 void 
 MultiLegCallData::copyObj(const MultiLegCallData& src)
@@ -64,66 +64,77 @@ MultiLegCallData::copyObj(const MultiLegCallData& src)
     myCallLegDataMap.insert(src.myCallLegDataMap.begin(), src.myCallLegDataMap.end());
     myTransactionPeerMap.insert(src.myTransactionPeerMap.begin(), src.myTransactionPeerMap.end());
 #else
-        CallLegDataMap::const_iterator tmpCallLegIter;
-        for(tmpCallLegIter = src.myCallLegDataMap.begin(); tmpCallLegIter != src.myCallLegDataMap.end(); ++tmpCallLegIter)
-        {
-         myCallLegDataMap.insert(*tmpCallLegIter);
-        }
+    map<SipCallLeg, Sptr<SipCallLegData> >::const_iterator tmpCallLegIter;
+    for(tmpCallLegIter = src.myCallLegDataMap.begin(); tmpCallLegIter != src.myCallLegDataMap.end(); ++tmpCallLegIter) {
+       myCallLegDataMap.insert(*tmpCallLegIter);
+    }
 
-        TransactionPeerMap::const_iterator tmpTransPeerIter;
-        for(tmpTransPeerIter = src.myTransactionPeerMap.begin(); tmpTransPeerIter != src.myTransactionPeerMap.end(); ++tmpTransPeerIter)
-        {
-         myTransactionPeerMap.insert(*tmpTransPeerIter);
-        }
+    map<SipTransactionId, Sptr<SipTransactionPeers> >::const_iterator tmpTransPeerIter;
+    for(tmpTransPeerIter = src.myTransactionPeerMap.begin(); tmpTransPeerIter != src.myTransactionPeerMap.end(); ++tmpTransPeerIter) {
+       myTransactionPeerMap.insert(*tmpTransPeerIter);
+    }
 #endif
     myAccountingData = src.myAccountingData;
 }
 
-Sptr<SipCallLegData>  
-MultiLegCallData::getCallLeg(const SipCallLeg& callLeg)
-{
-    CallLegDataMap::iterator itr = myCallLegDataMap.find(callLeg);
-    if(itr != myCallLegDataMap.end())
-    {
-        return(itr->second);
-    }
-    else
-    {
-        cpLog(LOG_WARNING, "Data not found for callLeg %s", callLeg.encode().logData());
-        assert(0);
-        Sptr<SipCallLegData> nll;
-        return nll; //quiet compiler warning.
-    }
+string MultiLegCallData::toString() {
+   ostringstream oss;
+   cpLog(LOG_INFO, "adding call-leg-data");
+   map<SipCallLeg , Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.begin();
+   oss << "  call-leg data map:\n";
+   while (itr != myCallLegDataMap.end()) {
+      oss << "   call-leg: " << (*itr).first.toString() << "  call-leg-data: "
+          << (*itr).second->toString() << endl;
+      itr++;
+   }
+
+   cpLog(LOG_INFO, "adding transaction-peer-map");
+   map<SipTransactionId , Sptr<SipTransactionPeers> >::iterator itr2 = myTransactionPeerMap.begin();
+   oss << "  transaction-peer map:\n";
+   while (itr2 !=  myTransactionPeerMap.end()) {
+      oss << "   trans-id: " << (*itr2).first.toString() << "  trans-peers: "
+          << (*itr2).second->toString() << endl;
+      itr2++;
+   }
+   cpLog(LOG_INFO, "done");
+   return oss.str();
+}
+   
+
+
+Sptr<SipCallLegData> MultiLegCallData::getCallLeg(const SipCallLeg& callLeg) {
+   map<SipCallLeg, Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.find(callLeg);
+   if (itr != myCallLegDataMap.end()) {
+      return(itr->second);
+   }
+   else {
+      cpLog(LOG_WARNING, "Data not found for callLeg %s", callLeg.encode().logData());
+      assert(0);
+      Sptr<SipCallLegData> nll;
+      return nll; //quiet compiler warning.
+   }
 }
 
-void 
-MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData)
-{
-    assert(myCallLegDataMap.count(callLeg) == 0);
-    myCallLegDataMap[callLeg] = legData;
+void MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData) {
+   assert(myCallLegDataMap.count(callLeg) == 0);
+   myCallLegDataMap[callLeg] = legData;
 }
 
-void 
-MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg)
-{
-    CallLegDataMap::iterator itr = myCallLegDataMap.find(callLeg);
-    if(itr != myCallLegDataMap.end())
-    {
-        myCallLegDataMap.erase(itr);
-    }
+void MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg) {
+   map<SipCallLeg, Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.find(callLeg);
+   if (itr != myCallLegDataMap.end()) {
+      myCallLegDataMap.erase(itr);
+   }
 }
 
 
-Sptr<SipTransactionPeers> 
-MultiLegCallData::findPeer(const SipTransactionId& trId)
-{
-     Sptr<SipTransactionPeers> retVal = 0;
-     TransactionPeerMap::iterator itr = myTransactionPeerMap.find(trId); 
-     if(itr != myTransactionPeerMap.end())
-     {
-         retVal = (*itr).second;
-     }
-     return retVal;
+Sptr<SipTransactionPeers> MultiLegCallData::findPeer(const SipTransactionId& trId) {
+   Sptr<SipTransactionPeers> retVal = 0;
+   map<SipTransactionId, Sptr<SipTransactionPeers> >::iterator itr = myTransactionPeerMap.find(trId); 
+   if (itr != myTransactionPeerMap.end()) {
+      retVal = (*itr).second;
+   }
+   return retVal;
 }
 
 
@@ -137,7 +148,7 @@ MultiLegCallData::addTransactionPeer(const Sptr<SipTransactionPeers>& peer)
 void 
 MultiLegCallData::removeTransactionPeer(const SipTransactionId& trId)
 {
-     TransactionPeerMap::iterator itr = myTransactionPeerMap.find(trId); 
+     map<SipTransactionId, Sptr<SipTransactionPeers> >::iterator itr = myTransactionPeerMap.find(trId); 
      if(itr != myTransactionPeerMap.end())
      {
          myTransactionPeerMap.erase(itr);

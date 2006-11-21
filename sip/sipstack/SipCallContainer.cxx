@@ -71,7 +71,7 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
       Sptr<SipMsgPair> mp = *i;
       if ((mp->request != 0) && mp->request->matches(id)) {
          return (*i);
-        }
+      }
       if ((mp->response != 0) && mp->response->matches(id)) {
          return (*i);
       }

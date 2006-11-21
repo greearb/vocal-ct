@@ -81,6 +81,7 @@ void dumpInstanceCount(const char* msg) {
    oss << "dumpInstanceCount: " << msg << "  "
        << "  IOBufferv::string_cnt: " << IOBufferv::string_cnt
        << "  Data: " << Data::getInstanceCount()
+       << "  UaBase: " << UaBase::getInstanceCount()
        << "  BasicAgent: " << BasicAgent::getInstanceCount()
        << "  CallAgent: " << CallAgent::getInstanceCount()
        << "  SipUdpConnection: " << SipUdpConnection::getInstanceCount()

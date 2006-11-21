@@ -52,9 +52,6 @@
  */
 
 
-static const char* const UaCallControl_hxx_Version =
-    "$Id: UaCallControl.hxx,v 1.9 2006/10/17 15:28:17 greear Exp $";
-
 #include "global.h"
 #include <list>
 #include "SipProxyEvent.hxx"

@@ -52,9 +52,6 @@
  */
 
 
-static const char* const MultiLegCallData_hxx_Version =
-    "$Id: MultiLegCallData.hxx,v 1.3 2004/06/16 06:51:25 greear Exp $";
-
 #include "global.h"
 
 #include <map>
@@ -116,69 +113,63 @@ class ClassFoo
 
 </pre>
 */
-class MultiLegCallData : public BugCatcher
-{
-   public:
-      ///
-      typedef map<SipCallLeg , Sptr<SipCallLegData> > CallLegDataMap;
-      ///
-      typedef map<SipTransactionId , Sptr<SipTransactionPeers> > TransactionPeerMap;
+class MultiLegCallData : public BugCatcher {
+public:
+   
+   /// Create one with default values
+   MultiLegCallData() : myAccountingData(0) { };
+   
+   ///
+   ~MultiLegCallData();
+   ///
+   MultiLegCallData( const MultiLegCallData& src ) {
+      copyObj(src);
+   }
+   
+   string toString();
 
-      /// Create one with default values
-      MultiLegCallData() : myAccountingData(0) { };
-
-      ///
-      ~MultiLegCallData();
-      ///
-      MultiLegCallData( const MultiLegCallData& src )
-      {
-          copyObj(src);
+   /// 
+   const MultiLegCallData& operator =( const MultiLegCallData& src ) {
+      if (this != &src) {
+         copyObj(src);
       }
+      return *this;
+   }
 
-      /// 
-      const MultiLegCallData& operator =( const MultiLegCallData& src )
-      {
-          if(this != &src)
-          {
-              copyObj(src);
-          }
-          return *this;
-      }
+   ///
+   void copyObj(const MultiLegCallData& src);
 
-      ///
-      void copyObj(const MultiLegCallData& src);
+   ///Get the call-leg data for a given callLeg
+   Sptr<SipCallLegData>  getCallLeg(const SipCallLeg& callLeg);
 
-      ///Get the call-leg data for a given callLeg
-      Sptr<SipCallLegData>  getCallLeg(const SipCallLeg& callLeg);
+   ///Add call-leg data for a given callLeg
+   void addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData);
 
-      ///Add call-leg data for a given callLeg
-      void addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData);
+   ///
+   void removeCallLeg(const SipCallLeg& callLeg);
 
-      ///
-      void removeCallLeg(const SipCallLeg& callLeg);
+   ///
+   Sptr<SipTransactionPeers> findPeer(const SipTransactionId& trId);
 
-      ///
-      Sptr<SipTransactionPeers> findPeer(const SipTransactionId& trId);
+   ///
+   void addTransactionPeer(const Sptr<SipTransactionPeers>& peer);
 
-      ///
-      void addTransactionPeer(const Sptr<SipTransactionPeers>& peer);
+   ///
+   void removeTransactionPeer(const SipTransactionId& peer);
 
-      ///
-      void removeTransactionPeer(const SipTransactionId& peer);
+   ///
+   const Sptr<AccountingData> getAccountingData() const { return myAccountingData; };
 
-      ///
-      const Sptr<AccountingData> getAccountingData() const { return myAccountingData; };
+   ///
+   void setAccountingData(const Sptr<AccountingData>& accData) { myAccountingData = accData; };
 
-      ///
-      void setAccountingData(const Sptr<AccountingData>& accData) { myAccountingData = accData; };
-
-   private:
-      /// 
-      CallLegDataMap  myCallLegDataMap;
-      ///
-      TransactionPeerMap myTransactionPeerMap; 
-      ///
-      Sptr<AccountingData> myAccountingData;
+private:
+   /// 
+   map<SipCallLeg, Sptr<SipCallLegData> > myCallLegDataMap;
+   ///
+   map<SipTransactionId, Sptr<SipTransactionPeers> > myTransactionPeerMap;
+   //
+   Sptr<AccountingData> myAccountingData;
 };
 
 

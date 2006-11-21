@@ -49,9 +49,6 @@
  */
 
 
-static const char* const SipCallLegData_cxx_Version =
-    "$Id: SipCallLegData.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "ContactData.hxx" 
 #include "SipCallLegData.hxx" 
 #include "cpLog.h" 
@@ -68,6 +65,9 @@ SipCallLegData::SipCallLegData( const Sptr<SipMsg>& reqMsg )
     myLocalSdpData.dynamicCast(reqMsg->getContentData(0));
 };
 
+string SipCallLegData::toString() {
+   return mySipCallLeg.toString();
+}
 
 Sptr<ContactData>
 SipCallLegData::getContactData(int index) const

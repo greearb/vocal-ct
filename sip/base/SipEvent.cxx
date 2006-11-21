@@ -49,10 +49,6 @@
  */
 
 
-static const char* const SipEvent_cxx_Version =
-    "$Id: SipEvent.cxx,v 1.4 2004/06/03 07:28:15 greear Exp $";
-
-
 #include "global.h"
 #include "cpLog.h"
 #include "SipEvent.hxx"

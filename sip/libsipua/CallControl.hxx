@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CallControl_hxx_Version =
-    "$Id: CallControl.hxx,v 1.4 2004/10/29 07:22:35 greear Exp $";
-
 #include "global.h"
 #include <map>
 

@@ -77,16 +77,15 @@ namespace UA {
 class CallDB {
 public:
    ///
-   typedef map<SipCallLeg , Sptr<MultiLegCallData> > MultiLegCallDataMap;
+   typedef map<SipCallLeg, Sptr<MultiLegCallData> > MultiLegCallDataMap;
    
-   ///
-   typedef map<int , Sptr<MultiLegCallData> > AccountingDataMap;
-
    /// Create one with default values
    static CallDB& instance();
 
    ///
    string className() { return "CallDB"; }
+
+   string toString();
 
    ///Destructor
    virtual ~CallDB();
@@ -100,46 +99,8 @@ public:
    ///Add a call-leg served by the userAgent.
    void addCallLeg(Sptr<UaBase> userAgent);
 
-   /**Add a peer to given userAgent
-    * Example - If user A is in call with B and C
-    * addPeer(A,B);
-    * addPeer(A,C);
-    * addPeer(B,A);
-    * addPeer(C,A);
-    */
-   void addPeer(Sptr<UaBase> userAgent, Sptr<UaBase> peerAgent);
-
    ///
    Sptr<MultiLegCallData> getMultiLegCallData(const SipCallLeg& callLeg);
-
-   /**
-    * Set the accounting data for a given call identified by the
-    * session ID.Parameter cLeg identifies the initiating call-leg
-    * In case of libsipua used in B2bUa
-    * <pre>
-    * UA1 ---- CallLeg1 ---->B2bUa --- CallLeg2 --->UA2
-    * Sptr<AccountingData> aData = new AccountingData(sessionId);
-    * aData.setUnusedSeconds(1000);
-    * CallDB::instance().setAccountingData(CallLeg1, sessionId, aData);
-    * </pre>
-    */
-   void setAccountingData(const SipCallLeg& cLeg, int sessionId, Sptr<AccountingData> aData);
-   ///
-   void removeAccountingData(int sessionId);
-
-   ///
-   Sptr<AccountingData> getAccountingData( int sessionId);
-
-   ///
-   void findAllPeers(const UaBase& userAgent, UserAgentPeerList& retVal);
-
-   /**Removes the peerAgent from srcAgent list and returns the current
-    * number that srcAgent is peering with after removal
-    */
-   int removePeer(const UaBase& srcAgent, const UaBase& peerAgent);
-
-   ///Simply remove agent and all its peers from the CallDB
-   void removePeer(const UaBase& agent);
 
    ///Remove call data for user agent 
    void removeCallData(const UaBase& agent);
@@ -153,8 +114,6 @@ private:
    CallDB();
    ///
    static CallDB* myInstance;
-   ///
-   AccountingDataMap myAccountingDataMap;
    ///
    MultiLegCallDataMap myMultiLegCallDataMap;
 };

@@ -298,6 +298,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       //Create the CallAgent to control UaServer
       Sptr<CallAgent> cAgent = new CallAgent(callId, sipMsg, &(UaFacade::instance()),
                                              Vocal::UA::A_SERVER);
+      cpLog(LOG_INFO, "created Server Call Agent: %p  idx: %d", cAgent.getPtr(), callId);
 
       //Persist the agent for the duration of the call
       myCallMap[cAgent->getId()] = cAgent;
@@ -667,6 +668,7 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
    //Create call-agent to handle the call from now on
    Sptr<CallAgent> cAgent = new CallAgent(callId, msg.getPtr(), &(UaFacade::instance()),
                                           Vocal::UA::A_CLIENT);
+   cpLog(LOG_INFO, "created Client Call Agent: %p  idx: %d", cAgent.getPtr(), callId);
    
    //Persist the agent for the duration of the call
    myCallMap[cAgent->getId()] = cAgent;

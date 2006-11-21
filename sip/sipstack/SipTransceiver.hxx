@@ -161,7 +161,7 @@ public:
                       int& maxdesc, uint64& timeout, uint64 now);
 
    // Set the purge timer for the specified call.
-   virtual void setPurgeTimer(const SipTransactionId& forCall);
+   virtual void setCallPurgeTimer(const SipTransactionId& forCall, uint64 expire_at_ms);
 
    static int getInstanceCount() { return _cnt; }
    

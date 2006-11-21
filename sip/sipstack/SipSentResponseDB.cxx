@@ -58,15 +58,8 @@
 
 using namespace Vocal;
 
-/*
 SipSentResponseDB::SipSentResponseDB(const string& _local_ip)
-    : SipTransactionDB(_local_ip)
-{
-}
-*/
-
-SipSentResponseDB::SipSentResponseDB(const string& _local_ip)
-    : SipTransactionDB(_local_ip)
+      : SipTransactionDB(_local_ip, "sent-response-db")
 {}
 
 SipSentResponseDB::~SipSentResponseDB()
@@ -255,9 +248,9 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
             }
             else {
                cpLog(LOG_DEBUG_STACK, "INVITE not Found");
-               /////////// ACK w/o INVITE !!!!
-                  ////////// (may have been gc'd)
-                  }
+               // ACK w/o INVITE !!!!
+               // (may have been gc'd)
+            }
          }
 
          retVal->push_back(msgContainer->getMsgIn());

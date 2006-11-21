@@ -266,9 +266,9 @@ void SipTransceiver::send(Sptr<SipMsgContainer> sipMsg, const Data& host,
 
 
 // Set the purge timer for the specified call.
-void SipTransceiver::setPurgeTimer(const SipTransactionId& forCall) {
-   sentRequestDB.setPurgeTimer(forCall);
-   sentResponseDB.setPurgeTimer(forCall);
+void SipTransceiver::setCallPurgeTimer(const SipTransactionId& forCall, uint64 expire_at_ms) {
+   sentRequestDB.setCallPurgeTimer(forCall, expire_at_ms);
+   sentResponseDB.setCallPurgeTimer(forCall, expire_at_ms);
 }
 
 

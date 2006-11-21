@@ -52,9 +52,6 @@
  */
 
 
-static const char* const SipCallLegData_hxx_Version =
-    "$Id: SipCallLegData.hxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
-
 #include "global.h"
 #include <vector>
 
@@ -183,6 +180,8 @@ public:
    
    ///
    virtual ~SipCallLegData() { };
+
+   virtual string toString();
 
 protected:
    ///

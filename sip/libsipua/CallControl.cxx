@@ -61,8 +61,7 @@
 using namespace Vocal;
 using namespace UA;
 
-bool 
-CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
+bool CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
    cpLog(LOG_DEBUG, "CallControl::processEvent");
    bool eventHandled = false;
    //Lets handle the sip-event here, other custom events can 
@@ -109,5 +108,13 @@ CallControl::CallControl() {
 }
 
 void CallControl::removeAgent(unsigned long id) {
+   Sptr<BasicAgent> ba = myCallMap[id];
+   if (ba != 0) {
+      cpLog(LOG_INFO, "Removing agent at idx: %d, ptr: %p  refs: %d",
+            id, ba.getPtr(), ba->getReferenceCount());
+   }
+   else {
+      cpLog(LOG_INFO, "Removing agent at idx: %d, but is already NULL", id);
+   }
    myCallMap.erase(id);
 }

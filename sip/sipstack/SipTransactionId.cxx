@@ -85,6 +85,7 @@ SipTransactionId :: SipTransactionId(const SipMsg& sipMsg) {
    level2+= sipMsg.getVia(0).getBranch();
 
    level3 = sipMsg.getCSeq().getMethod();
+   call_id = sipMsg.getCallId().getLocalId().c_str();
 }
 
 
@@ -92,7 +93,8 @@ SipTransactionId :: SipTransactionId(const SipTransactionId& sipTransactionId)
       : valid(sipTransactionId.valid),
         level1(sipTransactionId.level1),
         level2(sipTransactionId.level2),
-        level3(sipTransactionId.level3)
+        level3(sipTransactionId.level3),
+        call_id(sipTransactionId.call_id)
 {
 }
 
@@ -111,6 +113,8 @@ string SipTransactionId::toString() const {
    rv += level2.c_str();
    rv += " level3: ";
    rv += level3.c_str();
+   rv += " call_id: ";
+   rv += call_id;
    return rv;
 }
 
@@ -120,6 +124,7 @@ void SipTransactionId::clear() {
    level1 = "";
    level2 = "";
    level3 = "";
+   call_id = "";
 }
 
 
@@ -130,12 +135,14 @@ SipTransactionId :: operator= (const SipTransactionId& sipTransactionId) {
       level1 = sipTransactionId.level1;
       level2 = sipTransactionId.level2;
       level3 = sipTransactionId.level3;
+      call_id = sipTransactionId.call_id;
    }
    return *this;
 }
 
 bool
 SipTransactionId::operator==(const SipTransactionId& sipTransactionId) const {
+   // Ignore call_id, I don't think it's needed here.
    return (valid  == sipTransactionId.valid  &&
            level1 == sipTransactionId.level1 &&
            level2 == sipTransactionId.level2 &&

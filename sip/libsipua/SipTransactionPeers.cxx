@@ -49,12 +49,11 @@
  */
 
 
-static const char* const SipTransactionPeers_cxx_Version =
-    "$Id: SipTransactionPeers.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "SipTransactionPeers.hxx" 
 #include <algorithm>
+#include <sstream>
 
+using namespace std;
 
 void 
 SipTransactionPeers::addPeer(const SipCallLeg& callLeg) {
@@ -68,4 +67,15 @@ SipTransactionPeers::removePeer(const SipCallLeg& callLeg) {
    if (itr != myCallLegList.end()) {
       myCallLegList.erase(itr);
    }
+}
+
+string SipTransactionPeers::toString() {
+   ostringstream oss;
+   oss << " tr-id: " << myTrId->toString() << " ";
+   SipCallLegList::iterator itr = myCallLegList.begin();
+   while (itr != myCallLegList.end()) {
+      oss << "     " << itr->toString() << endl;
+      itr++;
+   }
+   return oss.str();
 }

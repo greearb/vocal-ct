@@ -70,6 +70,8 @@ using Vocal::UA::UaBase;
 // ALLOW field
 const string UaBase::allowField("INVITE,ACK,CANCEL,BYE,OPTIONS");
 
+int UaBase::_cnt = 0;
+
 UaBase::UaBase( const char* class_name,
                 const Sptr<SipMsg>& reqMsg, Sptr<SipTransceiver> stack,
                 BasicAgent* controllerAgent, BaseFacade* _facade,
@@ -82,8 +84,9 @@ UaBase::UaBase( const char* class_name,
         instanceName(dbg_id),
         myControllerAgent(controllerAgent)
 {
-   cpLog(LOG_DEBUG, "Creating UaBase, this: %p  debug_id: %s\n",
-         this, instanceName.c_str());
+   _cnt++;
+   cpLog(LOG_INFO, "Creating UaBase, this: %p  debug_id: %s  call-id: %s\n",
+         this, instanceName.c_str(), callId.getCallId().c_str());
    myState = UaStateFactory::instance().getState(U_STATE_IDLE);
 
 }// constructor
@@ -321,10 +324,11 @@ UaBase::ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp)
 UaBase::~UaBase() {
    assertNotDeleted();
    //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
-   cpLog(LOG_DEBUG_STACK , "(%s:%p) Deleting instance..\n",
-         instanceName.c_str(), this);
+   _cnt--;
+   cpLog(LOG_INFO , "UaBase: (%s:%p) Deleting instance, call-id: %s",
+         instanceName.c_str(), this, callId.getCallId().c_str());
    // Make sure the call is purged soon after...
-   myStack->setPurgeTimer(callId);
+   myStack->setCallPurgeTimer(callId, vgetCurMs() + (10 * 1000));
    clearRouteList();
 }
 

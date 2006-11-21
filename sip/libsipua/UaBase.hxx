@@ -180,6 +180,8 @@ public:
    // ALLOW field
    static const string allowField;
 
+   static int getInstanceCount() { return _cnt; }
+
 protected:
 
    ///
@@ -204,6 +206,7 @@ private:
 
    string instanceName; //Used for debugging.
    string _class_name;
+   static int _cnt;
 
    ///
    Sptr<UaState>     myState;

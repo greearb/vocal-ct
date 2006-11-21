@@ -52,9 +52,6 @@
  */
 
 
-static const char* const SipTransactionPeers_hxx_Version =
-    "$Id: SipTransactionPeers.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "global.h"
 #include "SipTransactionId.hxx" 
 #include "SipCallLeg.hxx" 
@@ -121,6 +118,8 @@ public:
    
    ///
    const Sptr<SipTransactionId>& getTrId() const { return myTrId; };
+
+   string toString();
    
 private:
    /// 

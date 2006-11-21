@@ -52,8 +52,6 @@
  */
 
 
-static const char* const UaDef_hxx_Version =
-    "$Id: UaDef.hxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
 #include <vector>
 #include "Sptr.hxx"
 
@@ -79,7 +77,6 @@ enum AgentRole
     A_MAX
 };
 
-typedef vector<Sptr<UaBase> >  UserAgentPeerList;
 
 } 
 

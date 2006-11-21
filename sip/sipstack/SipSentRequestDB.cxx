@@ -59,7 +59,7 @@
 using namespace Vocal;
 
 SipSentRequestDB::SipSentRequestDB(const string& _local_ip)
-    : SipTransactionDB(local_ip)
+      : SipTransactionDB(local_ip, "sip-sent-request-db")
 {
 }
 
@@ -107,14 +107,15 @@ Sptr<SipMsgContainer> SipSentRequestDB::processSend(const Sptr<SipMsg>& msg) {
          addCallContainer(call);
       }
 
+      uint64 now = vgetCurMs();
       // if this is a CANCEL then cancel all the active retranses...
       if (msg->getType() == SIP_CANCEL) {
          call->stopAllRetrans();
-         call->setPurgeTimer(vgetCurMs() + (10 * 1000)); // Purge this call in 10 seconds 
+         call->setPurgeTimer(now + (10 * 1000)); // For all transactions in this call
       } 
 
       if (msg->getType() == SIP_BYE) {
-         call->setPurgeTimer(vgetCurMs() + (10 * 1000)); // Purge this call in 10 seconds
+         call->setPurgeTimer(now + (10 * 1000)); // For all transactions in this call
       }
      
       Sptr<SipMsgPair> mp = new SipMsgPair();

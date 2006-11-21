@@ -55,8 +55,9 @@
 using namespace Vocal;
 
 
-SipTransactionDB::SipTransactionDB(const string& _local_ip) {
+SipTransactionDB::SipTransactionDB(const string& _local_ip, const char* _name) {
    local_ip = _local_ip;
+   name = _name;
 }
 
 
@@ -67,7 +68,7 @@ SipTransactionDB::~SipTransactionDB() {
 
 string SipTransactionDB::toString() {
    string rv;
-   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.begin();
+   map <string, Sptr<SipCallContainer> >::iterator i = table.begin();
    while(i != table.end()) {
       rv += i->first.c_str();
       rv += "\n";
@@ -78,45 +79,52 @@ string SipTransactionDB::toString() {
 
 
 Sptr<SipCallContainer> SipTransactionDB::getCallContainer(const SipTransactionId& id) {
-   string k = id.getLevel1().c_str();
-   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> >::iterator i = table.find(k);
+   string k = id.getCallId().c_str();
+   map <string, Sptr<SipCallContainer> >::iterator i = table.find(k);
    if (i != table.end()) {
       return i->second;
    }
-   cpLog(LOG_INFO, "%p, Could not find call container -:%s:-, table:\n%s",
-         this, k.c_str(), toString().c_str());
+   cpLog(LOG_INFO, "%s, Could not find call container -:%s:-, table:\n%s",
+         name.c_str(), k.c_str(), toString().c_str());
    return NULL;
 }
 
 void SipTransactionDB::addCallContainer(Sptr<SipCallContainer> m) {
-   string k(m->getTransactionId().getLevel1().c_str());
-   cpLog(LOG_INFO, "%p Adding call container -:%s:-", this, k.c_str());
+   string k(m->getCallId().getCallId().c_str());
+   cpLog(LOG_INFO, "%s Adding call container -:%s:-", name.c_str(), k.c_str());
    table[k] = m;
 }
 
-void SipTransactionDB::setPurgeTimer(const SipTransactionId& id) {
+void SipTransactionDB::setCallPurgeTimer(const SipTransactionId& id, uint64 expires_at) {
    Sptr<SipCallContainer> c = getCallContainer(id);
+   string k(id.getCallId().c_str());
    if (c != 0) {
-      c->setPurgeTimer(vgetCurMs() + (10 * 1000)); // 10 seconds
+      cpLog(LOG_INFO, "%s Setting purge timer for call -:%s:-", name.c_str(), k.c_str());
+      c->setPurgeTimer(expires_at);
+   }
+   else {
+      cpLog(LOG_INFO, "%s Could not find call in setPurgeTimer, call -:%s:-", name.c_str(), k.c_str());
+      cpLog(LOG_INFO, "%s all calls:\n%s\n", toString().c_str());
    }
 }
 
-
 void SipTransactionDB::purgeOldCalls(uint64 now) {
-   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator i = table.begin();
-   map <SipTransactionId::KeyTypeII, Sptr<SipCallContainer> >::iterator tmpi;
+   map <string, Sptr<SipCallContainer> >::iterator i = table.begin();
+   map <string, Sptr<SipCallContainer> >::iterator tmpi;
    while(i != table.end()) {
       uint64 p = i->second->getPurgeTimer();
-      string key = i->second->getTransactionId().getLevel1().c_str();
+      string key = i->second->getCallId().getCallId().c_str();
       if (p && (p < now)) {
          tmpi = i;
          i++;
          //TODO:  Make sure this does not invalidate iterator i.
          table.erase(tmpi);
-         cpLog(LOG_INFO, "%p Purged call: %s from transaction DB, size: %i\n",
-               this, key.c_str(), table.size());
+         cpLog(LOG_INFO, "%s Purged call: %s from transaction DB, size: %i",
+               name.c_str(), key.c_str(), table.size());
       }
       else {
+         cpLog(LOG_INFO, "%s NOT purging call: %s from transaction DB, size: %i, p: %llu",
+               name.c_str(), key.c_str(), table.size(), p);
          i++;
       }
    }

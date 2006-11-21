@@ -89,7 +89,7 @@ public:
 
    bool isSeqSet() { return setSeq; }
 
-   const SipTransactionId& getTransactionId() { return id; }
+   const SipTransactionId& getCallId() { return id; }
 
    static int getInstanceCount() { return _cnt; }
 

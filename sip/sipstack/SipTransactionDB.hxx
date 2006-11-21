@@ -72,7 +72,8 @@ private:
 public:
    // local_ip cannot be "" here, must be the local IP we are bound to locally
    // or 'hostaddress' if we are not specifically bound.
-   SipTransactionDB(const string& _local_ip);
+   // Name is the name of this DB, used for debugging.
+   SipTransactionDB(const string& _local_ip, const char* name);
    virtual ~SipTransactionDB();
 
    /**
@@ -102,13 +103,16 @@ public:
 
    void purgeOldCalls(uint64 now);
 
-   void setPurgeTimer(const SipTransactionId& id);
+   /** Purge all transactions for call associated with this transaction. */
+   void setCallPurgeTimer(const SipTransactionId& id, uint64 expires_at_ms);
 
 protected:
 
-   map <SipTransactionId::KeyTypeI, Sptr<SipCallContainer> > table;
+   // Map of call-ids to CallContainers
+   map <string, Sptr<SipCallContainer> > table;
 
    string local_ip;
+   string name;
 };
  
 } // namespace Vocal
