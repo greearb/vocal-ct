@@ -296,10 +296,7 @@ void CallAgent::callFailed() {
       // Continue
    }
 
-   strstream str;
-   str << "L_HANGUP CALL_FAILED" << ends;
-   facade->postMsg(str.str());
-   str.freeze(false);
+   facade->postMsg("L_HANGUP CALL_FAILED");
 }
 
 ///

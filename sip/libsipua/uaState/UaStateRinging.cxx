@@ -181,7 +181,13 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
        
        agent.setCallLegState(C_LIVE);
        agent.setResponse(sendSMsg.getPtr());
-		 
+
+       //Notify CC the call failed.
+       Sptr<BasicAgent> ba = agent.getControllerAgent();
+       if (ba != 0) {
+          ba->callFailed();
+       }
+
        //Transit to failure
        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
        return 0;
