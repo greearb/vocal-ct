@@ -87,7 +87,7 @@ UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         //Notify CC
         Sptr<BasicAgent> ba = agent.getControllerAgent();
         if (ba != 0) {
-           ba->receivedStatus(agent, msg);
+           ba->receivedStatus(agent, msg, "UaStateRedirect, 200");
         }
         agent.setCallLegState(C_LIVE);
         //Transit to Incall
@@ -113,7 +113,7 @@ UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
        //Notify CC
        Sptr<BasicAgent> ba = agent.getControllerAgent();
        if (ba != 0) {
-          ba->receivedStatus(agent, msg);
+          ba->receivedStatus(agent, msg, "UaStateRedirect, > 200");
        }
     }
     else {
@@ -125,7 +125,7 @@ UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
        }
        Sptr<BasicAgent> ba = agent.getControllerAgent();
        if (ba != 0) {
-          ba->receivedStatus(agent, msg);
+          ba->receivedStatus(agent, msg, "UaStateRedirect, 1xx");
        }
     }
 }

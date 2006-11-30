@@ -158,7 +158,7 @@ void CallAgent::placeCall() {
    cpLog(LOG_DEBUG, "CallAgent::placeCall()");
    Sptr<SipMsg> sipMsg = myInvokee->getRequest();
    myInvokee->sendMsg(sipMsg, "CA: place call");
-   facade->postMsg(sipMsg, true);
+   facade->postMsg(sipMsg, true, "placeCall");
 }
 
 
@@ -177,7 +177,7 @@ void CallAgent::doBye() {
    cpLog(LOG_DEBUG_STACK, "CallAgent::doBye(), this: %p", this);
    Sptr<SipMsg> bMsg = myInvokee->sendBye();
    if (bMsg != 0) {
-      facade->postMsg(bMsg, true);
+      facade->postMsg(bMsg, true, "doBye");
       could_post = true;
    }
 
@@ -186,7 +186,7 @@ void CallAgent::doBye() {
    if (!could_post) {
       strstream str;
       str << "L_HANGUP BYE" << ends;
-      facade->postMsg(str.str());
+      facade->postMsg(str.str(), "doBye");
       str.freeze(false);
    }
 }//doBye
@@ -296,18 +296,18 @@ void CallAgent::callFailed() {
       // Continue
    }
 
-   facade->postMsg("L_HANGUP CALL_FAILED");
+   facade->postMsg("L_HANGUP CALL_FAILED", "callFailed");
 }
 
 ///
-void CallAgent::receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg) {
-   //Notify GUI
-   facade->postMsg(msg, false);
+void CallAgent::receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg) {
+   // GUI (Facade) will be notified by UaCallControl
    myState->recvReq(*this, msg);
 }
 
 ///
-void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) {
+void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg) {
+   // GUI (Facade) will be notified by UaCallControl
    try {
       myState->recvStatus(*this, msg);
       Sptr<StatusMsg> statusMsg;
@@ -336,9 +336,6 @@ void CallAgent::receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg) {
       else if (statusMsg->getStatusLine().getStatusCode() == 480) {
          freeMedia();
       }
-
-      //Notify GUI
-      facade->postMsg(msg, false);
    }
    catch(CInvalidStateException& e) {
       cpLog(LOG_ERR, "Unexpacted status:%s", e.getDescription().c_str());
@@ -352,7 +349,7 @@ int CallAgent::sendCancel() {
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<CancelMsg> cMsg = new CancelMsg(*sCommand);
    rv = myInvokee->sendMsg(cMsg.getPtr(), "CA Send cancel");
-   facade->postMsg(cMsg.getPtr(), true);
+   facade->postMsg(cMsg.getPtr(), true, "sendCancel");
    return rv;
 }
 
@@ -420,7 +417,7 @@ void CallAgent::acceptCall() {
       
       statusMsg->setContentData(&localSdp, 0);
       myInvokee->sendMsg(statusMsg.getPtr(), "CA Accept Call");
-      facade->postMsg(statusMsg.getPtr(), true);
+      facade->postMsg(statusMsg.getPtr(), true, "acceptCall");
    }
    catch(CInvalidStateException& e) {
       cpLog(LOG_ERR, "Invalid state transition:%s", e.getDescription().c_str());
@@ -459,7 +456,7 @@ int CallAgent::sendBusy() {
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 486);
    myInvokee->sendMsg(sMsg.getPtr(), "CA send busy");
-   facade->postMsg(sMsg.getPtr(), true);
+   facade->postMsg(sMsg.getPtr(), true, "sendBusy");
    myState->cancel(*this);
    
    // Ughhh, kill a recursive loop
@@ -601,7 +598,7 @@ void CallAgent::doResume(Sptr<SipMsg>& msg) {
       stopCall();
    }
    else {
-      facade->postMsg("INCALL_RESUME");
+      facade->postMsg("INCALL_RESUME", "doResume");
       myState->inCall(*this);
    }
 }//doResume
@@ -620,7 +617,7 @@ void CallAgent::doResumeReinvite(Sptr<SipSdp> remoteSdp) {
       stopCall();
    }
    else {
-      facade->postMsg("INCALL_RESUME");
+      facade->postMsg("INCALL_RESUME", "doResumeReinvite");
       myState->inCall(*this);
    }
 }//doResumeReinvite
@@ -655,7 +652,7 @@ void CallAgent::reqResume(Sptr<SipMsg>& msg) {
          stopCall();
       }
       else {
-         facade->postMsg("INCALL_RESUME");
+         facade->postMsg("INCALL_RESUME", "reqResume");
          myState->inCall(*this);
       }
    }
@@ -678,8 +675,8 @@ void CallAgent::holdAndResumeReinvite(UaBase& agent, const Sptr<SipMsg>& msg) {
       
       unsigned int sId = myInvokee->getLocalSdp()->getSdpDescriptor().getSessionId();	
       MediaController::instance().suspendSession(sId);
-      facade->postMsg("R_HOLD");
-      facade->postMsg(statusMsg.getPtr(), true);
+      facade->postMsg("R_HOLD", "hold");
+      facade->postMsg(statusMsg.getPtr(), true, "hold");
       myState->inHold(*this);
 
       // This is a re-invite (always??)  So go ahead and resume.

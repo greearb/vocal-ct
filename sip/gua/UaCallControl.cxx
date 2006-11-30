@@ -92,16 +92,16 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
    cpLog(LOG_DEBUG, "UaCallControl::processEvent, event: %s", event->toString().c_str());
    if (CallControl::processEvent(event)) {
       cpLog(LOG_DEBUG, "Event handled by the base class");
-
+      
       Sptr<SipEvent> sipEvent;
       sipEvent.dynamicCast(event);
-
+      
       string m("SIP_PROXY_EVENT: ");
-           
+      
       if (sipEvent != 0) {
          Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
          if (sipMsg != 0) {
-            UaFacade::instance().postMsg(sipMsg, false);
+            UaFacade::instance().postMsg(sipMsg, false, "UaCallControll::processEvent, handled by base class");
             return true;
          }
          else {
@@ -111,9 +111,9 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       else {
          m += event->name();
       }
-
-      UaFacade::instance().postMsg(m);
-
+      
+      UaFacade::instance().postMsg(m, "UaCallControll::processEvent, base-class, proxy");
+      
       //Already handled by the base class, so return
       return true;
    }
@@ -127,13 +127,13 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       Sptr<SipMsg> sipMsg = sipEvent->getSipMsg();
       assert(sipMsg != 0);
       if (sipMsg->getType() != SIP_INVITE) {
-         UaFacade::instance().postMsg(sipMsg, false);
+         UaFacade::instance().postMsg(sipMsg, false, "UaCallControll, NOT invite");
          if (sipMsg->getType() == SIP_REGISTER) {
             Sptr<SipCommand> sCommand;
             sCommand.dynamicCast(sipMsg);
             Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 501);
             UaFacade::instance().getSipTransceiver()->sendReply(sMsg, "uacl: 501 REG");
-            UaFacade::instance().postMsg(sMsg.getPtr(), true);
+            UaFacade::instance().postMsg(sMsg.getPtr(), true, "SENT REGISTER");
             cpLog(LOG_DEBUG, "Replying the Above msg (%s)\n",
                   sMsg->encode().logData());
             return true;
@@ -148,17 +148,17 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
                   cpLog(LOG_DEBUG, "Contact for statusMsg: %s\n",
                         statusMsg->getContact().encode().c_str());
                   if ((statusMsg->getExpires().getDelta().convertInt())) {
-                     UaFacade::instance().postMsg("REGISTERED ");
+                     UaFacade::instance().postMsg("REGISTERED ", "UaCallControll");
                   }
                   else {
-                     UaFacade::instance().postMsg("REGISTRATIONEXPIRED ");
+                     UaFacade::instance().postMsg("REGISTRATIONEXPIRED ", "UaCallControl");
                   }
                }
                cpLog(LOG_DEBUG, "Sending registration response to RegManager.\n");
                UaFacade::instance().getRegistrationManager()->handleRegistrationResponse(*statusMsg);
             }
             else if (sipMsg->getCSeq().getMethod() == CANCEL_METHOD) {
-               UaFacade::instance().postMsg("R_HANGUP CANCEL");
+               UaFacade::instance().postMsg("R_HANGUP CANCEL", "UaCallControl");
             }
          }
          else if (sipMsg->getType() == SIP_SUBSCRIBE) {
@@ -306,7 +306,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
       //Post message to the GUI
       strstream s;
       s << "RINGING " << sipMsg->getFrom().getUser().logData() << endl << ends;
-      UaFacade::instance().postMsg(s.str());
+      UaFacade::instance().postMsg(s.str(), "UaCallControll, ringing");
       s.freeze(false);
 
       //Send the 180 back to the caller
@@ -348,7 +348,7 @@ UaCallControl::processEvent(Sptr<SipProxyEvent> event) {
          if (hEvent->type == HardwareAudioType) {
             if (hEvent->request.type == AudioStop) {
                cAgent->doBye();
-               UaFacade::instance().postMsg("AUDIO_STOP");
+               UaFacade::instance().postMsg("AUDIO_STOP", "UaCallControll");
             }
             else {
                cpLog(LOG_ERR, "ERROR: Un-handled hardware event, type: %d\n",
@@ -419,7 +419,7 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
       }
       else {
          cpLog(LOG_ERR, "No active calls found to stop.");
-         UaFacade::instance().postMsg("ON_STOP_NO_CALLS_ACTIVE");
+         UaFacade::instance().postMsg("ON_STOP_NO_CALLS_ACTIVE", "UA_CALL_CONTROLL");
       }
       break;
    }
@@ -433,7 +433,7 @@ UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
       }
       else {
          cpLog(LOG_ERR, "ERROR: No active calls found to purge.");
-         UaFacade::instance().postMsg("ON_PURGE_NO_CALLS_ACTIVE");
+         UaFacade::instance().postMsg("ON_PURGE_NO_CALLS_ACTIVE", "UA_CC");
       }
       break;
    }
@@ -563,7 +563,7 @@ void UaCallControl::initiateInvite(const string& to, const char* debug) {
          toUrl = parseUrl(mTo);
          if (toUrl == 0) {
             //Give-up, url is not the right type
-            UaFacade::instance().postMsg("ERROR Invalid URL");
+            UaFacade::instance().postMsg("ERROR Invalid URL", "UA_CC");
             return;
          }
       }

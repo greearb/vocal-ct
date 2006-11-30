@@ -90,7 +90,7 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         //Notify CC
         Sptr<BasicAgent> ba = agent.getControllerAgent();
         if (ba != 0) {
-           ba->receivedStatus(agent, msg);
+           ba->receivedStatus(agent, msg, "UaStateRinging 200");
         }
         agent.setCallLegState(C_LIVE);
         //Transit to Incall
@@ -116,7 +116,7 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
         //Notify CC
         Sptr<BasicAgent> ba = agent.getControllerAgent();
         if (ba != 0) {
-           ba->receivedStatus(agent, msg);
+           ba->receivedStatus(agent, msg, "UaStateRinging, INFO");
         }
 
         //Transit to Idle
@@ -281,7 +281,7 @@ UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
          //Notify CC
          Sptr<BasicAgent> ba = agent.getControllerAgent();
          if (ba != 0) {
-            ba->receivedRequest(agent, msg);
+            ba->receivedRequest(agent, msg, "UaStateRinging");
          }
          //Transit to Failure
          changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));

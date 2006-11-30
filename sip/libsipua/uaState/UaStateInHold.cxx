@@ -95,7 +95,7 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
     //Notify CC   
     Sptr<BasicAgent> ba = agent.getControllerAgent();
     if (ba != 0) {
-       ba->receivedStatus(agent, msg);
+       ba->receivedStatus(agent, msg, "UaStateInHold");
     }
 }
 
@@ -161,7 +161,7 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Notify CC
             Sptr<BasicAgent> ba = agent.getControllerAgent();
             if (ba != 0) {
-               ba->receivedRequest(agent, msg);
+               ba->receivedRequest(agent, msg, "UaStateInHold, INFO");
             }
         }
         break;
@@ -174,7 +174,7 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<BasicAgent> ba = agent.getControllerAgent();
             if (ba != 0) {
                ba->endCall();
-               ba->receivedRequest(agent, msg);
+               ba->receivedRequest(agent, msg, "UaStateInHold, BYE");
             }
             //Transit to Idle
             changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
@@ -188,7 +188,7 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             //Notify CC
             Sptr<BasicAgent> ba = agent.getControllerAgent();
             if (ba != 0) {
-               ba->receivedRequest(agent, msg);
+               ba->receivedRequest(agent, msg, "UaStateInHold, ACK");
             }
         }
         break;
@@ -223,7 +223,7 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
             Sptr<BasicAgent> ba = agent.getControllerAgent();
             if (ba != 0) {
                //Notify CC
-               ba->receivedRequest(agent, msg);
+               ba->receivedRequest(agent, msg, "UaStateInHold, CANCEL");
                ba->endCall();
             }
             //Transit to Idle

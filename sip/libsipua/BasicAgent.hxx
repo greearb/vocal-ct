@@ -119,9 +119,9 @@ public:
    virtual void setDeleted() = 0;
    
    ///
-   virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg)=0;
+   virtual void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg)=0;
    ///
-   virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg)=0;
+   virtual void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg)=0;
    
    static int getInstanceCount() { return _cnt; }
    

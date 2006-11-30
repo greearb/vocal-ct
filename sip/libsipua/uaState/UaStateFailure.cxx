@@ -51,7 +51,7 @@
 
 
 static const char* const UaStateFailure_cxx_Version =
-    "$Id: UaStateFailure.cxx,v 1.5 2006/11/17 06:31:04 greear Exp $";
+    "$Id: UaStateFailure.cxx,v 1.6 2006/11/30 18:40:45 greear Exp $";
 
 #include "UaStateFailure.hxx"
 #include "UaBase.hxx"
@@ -120,7 +120,7 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
       //Notify CC
       Sptr<BasicAgent> ba = agent.getControllerAgent();
       if (ba != 0) {
-         ba->receivedStatus(agent, msg);
+         ba->receivedStatus(agent, msg, "UaStateFailure");
          ba->callFailed();
       }
       changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));

@@ -100,7 +100,7 @@ public:
    ///
    int sendBusy();
    ///
-   void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg);
+   void receivedRequest(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg);
    ///
    void holdAndResumeReinvite(UaBase& agent, const Sptr<SipMsg>& msg);
    //@}
@@ -118,7 +118,7 @@ public:
    ///
    void doBye();
    ///
-   void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg);
+   void receivedStatus(UaBase& agent, const Sptr<SipMsg>& msg, const char* dbg);
    ///
    void doResume(Sptr<SipMsg>& msg);
    

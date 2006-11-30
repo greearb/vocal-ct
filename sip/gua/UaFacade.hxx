@@ -140,10 +140,10 @@ public:
    virtual void process(Sptr < SipProxyEvent > event);
 
    /** If !sending, assume we are receiving this */
-   void postMsg(Sptr<SipMsg> sMsg, bool sending);
+   void postMsg(Sptr<SipMsg> sMsg, bool sending, const char* debug);
 
    ///
-   void postMsg(const string& msg);
+   void postMsg(const string& msg, const char* debug);
 
    void notifyCallEnded();
 

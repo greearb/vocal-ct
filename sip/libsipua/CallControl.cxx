@@ -86,8 +86,8 @@ bool CallControl::processEvent(const Sptr<SipProxyEvent>& event) {
          if (agent != 0) {
             agent->assertNotDeleted();
             agent->receivedMsg(sipMsg);
+            eventHandled = true;
          }
-         eventHandled = true;
       }
       else {
          cpLog(LOG_DEBUG_STACK, "Could not find MultiLegCallData, cLen: %s\n",

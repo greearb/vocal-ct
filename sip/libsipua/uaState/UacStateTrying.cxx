@@ -118,7 +118,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
       //Notify CC
       Sptr<BasicAgent> ba = agent.getControllerAgent();
       if (ba != 0) {
-         ba->receivedStatus(agent, msg);
+         ba->receivedStatus(agent, msg, "UacStateTrying");
       }
       agent.setCallLegState(C_LIVE);
       //Transit to Incall
@@ -166,7 +166,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
       //Notify CC
       Sptr<BasicAgent> ba = agent.getControllerAgent();
       if (ba != 0) {
-         ba->receivedStatus(agent, msg);
+         ba->receivedStatus(agent, msg, "UacStateTrying > 200");
       }
    }
    else {
@@ -178,7 +178,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
       }
       Sptr<BasicAgent> ba = agent.getControllerAgent();
       if (ba != 0) {
-         ba->receivedStatus(agent, msg);
+         ba->receivedStatus(agent, msg, "UacStateTrying 1xx");
       }
    }
 }
@@ -191,6 +191,6 @@ UacStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStat
           agent.className().c_str(), msg->encode().logData());
     Sptr<BasicAgent> ba = agent.getControllerAgent();
     if (ba != 0) {
-       ba->receivedRequest(agent, msg);
+       ba->receivedRequest(agent, msg, "UacStateTrying");
     }
 }

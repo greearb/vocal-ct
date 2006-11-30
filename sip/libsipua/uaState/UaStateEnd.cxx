@@ -72,7 +72,7 @@ UaStateEnd::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
     // Notify CC
     Sptr<BasicAgent> ba = agent.getControllerAgent();
     if (ba != 0) {
-       ba->receivedStatus(agent, msg);
+       ba->receivedStatus(agent, msg, "UaStateEnd");
     }
 }
 

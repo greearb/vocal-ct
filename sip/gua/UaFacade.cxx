@@ -300,7 +300,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
             cpLog(LOG_ERR, "Listening on port %d for SIP", defaultSipPort);
             char buf[256];
             snprintf(buf, 255, "INFO Listening on port %d for SIP", defaultSipPort);
-            postMsg(buf);
+            postMsg(buf, "listening on port");
             SipTransceiver::reTransOn();
          
    
@@ -322,7 +322,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
                char buf[256];
                snprintf(buf, 255, "ERROR Port in range %d->%d are not available",
                         startPort, defaultSipPort);
-               postMsg(buf);
+               postMsg(buf, "port range invalid");
                exit(-1);
             }
             defaultSipPort++;
@@ -477,7 +477,7 @@ void UaFacade::process(Sptr < SipProxyEvent > event) {
 
 
 /* If !sending, assume we are receiving this */
-void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
+void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending, const char* debug) {
     assert(sMsg != 0);
     strstream s;
 
@@ -488,7 +488,8 @@ void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
        s << "RECEIVING ";
     }
 
-    cpLog(LOG_DEBUG,  "MSG :%s" , sMsg->encode().logData());
+    cpLog(LOG_INFO, "postMsg<ptr> :%s sending: %d  debug: %s",
+          sMsg->encode().logData(), (int)(sending), debug);
     if (sMsg->getType() == SIP_STATUS) { 
         Sptr<StatusMsg> statusMsg;
         statusMsg.dynamicCast(sMsg); 
@@ -525,29 +526,14 @@ void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
               break;
            }
            case 404: {
-              strstream s2;
-              s2 << "ERROR " << "User not found" << endl;
-              s2 << endl << ends;
-              postMsg(s2.str());
-              s2.freeze(false);
               s << "INFO ";
               break;
            }
            case 403: {
-              strstream s2;
-              s2 << "ERROR " << "Host unreachable or connection refused";
-              s2 << endl << ends;
-              postMsg(s2.str());
-              s2.freeze(false);
               s << "INFO ";
               break;
            }
            case 408: {
-              strstream s2; 
-              s2 << "ERROR " << "Request timed out, check if Proxy_Server/URL is reachable";
-              s2 << endl << ends;
-              postMsg(s2.str());
-              s2.freeze(false);
               s << "INFO ";
               break;
            }
@@ -561,11 +547,6 @@ void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
               break;
            }
            case 603: {
-              strstream s2; 
-              s2 << "ERROR  " << "Request declined by the callee";
-              s2 << endl << ends;
-              postMsg(s2.str());
-              s2.freeze(false);
               s << "INFO ";
               break;
            }
@@ -586,18 +567,18 @@ void UaFacade::postMsg(Sptr<SipMsg> sMsg, bool sending) {
           s << "INFO " << sMsg->encode().logData() << endl << ends;
        }
     }
-    postMsg(s.str());
+    postMsg(s.str(), debug);
     s.freeze(false);
 }
 
 
 void UaFacade::notifyCallEnded() {
    cpLog(LOG_DEBUG, "UaFacade::notifyCallEnded...\n");
-   postMsg("CALL_ENDED");
+   postMsg("CALL_ENDED", "notify call ended");
 }
 
-void UaFacade::postMsg(const string& msg) {
-   cpLog(LOG_DEBUG, "PostMsg -:%s:-\n", msg.c_str());
+void UaFacade::postMsg(const string& msg, const char* dbg) {
+   cpLog(LOG_INFO, "postMsg<string>, debug: %s  msg: -:%s:-\n", dbg, msg.c_str());
    if ((myMode == CALL_MODE_UA) || (myMode == CALL_MODE_LANFORGE)) {
       // TODO:  Post to GUI if we support that again in the future.
 

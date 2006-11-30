@@ -217,24 +217,22 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
        Data user = UaConfiguration::instance().getValue(UserNameTag);
        Data password = UaConfiguration::instance().getValue(PasswordTag);
 
-       cpLog(LOG_ERR, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
+       cpLog(LOG_WARNING, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
               status, user.c_str(), password.c_str());
        if (!authenticateMessage(msg, *registerMsg, user, password)) {
           // i could not find auth information, so delay
           delay = DEFAULT_DELAY_MS;
        }
        
-       int cseq ( msg.getCSeq().getCSeqData().convertInt() );
-       if ( cseq > 1 ) {
-          
+       //int cseq ( msg.getCSeq().getCSeqData().convertInt() );
+       //if ( cseq > 1 ) {   
           // This is not the first 401 that we received (we may
           // have supplied a bad username or password). Set the
           // default delay to allow the user time to figure it
           // out.
-          
-          cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
-          delay = DEFAULT_DELAY_MS;
-       }
+          // cpLog(LOG_ERR, "Authentication may have failed, check configuration info");
+          // delay = DEFAULT_DELAY_MS;
+       //}
 
        cpLog(LOG_WARNING, "Will try Registration again with authentication information");
     }
