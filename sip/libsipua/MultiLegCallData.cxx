@@ -55,29 +55,30 @@
 using namespace std;
 
 
-void 
-MultiLegCallData::copyObj(const MultiLegCallData& src)
-{
-    myCallLegDataMap.erase(myCallLegDataMap.begin(), myCallLegDataMap.end());
-    myTransactionPeerMap.erase(myTransactionPeerMap.begin(), myTransactionPeerMap.end());
+void MultiLegCallData::copyObj(const MultiLegCallData& src) {
+   assertNotDeleted();
+   src.assertNotDeleted();
+   myCallLegDataMap.erase(myCallLegDataMap.begin(), myCallLegDataMap.end());
+   myTransactionPeerMap.erase(myTransactionPeerMap.begin(), myTransactionPeerMap.end());
 #ifndef WIN32
-    myCallLegDataMap.insert(src.myCallLegDataMap.begin(), src.myCallLegDataMap.end());
-    myTransactionPeerMap.insert(src.myTransactionPeerMap.begin(), src.myTransactionPeerMap.end());
+   myCallLegDataMap.insert(src.myCallLegDataMap.begin(), src.myCallLegDataMap.end());
+   myTransactionPeerMap.insert(src.myTransactionPeerMap.begin(), src.myTransactionPeerMap.end());
 #else
-    map<SipCallLeg, Sptr<SipCallLegData> >::const_iterator tmpCallLegIter;
-    for(tmpCallLegIter = src.myCallLegDataMap.begin(); tmpCallLegIter != src.myCallLegDataMap.end(); ++tmpCallLegIter) {
-       myCallLegDataMap.insert(*tmpCallLegIter);
-    }
-
-    map<SipTransactionId, Sptr<SipTransactionPeers> >::const_iterator tmpTransPeerIter;
-    for(tmpTransPeerIter = src.myTransactionPeerMap.begin(); tmpTransPeerIter != src.myTransactionPeerMap.end(); ++tmpTransPeerIter) {
-       myTransactionPeerMap.insert(*tmpTransPeerIter);
-    }
+   map<SipCallLeg, Sptr<SipCallLegData> >::const_iterator tmpCallLegIter;
+   for(tmpCallLegIter = src.myCallLegDataMap.begin(); tmpCallLegIter != src.myCallLegDataMap.end(); ++tmpCallLegIter) {
+      myCallLegDataMap.insert(*tmpCallLegIter);
+   }
+   
+   map<SipTransactionId, Sptr<SipTransactionPeers> >::const_iterator tmpTransPeerIter;
+   for(tmpTransPeerIter = src.myTransactionPeerMap.begin(); tmpTransPeerIter != src.myTransactionPeerMap.end(); ++tmpTransPeerIter) {
+      myTransactionPeerMap.insert(*tmpTransPeerIter);
+   }
 #endif
-    myAccountingData = src.myAccountingData;
+   myAccountingData = src.myAccountingData;
 }
 
 string MultiLegCallData::toString() {
+   assertNotDeleted();
    ostringstream oss;
    cpLog(LOG_INFO, "adding call-leg-data");
    map<SipCallLeg , Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.begin();
@@ -103,6 +104,7 @@ string MultiLegCallData::toString() {
 
 
 Sptr<SipCallLegData> MultiLegCallData::getCallLeg(const SipCallLeg& callLeg) {
+   assertNotDeleted();
    map<SipCallLeg, Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.find(callLeg);
    if (itr != myCallLegDataMap.end()) {
       return(itr->second);
@@ -116,11 +118,13 @@ Sptr<SipCallLegData> MultiLegCallData::getCallLeg(const SipCallLeg& callLeg) {
 }
 
 void MultiLegCallData::addCallLeg(const SipCallLeg& callLeg, Sptr<SipCallLegData> legData) {
+   assertNotDeleted();
    assert(myCallLegDataMap.count(callLeg) == 0);
    myCallLegDataMap[callLeg] = legData;
 }
 
 void MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg) {
+   assertNotDeleted();
    map<SipCallLeg, Sptr<SipCallLegData> >::iterator itr = myCallLegDataMap.find(callLeg);
    if (itr != myCallLegDataMap.end()) {
       myCallLegDataMap.erase(itr);
@@ -129,6 +133,7 @@ void MultiLegCallData::removeCallLeg(const SipCallLeg& callLeg) {
 
 
 Sptr<SipTransactionPeers> MultiLegCallData::findPeer(const SipTransactionId& trId) {
+   assertNotDeleted();
    Sptr<SipTransactionPeers> retVal = 0;
    map<SipTransactionId, Sptr<SipTransactionPeers> >::iterator itr = myTransactionPeerMap.find(trId); 
    if (itr != myTransactionPeerMap.end()) {
@@ -138,27 +143,23 @@ Sptr<SipTransactionPeers> MultiLegCallData::findPeer(const SipTransactionId& trI
 }
 
 
-void 
-MultiLegCallData::addTransactionPeer(const Sptr<SipTransactionPeers>& peer)
-{
-    assert(myTransactionPeerMap.count(*(peer->getTrId())) == 0);
-    myTransactionPeerMap[*(peer->getTrId())] = peer;
+void MultiLegCallData::addTransactionPeer(const Sptr<SipTransactionPeers>& peer) {
+   assertNotDeleted();
+   assert(myTransactionPeerMap.count(*(peer->getTrId())) == 0);
+   myTransactionPeerMap[*(peer->getTrId())] = peer;
 }
 
-void 
-MultiLegCallData::removeTransactionPeer(const SipTransactionId& trId)
-{
-     map<SipTransactionId, Sptr<SipTransactionPeers> >::iterator itr = myTransactionPeerMap.find(trId); 
-     if(itr != myTransactionPeerMap.end())
-     {
-         myTransactionPeerMap.erase(itr);
-     }
-     else
-     {
-         cpLog(LOG_WARNING, "Failed to remove transaction id");
-     }
+void MultiLegCallData::removeTransactionPeer(const SipTransactionId& trId) {
+   assertNotDeleted();
+   map<SipTransactionId, Sptr<SipTransactionPeers> >::iterator itr = myTransactionPeerMap.find(trId); 
+   if (itr != myTransactionPeerMap.end()) {
+      myTransactionPeerMap.erase(itr);
+   }
+   else {
+      cpLog(LOG_WARNING, "Failed to remove transaction id");
+   }
 }
 
-MultiLegCallData::~MultiLegCallData()
-{
+MultiLegCallData::~MultiLegCallData() {
+   assertNotDeleted();
 }

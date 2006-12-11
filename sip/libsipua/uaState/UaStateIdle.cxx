@@ -61,7 +61,7 @@ using namespace UA;
 void 
 UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
 {
-    cpLog(LOG_DEBUG, "(%s) UaStateIdle::recvRequest", agent.className().c_str());
+    cpLog(LOG_DEBUG, "(%s) UaStateIdle::recvRequest", agent.getInstanceName().c_str());
     if(agent.isAServer() && (msg->getType() == SIP_INVITE))
     {
         agent.saveRouteList(msg, false);
@@ -77,14 +77,14 @@ UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateEx
     }
     else 
     {
-        cpLog(LOG_WARNING, "(%s) receiving message (%s) in wrong state, ignoring", agent.className().c_str(), msg->encode().logData());
+        cpLog(LOG_WARNING, "(%s) receiving message (%s) in wrong state, ignoring", agent.getInstanceName().c_str(), msg->encode().logData());
     }
 }
 
 int
 UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
    throw (CInvalidStateException&) {
-    cpLog(LOG_DEBUG, "(%s) UaStateIdle::sendRequest", agent.className().c_str());
+    cpLog(LOG_DEBUG, "(%s) UaStateIdle::sendRequest", agent.getInstanceName().c_str());
     if(agent.isAClient() && (msg->getType() == SIP_INVITE))
     {
         Sptr<SipCommand> sipCmd;
@@ -107,7 +107,7 @@ UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
     else
     {
          cpLog(LOG_WARNING, "(%s) UaStateIdle::sendRequest, asked to send msgType (%d), ignoring..",
-               agent.className().c_str(), msg->getType());
+               agent.getInstanceName().c_str(), msg->getType());
          return -1;
     }
 }

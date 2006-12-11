@@ -130,6 +130,8 @@ string CallDB::toString() {
 }
 
 void CallDB::removeCallData(const UaBase& agent) {
+   assertNotDeleted();
+   agent.assertNotDeleted();
    cpLog(LOG_INFO, "CallDB::removeCallData, agent: %p  cleg: %s", &agent, agent.getCallLeg().toString().c_str());
    MultiLegCallDataMap::iterator itr = myMultiLegCallDataMap.find(agent.getCallLeg()); 
    if (itr != myMultiLegCallDataMap.end()) {

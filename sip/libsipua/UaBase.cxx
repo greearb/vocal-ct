@@ -98,15 +98,15 @@ Sptr<BasicAgent>  UaBase::getControllerAgent() {
 
 void UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg) {
    if (sipMsg->getType() == SIP_STATUS) {
-      cpLog(LOG_DEBUG, "(%s:%s:%p) received STATUS message %s, state: %s ",
-            className().c_str(), instanceName.c_str(), this,
+      cpLog(LOG_DEBUG, "(%s:%p) received STATUS message %s, state: %s ",
+            instanceName.c_str(), this,
             sipMsg->encode().logData(),
             myState->toString().c_str());
       myState->recvStatus(*this, sipMsg);
    }
    else {
-      cpLog(LOG_DEBUG, "(%s:%s:%p) received NON-STATUS message %s, state: %s ",
-            className().c_str(), instanceName.c_str(), this,
+      cpLog(LOG_DEBUG, "(%s:%p) received NON-STATUS message %s, state: %s ",
+            instanceName.c_str(), this,
             sipMsg->encode().logData(),
             myState->toString().c_str());
       myState->recvRequest(*this, sipMsg);
@@ -114,8 +114,8 @@ void UaBase::receivedMsg(const Sptr<SipMsg>& sipMsg) {
 }
 
 int UaBase::sendMsg(Sptr<SipMsg> sipMsg, const char* dbg) {
-   cpLog(LOG_DEBUG_STACK , "(%s:%s:%p) Processing message %s ",
-         className().c_str(), instanceName.c_str(), this,
+   cpLog(LOG_DEBUG_STACK , "(%s:%p) Processing message %s ",
+         instanceName.c_str(), this,
          sipMsg->encode().logData());
    if (sipMsg->getType() == SIP_STATUS) {
       return myState->sendStatus(*this, sipMsg, dbg);
@@ -270,7 +270,7 @@ UaBase::sendReplyForRequest(const Sptr<SipMsg>& sipMsg, int statusCode,
        sendSMsg->setNumContentData(0);
        sendSMsg->setContentData(contentData.getPtr());
     }
-    cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
+    cpLog(LOG_DEBUG, "(%s) sending status %s", instanceName.c_str(), sendSMsg->encode().logData());
     myStack->sendReply(sendSMsg, "UaBase::sendReplyForRequest");
     if (memorizeResponse) {
        setResponse(sendSMsg.getPtr());
@@ -472,8 +472,8 @@ void UaBase::setState(Sptr<UaState> state) {
       ns = "Undetermined state";
    }
 
-   cpLog(LOG_DEBUG, "UaBase::setState:  %s:%s:%p changing state from: %s to: %s(%p)\n",
-         className().c_str(), instanceName.c_str(),
+   cpLog(LOG_DEBUG, "UaBase::setState:  %s:%p changing state from: %s to: %s(%p)\n",
+         instanceName.c_str(),
          this, cs.c_str(), ns.c_str(), state.getPtr());
 
    myState = state;

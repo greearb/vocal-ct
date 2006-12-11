@@ -99,7 +99,7 @@ public:
            BaseFacade* facade, const char* dbg_id);
 
    ///
-   const string& className() { return _class_name; }
+   const string& getInstanceName() const { return instanceName; }
 
    ///
    virtual ~UaBase();
@@ -205,7 +205,6 @@ protected:
 private:
 
    string instanceName; //Used for debugging.
-   string _class_name;
    static int _cnt;
 
    ///

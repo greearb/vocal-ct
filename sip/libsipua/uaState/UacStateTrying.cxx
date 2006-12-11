@@ -188,7 +188,7 @@ void
 UacStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "(%s) receiving message (%s) give it to controller",
-          agent.className().c_str(), msg->encode().logData());
+          agent.getInstanceName().c_str(), msg->encode().logData());
     Sptr<BasicAgent> ba = agent.getControllerAgent();
     if (ba != 0) {
        ba->receivedRequest(agent, msg, "UacStateTrying");

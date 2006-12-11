@@ -154,7 +154,7 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
     // bugFix Bugzilla 772
     if ((statusCode >= 400) && (statusCode < 500)) {		 
        cpLog(LOG_WARNING, "(%s)UaStateRinging::Received %d",
-             agent.className().c_str(), statusCode);
+             agent.getInstanceName().c_str(), statusCode);
        
        // Send Status Message
        Sptr<SipCommand> sipCmd;
@@ -174,8 +174,8 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
        me.setUrl(mUrl.getPtr());
        sendSMsg->setNumContact( 0 );
        sendSMsg->setContact( me );
-		 
-       cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
+
+       cpLog(LOG_INFO, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
        agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
        agent.setResponse(sendSMsg.getPtr());
        
@@ -187,9 +187,11 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
        if (ba != 0) {
           ba->callFailed();
        }
+       cpLog(LOG_INFO, "(%s) About to change to failure state.", className().c_str());
 
        //Transit to failure
        changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
+       cpLog(LOG_INFO, "(%s) Done", className().c_str());
        return 0;
     }
 

@@ -280,7 +280,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
             invMsg->setFrom(from);
 
             cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
-                  agent.className().c_str(), invMsg->encode().logData());
+                  agent.getInstanceName().c_str(), invMsg->encode().logData());
             agent.getSipTransceiver()->sendAsync(invMsg.getPtr(), dbg);
 	    changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
 	    
@@ -296,7 +296,7 @@ UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 	    addSelfInVia(agent, ackMsg.getPtr());
             agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), dbg);
             cpLog(LOG_DEBUG, "(%s) Sending Ack %s",
-                  agent.className().c_str(), ackMsg->encode().logData());
+                  agent.getInstanceName().c_str(), ackMsg->encode().logData());
         }
         break;
         case SIP_CANCEL:

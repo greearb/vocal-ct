@@ -55,13 +55,13 @@
 
 using namespace std;
 
-void 
-SipTransactionPeers::addPeer(const SipCallLeg& callLeg) {
+void SipTransactionPeers::addPeer(const SipCallLeg& callLeg) {
+   assertNotDeleted();
    myCallLegList.push_back(callLeg);
 }
 
-void 
-SipTransactionPeers::removePeer(const SipCallLeg& callLeg) {
+void SipTransactionPeers::removePeer(const SipCallLeg& callLeg) {
+   assertNotDeleted();
    //TODO:  I don't think this works as desired.  How do we determine == for callLeg?
    SipCallLegList::iterator itr = find(myCallLegList.begin(), myCallLegList.end(), callLeg);
    if (itr != myCallLegList.end()) {
@@ -70,10 +70,12 @@ SipTransactionPeers::removePeer(const SipCallLeg& callLeg) {
 }
 
 string SipTransactionPeers::toString() {
+   assertNotDeleted();
    ostringstream oss;
    oss << " tr-id: " << myTrId->toString() << " ";
    SipCallLegList::iterator itr = myCallLegList.begin();
    while (itr != myCallLegList.end()) {
+      itr->assertNotDeleted();
       oss << "     " << itr->toString() << endl;
       itr++;
    }

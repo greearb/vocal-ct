@@ -176,10 +176,12 @@ public:
    ///
    const Sptr<SipMsg> getAck() const { return myAckMsg; };
    
-   const SipCallLeg& getCallLeg() const { return mySipCallLeg; };
+   const SipCallLeg& getCallLeg() const { mySipCallLeg.assertNotDeleted(); return mySipCallLeg; };
    
    ///
-   virtual ~SipCallLegData() { };
+   virtual ~SipCallLegData() {
+      mySipCallLeg.assertNotDeleted();
+   };
 
    virtual string toString();
 

@@ -203,7 +203,7 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 	    
       invMsg->setCallId(agent.getRequest()->getCallId());
       cpLog(LOG_DEBUG, "(%s) Building re-invite %s", 
-            agent.className().c_str(), invMsg->encode().logData());
+            agent.getInstanceName().c_str(), invMsg->encode().logData());
             
       //Set the To tag from the previous final response
       SipTo to = invMsg->getTo();
@@ -211,14 +211,14 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
       if(to.getUser() == agent.getResponse()->getTo().getUser()) {
 		
          cpLog(LOG_DEBUG, "(%s) Building re-invite The To Tag: %s", 
-               agent.className().c_str(), agent.getResponse()->getTo().getTag().logData());
+               agent.getInstanceName().c_str(), agent.getResponse()->getTo().getTag().logData());
          cpLog(LOG_DEBUG, "(%s) Building re-invite The response: %s", 
-               agent.className().c_str(), agent.getResponse()->encode().logData());
+               agent.getInstanceName().c_str(), agent.getResponse()->encode().logData());
          to.setTag(agent.getResponse()->getTo().getTag());
       }
       else {
          cpLog(LOG_DEBUG, "(%s) Building re-invite %s", 
-               agent.className().c_str(), agent.getResponse()->getFrom().getTag().logData());
+               agent.getInstanceName().c_str(), agent.getResponse()->getFrom().getTag().logData());
          to.setTag(agent.getResponse()->getFrom().getTag());
       }
       invMsg->setTo(to);
@@ -233,7 +233,7 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
       invMsg->setFrom(from);
 
       cpLog(LOG_DEBUG, "(%s) Sending re-invite %s",
-            agent.className().c_str(), invMsg->encode().logData());
+            agent.getInstanceName().c_str(), invMsg->encode().logData());
       agent.getSipTransceiver()->sendAsync(invMsg.getPtr(), dbg);
       changeState(agent, UaStateFactory::instance().getState(U_STATE_HOLD));
       
@@ -261,7 +261,7 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
       //addSelfInVia(ackMsg);
       //agent.getSipTransceiver()->sendAsync(ackMsg);
       cpLog(LOG_ERR, "(%s) NOT Sending Ack, code is commented out??? %s",
-            agent.className().c_str(), ackMsg->encode().logData());
+            agent.getInstanceName().c_str(), ackMsg->encode().logData());
       break;
    }
    case SIP_CANCEL: {

@@ -58,6 +58,7 @@
 #include "MultiLegCallData.hxx"
 #include "UaBase.hxx"
 #include "AccountingData.hxx"
+#include <BugCatcher.hxx>
 
 namespace Vocal {
 
@@ -74,7 +75,7 @@ namespace UA {
 
 </pre>
 */
-class CallDB {
+class CallDB : public BugCatcher {
 public:
    ///
    typedef map<SipCallLeg, Sptr<MultiLegCallData> > MultiLegCallDataMap;
