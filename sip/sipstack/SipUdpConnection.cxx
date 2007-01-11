@@ -477,8 +477,8 @@ Data SipUdpConnection::getDetails() const
     char buf[256];
     snprintf(buf, 255, "receive fifo: %d    send fifo: %d"
              "\npkts received: %d   pkts sent: %d",
-             rcvFifo.size(), sendQ.size(),
-             udpStack.getPacketsReceived(),
-             udpStack.getPacketsTransmitted());
+             (int)(rcvFifo.size()), (int)(sendQ.size()),
+             (int)(udpStack.getPacketsReceived()),
+             (int)(udpStack.getPacketsTransmitted()));
     return buf;
 }
