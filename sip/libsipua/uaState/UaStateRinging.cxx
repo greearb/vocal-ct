@@ -126,136 +126,138 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
-{
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(msg);
-    assert(statusMsg != 0);
-    int statusCode = statusMsg->getStatusLine().getStatusCode();
-    if(statusCode < 200)
-    {
-        cpLog(LOG_WARNING, "UaStateRinging::Why are we receiving < 200 , ignoring..");
-        return -1;
-    }
+                 throw (CInvalidStateException&) {
+   agent.assertNotDeleted();
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(msg);
+   assert(statusMsg != 0);
+   int statusCode = statusMsg->getStatusLine().getStatusCode();
+   if (statusCode < 200) {
+      cpLog(LOG_WARNING, "UaStateRinging::Why are we receiving < 200 , ignoring..");
+      return -1;
+   }
 
-    if(((statusCode > 200) && (statusCode < 400)) || (statusCode > 500))
-    {
-        cpLog(LOG_WARNING, "UaStateRinging::Received %d", statusCode);
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->endCall();
-        }
-        //Transit to idle
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-        return 0;
-    }
-	 
-    // 13/1/04 fpi
-    // bugFix Bugzilla 772
-    if ((statusCode >= 400) && (statusCode < 500)) {		 
-       cpLog(LOG_WARNING, "(%s)UaStateRinging::Received %d",
-             agent.getInstanceName().c_str(), statusCode);
+   if (((statusCode > 200) && (statusCode < 400)) || (statusCode > 500)) {
+      cpLog(LOG_WARNING, "UaStateRinging::Received %d", statusCode);
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         agent.assertNotDeleted();
+         ba->endCall();
+         agent.assertNotDeleted();
+      }
+      //Transit to idle
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+      return 0;
+   }
+
+   // 13/1/04 fpi
+   // bugFix Bugzilla 772
+   if ((statusCode >= 400) && (statusCode < 500)) {		 
+      cpLog(LOG_WARNING, "(%s)UaStateRinging::Received %d",
+            agent.getInstanceName().c_str(), statusCode);
        
-       // Send Status Message
-       Sptr<SipCommand> sipCmd;
-       sipCmd.dynamicCast(agent.getRequest());
-       assert(sipCmd != 0);
-       Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
-       sendSMsg->setNumContentData(0);
+      // Send Status Message
+      Sptr<SipCommand> sipCmd;
+      sipCmd.dynamicCast(agent.getRequest());
+      assert(sipCmd != 0);
+      Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
+      sendSMsg->setNumContentData(0);
 		 
-       Sptr<BaseUrl> bUrl = sipCmd->getTo().getUrl();
-       Sptr<SipUrl> mUrl;
-       mUrl.dynamicCast(bUrl);
-       assert(mUrl != 0);
-       mUrl->setHost(agent.getNatHost());
-       mUrl->setPort(Data(agent.getMySipPort()));
+      Sptr<BaseUrl> bUrl = sipCmd->getTo().getUrl();
+      Sptr<SipUrl> mUrl;
+      mUrl.dynamicCast(bUrl);
+      assert(mUrl != 0);
+      mUrl->setHost(agent.getNatHost());
+      mUrl->setPort(Data(agent.getMySipPort()));
 		 
-       SipContact me("", agent.getMyLocalIp());
-       me.setUrl(mUrl.getPtr());
-       sendSMsg->setNumContact( 0 );
-       sendSMsg->setContact( me );
+      SipContact me("", agent.getMyLocalIp());
+      me.setUrl(mUrl.getPtr());
+      sendSMsg->setNumContact( 0 );
+      sendSMsg->setContact( me );
 
-       cpLog(LOG_INFO, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-       agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
-       agent.setResponse(sendSMsg.getPtr());
+      cpLog(LOG_INFO, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
+      agent.assertNotDeleted();
+      agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
+      agent.setResponse(sendSMsg.getPtr());
        
-       agent.setCallLegState(C_LIVE);
-       agent.setResponse(sendSMsg.getPtr());
+      agent.setCallLegState(C_LIVE);
+      agent.setResponse(sendSMsg.getPtr());
 
-       //Notify CC the call failed.
-       Sptr<BasicAgent> ba = agent.getControllerAgent();
-       if (ba != 0) {
-          ba->callFailed();
-       }
-       cpLog(LOG_INFO, "(%s) About to change to failure state.", className().c_str());
+      //Notify CC the call failed.
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         agent.assertNotDeleted();
+         ba->callFailed();
+         agent.assertNotDeleted();
+      }
+      cpLog(LOG_INFO, "(%s) About to change to failure state.", className().c_str());
 
-       //Transit to failure
-       changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
-       cpLog(LOG_INFO, "(%s) Done", className().c_str());
-       return 0;
-    }
+      //Transit to failure
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_FAILURE));
+      cpLog(LOG_INFO, "(%s) Done", className().c_str());
+      return 0;
+   }
 
-    //Only handle status code 200
-    //Send status message
-    Sptr<SipSdp> sdpData;
-    sdpData.dynamicCast(msg->getContentData(0));
-
-
-    //Received a request, get the received IP and
-    //Set it in SDP
-    //Data receivedIp = msg->getReceivedIPName();
-    //agent.fixSdpForNat(msg, receivedIp);
-
-    Sptr<SipCommand> sipCmd;
-    sipCmd.dynamicCast(agent.getRequest());
-    assert(sipCmd != 0);
-    Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
-    sendSMsg->setNumContentData(0);
-    if(sdpData != 0)
-    {
-        sendSMsg->setContentData(sdpData.getPtr());
-        agent.setLocalSdp(sdpData); 
-    }
-    //// Find a nice way to do it
-
-    Sptr<BaseUrl> bUrl = sipCmd->getTo().getUrl();
-    Sptr<SipUrl> mUrl;
-    mUrl.dynamicCast(bUrl);
-
-    if(mUrl == 0)
-    {
-	// get out of here because we cannot send appropriately.
-        cpLog(LOG_WARNING, "To does not contain sip: URL");
-        //Transit to idle
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-	throw CInvalidStateException("does not contain sip: URL", 
-				     __FILE__, __LINE__, 0);
-        return 0;
-    }
-
-    assert(mUrl != 0);
-    mUrl->setHost(agent.getNatHost());
-    mUrl->setPort(agent.getMySipPort());
-
-    SipContact me("", agent.getMyLocalIp());
-    me.setUrl(mUrl.getPtr());
-    sendSMsg->setNumContact( 0 );
-    sendSMsg->setContact( me );
+   //Only handle status code 200
+   //Send status message
+   Sptr<SipSdp> sdpData;
+   sdpData.dynamicCast(msg->getContentData(0));
 
 
-    cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(), sendSMsg->encode().logData());
-    agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
-    agent.setResponse(sendSMsg.getPtr());
-    //Notify CC to start the call monitor
-    Sptr<BasicAgent> ba = agent.getControllerAgent();
-    if (ba != 0) {
-       ba->inCall();
-    }
-    agent.setCallLegState(C_LIVE);
-    agent.setResponse(sendSMsg.getPtr());
-    //Transit to inCall
-    changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
-    return 0;
+   //Received a request, get the received IP and
+   //Set it in SDP
+   //Data receivedIp = msg->getReceivedIPName();
+   //agent.fixSdpForNat(msg, receivedIp);
+
+   Sptr<SipCommand> sipCmd;
+   sipCmd.dynamicCast(agent.getRequest());
+   assert(sipCmd != 0);
+   Sptr<StatusMsg> sendSMsg = new StatusMsg(*sipCmd, statusCode);
+   sendSMsg->setNumContentData(0);
+   if (sdpData != 0) {
+      sendSMsg->setContentData(sdpData.getPtr());
+      agent.setLocalSdp(sdpData); 
+   }
+   //// Find a nice way to do it
+
+   Sptr<BaseUrl> bUrl = sipCmd->getTo().getUrl();
+   Sptr<SipUrl> mUrl;
+   mUrl.dynamicCast(bUrl);
+   
+   if (mUrl == 0) {
+      // get out of here because we cannot send appropriately.
+      cpLog(LOG_WARNING, "To does not contain sip: URL");
+      //Transit to idle
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+      throw CInvalidStateException("does not contain sip: URL", 
+                                   __FILE__, __LINE__, 0);
+      return 0;
+   }
+
+   assert(mUrl != 0);
+   mUrl->setHost(agent.getNatHost());
+   mUrl->setPort(agent.getMySipPort());
+
+   SipContact me("", agent.getMyLocalIp());
+   me.setUrl(mUrl.getPtr());
+   sendSMsg->setNumContact( 0 );
+   sendSMsg->setContact( me );
+
+
+   cpLog(LOG_DEBUG, "(%s) sending status %s", className().c_str(),
+         sendSMsg->encode().logData());
+   agent.getSipTransceiver()->sendReply(sendSMsg, dbg);
+   agent.setResponse(sendSMsg.getPtr());
+   //Notify CC to start the call monitor
+   Sptr<BasicAgent> ba = agent.getControllerAgent();
+   if (ba != 0) {
+      ba->inCall();
+   }
+   agent.setCallLegState(C_LIVE);
+   agent.setResponse(sendSMsg.getPtr());
+   //Transit to inCall
+   changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
+   return 0;
 }
 
 

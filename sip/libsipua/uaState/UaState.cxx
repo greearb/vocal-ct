@@ -115,6 +115,7 @@ UaState::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 void UaState::changeState(UaBase& agent, Sptr<UaState> newState) {
    cpLog(LOG_INFO, "UaState::setState from (%s) -> (%s)",
          className().c_str(), newState->className().c_str());
+   agent.assertNotDeleted();
    agent.setState(newState);
 }
 
