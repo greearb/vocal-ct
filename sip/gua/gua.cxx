@@ -118,9 +118,9 @@ int main(const int argc, const char**argv) {
       //Set the default log file size to be XX MB
       DEBUG_MEM_USAGE("after argc");
       //cpLogSetFileSize (3000000);
-      cpLogSetFileSize (1000000);
-      //Set the num of backup files to be 2
-      cpLogSetNumOfBackupFiles (2);
+      cpLogSetFileSize (500000);
+      //Set the num of backup files to be XX
+      cpLogSetNumOfBackupFiles (1);
 
       DEBUG_MEM_USAGE("log has been set up");
 
