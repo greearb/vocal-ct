@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.15 2006/04/06 06:10:18 greear Exp $
+# $Id: Makefile,v 1.16 2007/07/24 19:39:30 greear Exp $
 
 USE_VM=
 BUILD = ../../build
@@ -177,6 +177,7 @@ LIBDIRS += $(LFDIR)/lib
 LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/gui_msgs.o $(LFDIR)/server/eid.o \
                $(LFDIR)/lib/string2/string2.o $(LFDIR)/lib/string2/IOBuffer.o \
+               $(LFDIR)/server/LFCtrlHandlerShare.o \
                $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
 
 LDLIBS_LAST += -lbitfield -lgcont
