@@ -65,6 +65,14 @@ SipCallContainer::SipCallContainer(const SipTransactionId& call_id)
 }
 
 
+string SipCallContainer::toString() {
+   ostringstream oss;
+   oss << "SipCallContainer, id: " << id.toString() << "\n"
+       << " msgs.size: " << msgs.size() << endl;
+   return oss.str();
+}
+
+
 Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
    list<Sptr<SipMsgPair> >::iterator i = msgs.begin();
    while (i != msgs.end()) {
@@ -75,6 +83,12 @@ Sptr<SipMsgPair> SipCallContainer::findMsgPair(const SipTransactionId& id) {
       if ((mp->response != 0) && mp->response->matches(id)) {
          return (*i);
       }
+      //cpLog(LOG_ERR, "mp->req: %s did not match id: %s\n",
+      //      (mp->request != 0) ? mp->request->toString().c_str() : "NULL",
+      //      id.toString().c_str());
+      //cpLog(LOG_ERR, "mp->response: %s did not match id: %s\n",
+      //      (mp->response != 0) ? mp->response->toString().c_str() : "NULL",
+      //      id.toString().c_str());
       i++;
    }
    return NULL;

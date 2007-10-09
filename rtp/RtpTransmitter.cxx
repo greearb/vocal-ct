@@ -209,8 +209,8 @@ int RtpTransmitter::transmit(RtpPacket& pkt, bool eventFlag ) {
    pkt.setSequenceSet(false);
    
    // transmit packet
-   cpLog(LOG_DEBUG_STACK, "RtpTransmitter: %p sending to remoteAddr: %s",
-         this, remoteAddr.toString().c_str());
+   //cpLog(LOG_DEBUG_STACK, "RtpTransmitter: %p sending to remoteAddr: %s",
+   //      this, remoteAddr.toString().c_str());
    myStack->queueTransmitTo( (char*)pkt.getHeader(), pkt.getTotalUsage(), &remoteAddr);
    
    // update counters

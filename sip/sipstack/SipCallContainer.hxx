@@ -96,6 +96,8 @@ public:
    void setPurgeTimer(uint64 t) { purgeAt = t; }
    uint64 getPurgeTimer() const { return purgeAt; }
 
+   string toString();
+
 protected:
    list<Sptr<SipMsgPair> > msgs;
    SipTransactionId id;

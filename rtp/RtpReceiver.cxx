@@ -290,10 +290,10 @@ int RtpReceiver::readNetwork() {
       uint32 prevPacketRtpTime = lastPkt->getRtpTime();
 
       if (RtpSeqGreater(seq, prevSeqRecv)) {
-         cpLog(LOG_DEBUG_JB, "seq-greater:  tmpPkt.seq: %d  prevSeq: %d, inPos: %d"
-               "  playPos: %d  cur_max_jbs: %d, queue_count: %d, sampleSize: %d",
-               seq, prevSeqRecv, inPos, playPos, cur_max_jbs,
-               getJitterPktsInQueueCount(), sampleSize);
+         //cpLog(LOG_DEBUG_JB, "seq-greater:  tmpPkt.seq: %d  prevSeq: %d, inPos: %d"
+         //      "  playPos: %d  cur_max_jbs: %d, queue_count: %d, sampleSize: %d",
+         //      seq, prevSeqRecv, inPos, playPos, cur_max_jbs,
+         //      getJitterPktsInQueueCount(), sampleSize);
          dbg += "in order\n";
          
          // C.Cameron, hacked by Ben Greear
@@ -308,9 +308,9 @@ int RtpReceiver::readNetwork() {
                break;
             }
             
-            cpLog( LOG_DEBUG_STACK, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
-                   tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
-                   seq, prevSeqRecv);
+            //cpLog( LOG_DEBUG_STACK, "WARNING:  silence-patching, [(%d - %d > %d)], pkt.seq: %d prevSeq: %d", 
+            //       tmpPkt.getRtpTime(), sampleSize, prevPacketRtpTime,
+            //       seq, prevSeqRecv);
             
             dbg += "silence-patching\n";
             insertSilenceRtpData(prevPacketRtpTime + sampleSize,
@@ -355,8 +355,8 @@ int RtpReceiver::readNetwork() {
          else {
             int idx = calculatePreviousInPos(sd);
 
-            cpLog(LOG_DEBUG_JB, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d cur_size: %d\n",
-                  idx, prevSeqRecv, tmpPkt.getSequence(), sd, getJitterPktsInQueueCount());
+            //cpLog(LOG_DEBUG_JB, "Inserting OOO packet at index: %d, prevSeqRecv: %d  pkt.seq: %d  sd: %d cur_size: %d\n",
+            //      idx, prevSeqRecv, tmpPkt.getSequence(), sd, getJitterPktsInQueueCount());
             dbg += "ooo, inserted at: ";
             dbg += idx;
             dbg += " sd: ";
@@ -413,8 +413,8 @@ int RtpReceiver::appendRtpData(RtpPacket& pkt) {
 }
 
 int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
-   cpLog(LOG_DEBUG_JB, "setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d  cur-size: %d",
-         pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx, getJitterPktsInQueueCount());
+   //cpLog(LOG_DEBUG_JB, "setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d  cur-size: %d",
+   //      pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx, getJitterPktsInQueueCount());
    if (jitterBuffer[idx] == NULL) {
       jitterBuffer[idx] = new RtpData();
    }
@@ -422,15 +422,15 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
    if (jitterBuffer[idx]->isInUse()) {
       if (jitterBuffer[idx]->isSilenceFill()) {
          // Don't count this as overflow since we're just munching silence.
-         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run (of a silence pkt), cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
-               getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
-               pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+         //cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run (of a silence pkt), cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+         //      getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+         //      pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
       }
       else {
          // Overflow.
-         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
-               getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
-               pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+         //cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer over-run, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+         //      getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+         //      pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
 #ifdef USE_LANFORGE
          if (rtpStatsCallbacks) {
             uint64 now = vgetCurMs();
@@ -446,9 +446,9 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
 
          // Only increment play-posn if it's not a dup.
          if (jitterBuffer[idx]->getRtpSequence() == pkt.getSequence()) {
-            cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer dup pkt received, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
-                  getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
-                  pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
+            //cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer dup pkt received, cur-size: %d  jb-idx: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d  idx: %d",
+            //      getJitterPktsInQueueCount(), idx, jitterBuffer[idx]->getRtpSequence(),
+            //      pkt.getRtpTime(), pkt.getSequence(), inPos, playPos, idx);
          }
          else {
             incrementPlayPos("moving forward in setRtpData");
@@ -466,8 +466,8 @@ int RtpReceiver::setRtpData(RtpPacket& pkt, int idx) {
 }//setRtpData
 
 int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
-   cpLog(LOG_DEBUG_JB, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
-         rtp_time, rtp_seq, inPos, playPos);            
+   //cpLog(LOG_DEBUG_JB, "WARNING:  insertSilenceRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
+   //      rtp_time, rtp_seq, inPos, playPos);            
    if (jitterBuffer[inPos] == NULL) {
       jitterBuffer[inPos] = new RtpData();
    }
@@ -475,15 +475,15 @@ int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
    if (jitterBuffer[inPos]->isInUse()) {
       if (jitterBuffer[inPos]->isSilenceFill()) {
          // Don't count this as overflow since we're just munching silence.
-         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a silence pkt), cur-size: %d over-written pkt-seq: %d\n New pkt: setRtpData,  rtp_time: %d rtp_seq: %d  inPos: %d  playPos: %d",
-               getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
-               rtp_time, rtp_seq, inPos, playPos);
+         //cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a silence pkt), cur-size: %d over-written pkt-seq: %d\n New pkt: setRtpData,  rtp_time: %d rtp_seq: %d  inPos: %d  playPos: %d",
+         //      getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
+         //      rtp_time, rtp_seq, inPos, playPos);
       }
       else {
          // Overflow.
-         cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a voice pkt), cur-size: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
-               getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
-               rtp_time, rtp_seq, inPos, playPos);
+         //cpLog(LOG_DEBUG_JB, "WARNING:  jitter-buffer silence-pkt over-run (of a voice pkt), cur-size: %d  over-written pkt-seq: %d\n New pkt: setRtpData, rtp_time: %d  rtp_seq: %d  inPos: %d  playPos: %d",
+         //      getJitterPktsInQueueCount(), jitterBuffer[inPos]->getRtpSequence(),
+         //      rtp_time, rtp_seq, inPos, playPos);
 #ifdef USE_LANFORGE
          if (rtpStatsCallbacks) {
             uint64 now = vgetCurMs();
@@ -496,8 +496,8 @@ int RtpReceiver::insertSilenceRtpData(uint32 rtp_time, uint16 rtp_seq) {
       // be the head of the queue instead of the tail.
       if (getJitterPktsInQueueCount() == cur_max_jbs) {
          incrementPlayPos("moving forward in setSilenceRtpData");
-         cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos (setSilenceRtpdata), we were/are full, cur-size: %d\n",
-               getJitterPktsInQueueCount());
+         //cpLog(LOG_DEBUG_JB, "  Incremented Play-Pos (setSilenceRtpdata), we were/are full, cur-size: %d\n",
+         //      getJitterPktsInQueueCount());
       }
    }
    
@@ -515,8 +515,8 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
     // deque next packet from the jitter buffer.
    RtpData* jbp;
    if (getJitterPktsInQueueCount() == 0) {
-      cpLog (LOG_DEBUG_JB, "WARNING: Recv jitter buffer is empty when trying to retrieve, inPos: %d, readVoiceAlready: %d dbg: %s",
-             inPos, readRealVoiceAlready, dbg);
+      //cpLog (LOG_DEBUG_JB, "WARNING: Recv jitter buffer is empty when trying to retrieve, inPos: %d, readVoiceAlready: %d dbg: %s",
+      //       inPos, readRealVoiceAlready, dbg);
       receiverError = recv_bufferEmpty;
       pkt.setIsSilenceFill(true);
 
@@ -551,8 +551,8 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
          jbp->setIsInUse(false);
          incrementPlayPos("dropping silence");
          jbp = jitterBuffer[playPos];
-         cpLog(LOG_DEBUG_JB, "NOTE:  Dropping silence pkt, next-pkt, seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
-               jbp->getRtpSequence(), playPos, inPos, cur_max_jbs, getJitterPktsInQueueCount());
+         //cpLog(LOG_DEBUG_JB, "NOTE:  Dropping silence pkt, next-pkt, seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
+         //      jbp->getRtpSequence(), playPos, inPos, cur_max_jbs, getJitterPktsInQueueCount());
       }
    }
    if (!jbp->isInUse()) {
@@ -575,9 +575,9 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    pkt.setSequence(jbp->getRtpSequence());
 
    if (pkt.isSilenceFill()) {
-      cpLog(LOG_DEBUG_JB, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
-            packetSize, jbp->getRtpSequence(), playPos, inPos,
-            cur_max_jbs, getJitterPktsInQueueCount());
+      //cpLog(LOG_DEBUG_JB, "WARNING:  Jitter buffer returning silence packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d  cur-size: %d",
+      //      packetSize, jbp->getRtpSequence(), playPos, inPos,
+      //      cur_max_jbs, getJitterPktsInQueueCount());
       // Report some stats
 #ifdef USE_LANFORGE
       if (rtpStatsCallbacks) {
@@ -590,9 +590,9 @@ int RtpReceiver::retrieve(RtpPacket& pkt, const char* dbg) {
    }
    else {
       readRealVoiceAlready = true;
-      cpLog(LOG_DEBUG_JB, "Jitter buffer returning voice packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d cur-size: %d",
-            packetSize, jbp->getRtpSequence(), playPos, inPos,
-            cur_max_jbs, getJitterPktsInQueueCount());
+      //cpLog(LOG_DEBUG_JB, "Jitter buffer returning voice packet, size: %d seq: %d, playPos: %d, inPos: %d cur_max_jbs: %d cur-size: %d",
+      //      packetSize, jbp->getRtpSequence(), playPos, inPos,
+      //      cur_max_jbs, getJitterPktsInQueueCount());
    }
 
    if (probation > 0) {
@@ -634,8 +634,8 @@ int RtpReceiver::getPacket(RtpPacket& pkt) {
    }
 
    pkt.setTotalUsage (len);
-   cpLog(LOG_DEBUG_STACK, "RTP get packet len = %d, seq: %d rptTime: %d payloadUsage: %d",
-         len, pkt.getSequence(), pkt.getRtpTime(), pkt.getPayloadUsage());
+   //cpLog(LOG_DEBUG_STACK, "RTP get packet len = %d, seq: %d rptTime: %d payloadUsage: %d",
+   //      len, pkt.getSequence(), pkt.getRtpTime(), pkt.getPayloadUsage());
 
    // check packet
    if ( !pkt.isValid() ) {
@@ -678,8 +678,8 @@ int RtpReceiver::updateSource (RtpPacket& pkt) {
       return 1;
    }
 
-   cpLog( LOG_DEBUG_STACK, "payload: %d, packet: %s",
-          pkt.getPayloadUsage(), pkt.toString().c_str());
+   //cpLog( LOG_DEBUG_STACK, "payload: %d, packet: %s",
+   //       pkt.getPayloadUsage(), pkt.toString().c_str());
    //p->printPacket();
     
    // new source found or resync old source
@@ -711,8 +711,8 @@ int RtpReceiver::updateSource (RtpPacket& pkt) {
             rtpStatsCallbacks->notifyDuplicateRtp(now, 1);
          }
          else if (psr < tm1) {
-            cpLog(LOG_DEBUG_STACK, "Dropped RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
-                  psr, ts, packetReceived);
+            //cpLog(LOG_DEBUG_STACK, "Dropped RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
+            //      psr, ts, packetReceived);
             rtpStatsCallbacks->notifyDroppedRtp(now, tm1 - psr);
          }
          else {
@@ -720,14 +720,14 @@ int RtpReceiver::updateSource (RtpPacket& pkt) {
             // but check.
             if (psr > (ts + (short)(32000))) {
                // Was a wrap and drop, unlucky bastard!
-               cpLog(LOG_DEBUG_STACK, "Dropped RTP (B), psr: %d  ts: %d, pktRcvd: %d\n",
-                     psr, ts, packetReceived);
+               //cpLog(LOG_DEBUG_STACK, "Dropped RTP (B), psr: %d  ts: %d, pktRcvd: %d\n",
+               //      psr, ts, packetReceived);
                rtpStatsCallbacks->notifyDroppedRtp(now, (uint16)((0xFFFF - psr)) + tm1);
             }
             else {
                // Must be out-of-order
-               cpLog(LOG_DEBUG_STACK, "OOO RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
-                     psr, ts, packetReceived);
+               //cpLog(LOG_DEBUG_STACK, "OOO RTP (A), psr: %d  ts: %d, pktRcvd: %d\n",
+               //      psr, ts, packetReceived);
                rtpStatsCallbacks->notifyOOORtp(now, 1);
             }
          }

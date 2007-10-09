@@ -130,7 +130,9 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
       Sptr<SipMsgContainer> sipMsg = sendQ.top();
       sendQ.pop(); // We may re-add it later
 
-      cpLog(LOG_ERR, "popped msg from sendQ: %s\n", sipMsg->toString().c_str());
+      //cpLog(LOG_ERR, "popped msg from sendQ: %p  max-retrans: %i  sofar: %i\n",
+      //      sipMsg.getPtr(), sipMsg->getRetransmitMax(), sipMsg->getRetransSoFar());
+      //cpLog(LOG_DEBUG_STACK, "popped msg from sendQ: %s\n", sipMsg->toString().c_str());
 
       if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
 
@@ -206,20 +208,10 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
             
          sipMsg->incRetransSoFar();
          
-#if 0   
-         if (Udpretransmitoff) {
-            // NOTE:  Just because we think we sent it doesn't mean it actually went
-            // anywhere.  These messages should stay queued for retransmit until
-            // we get a response. --Ben
-            //|| (ret_status == 0)) {            
-            sipMsg->setRetransmitMax(0);
-         }
-#endif
-
          //
-         cpLog(LOG_ERR, "Sent msg, ret_status: %i  retrans-max: %i  sofar: %i\n",
-               ret_status, sipMsg->getRetransmitMax(),
-               sipMsg->getRetransSoFar());
+         //cpLog(LOG_DEBUG_STACK, "Sent msg, ret_status: %i  retrans-max: %i  sofar: %i\n",
+         //      ret_status, sipMsg->getRetransmitMax(),
+         //      sipMsg->getRetransSoFar());
 
          //increment the time to send out.               
          if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {

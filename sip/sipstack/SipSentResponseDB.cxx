@@ -62,9 +62,8 @@ SipSentResponseDB::SipSentResponseDB(const string& _local_ip)
       : SipTransactionDB(_local_ip, "sent-response-db")
 {}
 
-SipSentResponseDB::~SipSentResponseDB()
-{
-    /// the SipTransactionDB::~ will do the clean up
+SipSentResponseDB::~SipSentResponseDB() {
+   /// the SipTransactionDB::~ will do the clean up
 }
 
 Sptr<SipMsgContainer>
@@ -79,6 +78,9 @@ SipSentResponseDB::processSend(const Sptr<SipMsg>& msg) {
    Sptr<SipMsgContainer> retVal = new SipMsgContainer(id);
    retVal->setMsgIn(msg);
    retVal->setTransport(msg->getVia(0).getTransport().c_str());
+
+   //cpLog(LOG_DEBUG_STACK, "SipSentResponseDB::processSend, response: %s\n",
+   //      response->toString().c_str());
 
    // if its a final response then update the transactionDB
    if (response->getStatusLine().getStatusCode() >= 200) {
@@ -95,15 +97,33 @@ SipSentResponseDB::processSend(const Sptr<SipMsg>& msg) {
             }
             else {
                mp->response = retVal;
-               // make the transport retrans it repeatedly
-               if ((response->getType() == SIP_INVITE) &&
-                   (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
-                  cpLog( LOG_DEBUG_STACK, "Set UA INVITE final response retransmission" );
-                  retVal->setRetransmitMax(MAX_RETRANS_COUNT);
-               }
             }
          }
+         else {
+            cpLog(LOG_ERR, "WARNING:  Didn't find sip-msg-pair for id: %s\nCall: %s",
+                  id.toString().c_str(),
+                  call->toString().c_str());
+         }
+
+         // make the transport retrans it repeatedly
+         if (response->toBeRetransmitted() && //(response->getType() == SIP_INVITE) &&
+             (SipTransceiver::myAppContext != APP_CONTEXT_PROXY)) {
+            cpLog( LOG_ERR, "Set UA INVITE final response retransmission to: %i, retval-msg-container: %p",
+                   MAX_RETRANS_COUNT, retVal.getPtr());
+            retVal->setRetransmitMax(MAX_RETRANS_COUNT);
+         }
+         else {
+            cpLog(LOG_ERR, "Type was not invite or we are a proxy, type: %i,  will not retransmit.\n",
+                  (int)(response->getType()));
+         }
       }
+      else {
+         cpLog(LOG_ERR, "Couldn't find call-container for id: %s, will not retransmit.\n",
+               id.toString().c_str());
+      }
+   }
+   else {
+      cpLog(LOG_DEBUG_STACK, "Status code < 200, will not retransmit.\n");
    }
 
    return retVal;
@@ -129,6 +149,11 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
       }
    }
 
+   //cpLog(LOG_ERR, "processRecv, msgContainer: %p msg-in, type: %i, msg: %s",
+   //      msgContainer.getPtr(),
+   //      msgContainer->getMsgIn()->getType(),
+   //      msgContainer->getMsgIn()->toString().c_str());
+
    if (call == 0) {
       // there was no transaction found/created for this message,
       // so just proxy it up and hope for the best!!!
@@ -140,21 +165,19 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
             msgContainer->getMsgIn()->toString().c_str());
    }
    else {
-
       mp = call->findMsgPair(id);
-      if (mp == 0) {
-         mp = new SipMsgPair();
-      }
-
-      if (mp->request != 0) {
+      if ((mp != 0) && (mp->request != 0)) {
+         cpLog(LOG_ERR, "Request != 0, mp: %p\n", mp.getPtr());
          // if there is a coresponding response then retrans it
          if (mp->response != 0) {
-            cpLog(LOG_INFO,"duplicate message: %s",
-                  msgContainer->toString().c_str());
+            cpLog(LOG_ERR, "Message was duplicate, old response: %p  msg-container: %p\n",
+                  mp->response.getPtr(), msgContainer.getPtr());
+            //msgContainer->toString().c_str());
 
-            // Just assign the new message in place.
+            // Turn off retrans for oldster, put new msgContainer in place.
+            mp->response->setRetransmitMax(0);
             mp->response = msgContainer;
-            msgContainer->setRetransmitMax(FILTER_RETRANS_COUNT);
+            mp->response->setRetransmitMax(FILTER_RETRANS_COUNT);
          }
          else {
             /// we didn't find a matching response but since the request
@@ -175,7 +198,14 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
             if (!((msgContainer->getMsgIn()->getType() == SIP_ACK) ||
                   (msgContainer->getMsgIn()->getType() == SIP_CANCEL) )) {
                  
-               // Not ACK or CANCEL
+               // Not ACK or CANCEL, could be INVITE.  Create new MP if needed.
+               if (mp == 0) {
+                  mp = new SipMsgPair();
+                  mp->request = msgContainer;
+                  // insert the request into data base
+                  call->addMsgPair(mp);
+               }
+
                if (call->isSeqSet()) {
                   // Check the seq number of the message for the same call-leg.
                     
@@ -230,7 +260,7 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
             mp = call->findMsgPair(SIP_INVITE);
 
             if (mp != 0) {
-               cpLog(LOG_DEBUG_STACK,"Found INVITE");
+               cpLog(LOG_ERR,"Found INVITE mp: %p", mp.getPtr());
                // add the other items of this transaction, and
                // reduce memory usage by clearing the parsed
                // message in the in pointer
@@ -242,12 +272,13 @@ SipSentResponseDB::processRecv(Sptr<SipMsgContainer> msgContainer) {
                   retVal->push_back(mp->response->getMsgIn());
                   mp->response->setRetransmitMax(0); // Cancel retrans of response
                   // also cancel the retrans of response
-                  cpLog(DEBUG_NEW_STACK,"Stopping retrans of response[%s]",
-                        mp->response->toString().c_str());
+                  //cpLog(LOG_DEBUG_STACK, "Stopping retrans of response[%s]",
+                  //      mp->response->toString().c_str());
                }
             }
             else {
-               cpLog(LOG_DEBUG_STACK, "INVITE not Found");
+               cpLog(LOG_ERR, "INVITE msg-pair not Found, call: %s",
+                     call->toString().c_str());
                // ACK w/o INVITE !!!!
                // (may have been gc'd)
             }
