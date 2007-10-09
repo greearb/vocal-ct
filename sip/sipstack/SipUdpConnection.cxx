@@ -135,7 +135,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
       if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
 
          //get host, and port, and send it off.
-         if (!randomLosePercent || 
+         if ((!randomLosePercent) || 
              ((random() % 100) >= randomLosePercent)) {
             //
             ret_status = udpSend(sipMsg);
@@ -206,10 +206,14 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
             
          sipMsg->incRetransSoFar();
             
-         if ((Udpretransmitoff) || (ret_status == 0)) {
+         if (Udpretransmitoff) {
+            // NOTE:  Just because we think we sent it doesn't mean it actually went
+            // anywhere.  These messages should stay queued for retransmit until
+            // we get a response. --Ben
+            //|| (ret_status == 0)) {            
             sipMsg->setRetransmitMax(0);
          }
-            
+
          //increment the time to send out.               
          if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
             int wait_period = sipMsg->getLastWaitPeriod();
