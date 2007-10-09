@@ -301,7 +301,8 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
             char buf[256];
             snprintf(buf, 255, "INFO Listening on port %d for SIP", defaultSipPort);
             postMsg(buf, "listening on port");
-            SipTransceiver::reTransOn();
+            // Not needed
+            //SipTransceiver::reTransOn();
          
    
             DEBUG_MEM_USAGE("Creating sipThread.");

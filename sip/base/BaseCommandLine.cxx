@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const BaseCommandLine_cxx_Version =
-    "$Id: BaseCommandLine.cxx,v 1.2 2004/06/06 08:32:36 greear Exp $";
-
 
 #include "global.h"
 #include "BaseCommandLine.hxx"
@@ -107,11 +104,13 @@ int baseCommandLine(const int argc, const char** argv, BaseCommandData* data) {
 	data->backupPServerPort = psPort.convertInt();
     }
 
+#if 0
     // Turn off retransmission
     if (CommandLine::instance( ) -> getInt( "NO_RETRANSMIT" ))
     {
         SipTransceiver::reTransOff();
     }
+#endif
 
     if (CommandLine::instance()->getInt("RETRANS_INITIAL") != 500 ||
             CommandLine::instance()->getInt("RETRANS_MAX") != 4000 )

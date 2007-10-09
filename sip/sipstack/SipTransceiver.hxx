@@ -123,11 +123,13 @@ public:
     */
    virtual Sptr < SipMsgQueue > receiveNB();
    
+#if 0
    ///
    static void reTransOff();
 
    ///
    static void reTransOn();
+#endif
 
 	///
    static void setRetransTime(int initial = retransmitTimeInitial ,

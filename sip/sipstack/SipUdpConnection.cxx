@@ -63,7 +63,7 @@ using namespace Vocal;
 string printMsgBrief(Sptr<SipMsg> msg); 
 
  /*  retransmitOff from TransceiverSymbols.hxx */
-bool SipUdpConnection::Udpretransmitoff = retransmitOff;
+//bool SipUdpConnection::Udpretransmitoff = retransmitOff;
 
  /* retransmitTimeInitial from TransceiverSymbols.hxx */  
 int SipUdpConnection::Udpretransmitimeinitial = retransmitTimeInitial; 
@@ -130,7 +130,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
       Sptr<SipMsgContainer> sipMsg = sendQ.top();
       sendQ.pop(); // We may re-add it later
 
-      cpLog(LOG_DEBUG_STACK, "popped msg from sendQ: %s\n", sipMsg->toString().c_str());
+      cpLog(LOG_ERR, "popped msg from sendQ: %s\n", sipMsg->toString().c_str());
 
       if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
 
@@ -205,7 +205,8 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
          }
             
          sipMsg->incRetransSoFar();
-            
+         
+#if 0   
          if (Udpretransmitoff) {
             // NOTE:  Just because we think we sent it doesn't mean it actually went
             // anywhere.  These messages should stay queued for retransmit until
@@ -213,6 +214,12 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
             //|| (ret_status == 0)) {            
             sipMsg->setRetransmitMax(0);
          }
+#endif
+
+         //
+         cpLog(LOG_ERR, "Sent msg, ret_status: %i  retrans-max: %i  sofar: %i\n",
+               ret_status, sipMsg->getRetransmitMax(),
+               sipMsg->getRetransSoFar());
 
          //increment the time to send out.               
          if (sipMsg->getRetransmitMax() > sipMsg->getRetransSoFar()) {
@@ -224,7 +231,7 @@ void SipUdpConnection::tick(fd_set* input_fds, fd_set* output_fds, fd_set* exc_f
                sipMsg->setWaitPeriod(wait_period * 2);
             }
             sipMsg->setNextTx(now + sipMsg->getLastWaitPeriod());
-               
+
             //add into Fifo.
             sendQ.push(sipMsg);
          }
@@ -449,7 +456,7 @@ void SipUdpConnection::getHostPort(Sptr<SipMsg> sipMessage, Data& host, int& por
    }
 }//getHostPort
 
-
+#if 0
 void SipUdpConnection::reTransOn() {
     Udpretransmitoff = false;
 }
@@ -457,6 +464,7 @@ void SipUdpConnection::reTransOn() {
 void SipUdpConnection::reTransOff() {
     Udpretransmitoff = true;
 }
+#endif
 
 void SipUdpConnection::setRetransTime(int initial, int max) {
     Udpretransmitimeinitial = initial;

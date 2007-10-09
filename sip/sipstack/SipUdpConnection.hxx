@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipUdpConnection_hxx_Version =
-    "$Id: SipUdpConnection.hxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
-
 
 
 #include "Sptr.hxx"
@@ -139,7 +136,7 @@ private:
    SipUdpConnection(const SipUdpConnection& src);
    SipUdpConnection& operator = (const SipUdpConnection& src) const;
    
-   static bool Udpretransmitoff;
+   //static bool Udpretransmitoff;
    static int  Udpretransmitimeinitial;
    static int Udpretransmittimemax;
    int randomLosePercent;

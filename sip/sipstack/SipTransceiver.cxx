@@ -383,7 +383,7 @@ Sptr < SipMsgQueue > SipTransceiver::receiveNB() {
    return msgQ;
 }
 
-
+#if 0
 void SipTransceiver::reTransOff() {
    //TODO:  This should not be a static method on SipUdpConnection!
    cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned off ***");
@@ -395,7 +395,7 @@ void SipTransceiver::reTransOn() {
    cpLog(LOG_DEBUG_STACK, "*** Retransmission is turned on ***");
    SipUdpConnection::reTransOn();
 }
-
+#endif
 
 void SipTransceiver::setRetransTime(int initial, int max) {
    cpLog(LOG_DEBUG_STACK, "Initial time set to %d ms", initial);
