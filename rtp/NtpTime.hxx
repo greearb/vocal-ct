@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const NtpTime_hxx_Version =
-    "$Id: NtpTime.hxx,v 1.3 2006/09/01 19:51:02 greear Exp $";
 
 
 #include <sys/types.h>
@@ -107,7 +105,7 @@ class NtpTime
 
         friend NtpTime operator+( const NtpTime& rhs , const unsigned int delayMs );
         friend NtpTime operator-( const NtpTime& rhs , const unsigned int ms );
-        friend int operator-( const NtpTime& rhs , const NtpTime& lhs );
+        friend int64 operator-( const NtpTime& rhs , const NtpTime& lhs );
         friend bool operator==( const NtpTime& rhs , const NtpTime& lhs );
         friend bool operator<( const NtpTime& rhs , const NtpTime& lhs );
         friend bool operator>( const NtpTime& rhs , const NtpTime& lhs );

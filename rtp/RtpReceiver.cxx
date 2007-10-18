@@ -209,7 +209,7 @@ int RtpReceiver::readNetwork() {
    tmpPkt.clear();
 
    // empty network que
-   NtpTime arrival (0, 0);
+   NtpTime now (0, 0);
    rv = getPacket(tmpPkt);
    if (rv <= 0) {
       return rv;
@@ -221,9 +221,7 @@ int RtpReceiver::readNetwork() {
       return -1;
    }
 
-   arrival = getNtpTime();
-   int packetTransit = 0;
-   int delay = 0;
+   now = getNtpTime();
 
    rtp_ntohl(&tmpPkt);
 
@@ -372,17 +370,23 @@ int RtpReceiver::readNetwork() {
    packetReceived++;
    payloadReceived += len;
 
+   uint64 now_ms = now.getMs();
    // update jitter calculation
-   packetTransit = arrival - rtp2ntp(tmpPkt.getRtpTime());
-   delay = packetTransit - lastTransit;
-   lastTransit = packetTransit;
+   NtpTime tmpntp = rtp2ntp(tmpPkt.getRtpTime());
+   // How far off of *expected* time are we?
+   int64 transit = now - tmpntp;
+   int delay = transit - lastTransit_ms;
+   if (delay > 500000) {
+      // Must have wrapped the rtp-time counter, ignore this one.
+      cpLog(LOG_ERR, "delay is out of bounds, rtp-timer must have wrapped.  Will ignore delay/jitter for this packet,"
+            " delay: %i  now: %llu  rtp-time: %lu  rtp2ntp: %llu  seedNtpTime: %lu  clockRate: %i\n",
+            delay, now.getMs(), tmpPkt.getRtpTime(), tmpntp.getMs(),
+            seedNtpTime.getMs(), clockRate);
 
-#ifdef USE_LANFORGE
-   if (rtpStatsCallbacks) {
-      uint64 now = arrival.getMs();
-      rtpStatsCallbacks->avgNewJitterPB(now, delay, 1, len);
+      delay = 0;
    }
-#endif
+
+   lastTransit_ms = transit;
 
    if (delay < 0) {
       delay = -delay;
@@ -394,7 +398,15 @@ int RtpReceiver::readNetwork() {
    //where J is jitter and D is delay between two frames
 
    // The +8 helps mitigate rounding errors.
-   jitter = jitter + (((delay - jitter) + 8) >> 4);
+   jitter += delay - ((jitter + 8) >> 4);
+
+#ifdef USE_LANFORGE
+   if (rtpStatsCallbacks) {
+      rtpStatsCallbacks->avgNewJitterPB(now_ms, transit, 1, len, (jitter >> 4));
+   }
+#endif
+
+
    return 0;
 }//read into our jitter buffer
 
@@ -824,7 +836,7 @@ void RtpReceiver::initSource (RtpPacket& pkt) {
     clearJitterBuffer();
     readRealVoiceAlready = false;
 
-    lastTransit = 0;
+    lastTransit_ms = 0;
     jitter = 0;
 }
 
@@ -850,11 +862,9 @@ void RtpReceiver::removeSource (RtpSrc s, int flag) {
 
 
 
-NtpTime RtpReceiver::rtp2ntp (const RtpTime& rtpTime)
-{
-    NtpTime ntptime = seedNtpTime +
-                      ((rtpTime - seedRtpTime) * 1000 / clockRate);
-    return ntptime;
+NtpTime RtpReceiver::rtp2ntp (const RtpTime& rtpTime) {
+   NtpTime ntptime(seedNtpTime + ((rtpTime - seedRtpTime) * 1000 / clockRate));
+   return ntptime;
 }
 
 

@@ -50,7 +50,7 @@
  */
 
 static const char* const NtpTime_cxx_Version =
-    "$Id: NtpTime.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
+    "$Id: NtpTime.cxx,v 1.3 2007/10/18 02:07:45 greear Exp $";
 
 
 #include "global.h"
@@ -121,55 +121,47 @@ NtpTime operator-( const NtpTime& lhs , const unsigned int msec)
 }
 
 // It returns the difference in milisec between lhs and rhs
-int operator-( const NtpTime& lhs , const NtpTime& rhs )
-{
-    NtpTime result;
-    unsigned int msResult;
+int64 operator-( const NtpTime& lhs , const NtpTime& rhs ) {
+   NtpTime result;
+   int64 msResult;
+   
+   if (lhs == rhs)
+      return 0;
 
-    if (lhs == rhs) return 0;
-
-    if (lhs > rhs)
-    {
-        result.seconds = lhs.seconds - rhs.seconds;
-
-        if (lhs.fractional > rhs.fractional)
-        {
-            result.fractional = lhs.fractional - rhs.fractional;
-        }
-        else if (lhs.fractional < rhs.fractional)
-        {
-            result.seconds--;
-            result.fractional = lhs.fractional - rhs.fractional;
-        }
-        else
-        {
-            result.fractional = 0;
-        }
-        msResult = (result.getSeconds() * 1000)
-                   + (result.getFractional() / 4294967);
-    }
-    else
-    {
-        result.seconds = rhs.seconds - lhs.seconds;
-
-        if (rhs.fractional >= lhs.fractional)
-        {
-            result.fractional = rhs.fractional - lhs.fractional;
-        }
-        else if (rhs.fractional < lhs.fractional)
-        {
-            result.seconds--;
-            result.fractional = rhs.fractional - lhs.fractional;
-        }
-        else
-        {
-            result.fractional = 0;
-        }
-        msResult = -( (result.getSeconds() * 1000)
-                      + (result.getFractional() / 4294967));
-    }
-
-    return msResult;
+   if (lhs > rhs) {
+      result.seconds = lhs.seconds - rhs.seconds;
+      
+      if (lhs.fractional > rhs.fractional) {
+         result.fractional = lhs.fractional - rhs.fractional;
+      }
+      else if (lhs.fractional < rhs.fractional) {
+         result.seconds--;
+         result.fractional = lhs.fractional - rhs.fractional;
+      }
+      else {
+         result.fractional = 0;
+      }
+      msResult = (result.getSeconds() * 1000)
+         + (result.getFractional() / 4294967);
+   }
+   else {
+      result.seconds = rhs.seconds - lhs.seconds;
+      
+      if (rhs.fractional >= lhs.fractional) {
+         result.fractional = rhs.fractional - lhs.fractional;
+      }
+      else if (rhs.fractional < lhs.fractional) {
+         result.seconds--;
+         result.fractional = rhs.fractional - lhs.fractional;
+      }
+      else {
+         result.fractional = 0;
+      }
+      msResult = -( (result.getSeconds() * 1000)
+                    + (result.getFractional() / 4294967));
+   }
+   
+   return msResult;
 }
 
 
@@ -193,11 +185,9 @@ bool operator>( const NtpTime& rhs , const NtpTime& lhs )
 }
 
 
-NtpTime getNtpTime()
-{
+NtpTime getNtpTime() {
     struct timeval now;
-    int err = vgettimeofday(&now, NULL);
-    assert( !err );
+    vgettimeofday(&now, NULL);
 
     NtpTime result ( now.tv_sec, now.tv_usec*4294);
 

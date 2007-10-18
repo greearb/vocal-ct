@@ -546,8 +546,8 @@ public:
    virtual void avgNewRoundTripLatency(uint64& now, int d) = 0;
 
    // Jitter between packets arriving..  Also number of pkts just received,
-   // and the length of the packet(s).
-   virtual void avgNewJitterPB(uint64& now, int d, int pkts, int len) = 0;
+   // and the length of the packet(s) and jitter calculated per rfc.
+   virtual void avgNewJitterPB(uint64& now, int d, int pkts, int len, uint32 rfc_jitter) = 0;
 
    virtual void avgNewRtpTx(uint64& now, int pkts, int len) = 0;
 

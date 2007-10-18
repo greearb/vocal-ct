@@ -161,9 +161,9 @@ int main(const int argc, const char**argv) {
 
       uint64 sleep_for;
       int maxdesc;
-      uint64 now;
+      uint64 now = getCurMs();
       struct timeval timeout_tv;
-      uint64 lastInstanceDump = 0;
+      //uint64 lastInstanceDump = 0;
 
       while (gua_running) {
          sleep_for = 60 * 1000;
@@ -174,13 +174,13 @@ int main(const int argc, const char**argv) {
 
          maxdesc = 0;
 
-         now = vgetCurMs();
+         //now = vgetCurMs();
 
          // Do some debugging.
-         if ((lastInstanceDump + (60 * 1000)) < now) {
-            lastInstanceDump = now;
-            dumpInstanceCount("tick");
-         }
+         //if ((lastInstanceDump + (60 * 1000)) < now) {
+         //   lastInstanceDump = now;
+         //   dumpInstanceCount("tick");
+         //}
 
          UaFacade::instance().setFds(&input_set, &output_set, &exc_set,
                                      maxdesc, sleep_for, now);

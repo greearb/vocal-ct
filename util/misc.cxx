@@ -435,8 +435,14 @@ int vflock(int pid, int lk) {
 
 #endif
 
+uint64 __dbg_vgetCurMs(const char* file, int line) {
+   struct timeval tv;
+   //cpLog(LOG_ERR, "calling gettimefoday from: %s:%i\n", file, line);
+   vgettimeofday(&tv, NULL);
+   return vtv_to_ms(tv);
+}
 
-uint64 vgetCurMs() {
+uint64 __vgetCurMs() {
    struct timeval tv;
    vgettimeofday(&tv, NULL);
    return vtv_to_ms(tv);

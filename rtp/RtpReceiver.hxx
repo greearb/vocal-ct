@@ -219,7 +219,7 @@ public:
 
    int getPacketReceived () const { return packetReceived; }
    int getPayloadReceived () const { return payloadReceived; }
-   int getJitter () const { return jitter; }
+   int getJitter () const { return (jitter >> 4); }
 
    unsigned long invalidPldSize;
    unsigned long sidPktsRcvd;
@@ -290,14 +290,11 @@ protected:
    unsigned int comfortNoiseDropped; // Comfort noise dropped count.
 
    /// relative transmission time for prev packet
-   int lastTransit;
+   uint64 lastTransit_ms;
 
    /// estimated jitter, between when pkt arrived and when we
-   // thought it should arrive.
+   // thought it should arrive.  Units are 'ms' << 4
    int jitter;
-
-   /// jitter time in ms time
-   int jitterTime;
 
    /// additional SDES and RTCP information
    RtcpReceiver* rtcpRecv;

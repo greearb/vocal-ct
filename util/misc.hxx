@@ -19,6 +19,7 @@ void debugMemUsage(const char* msg, const char* fname);
 #if defined(sparc) || defined(__OpenBSD__)
 
 typedef uint64_t uint64;
+typedef int64_t int64;
 typedef uint32_t uint32;
 typedef uint16_t uint16;
 typedef uint8_t uint8;
@@ -28,6 +29,7 @@ typedef uint8_t uint8;
 #ifndef WIN32
 
 typedef __uint64_t uint64;
+typedef __int64_t int64;
 typedef __uint32_t uint32;
 typedef __uint16_t uint16;
 typedef __uint8_t uint8;
@@ -46,6 +48,7 @@ typedef int32_t int32;
 typedef uint16_t uint16;
 typedef uint8_t uint8;
 typedef uint64_t uint64;
+typedef int64_t int64;
 
 void vsleep(int secs);
 
@@ -83,7 +86,10 @@ uint64 vgetCurMsFromClock();
 const char* vtoStringIp(uint32 ip);
 int vtoIpString(const char* ip, uint32& retval);
 
-uint64 vgetCurMs();
+#define vgetCurMs() __dbg_vgetCurMs(__FILE__, __LINE__)
+//#define vgetCurMs __vgetCurMs
+uint64 __dbg_vgetCurMs(const char* file, int line);
+uint64 __vgetCurMs();
 uint64 vgetCurUs();
 uint64 vgetCurNs();
 struct timeval vgetCurTv();
