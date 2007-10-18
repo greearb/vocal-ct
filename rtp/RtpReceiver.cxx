@@ -386,13 +386,13 @@ int RtpReceiver::readNetwork() {
       // Reset our rtp2ntp baseline.
       seedNtpTime = getNtpTime();
       seedRtpTime = tmpPkt.getRtpTime();
+      transit = 0;
 
       delay = 0;
    }
 
    lastTransit_ms = transit;
 
-   int raw_delay = delay;
    if (delay < 0) {
       delay = -delay;
    }
@@ -407,7 +407,7 @@ int RtpReceiver::readNetwork() {
 
 #ifdef USE_LANFORGE
    if (rtpStatsCallbacks) {
-      rtpStatsCallbacks->avgNewJitterPB(now_ms, raw_delay, 1, len, (jitter >> 4));
+      rtpStatsCallbacks->avgNewJitterPB(now_ms, delay, 1, len, (jitter >> 4));
    }
 #endif
 
