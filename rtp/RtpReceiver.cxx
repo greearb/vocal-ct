@@ -376,18 +376,23 @@ int RtpReceiver::readNetwork() {
    // How far off of *expected* time are we?
    int64 transit = now - tmpntp;
    int delay = transit - lastTransit_ms;
-   if (delay > 500000) {
+   if ((delay > 500000) || (delay < -500000)) {
       // Must have wrapped the rtp-time counter, ignore this one.
       cpLog(LOG_ERR, "delay is out of bounds, rtp-timer must have wrapped.  Will ignore delay/jitter for this packet,"
             " delay: %i  now: %llu  rtp-time: %lu  rtp2ntp: %llu  seedNtpTime: %lu  clockRate: %i\n",
             delay, now.getMs(), tmpPkt.getRtpTime(), tmpntp.getMs(),
             seedNtpTime.getMs(), clockRate);
 
+      // Reset our rtp2ntp baseline.
+      seedNtpTime = getNtpTime();
+      seedRtpTime = tmpPkt.getRtpTime();
+
       delay = 0;
    }
 
    lastTransit_ms = transit;
 
+   int raw_delay = delay;
    if (delay < 0) {
       delay = -delay;
    }
@@ -402,7 +407,7 @@ int RtpReceiver::readNetwork() {
 
 #ifdef USE_LANFORGE
    if (rtpStatsCallbacks) {
-      rtpStatsCallbacks->avgNewJitterPB(now_ms, transit, 1, len, (jitter >> 4));
+      rtpStatsCallbacks->avgNewJitterPB(now_ms, raw_delay, 1, len, (jitter >> 4));
    }
 #endif
 
