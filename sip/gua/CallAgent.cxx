@@ -98,6 +98,7 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
         //Create the invite message
         myInvokee = new UaClient(sipMsg, facade->getSipTransceiver(), this,
                                  facade, buf);
+        cpLog(LOG_ERR, "Created new UaClient (invokee): %p\n", myInvokee.getPtr());
         myState->makeCall(*this);
     }
     else {
@@ -106,6 +107,7 @@ CallAgent::CallAgent(int callId, Sptr<SipMsg> sipMsg, UaFacade* _facade, AgentRo
         buf[63] = 0;
         myInvokee = new UaServer(sipMsg, facade->getSipTransceiver(), this,
                                  facade, buf);
+        cpLog(LOG_ERR, "Created new UaServer (invokee): %p\n", myInvokee.getPtr());
         myInvokee->receivedMsg(sipMsg);
         myState->ringing(*this);
         myActiveFlg = true;
@@ -196,6 +198,9 @@ void CallAgent::endCall() {
    cpLog(LOG_DEBUG_STACK, "CallAgent::endCall, this: %p  in state: %s\n",
          this, myState->className().c_str());
    assertNotDeleted();
+   if (myInvokee.getPtr()) {
+      myInvokee->assertNotDeleted();
+   }
 
    if (!myActiveFlg) {
       cpLog(LOG_ERR, "Call Agent no more active, ignoring endCall(), this: %p", this);
@@ -428,7 +433,8 @@ void CallAgent::acceptCall() {
 void CallAgent::stopCall() {
    cpLog(LOG_DEBUG_STACK, "Stopping call, in state: %s\n",
          myState->className().c_str());
-   
+   assertNotDeleted();
+
    while (myState->end(*this) < 0) {  //-> INIT
       // NOTE:  It is REQUIRED that states eventually transition to a state
       // where 'end' cannot fail.
@@ -448,6 +454,7 @@ void CallAgent::setDeleted() {
    CallDB::instance().removeCallData(*myInvokee);
 
    UaCallControl::instance().removeAgent(getId());
+   cpLog(LOG_ERR, "Nulling invokee: %p\n", myInvokee.getPtr());
    myInvokee = NULL; // Have to cut the reference counter loop!
 }
 
@@ -455,7 +462,17 @@ int CallAgent::sendBusy() {
    Sptr<SipCommand> sCommand;
    sCommand.dynamicCast(myInvokee->getRequest());
    Sptr<StatusMsg> sMsg = new StatusMsg(*sCommand, 486);
-   myInvokee->sendMsg(sMsg.getPtr(), "CA send busy");
+
+   assertNotDeleted();
+   if (myInvokee.getPtr()) {
+      myInvokee->assertNotDeleted();
+
+      myInvokee->sendMsg(sMsg.getPtr(), "CA send busy");
+   }
+   else {
+      cpLog(LOG_ERR, "ERROR:  myInvokee is null!\n");
+   }
+
    facade->postMsg(sMsg.getPtr(), true, "sendBusy");
    myState->cancel(*this);
    

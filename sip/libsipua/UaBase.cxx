@@ -85,7 +85,7 @@ UaBase::UaBase( const char* class_name,
         myControllerAgent(controllerAgent)
 {
    _cnt++;
-   cpLog(LOG_INFO, "Creating UaBase, this: %p  debug_id: %s  call-id: %s\n",
+   cpLog(LOG_ERR, "Creating UaBase, this: %p  debug_id: %s  call-id: %s\n",
          this, instanceName.c_str(), callId.getCallId().c_str());
    myState = UaStateFactory::instance().getState(U_STATE_IDLE);
 
@@ -325,7 +325,7 @@ UaBase::~UaBase() {
    assertNotDeleted();
    //cerr << "UaBase::~UaBase:" << myAgentRole << endl;
    _cnt--;
-   cpLog(LOG_INFO , "UaBase: (%s:%p) Deleting instance, call-id: %s",
+   cpLog(LOG_ERR, "UaBase: (%s:%p) Deleting instance, call-id: %s",
          instanceName.c_str(), this, callId.getCallId().c_str());
    // Make sure the call is purged soon after...
    myStack->setCallPurgeTimer(callId, vgetCurMs() + (10 * 1000));
