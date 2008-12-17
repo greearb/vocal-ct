@@ -114,7 +114,6 @@ SdpAttributes::setAttribute (Data& s)
     
     if (attributeList.size() < 1)
     {
-        delete(&attributeList);
         cpLog(LOG_ERR, "Attribute: param count < 1 on attributeList");
         throw SdpExceptions(PARAM_NUMERR);
     }

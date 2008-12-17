@@ -62,7 +62,7 @@
 
 
 #include <fcntl.h>
-#include <iostream.h>
+#include <iostream>
 #include <unistd.h>
 #include "UaFacade.hxx"
 #include "SipThread.hxx"
@@ -110,7 +110,7 @@ using namespace Vocal::UA;
 
 
 Sptr<UaFacade> UaFacade::myInstance;
-char* UaFacade::VOIP_ID_STRING = "LANforge-SIP-SoftPhone/4.4.11 (www.candelatech.com)";
+const char* UaFacade::VOIP_ID_STRING = "LANforge-SIP-SoftPhone/4.4.11 (www.candelatech.com)";
 
 void UaFacade::destroy() {
    if (myInstance.getPtr()) {

@@ -285,7 +285,7 @@ int IOBufferv::dropFromTail(int len) {
       }
    }
    else {
-      assert("tried to drop more than we have" == "bad idea");
+      assert(strcmp("tried to drop more than we have", "bad idea") == 0);
       return -1;
    }
 

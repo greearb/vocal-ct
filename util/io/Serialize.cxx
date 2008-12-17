@@ -48,9 +48,8 @@
  *
  */
 
-static const char* const Serialize_cxx_Version = "$Id: Serialize.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
 
-#include <iostream.h>
+#include <iostream>
 
 #include <stdio.h>
 #include <string.h>

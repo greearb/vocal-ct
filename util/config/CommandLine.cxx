@@ -107,9 +107,9 @@ const pair < const char*, const char* > CommandLine::cmdLineOptionString[] =
 struct optionMap
 {
         char key;
-        char* value;
-        char* boolValue;
-        char* description;
+        const char* value;
+        const char* boolValue;
+        const char* description;
 };
 
 const optionMap myOptionMap[] =

@@ -44,7 +44,7 @@ int main(
     unsigned char	sample_char;
     short	sample_short;
     unsigned char	code;
-    int	resid;
+    int	resid = 0;
     int	in_coding;
     int	in_size;
     unsigned int *in_buf;

@@ -11,7 +11,7 @@ MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/ \
 
 MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil
 
-ifeq ($(ARCH),i386-mingw32msvc)
+ifeq ($(ARCH),i386-mingw32)
 MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil
 LDLIBS_LAST += -lws2_32 -lwinmm -lvutil
 endif

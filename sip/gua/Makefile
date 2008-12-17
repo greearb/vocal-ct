@@ -185,14 +185,14 @@ LDLIBS_LAST += -lbitfield -lgcont
 
 endif
 
-ifeq ($(ARCH),i386-mingw32msvc)
+ifeq ($(ARCH),i386-mingw32)
 MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
 LDLIBS_LAST += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
 endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
-ifeq ($(ARCH),i386-mingw32msvc)
+ifeq ($(ARCH),i386-mingw32)
 LIBDIRS += $(VOICEAGE_BASE)/Win32/libs
 else
 LIBDIRS += $(VOICEAGE_BASE)/Linux/libs

@@ -94,7 +94,7 @@ class UaCli;
 class UaFacade : public BaseFacade {
 public:
 
-   static char* VOIP_ID_STRING;
+   static const char* VOIP_ID_STRING;
 
    ///
    static UaFacade& instance();

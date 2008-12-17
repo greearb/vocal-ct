@@ -24,7 +24,7 @@
 # (e.g. big-endianness vs. little-endianness).
 
 FPIC="-fPIC"
-ifeq ($(ARCH),i386-mingw32msvc)
+ifeq ($(ARCH),i386-mingw32)
 FPIC=
 endif
 
@@ -95,7 +95,7 @@ ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
     START_LD_STATIC=
     CLOSE_LD_STATIC=
 else
-ifeq ($(ARCH),i386-mingw32msvc)
+ifeq ($(ARCH),i386-mingw32)
     LDLIBS_LAST += -lstdc++
 else
     LDLIBS += -nodefaultlibs

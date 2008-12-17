@@ -52,8 +52,7 @@
  */
 
 
-static const char* const LocalScopeAllocator_v = "$Id: LocalScopeAllocator.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
+#include <string.h>
 #include <cassert>
 
 /** LocalScopeAllocator allocates memory on the heap and frees it when

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include <math.h>
+#include <limits.h>
 
 #include "Data2.hxx"
 #include "DataException.hxx"
@@ -264,8 +265,8 @@ Data::Data(bool value)
      mBuf(0),
      mCapacity(0)
 {
-   static char* truec = "true";
-   static char* falsec = "false";
+   static const char* truec = "true";
+   static const char* falsec = "false";
    atomic_inc(&_cnt);
 
    if (value)

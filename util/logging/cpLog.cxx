@@ -134,7 +134,7 @@ static int SIZE_PER_LOGFILE=6291456; /* in bytes, i.e. six megabytes */
 int usingSyslog = 0;
 
 int openTheLogFile();
-void handleCriticalError (char* fmt, ...);
+void handleCriticalError (const char* fmt, ...);
 inline void rotateFilesIfNecessary();
 void rotateFiles();
 
@@ -508,7 +508,7 @@ it prevents logging in the normal way).  Do this by reverting to using
 standard error as the log "file" and immediately printing a warning about
 the situation.*/
 void
-handleCriticalError (char* fmt, ...)
+handleCriticalError (const char* fmt, ...)
 {
     cpLogFd = stderr;
     strcpy (cpLogFilename, "");
