@@ -90,8 +90,11 @@ typedef int socklen_t;
 
 // 16/1/03 fpi
 // WorkAround Win32
+#ifndef USE_LANFORGE
+// This is defined elsewhere in LANforge code now. --Ben
 #ifdef WIN32
 extern char*  inet_ntop(int af, const void *src, char *dst, size_t size);
+#endif
 #endif
 
 class TcpServerSocket;
