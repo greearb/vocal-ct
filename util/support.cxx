@@ -49,8 +49,7 @@
  */
 
 
-static const char* const support_cxx_Version =
-    "$Id: support.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
+#include <stdlib.h>
 
 
 #include "global.h"

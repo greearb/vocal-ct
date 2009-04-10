@@ -48,8 +48,7 @@
  *
  */
 
-static const char* const SdpConnection_cxx_Version =
-    "$Id: Sdp2Connection.cxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
+#include <stdlib.h>
 
 #include <list>
 #include <deque>

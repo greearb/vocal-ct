@@ -49,9 +49,7 @@
  */
 
 
-static const char* const DatagramSocket_cxx_Version = 
-    "$Id: DatagramSocket.cxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
-
+#include <string.h>
 
 #include "global.h"
 #include "TransportCommon.hxx"

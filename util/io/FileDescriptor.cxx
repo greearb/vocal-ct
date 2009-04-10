@@ -49,8 +49,8 @@
  */
 
 
-static const char* const FileDescriptor_cxx_Version = 
-    "$Id: FileDescriptor.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+
+#include <string.h>
 
 
 #include "FileDescriptor.hxx"

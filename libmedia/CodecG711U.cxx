@@ -49,8 +49,8 @@
  *
  */
 
-static const char* const CodecG711U_cxx_Version =
-    "$Id: CodecG711U.cxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
+#include <stdlib.h>
+#include <string.h>
 
 #include "global.h"
 #include <cassert>

@@ -51,6 +51,8 @@
 
 #ifdef USE_SPEEX
 
+#include <stdlib.h>
+
 #include "global.h"
 #include <cassert>
 

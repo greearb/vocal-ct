@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CodecG726_24_hxx_Version = 
-    "$Id: CodecG726_24.hxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
-
 #include "CodecAdaptor.hxx"
 
 #include <codec/g726.h>

@@ -48,6 +48,7 @@
  *
  */
 
+#include <string.h>
 
 #include "global.h"
 #include "PlayQueue.h"

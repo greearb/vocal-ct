@@ -49,8 +49,7 @@
  */
 
 
-static const char* const Pipe_cxx_Version = 
-    "$Id: Pipe.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+#include <string.h>
 
 #if !defined(WIN32)
 

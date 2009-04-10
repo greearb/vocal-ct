@@ -49,8 +49,7 @@
  */
 
 
-static const char* const Socket_cxx_Version = 
-    "$Id: Socket.cxx,v 1.3 2005/03/04 01:29:39 greear Exp $";
+#include <string.h>
 
 
 #include "global.h"

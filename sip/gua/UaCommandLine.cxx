@@ -48,8 +48,7 @@
  *
  */
 
-static const char* const UaCommandLine_cxx_Version =
-    "$Id: UaCommandLine.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
+#include <string.h>
 
 #include "global.h"
 #if defined(WIN32) || defined(linux)

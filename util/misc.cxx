@@ -19,8 +19,8 @@
 #else
 #include "misc.hxx"
 #include <sstream>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -32,6 +32,7 @@
 #include <Data.hxx>
 #include "TimeVal.hxx"
 #include <stdio.h>
+#include <stdlib.h>
 
 
 #endif

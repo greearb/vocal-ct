@@ -49,9 +49,7 @@
  */
 
 
-static const char* const Poll_cxx_Version = 
-    "$Id: Poll.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
+#include <string.h>
 
 #include "global.h"
 #include "Poll.hxx"

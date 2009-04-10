@@ -48,8 +48,7 @@
  *
  */
 
-static const char* const SdpBandwidth_cxx_Version =
-    "$Id: Sdp2Bandwidth.cxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
+#include <stdlib.h>
 
 #include "global.h"
 #include "Data.hxx"

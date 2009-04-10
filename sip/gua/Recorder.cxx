@@ -49,7 +49,7 @@
  *
  */
 
-
+#include <string.h>
 #include "global.h"
 #include "Recorder.h"
 #include "cpLog.h"

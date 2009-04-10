@@ -49,13 +49,10 @@
  */
 
 
-static const char* const vstring_cxx_Version =
-    "$Id: vstring.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include <iostream>
 #include <cctype>
 #include <cstdlib>
+#include <string.h>
 
 #include "global.h"
 #include "vstring.hxx"

@@ -48,9 +48,7 @@
  *
  */
 
-static const char* const SdpAttributes_cxx_Version =
-    "$Id: Sdp2Attributes.cxx,v 1.2 2004/09/30 23:17:43 greear Exp $";
-
+#include <stdlib.h>
 
 #include "global.h"
 #include <list>

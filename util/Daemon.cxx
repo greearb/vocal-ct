@@ -48,8 +48,8 @@
  *
  */
 
-static const char* const Daemon_cxx_Version =
-    "$Id: Daemon.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
+
+#include <string.h>
 
 #include "global.h"
 #include <unistd.h>

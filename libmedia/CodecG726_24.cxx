@@ -49,8 +49,7 @@
  *
  */
 
-static const char* const CodecG726_24_cxx_Version =
-    "$Id: CodecG726_24.cxx,v 1.4 2005/08/25 00:20:41 greear Exp $";
+#include <stdlib.h>
 
 #include "global.h"
 #include <cassert>
