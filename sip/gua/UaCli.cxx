@@ -283,6 +283,7 @@ UaCli::printConfig()
     cout << "SIP User Agent Configuration"  << endl;
     cout <<  "--- User ---" << endl;
     cout <<  "              Name : " <<  UaConfiguration::instance().getValue(UserNameTag).c_str() << endl;
+    cout <<  "         Auth Name : " <<  UaConfiguration::instance().getValue(AuthUserNameTag).c_str() << endl;
     cout <<  "      Display Name : " <<  UaConfiguration::instance().getValue(DisplayNameTag).c_str() << endl;
     cout <<  "         Pass Word : " <<  UaConfiguration::instance().getValue(PasswordTag).c_str() << endl;
 

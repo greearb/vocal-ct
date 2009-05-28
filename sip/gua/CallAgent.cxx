@@ -499,7 +499,7 @@ int CallAgent::sendBusy() {
 
 void CallAgent::doAuthentication(Sptr<StatusMsg> sMsg) {
    //User has been challenged, send the invite with Authorization header
-   Data user = UaConfiguration::instance().getValue(UserNameTag);
+   Data user = UaConfiguration::instance().getValue(AuthUserNameTag);
    Data password = UaConfiguration::instance().getValue(PasswordTag);
    Sptr<SipCommand> sCommand;
    sCommand.dynamicCast(myInvokee->getRequest());

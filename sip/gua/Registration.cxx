@@ -214,7 +214,7 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
     // for 401 message, we need to extract the proxy authentication info and
     // add to the register message
     if ( status == 401 || status == 407 ) {
-       Data user = UaConfiguration::instance().getValue(UserNameTag);
+       Data user = UaConfiguration::instance().getValue(AuthUserNameTag);
        Data password = UaConfiguration::instance().getValue(PasswordTag);
 
        cpLog(LOG_WARNING, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",

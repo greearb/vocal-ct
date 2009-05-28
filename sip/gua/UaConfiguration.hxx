@@ -117,6 +117,7 @@ typedef enum {
     VADForceSendAfterMsTag, /* Force a pkt to be sent after this many ms, even
                           * if we are in VAD active mode. */
     JitterBufferSzTag, /* Size of jitter buffer, in pkts */
+    AuthUserNameTag, /* User used for authenticating registration and Invites. */
     UaConfigurationTagMax
 } UaConfigurationTags;
 

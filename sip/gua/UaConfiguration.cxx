@@ -128,6 +128,7 @@ static const char* UaConfigurationTagString [] =
 	"VADMsBeforeSuppression",
         "VADForceSendAfterMs",
         "JitterBufferSzPkts",
+        "AuthUserName",
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -156,6 +157,7 @@ void
 UaConfiguration::parseConfig()
 {
     setValue(UserNameTag,"");
+    setValue(AuthUserNameTag,"");
     setValue(DisplayNameTag,"");
     setValue(PasswordTag,"\0");
     setValue(ProxyServerTag,"");
@@ -239,6 +241,7 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "SIP User Agent Configuration" );
     cpLog( LOG_INFO, "--- User ---" );
     cpLog( LOG_INFO, "              Name : \"%s\"", getValue(UserNameTag).c_str() );
+    cpLog( LOG_INFO, "         Auth Name : \"%s\"", getValue(AuthUserNameTag).c_str() );
     cpLog( LOG_INFO, "      Display Name : \"%s\"", getValue(DisplayNameTag).c_str() );
     cpLog( LOG_INFO, "         Pass Word : \"%s\"", getValue(PasswordTag).c_str() );
 
