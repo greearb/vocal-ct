@@ -87,6 +87,17 @@ SipParameterList::~SipParameterList()
 {
 }
 
+string SipParameterList::toString() const {
+   string rv;
+   map<Data,Data>::const_iterator i;
+   for(i = begin(); i != end(); ++i) {
+      rv += i->first.c_str();
+      rv += " == ";
+      rv += i->second.c_str();
+      rv += "\n";
+   }
+   return rv;
+}
 
 Data SipParameterList::encode() const
 {
@@ -155,6 +166,68 @@ Data SipParameterList::encode() const
 
 
 int SipParameterList::decode(Data data, char delimiter, bool eatWhitespace) {
+   int ln = data.size();
+   string key;
+   string val;
+   bool in_val = false;
+   bool in_quotes = false;
+   for (int i = 0; i<ln; i++) {
+      char c = data.c_str()[i];
+      if (!in_val) {
+         // getting key
+         if (isspace(c)) {
+            continue;
+         }
+         else if (c == '=') {
+            in_val = true;
+            continue;
+         }
+         else if (c == delimiter) {
+            // Add key, with empty value.
+            operator[](key) = "";
+            key = "";
+            continue;
+         }
+         key += tolower(c);
+      }
+      else {
+         // In value.
+         if (c == '"') {
+            in_quotes = !in_quotes;
+            val += c;
+         }
+         else if (c == delimiter) {
+            if (in_quotes) {
+               val += c;
+            }
+            else {
+               // All done with value, add to list
+               if (eatWhiteSpace()) {
+                  Data dv(val.c_str());
+                  dv.removeSpaces();
+                  val = dv.c_str();
+               }
+               operator[](key) = val;
+               key = "";
+               val = "";
+               in_val = false;
+            }
+         }
+         else {
+            val += c;
+         }
+      }
+   }//for
+
+   if (key.size()) {
+      operator[](key) = val;
+   }
+   return 0;
+
+#if 0
+// This is the old code...it cannot deal with delimeters within quoted
+// tokens. --Ben
+
     char matchedChar;
     Data key;
     Data value;
@@ -175,17 +248,6 @@ int SipParameterList::decode(Data data, char delimiter, bool eatWhitespace) {
                 done = true;
             }
             string tokenstr = value.convertString();
-#if 0
-            //Leave the parameter value in its original form
-            //strip "" off this.
-            int pos;
-            pos = tokenstr.find("\"");
-
-            if (pos != (int)(string::npos))
-            {
-                tokenstr = tokenstr.substr(pos + 1, tokenstr.length() - 2);
-            }
-#endif
 
             key.removeSpaces();
 	    key.lowercase();//comaparison is case sensitive
@@ -213,6 +275,7 @@ int SipParameterList::decode(Data data, char delimiter, bool eatWhitespace) {
         }
     }
     return 0;
+#endif
 }
 
 Data 

@@ -118,6 +118,9 @@ public:
    ///
    ~SipParameterList();
    
+   /** For debugging purposes. */
+   string toString() const;
+   
    /** return the encoded string version of this. This call
        should only be used inside the stack and is not part of
        the API */
