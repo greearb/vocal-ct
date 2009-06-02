@@ -202,7 +202,7 @@ int SipParameterList::decode(Data data, char delimiter, bool eatWhitespace) {
             }
             else {
                // All done with value, add to list
-               if (eatWhiteSpace()) {
+               if (eatWhitespace) {
                   Data dv(val.c_str());
                   dv.removeSpaces();
                   val = dv.c_str();
