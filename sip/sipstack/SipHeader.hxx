@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const sipHeaderVersion =
-"$Id: SipHeader.hxx,v 1.4 2004/11/05 07:25:06 greear Exp $";
 
 #include "Data.hxx"
 #include "Sptr.hxx"

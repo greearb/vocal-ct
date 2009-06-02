@@ -53,10 +53,6 @@
 
 #include "global.h"
 
-static const char* const SipProxyAuthenticateVersion =
-    "$Id: SipProxyAuthenticate.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
-
 
 #include "Data.hxx"
 #include <map>
@@ -69,121 +65,101 @@ namespace Vocal
 {
 
 
-enum SipProxyAuthenticateErrorType
-{
-    DECODE_FAILED_PROXYAUTHENTICATE
-
-
-    //may need to change this to be more specific
+enum SipProxyAuthenticateErrorType {
+   DECODE_FAILED_PROXYAUTHENTICATE
+   //may need to change this to be more specific
 };
 
 /// Exception handling class
-class SipProxyAuthenticateParserException : public VException
-{
-    public:
-        SipProxyAuthenticateParserException( const string& msg,
-                                             const string& file,
-                                             const int line,
-                                             const int error = 0 );
+class SipProxyAuthenticateParserException : public VException {
+public:
+   SipProxyAuthenticateParserException( const string& msg,
+                                        const string& file,
+                                        const int line,
+                                        const int error = 0 );
+   
+   SipProxyAuthenticateParserException( const string& msg,
+                                        const string& file,
+                                        const int line,
+                                        SipProxyAuthenticateErrorType i)
+         : VException( msg, file, line, static_cast < int > (i)) {
+      value = i;
+   }
+   
+   ///
+   SipProxyAuthenticateErrorType getError() const {
+      return value;
+   }
 
-        SipProxyAuthenticateParserException( const string& msg,
-                                             const string& file,
-                                             const int line,
-                                             SipProxyAuthenticateErrorType i)
-        : VException( msg, file, line, static_cast < int > (i))
-        {
-            value = i;
-        }
+   ///
+   string getName() const ;
 
-        ///
-        SipProxyAuthenticateErrorType
-        getError() const
-        {
-            return value;
-        }
-
-        ///
-        string
-        getName() const ;
-
-    private:
-        SipProxyAuthenticateErrorType value;
+private:
+   SipProxyAuthenticateErrorType value;
 
 };
 
 
 
 /// data container for ProxyAuthenticate header
-class SipProxyAuthenticate : public SipHeader
-{
-    public:
+class SipProxyAuthenticate : public SipHeader {
+public:
 
-        /*** Create by decoding the data string passed in. This is the decode
-             or parse.  */
-        SipProxyAuthenticate( const Data& srcData, const string& local_ip );
+   /*** Create by decoding the data string passed in. This is the decode
+        or parse.  */
+   SipProxyAuthenticate( const Data& srcData, const string& local_ip );
+   
+   ///
+   SipProxyAuthenticate( const SipProxyAuthenticate& src );
 
-        ///
-        SipProxyAuthenticate( const SipProxyAuthenticate& src );
+   ///
+   SipProxyAuthenticate& operator = (const SipProxyAuthenticate& src);
 
-        ///
-        SipProxyAuthenticate&
-        operator = (const SipProxyAuthenticate& src);
+   ///
+   bool operator ==(const SipProxyAuthenticate& src) const;
+   ///
+   void setAuthScheme(const Data & data) {
+      authScheme = data;
+   }
 
-        ///
-        bool operator ==(const SipProxyAuthenticate& src) const;
-        ///
-        void
-        setAuthScheme(const Data & data)
-        {
-            authScheme = data;
-        }
+   ///
+   Data getAuthScheme() const {
+      return authScheme;
+   }
 
-        ///
-        Data
-        getAuthScheme() const
-        {
-            return authScheme;
-        }
+   ///
+   void setAuthTokenDetails(const Data& token, const Data& tokenValue);
 
-        ///
-        void
-        setAuthTokenDetails(const Data& token, const Data& tokenValue);
+   /*** return the encoded string version of this. This call should only be
+        used inside the stack and is not part of the API */
+   Data encode() const;
 
-        /*** return the encoded string version of this. This call should only be
-             used inside the stack and is not part of the API */
-        Data
-        encode() const;
+   ///
+   void setRealmValue(const Data& realmValue);
 
-        ///
-        void
-        setRealmValue(const Data& realmValue);
+   ///
+   Data getTokenValue(const Data& token) const;
 
-        ///
-        Data
-        getTokenValue(const Data& token) const;
+   ///
+   Data getRealmValue() const;
 
-        ///
-        Data
-        getRealmValue() const;
+   /// method for copying sip headers of any type without knowing which type
+   Sptr<SipHeader> duplicate() const;
+   /// compare two headers of (possibly) the same class
+   virtual bool compareSipHeader(SipHeader* msg) const;
 
-	/// method for copying sip headers of any type without knowing which type
-	Sptr<SipHeader> duplicate() const;
-	/// compare two headers of (possibly) the same class
-	virtual bool compareSipHeader(SipHeader* msg) const;
+   void decode(const Data& data);
 
-        void decode(const Data& data);
+   string toString() const;
 
-    private:
+private:
 
+   void scanSipProxyauthorization(const Data& data);
 
-        void
-        scanSipProxyauthorization(const Data& data);
-
-
-        Data authScheme;
-        SipParameterList myParamList;   //contains tokens, and tokenValues.
+   Data authScheme;
+   SipParameterList myParamList;   //contains tokens, and tokenValues.
     
-        SipProxyAuthenticate(); // Not Implemented
+   SipProxyAuthenticate(); // Not Implemented
 };
 
  

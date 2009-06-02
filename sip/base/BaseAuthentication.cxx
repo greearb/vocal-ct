@@ -72,7 +72,18 @@ addAuthorization(const StatusMsg& errorMsg,
     Data opaque;
     Data qop;
 
-    if (!useProxyAuthenticate) {
+    if (useProxyAuthenticate) {
+	SipProxyAuthenticate proxyAuth = errorMsg.getProxyAuthenticate();
+	cpLog(LOG_ERR, "proxyAuth: %s\n", proxyAuth.toString().c_str());
+
+	authScheme = proxyAuth.getAuthScheme();
+	nonce = proxyAuth.getTokenValue("nonce");
+	realm = proxyAuth.getTokenValue("realm");
+	alg = proxyAuth.getTokenValue("algorithm");
+	opaque = proxyAuth.getTokenValue("opaque");
+	qop = proxyAuth.getTokenValue("qop");
+    }
+    else {
 	SipWwwAuthenticate proxyAuth = errorMsg.getWwwAuthenticate();
 	
 	authScheme = proxyAuth.getAuthScheme();
@@ -82,19 +93,9 @@ addAuthorization(const StatusMsg& errorMsg,
 	opaque = proxyAuth.getTokenValue("opaque");
 	qop = proxyAuth.getTokenValue("qop");
     }
-    else {
-	SipProxyAuthenticate proxyAuth = errorMsg.getProxyAuthenticate();
-	
-	authScheme = proxyAuth.getAuthScheme();
-	nonce = proxyAuth.getTokenValue("nonce");
-	realm = proxyAuth.getTokenValue("realm");
-	alg = proxyAuth.getTokenValue("algorithm");
-	opaque = proxyAuth.getTokenValue("opaque");
-	qop = proxyAuth.getTokenValue("qop");
-    }
 
-    cpLog(LOG_ERR, " NOTE:  Auth Scheme is: %s  alg: %s  proxyAuth: %d",
-          authScheme.logData(), alg.c_str(), useProxyAuthenticate);
+    cpLog(LOG_ERR, " NOTE:  Auth Scheme is: %s  alg: %s  proxyAuth: %d  qop: %s",
+          authScheme.logData(), alg.c_str(), useProxyAuthenticate, qop.logData());
 
     if ( authScheme == AUTH_DIGEST ) {
 	Data method = cmdMsg.getRequestLine().getMethod();
@@ -126,17 +127,17 @@ addAuthorization(const StatusMsg& errorMsg,
 	    }
 	}
     
-	cpLog( LOG_DEBUG, "nonce: %s", nonce.logData() );
-	cpLog( LOG_DEBUG, "realm: %s", realm.logData() );
-	cpLog( LOG_DEBUG, "username: %s", username.logData() );
-	cpLog( LOG_DEBUG, "password: %s", password.logData() );
-	cpLog( LOG_DEBUG, "method: %s", method.logData() );
-	cpLog( LOG_DEBUG, "reqUri: %s", reqUri.logData() );
-	cpLog( LOG_DEBUG, "qop: %s", qop.logData() );
-	cpLog( LOG_DEBUG, "cnonce: %s", cnonce.logData() );
-	cpLog( LOG_DEBUG, "alg: %s", alg.logData() );
-	cpLog( LOG_DEBUG, "noncecount: %s", noncecount.logData() );
-	cpLog( LOG_DEBUG, "opaque: %s", opaque.logData() );
+	cpLog( LOG_ERR, "nonce: %s", nonce.logData() );
+	cpLog( LOG_ERR, "realm: %s", realm.logData() );
+	cpLog( LOG_ERR, "username: %s", username.logData() );
+	cpLog( LOG_ERR, "password: %s", password.logData() );
+	cpLog( LOG_ERR, "method: %s", method.logData() );
+	cpLog( LOG_ERR, "reqUri: %s", reqUri.logData() );
+	cpLog( LOG_ERR, "qop: %s", qop.logData() );
+	cpLog( LOG_ERR, "cnonce: %s", cnonce.logData() );
+	cpLog( LOG_ERR, "alg: %s", alg.logData() );
+	cpLog( LOG_ERR, "noncecount: %s", noncecount.logData() );
+	cpLog( LOG_ERR, "opaque: %s", opaque.logData() );
     
 	if(!useProxyAuthenticate) {
 	    cmdMsg.setAuthDigest(nonce, username, password, method, 

@@ -219,6 +219,8 @@ int Registration::updateRegistrationMsg(const StatusMsg& msg) {
 
        cpLog(LOG_WARNING, "Got registration response code: %d.  Will try to authenticate with user -:%s:- passwd -:%s:-\n",
               status, user.c_str(), password.c_str());
+       cpLog(LOG_WARNING, "msg -:\n%s\n", msg.toString().c_str());
+
        if (!authenticateMessage(msg, *registerMsg, user, password)) {
           // i could not find auth information, so delay
           delay = DEFAULT_DELAY_MS;
