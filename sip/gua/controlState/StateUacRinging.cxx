@@ -83,16 +83,16 @@ StateUacRinging::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
     assert(statusMsg != 0);
     int statusCode = statusMsg->getStatusLine().getStatusCode();
     cpLog(LOG_DEBUG, "StateTrying::recvStatus[%s]", statusMsg->encode().logData());
-    if(msg->getCSeq().getMethod() == INVITE_METHOD)
-    {
-        if(statusCode == 200) 
-        {
-            agent.inCall();
-        }
-        else if(statusCode > 200)
-        {
-            agent.doCancel();
-        }
+    if(msg->getCSeq().getMethod() == INVITE_METHOD) {
+       if(statusCode == 200) {
+          agent.inCall();
+       }
+       else if(statusCode > 200) {
+          agent.doCancel();
+       }
+       else if ((statusCode == 401) || (statusCode == 407)) {
+          agent.doAuthentication(statusMsg);
+       }
     }
 }
 
