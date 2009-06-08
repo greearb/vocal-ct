@@ -113,7 +113,7 @@ addAuthorization(const StatusMsg& errorMsg,
 	    //cnonce, and noncecount are SHOULD.
             // Seems they are MUST if qop exists. --Ben
 	    noncecount = "00000001";
-	    cnonce = RandomHex::get(16);
+	    cnonce = RandomHex::get(5);
             LocalScopeAllocator lo;
 	    unsigned int pos = string(qop.getData(lo)).find("auth");
 	
