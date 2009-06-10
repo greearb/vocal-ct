@@ -155,8 +155,7 @@ UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
         //agent.fixSdpForNat(msg, receivedIp);
 
         sendSMsg->setNumContentData(0);
-        if(sipSdp != 0)
-        {
+        if(sipSdp != 0) {
             sendSMsg->setContentData(sipSdp.getPtr());
             agent.setLocalSdp(sipSdp);
         }

@@ -385,6 +385,11 @@ cpLog(LOG_DEBUG, "**** Adding route %d: %s", reverse, baseUrl->encode().logData(
 void 
 UaBase::fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp)
 {
+
+   if (! facade->shouldFixSdpForNat()) {
+      return;
+   }
+
    bool fixSdp = false;
    const SipVia& natVia = sipMsg->getVia(0);
    string addr1 = natVia.getHost().c_str();
@@ -443,7 +448,7 @@ UaBase::fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp)
                     SdpSession& sdpSess = sdp->getSdpDescriptor();
                     SdpConnection connection;
                     connection.setUnicast(natIp.c_str());
-                    sdpSess.setConnection(connection);
+                    sdpSess.setConnection(connection, "fixSdpForNat");
                 }
             }
             break;

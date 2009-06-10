@@ -63,65 +63,62 @@ using namespace Vocal::UA;
 
 void 
 UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
-{
-    Sptr<StatusMsg> statusMsg;
-    statusMsg.dynamicCast(msg);
-    assert(statusMsg != 0);
-    int statusCode = statusMsg->getStatusLine().getStatusCode();
-    cpLog(LOG_DEBUG, "UaStateRinging::recvStatus:%d", statusCode);
-    if(statusCode == 200 )
-    {
-        //Received a request, get the received IP and
-        //Set it in SDP
-        Data receivedIp = msg->getReceivedIPName();
-//        assert(strstr(receivedIp.c_str(), ":") == NULL);
-        agent.fixSdpForNat(msg, receivedIp);
+                 throw (CInvalidStateException&) {
+   Sptr<StatusMsg> statusMsg;
+   statusMsg.dynamicCast(msg);
+   assert(statusMsg != 0);
+   int statusCode = statusMsg->getStatusLine().getStatusCode();
+   cpLog(LOG_DEBUG, "UaStateRinging::recvStatus:%d", statusCode);
+   if (statusCode == 200 ) {
+      //Received a request, get the received IP and
+      //Set it in SDP
+      Data receivedIp = msg->getReceivedIPName();
+      agent.fixSdpForNat(msg, receivedIp);
 
-        //Save final response for future BYE
-        agent.setResponse(msg);
-        agent.saveRouteList(msg, true);
-        Sptr<SipSdp> sdp;
-        sdp.dynamicCast(msg->getContentData(0));
-
-        agent.setRemoteSdp(sdp);
-        agent.getResponse()->setCSeq(statusMsg->getCSeq());
-        agent.setLocalCSeq(statusMsg->getCSeq());
-        //Notify CC
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->receivedStatus(agent, msg, "UaStateRinging 200");
-        }
-        agent.setCallLegState(C_LIVE);
-        //Transit to Incall
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
-    }
-    else if (statusCode > 200) {
-        if (statusCode != 408) {
-            //Send ACK message
-            Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
-            SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
-            Sptr<SipCommand> sCommand;
-            sCommand.dynamicCast(agent.getRequest());
-            assert(sCommand != 0);
-
-	    addSelfInVia(agent, ackMsg.getPtr());
-
-            ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
-            agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas Ringing, ack");
-            cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
-                  statusCode, ackMsg->encode().logData());
-        }
-
-        //Notify CC
-        Sptr<BasicAgent> ba = agent.getControllerAgent();
-        if (ba != 0) {
-           ba->receivedStatus(agent, msg, "UaStateRinging, INFO");
-        }
-
-        //Transit to Idle
-        changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
-    }
+      //Save final response for future BYE
+      agent.setResponse(msg);
+      agent.saveRouteList(msg, true);
+      Sptr<SipSdp> sdp;
+      sdp.dynamicCast(msg->getContentData(0));
+      
+      agent.setRemoteSdp(sdp);
+      agent.getResponse()->setCSeq(statusMsg->getCSeq());
+      agent.setLocalCSeq(statusMsg->getCSeq());
+      //Notify CC
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg, "UaStateRinging 200");
+      }
+      agent.setCallLegState(C_LIVE);
+      //Transit to Incall
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_INCALL));
+   }
+   else if (statusCode > 200) {
+      if (statusCode != 408) {
+         //Send ACK message
+         Sptr<AckMsg> ackMsg = new AckMsg(*statusMsg, agent.getMyLocalIp());
+         SipRequestLine& ackRequestLine = ackMsg->getMutableRequestLine();
+         Sptr<SipCommand> sCommand;
+         sCommand.dynamicCast(agent.getRequest());
+         assert(sCommand != 0);
+         
+         addSelfInVia(agent, ackMsg.getPtr());
+         
+         ackRequestLine.setUrl(sCommand->getRequestLine().getUrl());
+         agent.getSipTransceiver()->sendAsync(ackMsg.getPtr(), "Uas Ringing, ack");
+         cpLog(LOG_INFO, "Sent Ack for status (%d), going to idle state:%s",
+               statusCode, ackMsg->encode().logData());
+      }
+      
+      //Notify CC
+      Sptr<BasicAgent> ba = agent.getControllerAgent();
+      if (ba != 0) {
+         ba->receivedStatus(agent, msg, "UaStateRinging, INFO");
+      }
+      
+      //Transit to Idle
+      changeState(agent, UaStateFactory::instance().getState(U_STATE_IDLE));
+   }
 }
 
 int

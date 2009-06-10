@@ -229,7 +229,7 @@ OptionsMsg::setOptionsDetails(Sptr <BaseUrl> toUrl,
     SdpConnection connection;
     LocalScopeAllocator lo;
     connection.setUnicast(connAddr.getData(lo));
-    sdpDesc.setConnection(connection);
+    sdpDesc.setConnection(connection, "setOptionsDetails");
 
     SdpMedia* media = new SdpMedia;
     media->setPort(rtpPort);

@@ -52,9 +52,6 @@
  */
 
 
-static const char* const BasicProxy_hxx_Version =
-    "$Id: BasicProxy.hxx,v 1.8 2005/03/03 19:59:49 greear Exp $";
-
 
 #include "HeartbeatThread.hxx"
 #include "HeartLessProxy.hxx"

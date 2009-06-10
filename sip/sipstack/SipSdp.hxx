@@ -53,9 +53,6 @@
 
 #include "global.h"
 
-static const char* const SipSdpVersion =
-    "$Id: SipSdp.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "Data.hxx"
 #include "Sdp2Session.hxx"
 #include "Sdp2Connection.hxx"
@@ -95,7 +92,7 @@ class SipSdp : public SipContentData
         setSdpDescriptor(const Vocal::SDP::SdpSession& sdp);
         ///
         void
-        setConnAddress(const Vocal::SDP::SdpConnection& connAddr);
+        setConnAddress(const Vocal::SDP::SdpConnection& connAddr, const char* dbg);
         ///
         Data
         getConnAddress();

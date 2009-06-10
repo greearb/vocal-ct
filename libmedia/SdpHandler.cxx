@@ -129,7 +129,7 @@ setHost(SdpSession& sdpSess, Data hostAddr)
         connection.setAddressType(SDP::AddressTypeIPV6);
         sdpSess.setAddressType(SDP::AddressTypeIPV6);
     }
-    sdpSess.setConnection(connection);
+    sdpSess.setConnection(connection, "SdpHandler::setHost");
     sdpSess.setAddress(hostAddr);
 }
 

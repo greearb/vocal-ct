@@ -129,6 +129,7 @@ static const char* UaConfigurationTagString [] =
         "VADForceSendAfterMs",
         "JitterBufferSzPkts",
         "AuthUserName",
+        "OverrideSdpConnection", // poor man's NAT
         "Unknown"
     };
 // the above needs to match up with the enum in UaConfiguration.hxx 
@@ -198,6 +199,7 @@ UaConfiguration::parseConfig()
     setValue(VADMsBeforeSuppressionTag, "250");
     setValue(VADForceSendAfterMsTag, "5000");
     setValue(JitterBufferSzTag, "8");
+    setValue(OverrideSdpConnectionTag, "no");
 
     if( !parse3tuple( myConfigFile.c_str(), parseCfgFileCallBack ) ) {
        // Stop UA
@@ -249,6 +251,7 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "              Port : \"%s\"", getValue(LocalSipPortTag).c_str() );
     cpLog( LOG_INFO, "         Transport : \"%s\"", getValue(SipTransportTag).c_str() );
     cpLog( LOG_INFO, "      Proxy Server : \"%s\"", getValue(ProxyServerTag).c_str() );
+    cpLog( LOG_INFO, "      Override SDP : \"%s\"", getValue(OverrideSdpConnectionTag).c_str() );
 
     cpLog( LOG_INFO, "--- Registration ---" );
     cpLog( LOG_INFO, "          Register : \"%s\"", getValue(RegisterOnTag).c_str());

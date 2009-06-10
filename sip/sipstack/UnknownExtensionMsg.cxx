@@ -246,7 +246,7 @@ void UnknownExtensionMsg::setUnknownExtensionMsgDetails(Sptr <BaseUrl> toUrl,
     SdpConnection connection;
     LocalScopeAllocator lo;
     connection.setUnicast(connAddr.getData(lo));
-    sdpDesc.setConnection(connection);
+    sdpDesc.setConnection(connection, __FUNCTION__);
 
     SdpMedia* media = new SdpMedia;
     media->setPort(rtpPort);

@@ -118,6 +118,7 @@ typedef enum {
                           * if we are in VAD active mode. */
     JitterBufferSzTag, /* Size of jitter buffer, in pkts */
     AuthUserNameTag, /* User used for authenticating registration and Invites. */
+    OverrideSdpConnectionTag,
     UaConfigurationTagMax
 } UaConfigurationTags;
 

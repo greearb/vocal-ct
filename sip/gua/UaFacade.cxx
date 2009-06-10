@@ -132,7 +132,7 @@ UaFacade& UaFacade::instance() {
 
 void
 UaFacade::initialize(const Data& applName,
-                     unsigned short  defaultSipPort, bool filteron, bool nat)
+                     unsigned short  defaultSipPort, bool nat)
 {
     assert(myInstance == 0);
     
@@ -202,7 +202,7 @@ UaFacade::initialize(const Data& applName,
     cpLog(LOG_ERR, "About to create UaFacade, tos: %i  priority: %i vad_on: %d vadmsbeforesuppression: %d local_ip: %s\n",
           tos, priority, vad_on, vadmsbeforesuppression, local_ip.c_str());
     myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
-                              NAT_HOST, transport, proxyAddr, filteron, nat,
+                              NAT_HOST, transport, proxyAddr, nat,
                               va);
 }
 
@@ -213,7 +213,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
                    const string& _localIp,
                    unsigned short _localSipPort, const string& _natIp,
                    int _transport, const NetworkAddress& proxyAddr,
-                   bool filteron, bool nat, VADOptions& vadOptions__) :
+                   bool nat, VADOptions& vadOptions__) :
       BaseFacade(_localIp, _localSipPort, _natIp, _transport, proxyAddr, nat)
 #ifdef USE_LANFORGE
       , myLFThread(NULL)

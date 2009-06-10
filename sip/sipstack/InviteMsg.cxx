@@ -290,7 +290,7 @@ InviteMsg::setInviteDetails(Sptr <BaseUrl> toUrl, const string& local_ip,
 
     connection.setAddressType(protocol);
 
-    sdpDesc.setConnection(connection);
+    sdpDesc.setConnection(connection, "setInviteDetails");
 
     SdpMedia* media = new SdpMedia;
     media->setPort(rtpPort);
@@ -367,10 +367,3 @@ void InviteMsg::setMinSE(const SipMinSE& minSe, const string& local_ip)
     *x = minSe;
 }
 
-
-/* Local Variables: */
-/* c-file-style:"stroustrup" */
-/* c-basic-offset:4 */
-/* c-file-offsets:((inclass . ++)) */
-/* indent-tabs-mode:nil */
-/* End: */

@@ -134,7 +134,7 @@ public:
    virtual void ackStatus(const Sptr<SipMsg>& msg, Sptr<SipSdp> sipSdp = 0);
 
    ///
-   static void fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp);
+   virtual void fixSdpForNat(Sptr<SipMsg> sipMsg, const Data& natIp);
 
     
    ///Utility function to create an invite from an invite message

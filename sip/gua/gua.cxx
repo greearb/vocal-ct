@@ -144,7 +144,10 @@ int main(const int argc, const char**argv) {
 
       DEBUG_MEM_USAGE("About to init facade");
       cpLog(LOG_ERR, "About to initialize UaFacade...\n");
-      UaFacade::initialize("gua", localSipPort, true, true);
+
+      bool natme = (UaConfiguration::instance().getValue(OverrideSdpConnectionTag) == "yes");
+
+      UaFacade::initialize("gua", localSipPort, natme);
 
 #ifdef USE_LANFORGE
       cpLog(LOG_ERR, "About to initialize LANforge thread...\n");
