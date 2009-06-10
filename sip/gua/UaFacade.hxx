@@ -101,8 +101,7 @@ public:
 
    ///Constructor to initialze UaFacade global instance.Should be called only once
    static void initialize(const Data& applName,
-                          unsigned short  defaultSipPort,
-                          bool filteron, bool nat);
+                          unsigned short  defaultSipPort, bool nat);
 
    static string getBareUserName();
 
@@ -184,7 +183,7 @@ private:
             const string& _localIp,
             unsigned short _localSipPort, const string& _natIp,
             int _transport, const NetworkAddress& proxyAddr,
-            bool filteron, bool nat, VADOptions& vadOptions);
+            bool nat, VADOptions& vadOptions);
 
    ///
    static Sptr<UaFacade> myInstance;

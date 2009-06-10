@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const Sdp2Connection_hxx_Version =
-    "$Id: Sdp2Connection.hxx,v 1.2 2006/10/28 02:03:22 greear Exp $";
-
 #include <vector>
 #include <strstream>
 #include <cassert>
@@ -283,13 +280,5 @@ class SdpConnection
 
 
 }
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
-
 
 #endif

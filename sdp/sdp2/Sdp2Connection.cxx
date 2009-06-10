@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SdpConnection_cxx_Version =
-    "$Id: Sdp2Connection.cxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
 
 #include <list>
 #include <deque>
@@ -83,6 +81,8 @@ SdpConnection::SdpConnection (Data str)
     deque<Data> connectionList;
 
     bool finished = false;
+
+    //cpLog(LOG_ERR, "SdpConnection creation, str: %s\n", str.c_str());
 
     while (!finished)
     {
@@ -189,6 +189,8 @@ SdpConnection::SdpConnection (Data str)
 	    }
 	}
     }
+
+    //cpLog(LOG_ERR, "After construction, addr: %s\n", address.c_str());
 }
 
 

@@ -130,6 +130,8 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
    assertNotDeleted();
    int fmt = 0;
 
+   //cpLog(LOG_ERR, "MediaSession::addToSession, remoteSdp: %p   %s\n", &remoteSdp, remoteSdp.encode().c_str());
+
    if (myRtpSession != 0) {
       cpLog(LOG_ERR, "Already has a session, ignoring...");
       return;
@@ -209,9 +211,11 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
       if (rMedia->getConnection()) {
          LocalScopeAllocator lo;
          rAddr = rMedia->getConnection()->getUnicast().getData(lo);
+         //cpLog(LOG_ERR, "Got remote addr from rMedia: %s", rAddr.c_str());
       }
       else {
          rAddr = remAddr;
+         //cpLog(LOG_ERR, "Got remote addr from remAddr: %s", rAddr.c_str());
       }
       
       //Now if we have lAddr, rAddr, lport, rPort and codec adaptor

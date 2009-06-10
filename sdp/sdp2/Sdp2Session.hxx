@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const Sdp2Session_hxx_Version =
-    "$Id: Sdp2Session.hxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
 
 #include "global.h"
 #include "Data.hxx"
@@ -355,7 +353,7 @@ class SdpSession
 
 
         ///
-        void setConnection (const SdpConnection& conn);
+        void setConnection (const SdpConnection& conn, const char* dbg);
         ///
         SdpConnection* getConnection();
 

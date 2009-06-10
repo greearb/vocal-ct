@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipSdp_cxx_Version =
-    "$Id: SipSdp.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
 
 #include "global.h"
 #include "SipSdp.hxx"
@@ -157,9 +155,9 @@ SipSdp::doCodecsMatch() const // logic for this will be in sdp stack
 
     
 void
-SipSdp::setConnAddress(const SdpConnection& connAddr)
+SipSdp::setConnAddress(const SdpConnection& connAddr, const char* dbg)
 {
-    sdpDescriptor.setConnection(connAddr);
+    sdpDescriptor.setConnection(connAddr, dbg);
 }
 
 

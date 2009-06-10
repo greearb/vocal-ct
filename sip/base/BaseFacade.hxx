@@ -52,9 +52,6 @@
  */
 
 
-static const char* const BaseFacade_hxx_Version = 
-    "$Id: BaseFacade.hxx,v 1.2 2004/06/17 06:56:51 greear Exp $";
-
 
 #include <string>
 #include "NetworkAddress.h"

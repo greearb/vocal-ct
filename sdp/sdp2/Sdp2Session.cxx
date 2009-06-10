@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SdpSession_cxx_Version =
-    "$Id: Sdp2Session.cxx,v 1.1 2004/05/01 04:15:24 greear Exp $";
-
 
 #include "global.h"
 #include "debug.h"
@@ -433,7 +430,7 @@ SdpSession::setNcs ()
 
     SdpConnection conn;
     // User needs to call setUnicast()
-    setConnection (conn);
+    setConnection (conn, "setNcs");
 
     SdpBandwidth bw;
     setBandwidth (bw);
@@ -669,8 +666,9 @@ SdpSession::encodeMedia (ostrstream& s)
 
 ///
 void
-SdpSession::setConnection (const SdpConnection& conn)
+SdpSession::setConnection (const SdpConnection& conn, const char* dbg)
 {
+    //cpLog(LOG_ERR, "setConnection, this: %p  dbg: %s  conn: %s\n", this, dbg, conn.getUnicast().c_str());
     if (!connection)
     {
         connection = new SdpConnection;
@@ -791,6 +789,9 @@ bool SdpSession::decode(Data buffer)
     }
 
     bool result = decode(lines);
+
+    //cpLog(LOG_ERR, "SdpSession: %p  decoded: %s\nencode: %s\n",
+    //      this, buffer.c_str(), encode().c_str());
 
     return result;
 }
@@ -981,9 +982,7 @@ bool SdpSession::decode(list <Data>& lines)
                 s = (*linecount);
 		s.parse("=");
 
-//                s = (*linecount);
-//                s.erase(0, 2);
-//                chomp (&s);
+                //cpLog(LOG_ERR, "creating SdpConnections, s: %s, this: %p", s.c_str(), this);
 
                 //create the connection object, and store details there.
                 try

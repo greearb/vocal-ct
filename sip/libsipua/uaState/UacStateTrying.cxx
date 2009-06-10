@@ -112,7 +112,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
       //Received a request, get the received IP and
       //Set it in SDP
       Data receivedIp = msg->getReceivedIPName();
-//        assert(strstr(receivedIp.c_str(), ":") == NULL);
+      // Agent may choose not to make changes.
       agent.fixSdpForNat(msg, receivedIp);
 
       //Notify CC
