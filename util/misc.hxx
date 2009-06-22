@@ -78,10 +78,10 @@ uint64 vgetCurMsFromClock();
 #endif
 #endif
 
-#define __u8  uint8
-#define __u16 uint16
-#define __u32 uint32
-#define __u64 uint64
+//#define __u8  uint8
+//#define __u16 uint16
+//#define __u32 uint32
+//#define __u64 uint64
 
 const char* vtoStringIp(uint32 ip);
 int vtoIpString(const char* ip, uint32& retval);
