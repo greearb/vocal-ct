@@ -79,11 +79,13 @@ StateUacRinging::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
                  throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
+    msg->assertNotDeleted();
     statusMsg.dynamicCast(msg);
     assert(statusMsg != 0);
+    statusMsg->assertNotDeleted();
     int statusCode = statusMsg->getStatusLine().getStatusCode();
     cpLog(LOG_DEBUG, "StateTrying::recvStatus[%s]", statusMsg->encode().logData());
-    if(msg->getCSeq().getMethod() == INVITE_METHOD) {
+    if (msg->getCSeq().getMethod() == INVITE_METHOD) {
        if(statusCode == 200) {
           agent.inCall();
        }

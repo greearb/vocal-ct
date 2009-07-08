@@ -401,6 +401,7 @@ void
 UaCallControl::handleGuiEvents(Sptr<GuiEvent> gEvent) {
    cpLog(LOG_DEBUG, "Handling GUI event Key (%s), value:(%s)",
          gEvent->getKey().c_str(), gEvent->getValue().c_str());
+   gEvent->assertNotDeleted();
    switch (gEvent->getType()) {
    case G_ACCEPT: {
       Sptr<CallAgent> cAgent = getActiveCall();

@@ -111,11 +111,17 @@ MediaController::MediaController(uint16 tos, uint32 priority,
       //Check to see if port is free
       try {
          UdpStack uStack(_tos, _skb_priority, false, local_ip, localDevToBindTo, 0, i , i );
-         Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
-         myNetworkResList.push_back(res);
+         if (uStack.getRxPort() == 0) {
+            cpLog(LOG_ERR, "Port %s:%d is busy (probe), try next", local_ip.c_str(), i);
+         }
+         else {
+            Sptr<NetworkRes> res = new NetworkRes(local_ip, i);
+            cpLog(LOG_ERR, "Adding NetworkRes: %s\n", res->toString().c_str());
+            myNetworkResList.push_back(res);
+         }
       }
       catch(...) {
-         cpLog(LOG_ERR, "Port %d is busy, try next", i);
+         cpLog(LOG_ERR, "Port %s:%d is busy, try next", local_ip.c_str(), i);
       }
    }
 
@@ -267,7 +273,7 @@ int MediaController::createSessionImpl(string& localAddr, int& port, const char*
    }
    if (localRes == 0) {
       cpLog(LOG_ERR, "No Network resource is free, debug: %s", debug);
-      assert("No Ntwk Resource free" == "bug");
+      assert(false);
    }
 
    Sptr<MediaSession> mSession = new MediaSession(sId, localRes, _tos, _skb_priority,
