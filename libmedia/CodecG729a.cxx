@@ -53,6 +53,7 @@
 
 #include "global.h"
 #include <cassert>
+#include <stdlib.h>
 
 #include "codec/g711.h"
 #include "CodecG729a.hxx"
