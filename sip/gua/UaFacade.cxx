@@ -130,9 +130,13 @@ UaFacade& UaFacade::instance() {
    return *(myInstance.getPtr());
 }
 
-void
-UaFacade::initialize(const Data& applName,
-                     unsigned short  defaultSipPort, bool nat)
+#ifdef USE_LANFORGE
+void UaFacade::initialize(const Data& applName, unsigned short  defaultSipPort,
+                          bool nat, LFVoipThread* lfthread)
+#else
+void UaFacade::initialize(const Data& applName,
+                          unsigned short  defaultSipPort, bool nat)
+#endif
 {
     assert(myInstance == 0);
     
@@ -201,24 +205,38 @@ UaFacade::initialize(const Data& applName,
     }
     cpLog(LOG_ERR, "About to create UaFacade, tos: %i  priority: %i vad_on: %d vadmsbeforesuppression: %d local_ip: %s\n",
           tos, priority, vad_on, vadmsbeforesuppression, local_ip.c_str());
+#ifdef USE_LANFORGE
+    myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
+                              NAT_HOST, transport, proxyAddr, nat,
+                              va, lfthread);
+#else
     myInstance = new UaFacade(applName, tos, priority, local_ip, defaultSipPort,
                               NAT_HOST, transport, proxyAddr, nat,
                               va);
+#endif
 }
 
 
 // _localIp is the real local IP to use, ie pick whatever hostname resolves
 //  to even if you are not trying to bind to a specific local interface.
+#ifdef USE_LANFORGE
+UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
+                   const string& _localIp,
+                   unsigned short _localSipPort, const string& _natIp,
+                   int _transport, const NetworkAddress& proxyAddr,
+                   bool nat, VADOptions& vadOptions__, LFVoipThread* lfthread) :
+      BaseFacade(_localIp, _localSipPort, _natIp, _transport, proxyAddr, nat)
+      , myLFThread(lfthread)
+      , vad_options(vadOptions__)
+#else
 UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
                    const string& _localIp,
                    unsigned short _localSipPort, const string& _natIp,
                    int _transport, const NetworkAddress& proxyAddr,
                    bool nat, VADOptions& vadOptions__) :
       BaseFacade(_localIp, _localSipPort, _natIp, _transport, proxyAddr, nat)
-#ifdef USE_LANFORGE
-      , myLFThread(NULL)
-#endif
       , vad_options(vadOptions__)
+#endif
 {
    DEBUG_MEM_USAGE("Beginning Facade constructor");
    try {

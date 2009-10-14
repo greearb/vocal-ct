@@ -147,12 +147,12 @@ int main(const int argc, const char**argv) {
 
       bool natme = (UaConfiguration::instance().getValue(OverrideSdpConnectionTag) == "yes");
 
-      UaFacade::initialize("gua", localSipPort, natme);
-
 #ifdef USE_LANFORGE
       cpLog(LOG_ERR, "About to initialize LANforge thread...\n");
-      LFVoipThread* lf_thread = new LFVoipThread(&(UaFacade::instance()), argv, argc);
-      UaFacade::instance().setLFThread(lf_thread);
+      LFVoipThread* lf_thread = new LFVoipThread(argv, argc);
+      UaFacade::initialize("gua", localSipPort, natme, lf_thread);
+#else
+      UaFacade::initialize("gua", localSipPort, natme);
 #endif
 
       DEBUG_MEM_USAGE("About to run facade");

@@ -100,8 +100,13 @@ public:
    static UaFacade& instance();
 
    ///Constructor to initialze UaFacade global instance.Should be called only once
+#ifdef USE_LANFORGE
+   static void initialize(const Data& applName, unsigned short  defaultSipPort,
+                          bool nat, LFVoipThread* lfthread);
+#else
    static void initialize(const Data& applName,
                           unsigned short  defaultSipPort, bool nat);
+#endif
 
    static string getBareUserName();
 
@@ -179,20 +184,25 @@ private:
    /** Create the Instance of UaFacade, to wrap up the application wide
     *  sipStack .
     */
+#ifdef USE_LANFORGE
    UaFacade(const Data& applName, uint16 tos, uint32 priority,
             const string& _localIp,
             unsigned short _localSipPort, const string& _natIp,
             int _transport, const NetworkAddress& proxyAddr,
-            bool nat, VADOptions& vadOptions);
+            bool nat, VADOptions& vadOptions, LFVoipThread* lfthread);
+   LFVoipThread* myLFThread;
+#else
+   UaFacade(const Data& applName, uint16 tos, uint32 priority,
+            const string& _localIp,
+            unsigned short _localSipPort, const string& _natIp,
+            int _transport, const NetworkAddress& proxyAddr,
+            bool nat, VADOptions& vadOptions, LFVoipThread* lfthread);
+#endif
 
    ///
    static Sptr<UaFacade> myInstance;
    ///
    Sptr<SipThread> mySipThread;
-
-#ifdef USE_LANFORGE
-   LFVoipThread* myLFThread;
-#endif
 
    ///
    Sptr<SipTransceiver> mySipStack;
