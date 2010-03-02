@@ -101,7 +101,7 @@ RtcpTransmitter::RtcpTransmitter (uint16 tos, uint32 priority,
       myStack->setDestination(&remoteAddr);
    }
    else {
-      myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+      myStack = new UdpStack("RtcpTransmitter", tos, priority, false, local_ip, local_dev_to_bind_to,
                              &remoteAddr, remoteMinPort, remoteMaxPort,
                              sendonly) ;
    }
@@ -124,7 +124,7 @@ RtcpTransmitter::RtcpTransmitter (uint16 tos, uint32 priority,
       myStack->setDestination(&remoteAddr);
    }
    else {
-      myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+      myStack = new UdpStack("RtcpTransmitter", tos, priority, false, local_ip, local_dev_to_bind_to,
                              &remoteAddr, remotePort, remotePort,
                              sendonly) ;
    }

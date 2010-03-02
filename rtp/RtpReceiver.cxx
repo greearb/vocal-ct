@@ -90,22 +90,24 @@ static NtpTime nowTime, pastTime;
 /* --- RtpReceiver Constructor ------------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpReceiver::RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
+RtpReceiver::RtpReceiver (const char* debug_msg, uint16 tos, uint32 priority, const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localMinPort, int localMaxPort,
                           RtpPayloadType _format, int _clockrate,
                           int per_sample_size, int samplesize, int jitter_buffer_sz)
       : tmpPkt(1024)
 {
-    /// udp stack is a sendrecv stack
-   myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+   /// udp stack is a sendrecv stack
+   string dbg(debug_msg);
+   dbg += "-RtpReceiver";
+   myStack = new UdpStack (dbg.c_str(), tos, priority, false, local_ip, local_dev_to_bind_to,
                            NULL, localMinPort, localMaxPort) ;
 
    constructRtpReceiver (_format, _clockrate, per_sample_size,
                          samplesize, jitter_buffer_sz);
 }
 
-RtpReceiver::RtpReceiver (uint16 tos, uint32 priority,
+RtpReceiver::RtpReceiver (const char* debug_msg, uint16 tos, uint32 priority,
                           const string& local_ip,
                           const string& local_dev_to_bind_to,
                           int localPort, RtpPayloadType _format,
@@ -114,7 +116,9 @@ RtpReceiver::RtpReceiver (uint16 tos, uint32 priority,
       : tmpPkt(1024)
 {
    /// udp stack is a sendrecv stack
-   myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+   string dbg(debug_msg);
+   dbg += "-RtpReceiver";
+   myStack = new UdpStack (dbg.c_str(), tos, priority, false, local_ip, local_dev_to_bind_to,
                            NULL, localPort) ;
 
    constructRtpReceiver (_format, _clockrate, per_sample_size, samplesize,

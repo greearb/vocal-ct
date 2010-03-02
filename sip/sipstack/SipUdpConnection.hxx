@@ -77,7 +77,7 @@ public:
    /**
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   SipUdpConnection(uint16 tos, uint32 priority,
+   SipUdpConnection(const char* debug_msg, uint16 tos, uint32 priority,
                     const string& local_ip,
                     const string& local_dev_to_bind_to,
                     int port = SIP_PORT);

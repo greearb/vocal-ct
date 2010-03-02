@@ -113,7 +113,7 @@ public:
     *               the Speex codec requires it.
     * @param jitter_buffer_sz (in packets)
     */
-   MRtpSession(int sessionId, NetworkRes& local, 
+   MRtpSession(const char* dbg_msg, int sessionId, NetworkRes& local, 
                uint16 tos, uint32 priority,
                const string& local_dev_to_bind_to,
                NetworkRes& remote ,

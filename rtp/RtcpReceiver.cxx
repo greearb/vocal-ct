@@ -87,7 +87,7 @@ static const char* const RtcpReceiver_cxx_Version =
 RtcpReceiver::RtcpReceiver (uint16 tos, uint32 priority,
                             const string& local_ip, const string& local_dev_to_bind_to,
                             int localMinPort, int localMaxPort) {
-   myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to, NULL,
+   myStack = new UdpStack("RtcpReceiver", tos, priority, false, local_ip, local_dev_to_bind_to, NULL,
                           localMinPort, localMaxPort);
 
    constructRtcpReceiver();
@@ -96,7 +96,7 @@ RtcpReceiver::RtcpReceiver (uint16 tos, uint32 priority,
 RtcpReceiver::RtcpReceiver (uint16 tos, uint32 priority,
                             const string& local_ip, const string& local_dev_to_bind_to,
                             int localPort) {
-   myStack = new UdpStack(tos, priority, false, local_ip, local_dev_to_bind_to,
+   myStack = new UdpStack("RtcpReceiver", tos, priority, false, local_ip, local_dev_to_bind_to,
                           NULL, localPort) ;
 
    constructRtcpReceiver();

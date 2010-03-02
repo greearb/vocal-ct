@@ -79,7 +79,7 @@ public:
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     * receiver can be NULL.
     */
-   RtpTransmitter (uint16 tos, uint32 priority,
+   RtpTransmitter (const char* debug_msg, uint16 tos, uint32 priority,
                    const string& local_ip,
                    const string& local_dev_to_bind_to,
                    const char* remoteHost, int remoteMinPort,
@@ -94,7 +94,7 @@ public:
     * remote port used to default to 5000
     * receiver can be NULL.
     */
-   RtpTransmitter (uint16 tos, uint32 priority,
+   RtpTransmitter (const char* debug_msg, uint16 tos, uint32 priority,
                    const string& local_ip,
                    const string& local_dev_to_bind_to,
                    const char* remoteHost, int remotePort,

@@ -90,7 +90,7 @@ unsigned int SipTransceiver::_cnt;
 
 SipAppContext SipTransceiver::myAppContext = APP_CONTEXT_GENERIC;
 
-SipTransceiver::SipTransceiver(uint16 tos, uint32 priority,
+SipTransceiver::SipTransceiver(const char* debug_msg, uint16 tos, uint32 priority,
                                const string& local_ip,
                                const string& local_dev_to_bind_to,
                                Data adata, 
@@ -114,8 +114,9 @@ SipTransceiver::SipTransceiver(uint16 tos, uint32 priority,
            siplistenPort );
     cpLog( LOG_DEBUG_STACK, "SipStack context %s ",
            (myAppContext == APP_CONTEXT_PROXY) ? "Proxy" : "Non-Proxy" );
-
-    udpConnection = new SipUdpConnection(tos, priority, local_ip, local_dev_to_bind_to,
+    string dbg(debug_msg);
+    dbg += "-SipTransceiver";
+    udpConnection = new SipUdpConnection(dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                          siplistenPort );
     //debugMemUsage("Constructed SipUdpConnection", "gua_mem.txt");
 

@@ -110,7 +110,7 @@ MediaController::MediaController(uint16 tos, uint32 priority,
    for(int i = minRtpPort; i < maxRtpPort; i = i+2) {
       //Check to see if port is free
       try {
-         UdpStack uStack(_tos, _skb_priority, false, local_ip, localDevToBindTo, 0, i , i );
+         UdpStack uStack("MediaController()", _tos, _skb_priority, false, local_ip, localDevToBindTo, 0, i , i );
          if (uStack.getRxPort() == 0) {
             cpLog(LOG_ERR, "Port %s:%d is busy (probe), try next", local_ip.c_str(), i);
          }

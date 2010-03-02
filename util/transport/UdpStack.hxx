@@ -181,7 +181,7 @@ public:
     * If device_to_bind_to is not "",  then we'll attempt to bind to it
     * with SO_BINDTODEVICE
     */
-   UdpStack ( uint16 tos, uint32 priority,
+   UdpStack (const char* dbg, uint16 tos, uint32 priority,
               bool isBlocking, /* Are we a blocking or non-blocking socket? */
               const string& desired_local_ip,
               const string& device_to_bind_to, 
@@ -492,6 +492,7 @@ private:
    int sndCount ;
    bool   blockingFlg;
    string localDev;
+   string _dbg; // some identifying info for log messages.
 
    uint32 busy; //counter, number of times we tried to write and got EAGAIN
    uint32 drop_in_bklog; //Failed to send in the backlog

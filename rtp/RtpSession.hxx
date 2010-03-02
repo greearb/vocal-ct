@@ -131,7 +131,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     **/
-   RtpSession (uint16 tos, uint32 priority, const string& local_ip,
+   RtpSession (const char* dbg, uint16 tos, uint32 priority, const string& local_ip,
                const string& local_dev_to_bind_to,
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort,
@@ -143,7 +143,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     **/
-   RtpSession (uint16 tos, uint32 priority, const string& local_ip,
+   RtpSession (const char* dbg, uint16 tos, uint32 priority, const string& local_ip,
                const string& local_dev_to_bind_to,
                const char* remoteHost, int remotePort, int localPort,
                int rtcpRemotePort, int rtcpLocalPort, int portRange,
@@ -153,7 +153,7 @@ public:
    /** consturctor init (don't call this function)
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   void constructRtpSession (uint16 tos, uint32 priority,
+   void constructRtpSession (const char* dbg, uint16 tos, uint32 priority,
                              const string& local_ip,
                              const string& local_dev_to_bind_to,
                              const char* remoteHost, int remotePort,
@@ -168,7 +168,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int reserveRtpPort(uint16 tos, uint32 priority, const string& local_ip,
+   int reserveRtpPort(const char* dbg_msg, uint16 tos, uint32 priority, const string& local_ip,
                       const string& local_dev_to_bind_to,
                       int localMin = -1, int localMax = -1);
    /// release the rtp port
@@ -197,7 +197,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int setReceiver (uint16 tos, uint32 priority,
+   int setReceiver (const char* dbg_msg, uint16 tos, uint32 priority,
                     const string& local_ip,
                     const string& local_dev_to_bind_to,
                     int localMinPort, int rtcpLocalPort, int portRange,
@@ -208,7 +208,7 @@ public:
     * @param local_ip  Local IP to bind to, use "" for system default.
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   int setTransmiter (uint16 tos, uint32 priority,
+   int setTransmiter (const char* dbg_msg, uint16 tos, uint32 priority,
                       const string& local_ip,
                       const string& local_dev_to_bind_to,
                       const char* remoteHost, int remotePort,

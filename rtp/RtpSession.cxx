@@ -72,34 +72,34 @@
 /* --- rtp session Constructor ------------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpSession::RtpSession (uint16 tos, uint32 priority, const string& local_ip,
+RtpSession::RtpSession (const char* dbg, uint16 tos, uint32 priority, const string& local_ip,
                         const string& local_dev_to_bind_to,
                         const char* remoteHost, int remotePort, int localPort,
                         int rtcpRemotePort, int rtcpLocalPort, int portRange,
                         RtpPayloadType format, int clockrate,
                         int per_sample_size, int samplesize, int jitter_buffer_sz)
 {
-   constructRtpSession (tos, priority, local_ip, local_dev_to_bind_to,
+   constructRtpSession (dbg, tos, priority, local_ip, local_dev_to_bind_to,
                         remoteHost, remotePort, localPort, rtcpRemotePort,
                         rtcpLocalPort, portRange, format,
                         clockrate, per_sample_size, samplesize,
                         jitter_buffer_sz);
 }
 
-RtpSession::RtpSession (uint16 tos, uint32 priority, const string& local_ip,
+RtpSession::RtpSession (const char* dbg, uint16 tos, uint32 priority, const string& local_ip,
                         const string& local_dev_to_bind_to,
                         const char* remoteHost, int remotePort, int localPort,
                         int rtcpRemotePort, int rtcpLocalPort,
                         RtpPayloadType format, int clockrate, int per_sample_size,
                         int samplesize, int jitter_buffer_sz)
 {
-   constructRtpSession (tos, priority, local_ip, local_dev_to_bind_to,
+   constructRtpSession (dbg, tos, priority, local_ip, local_dev_to_bind_to,
                         remoteHost, remotePort, localPort, rtcpRemotePort,
                         rtcpLocalPort, 0, format, clockrate, per_sample_size,
                         samplesize, jitter_buffer_sz);
 }
 
-void RtpSession::constructRtpSession (uint16 tos, uint32 priority,
+void RtpSession::constructRtpSession (const char* debug_msg, uint16 tos, uint32 priority,
                                       const string& local_ip,
                                       const string& local_dev_to_bind_to,
                                       const char* remoteHost,
@@ -119,26 +119,29 @@ void RtpSession::constructRtpSession (uint16 tos, uint32 priority,
    recv = NULL; tran = NULL;
    rtcpTran = NULL, rtcpRecv = NULL;
 
+   string dbg(debug_msg);
+   dbg += "-RtpSession";
+
    if (localPort != 0) {
       if (portRange != 0)
-         recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+         recv = new RtpReceiver (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                  localPort, localPort + portRange,
                                  format, clockrate, per_sample_size,
                                  samplesize, jitter_buffer_sz);
       else
-         recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+         recv = new RtpReceiver (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                  localPort, format, clockrate, per_sample_size,
                                  samplesize, jitter_buffer_sz);
    }
 
    if (remotePort != 0) {
       if (portRange != 0)
-         tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+         tran = new RtpTransmitter (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                     remoteHost, remotePort,
                                     remotePort + portRange, format,
                                     clockrate, per_sample_size, samplesize, recv);
       else
-         tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+         tran = new RtpTransmitter (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                     remoteHost, remotePort, format,
                                     clockrate, per_sample_size, samplesize, recv);
    }
@@ -238,13 +241,15 @@ RtpSession::~RtpSession ()
     }
 }
 
-int RtpSession::reserveRtpPort(uint16 tos, uint32 priority,
+int RtpSession::reserveRtpPort(const char* debug_msg, uint16 tos, uint32 priority,
                                const string& local_ip,
                                const string& local_dev_to_bind_to,
                                int localMin, int localMax) {
    if ( recv == 0 ) {
       //let RtpReceiver() automatically generate a port number
-      recv = new RtpReceiver(tos, priority, local_ip, local_dev_to_bind_to,
+      string dbg(debug_msg);
+      dbg += "-RtpSession, reserveRtpPort";
+      recv = new RtpReceiver(dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                              localMin, localMax,
                              rtpPayloadPCMU, 8000, 1, 160, 8);
    }
@@ -454,7 +459,7 @@ RtpSessionState RtpSession::getSessionState () {
    return sessionState;
 }
 
-int RtpSession::setReceiver (uint16 tos, uint32 priority,
+int RtpSession::setReceiver (const char* debug_msg, uint16 tos, uint32 priority,
                              const string& local_ip,
                              const string& local_dev_to_bind_to,
                              int localPort, int rtcpLocalPort, int portRange,
@@ -473,13 +478,15 @@ int RtpSession::setReceiver (uint16 tos, uint32 priority,
    }
 
    if (localPort != 0) {
+      string dbg(debug_msg);
+      dbg += "-RtpSession, setReceiver";
       if (portRange != 0) {
          if (tran) {
             recv = new RtpReceiver(tran->getUdpStack(), format, clockrate,
                                    per_sample_size, samplesize, jitter_buffer_sz);
          }
          else {
-            recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+            recv = new RtpReceiver (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                     localPort, localPort + portRange,
                                     format, clockrate, per_sample_size,
                                     samplesize, jitter_buffer_sz);
@@ -491,7 +498,7 @@ int RtpSession::setReceiver (uint16 tos, uint32 priority,
                                    per_sample_size, samplesize, jitter_buffer_sz);
          }
          else {
-            recv = new RtpReceiver (tos, priority, local_ip, local_dev_to_bind_to,
+            recv = new RtpReceiver (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                     localPort, format, clockrate, per_sample_size,
                                     samplesize, jitter_buffer_sz);
          }
@@ -541,7 +548,7 @@ int RtpSession::setReceiver (uint16 tos, uint32 priority,
 }
 
 
-int RtpSession::setTransmiter(uint16 tos, uint32 priority,
+int RtpSession::setTransmiter(const char* debug_msg, uint16 tos, uint32 priority,
                               const string& local_ip,
                               const string& local_dev_to_bind_to,
                               const char* remoteHost, int remotePort,
@@ -565,7 +572,9 @@ int RtpSession::setTransmiter(uint16 tos, uint32 priority,
          tran->initRtpTransmitter(format, clockrate, per_sample_size, samplesize);
       }
       else {
-         tran = new RtpTransmitter (tos, priority, local_ip, local_dev_to_bind_to,
+         string dbg(debug_msg);
+         dbg += "-RtpSession::setTransmitter";
+         tran = new RtpTransmitter (dbg.c_str(), tos, priority, local_ip, local_dev_to_bind_to,
                                     remoteHost, remotePort, format,
                                     clockrate, per_sample_size, samplesize,
                                     recv);

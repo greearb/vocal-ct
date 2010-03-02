@@ -62,7 +62,7 @@ using namespace Vocal::UA;
 using namespace Vocal::SDP;
 
 
-MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
+MRtpSession::MRtpSession(const char* debug_msg, int sessionId, NetworkRes& local,
                          uint16 tos, uint32 priority,
                          const string& local_dev_to_bind_to,
                          NetworkRes& remote ,
@@ -91,7 +91,9 @@ MRtpSession::MRtpSession(int sessionId, NetworkRes& local,
 
     int pType = convertAdapterTypeToRtpType(cAdp->getType(), rtpPayloadType);
 
-    rtpStack =  new RtpSession(tos, priority, myLocalAddress->getIpName().c_str(),
+    string dbg(debug_msg);
+    dbg += "-MrtpSession";
+    rtpStack =  new RtpSession(dbg.c_str(), tos, priority, myLocalAddress->getIpName().c_str(),
                                localDevToBindTo,
                                myRemoteAddress->getIpName().c_str(), 
                                remotePort,
@@ -610,7 +612,7 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
       int remoteRtcpPort = ( remotePort > 0) ? remotePort + 1 : 0;
       rtpStack->setSessionState(rtp_session_sendrecv);
 
-      rtpStack->setTransmiter(_tos, _skb_priority,
+      rtpStack->setTransmiter("MrtpSession::adopt-tx", _tos, _skb_priority,
                               myLocalAddress->getIpName().c_str(), localDevToBindTo,
                               myRemoteAddress->getIpName().c_str(), remotePort,
                               remoteRtcpPort,
@@ -620,7 +622,7 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
 
       int localPort  = myLocalAddress->getPort();
       int localRtcpPort = ( localPort > 0) ? localPort + 1 : 0;
-      rtpStack->setReceiver(_tos, _skb_priority, myLocalAddress->getIpName().c_str(),
+      rtpStack->setReceiver("MrtpSession::adopt-rcv", _tos, _skb_priority, myLocalAddress->getIpName().c_str(),
                             localDevToBindTo, localPort, localRtcpPort, 0 /* range */,
                             (RtpPayloadType)(convertAdapterTypeToRtpType(cAdp->getType(), fmt)),
                             cAdp->getClockRate(), cAdp->getPerSampleSize(),

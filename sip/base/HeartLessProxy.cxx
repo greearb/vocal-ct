@@ -62,6 +62,7 @@ static const char* const HeartLessProxy_cxx_Version =
 using namespace Vocal;
 
 HeartLessProxy::HeartLessProxy( 
+    const char* debug_msg,
     const Sptr < Builder >  builder,
     uint16 tos, uint32 priority,
     const string&           local_ip,
@@ -78,10 +79,12 @@ HeartLessProxy::HeartLessProxy(
     myBuilder = builder;
     myBuilder->setCallContainer(myCallContainer);
     
+    string dbg(debug_msg);
+    dbg += "-HeartLessProxy";
     //  Filter option controls which transceiver object is created for the
     //  sip stack.
     // Create non-blocking sipstack.
-    mySipStack = new SipTransceiver(tos, priority, local_ip,
+    mySipStack = new SipTransceiver(dbg.c_str(), tos, priority, local_ip,
                                     local_dev_to_bind_to, applName,
                                     defaultSipPort, nat, aContext, false);
 

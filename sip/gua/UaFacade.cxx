@@ -307,7 +307,7 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
             cpLog(LOG_ERR, "Creating SipTransceiver on local_ip: %s:%d, dev: %s\n",
                   cfg_local_ip.c_str(), defaultSipPort, cfg_local_sip_dev.c_str());
             DEBUG_MEM_USAGE("Creating SipTransceiver.");
-            mySipStack = new SipTransceiver(tos, priority, cfg_local_ip, cfg_local_sip_dev,
+            mySipStack = new SipTransceiver("UaFacade()", tos, priority, cfg_local_ip, cfg_local_sip_dev,
                                             applName, defaultSipPort, nat,
                                             APP_CONTEXT_GENERIC, false);
             cpLog(LOG_ERR, "Created SipTransceiver...\n");

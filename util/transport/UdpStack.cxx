@@ -161,7 +161,7 @@ typedef unsigned int  uintptr_t;
 
 static const char separator[7] = "\n****\n";
 
-UdpStack::UdpStack ( uint16 tos, uint32 priority,
+UdpStack::UdpStack ( const char* debug_msg, uint16 tos, uint32 priority,
                      bool isBlocking, /* Are we a blocking or non-blocking socket? */
                      const string& local_ip,
                      const string& device_to_bind_to,
@@ -194,6 +194,9 @@ UdpStack::UdpStack ( uint16 tos, uint32 priority,
 {
    _tos = tos;
    _skb_priority = priority;
+   _dbg = debug_msg;
+
+   cpLog(LOG_ERR, "Creating UdpStack: %p  dbg: %s\n", this, _dbg.c_str());
 
    mode = udpMode;
 
@@ -367,13 +370,13 @@ int UdpStack::doServer ( int minPort, int maxPort) {
        
        if (bind(socketFd, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
           // failed, so keep trying
-          cpLog(LOG_ERR, "WARNING:  failed to bind to ip: %s(0x%x)  port: %d, error: %s\n",
-                desiredLocalIp.c_str(), lip, localPort, VSTRERROR);
+          cpLog(LOG_ERR, "WARNING:  failed to bind to ip: %s(0x%x)  port: %d, error: %s  dbg: %s  this: %p\n",
+                desiredLocalIp.c_str(), lip, localPort, VSTRERROR, _dbg.c_str(), this);
        }
        else {
           // successful binding occured
-          cpLog(LOG_WARNING, "NOTE:  bound to ip: %s(0x%x)  port: %d",
-                desiredLocalIp.c_str(), lip, localPort);
+          cpLog(LOG_WARNING, "NOTE:  bound to ip: %s(0x%x)  port: %d  dbg: %s this: %p",
+                desiredLocalIp.c_str(), lip, localPort, _dbg.c_str(), this);
 
 #ifdef __linux__
           if (localDev.size()) {
@@ -1193,8 +1196,8 @@ UdpStack::leaveMulticastGroup( NetworkAddress group,
 }
 
 
-UdpStack::~UdpStack()
-{
+UdpStack::~UdpStack() {
+   cpLog(LOG_ERR, "Deleting UdpStack: %p  dbg: %s\n", this, _dbg.c_str());
    if (in_log) {
       in_log->close();
       delete in_log;

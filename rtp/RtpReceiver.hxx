@@ -121,7 +121,7 @@ public:
    /** using specified port
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
+   RtpReceiver (const char* dbg_msg, uint16 tos, uint32 priority, const string& local_ip,
                 const string& local_dev_to_bind_to,
                 int localPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,
@@ -130,7 +130,7 @@ public:
    /** using port range
     * @param local_dev_to_bind_to  If not "", we'll bind to this device with SO_BINDTODEV
     */
-   RtpReceiver (uint16 tos, uint32 priority, const string& local_ip,
+   RtpReceiver (const char* dbg_msg, uint16 tos, uint32 priority, const string& local_ip,
                 const string& local_dev_to_bind_to,
                 int localMinPort, int localMaxPort,
                 RtpPayloadType _format, int _clockrate, int per_sample_size,

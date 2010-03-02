@@ -75,7 +75,7 @@
 /* --- RtpTransmitter Constructor ---------------------------------- */
 /* ----------------------------------------------------------------- */
 
-RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
+RtpTransmitter::RtpTransmitter (const char* debug_msg, uint16 tos, uint32 priority,
                                 const string& local_ip,
                                 const string& local_dev_to_bind_to,
                                 const char* remoteHost,
@@ -94,7 +94,9 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
        myStack->setDestination(&remoteAddr);
     }
     else {
-       myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+       string dbg(debug_msg);
+       dbg += "-RtpTransmitter";
+       myStack = new UdpStack (dbg.c_str(), tos, priority, false, local_ip, local_dev_to_bind_to,
                                &remoteAddr, remoteMinPort,
                                remoteMaxPort, sendonly) ;
     }
@@ -102,7 +104,7 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
 }
 
 
-RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
+RtpTransmitter::RtpTransmitter (const char* debug_msg, uint16 tos, uint32 priority,
                                 const string& local_ip,
                                 const string& local_dev_to_bind_to,
                                 const char* remoteHost, int remotePort,
@@ -120,7 +122,9 @@ RtpTransmitter::RtpTransmitter (uint16 tos, uint32 priority,
       myStack->setDestination(&remoteAddr);
    }
    else {
-      myStack = new UdpStack (tos, priority, false, local_ip, local_dev_to_bind_to,
+      string dbg(debug_msg);
+      dbg += "-RtpTransmitter";
+      myStack = new UdpStack (dbg.c_str(), tos, priority, false, local_ip, local_dev_to_bind_to,
                               &remoteAddr, remotePort,
                               remotePort, sendonly) ;
    }

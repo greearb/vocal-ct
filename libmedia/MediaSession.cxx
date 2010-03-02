@@ -228,7 +228,7 @@ void MediaSession::addToSession( SdpSession& localSdp, SdpSession& remoteSdp) {
       //Create an RTP session
       NetworkRes localRes(lAddr, lPort);
       NetworkRes remoteRes(rAddr, rPort);
-      myRtpSession = new MRtpSession(mySessionId, localRes,
+      myRtpSession = new MRtpSession("MediaSession::addToSession", mySessionId, localRes,
                                      _tos, _skb_priority,
                                      localDevToBindTo,
                                      remoteRes,

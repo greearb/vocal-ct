@@ -73,12 +73,12 @@ int SipUdpConnection::Udpretransmittimemax = retransmitTimeMax;
 
 atomic_t SipUdpConnection::_cnt;
 
-SipUdpConnection::SipUdpConnection(uint16 tos, uint32 priority,
+SipUdpConnection::SipUdpConnection(const char* debug_msg, uint16 tos, uint32 priority,
                                    const string& local_ip,
                                    const string& local_dev_to_bind_to,
                                    int port)
     : randomLosePercent(0),
-      udpStack(tos, priority, false, local_ip, local_dev_to_bind_to, NULL, port ) {
+      udpStack(debug_msg, tos, priority, false, local_ip, local_dev_to_bind_to, NULL, port ) {
 
     atomic_inc(&_cnt);
 }
