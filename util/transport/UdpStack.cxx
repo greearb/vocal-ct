@@ -382,6 +382,7 @@ int UdpStack::doServer ( int minPort, int maxPort) {
           if (localDev.size()) {
              // Bind to specific device.
              char dv[15 + 1];
+             memset(dv, 0, sizeof(dv));
              strncpy(dv, localDev.c_str(), 15);
              if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
                             dv, 15 + 1)) {

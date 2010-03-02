@@ -240,6 +240,8 @@ int main(const int argc, const char**argv) {
    dumpInstanceCount("destroyed all singletons");
 
    cpLog(LOG_ERR, "Exiting gua...\n");
+   cpLogDeleteInstance(); // clean up memory to make valgrind happier.
+
    cerr << "Exiting gua..." << endl;
 }//main
 

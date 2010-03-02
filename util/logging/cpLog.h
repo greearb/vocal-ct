@@ -58,14 +58,6 @@ the priority system of Unix syslog and used by all VOCAL servers
 @author see CVS
 */
 
-/**
-The CVS version, compiled in so users can query the binaries to find version
-information.  (The use of $Id makes CVS automatically insert its internal
-version code for the file into the file itself.)
-*/  
-static const char* const cpLogHeaderVersion =
-    "$Id: cpLog.h,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include <stdarg.h>
 
 
@@ -317,6 +309,8 @@ before it begins logging.
 */
 extern void cpLogSetLabel (const char* label);
 
+extern void cpLogDeleteInstance();
+
 extern void cpLogSetFileSize (const int size);
 
 extern void cpLogSetNumOfBackupFiles (const int num);
@@ -361,14 +355,5 @@ extern const char* cpLogPriorityToStr(int priority);
 #ifdef __cplusplus
 }
 #endif
-
-
-
-/* Local Variables: */
-/* c-file-style: "stroustrup" */
-/* indent-tabs-mode: nil */
-/* c-file-offsets: ((access-label . -) (inclass . ++)) */
-/* c-basic-offset: 4 */
-/* End: */
 
 #endif

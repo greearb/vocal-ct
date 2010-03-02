@@ -124,6 +124,7 @@ int TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to
    if (local_dev_to_bind_to.size()) {
       // Bind to specific device.
       char dv[15 + 1];
+      memset(dv, 0, sizeof(dv));
       strncpy(dv, local_dev_to_bind_to.c_str(), 15);
       if (setsockopt(_serverConn->_connId, SOL_SOCKET, SO_BINDTODEVICE,
                      dv, 15 + 1)) {

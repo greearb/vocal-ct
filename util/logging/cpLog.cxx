@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const cpLog_cxx_Version =
-    "$Id: cpLog.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #ifndef __MINGW32__
 #include <syslog.h>
@@ -151,6 +147,8 @@ class CpLogPriority
         static void setLabelThread(int id, const char* label);
         static void clearLabelThread(int id);
 
+        static void deleteInstance();
+
     protected:
         CpLogPriority();
 
@@ -181,13 +179,18 @@ CpLogPriority::CpLogPriority()
 
 
 
-CpLogPriority* CpLogPriority::getInstance()
-{
-    if (!instance_)
-    {
+CpLogPriority* CpLogPriority::getInstance() {
+    if (!instance_) {
         instance_ = new CpLogPriority;
     }
     return instance_;
+}
+
+void CpLogPriority::deleteInstance() {
+    if (instance_) {
+        delete instance_;
+        instance_ = NULL;
+    }
 }
 
 
@@ -660,10 +663,12 @@ cpLogClearPriorityThread (int id)
 }
 
 
-void
-cpLogSetLabel (const char* label)
-{
+void cpLogSetLabel (const char* label) {
     CpLogPriority::setLabel(label);
+}
+
+void cpLogDeleteInstance() {
+    CpLogPriority::deleteInstance();
 }
 
 void

@@ -52,10 +52,6 @@
  */
 
 
-static const char* const CpPriorityLog_hxx_Version = 
-    "$Id: CpPriorityLog.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "PriorityLog.hxx"
 #include "cpLog.h"
 

@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const SipMsg_cxx_Version = 
-    "$Id: SipMsg.cxx,v 1.6 2006/03/12 07:41:28 greear Exp $";
 
 #include "global.h"
 #include <sstream>
@@ -129,6 +127,7 @@ SipMsg::SipMsg(const string& _local_ip, const char* class_name)
     myMimeList(_local_ip),
     myNextHopIsAProxy(false)
 {
+    retry = false;
     _cnt++;
 }
 
