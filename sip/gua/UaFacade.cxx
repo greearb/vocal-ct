@@ -299,8 +299,6 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
       //   cpLog(LOG_ALERT, "Failed to register with atexit()");
       //};
       
-      DEBUG_MEM_USAGE("Before setting up GUI thread.");
-
       DEBUG_MEM_USAGE("After GUI thread.");
       while (true) {
          try {
@@ -397,7 +395,18 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
       if (UaConfiguration::instance().getValue(UseLANforgeDeviceTag) != "0") {
          pr = atoi(UaConfiguration::instance().getValue(G729aPrioTag).c_str());
          if (pr != -1) {
-            priority_map[G729] = pr;
+            if (sizeof(void*) == 8) {
+               const char* msg = "ERROR:  g.729 codec not supported on 64-bit builds.  "
+                  "You can use a 32-bit build on 64-bit OS normally, however.\n";
+               cpLog(LOG_ERR, "%s", msg);
+               if (pr == 1) {
+                  // specifically use this...we must fail with fatal error here.
+                  global_error = msg;
+               }
+            }
+            else {
+               priority_map[G729] = pr;
+            }
          }
       }
 

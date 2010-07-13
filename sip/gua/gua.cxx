@@ -75,6 +75,7 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 int gua_running = 1;
+string global_error;
 
 void dumpInstanceCount(const char* msg) {
    ostringstream oss;

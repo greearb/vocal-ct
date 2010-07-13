@@ -13,6 +13,7 @@
 #endif
 
 extern int gua_running;
+extern string global_error; // fatal error during startup if not blank.
 
 void debugMemUsage(const char* msg, const char* file, int line);
 
