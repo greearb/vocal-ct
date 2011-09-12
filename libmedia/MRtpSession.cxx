@@ -534,7 +534,6 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
       SdpMedia* rMedia = (*itr);
       string rAddr;
       string lAddr;
-      int lPort = -1;
       int rPort;
       int sample_rate = 8000;
 
@@ -583,7 +582,6 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
          else {
             lAddr = localAddr;
          }
-         lPort = lMedia->getPort();
          break;
       }//for
       if (rMedia->getConnection()) {
@@ -595,7 +593,7 @@ int MRtpSession::adopt(SdpSession& localSdp, SdpSession& remoteSdp) {
          rAddr = remAddr;
       }
       
-      //Now if we have lAddr, rAddr, lport, rPort and codec adaptor
+      //Now if we have lAddr, rAddr, rPort and codec adaptor
       if ((lAddr.size() ==0) || (rAddr.size() == 0) || (cAdp == 0)) {
          cpLog(LOG_ERR, "Media is not setup correctly, lAddr: %s  rAddr: %s  cAdp: %p, fmt: %d\n",
                lAddr.c_str(), rAddr.c_str(), cAdp.getPtr(), fmt);

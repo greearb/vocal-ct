@@ -201,7 +201,7 @@ class SocketOptions
 		    	    throw ( Vocal::SystemException );
 				    
 
-    	mutable Socket	    &	socket_;
+    	Socket&	socket_;
 };
 
 

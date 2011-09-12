@@ -228,9 +228,9 @@ SipAlso::parseNameInfo(const Data& data)
 {
     Data newnameinfo;
     Data nameinfo = data;
-    int ret = nameinfo.match(":", &newnameinfo, true);
+    nameinfo.match(":", &newnameinfo, true);
     Data newnameinf;
-    ret = nameinfo.match(" ", &newnameinf, true);
+    nameinfo.match(" ", &newnameinf, true);
     setDisplayName(nameinfo);
 }
 

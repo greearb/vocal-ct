@@ -312,9 +312,6 @@ void RtcpReceiver::readSR (RtcpHeader* head) {
       
       // move over the ssrc of packet sender
       RtpSrc* sender = reinterpret_cast < RtpSrc* > (middle);
-      RtpSrc ssrc;
-      
-      ssrc = ntohl(*sender);
       middle += sizeof(RtpSrc);
       
       packetReceived++;
