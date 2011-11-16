@@ -52,8 +52,6 @@
  *
  */
 
-static const char* const RtcpPacket_hxx_Version =
-    "$Id: RtcpPacket.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
 
 
 #include "Rtcp.hxx"
@@ -71,63 +69,63 @@ static const char* const RtcpPacket_hxx_Version =
  */
 class RtcpPacket : public BugCatcher
 {
-    public:
-        ///
-        RtcpPacket ();
-        ///
-        virtual ~RtcpPacket ();
+public:
+   ///
+   RtcpPacket ();
+   ///
+   virtual ~RtcpPacket ();
 
-        /// Pointer to beginning of memory of packet
-        char* getPacketData ();
+   /// Pointer to beginning of memory of packet
+   char* getPacketData ();
 
-        /** Pointer to beginning of free mememory of packet.
-            Must call allocData() afterwards saying how much you used
-         **/
-        char* freeData ();
+   /** Pointer to beginning of free mememory of packet.
+       Must call allocData() afterwards saying how much you used
+   **/
+   char* freeData ();
 
-        /// Increases packet memory usage by newSize. Returns newSize
-        int allocData (int newSize);
+   /// Increases packet memory usage by newSize. Returns newSize
+   int allocData (int newSize);
 
-        /// Total mem allocated in packet
-        int getPacketAlloc();
+   /// Total mem allocated in packet
+   int getPacketAlloc();
 
-        /// Unused memory in payload area
-        int getUnused ();
+   /// Unused memory in payload area
+   int getUnused ();
 
-        /** Sets total unused memory in packet.
-            Useful when receiving packet into buffer
-         **/
-        void setTotalUsage (int size);
+   /** Sets total unused memory in packet.
+       Useful when receiving packet into buffer
+   **/
+   void setTotalUsage (int size);
 
-        /** Total unused memory in packet.
-            Useful when transmitting packet
-         **/
-        int getTotalUsage ();
+   /** Total unused memory in packet.
+       Useful when transmitting packet
+   **/
+   int getTotalUsage () const { return packetAlloc - unusedSize; }
 
-        ///
-        int getVersion ();
-        ///
-        int getPadbyteFlag ();
-        ///
-        int getCount ();
-        ///
-        RtcpType getPayloadType ();
-        ///
-        int getLength ();
+   ///
+   int getVersion ();
+   ///
+   int getPadbyteFlag ();
+   ///
+   int getCount ();
+   ///
+   RtcpType getPayloadType ();
+   ///
+   int getLength ();
+   
+   /// debug
+   void printPacket ();
 
-        /// debug
-        void printPacket ();
+private:
 
-    private:
+   /// Pointer to raw packet memory
+   char packetData[RTCP_PACKETSIZE];
 
-        /// Pointer to raw packet memory
-        char packetData[RTCP_PACKETSIZE];
+   /// Allocated raw packet memory size
+   int packetAlloc;
 
-        /// Allocated raw packet memory size
-        int packetAlloc;
-
-        /// Amount of unused packet memory
-        int unusedSize;
+   /// Amount of unused packet memory
+   int unusedSize;
 };
 
 

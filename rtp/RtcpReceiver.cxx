@@ -157,9 +157,10 @@ int RtcpReceiver::getPacket (RtcpPacket& pkt) {
 
 
 int RtcpReceiver::isValid (RtcpPacket* p) {
-   char* begin = reinterpret_cast < char* > (p->getPacketData());
-   char* end = reinterpret_cast < char* > (begin + p->getTotalUsage());
-   RtcpHeader* middle = reinterpret_cast < RtcpHeader* > (begin);
+   int u = p->getTotalUsage();
+   char* begin = p->getPacketData();
+   char* end = begin + u;
+   RtcpHeader* middle = (RtcpHeader*)(begin);
 
    // check if known payload type for first packet
    if (middle->type != rtcpTypeSR && middle->type != rtcpTypeRR) {
@@ -172,9 +173,10 @@ int RtcpReceiver::isValid (RtcpPacket* p) {
    }
 
    // check header lengths
-   while (begin < end && (int)middle->version == RTP_VERSION) {
+   while ((begin + sizeof(RtcpHeader)) <= end
+          && (int)middle->version == RTP_VERSION) {
       begin += (ntohs(middle->length) + 1) * sizeof(RtpSrc);
-      middle = reinterpret_cast < RtcpHeader* > (begin);
+      middle = (RtcpHeader*)(begin);
    }
 
    if (begin != end) {
@@ -311,7 +313,6 @@ void RtcpReceiver::readSR (RtcpHeader* head) {
       middle = (char*)head + sizeof(RtcpHeader);
       
       // move over the ssrc of packet sender
-      RtpSrc* sender = reinterpret_cast < RtpSrc* > (middle);
       middle += sizeof(RtpSrc);
       
       packetReceived++;

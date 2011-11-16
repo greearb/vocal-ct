@@ -142,11 +142,6 @@ void RtcpPacket::setTotalUsage (int size)
     unusedSize = packetAlloc - size;
 }
 
-int RtcpPacket::getTotalUsage ()
-{
-    return packetAlloc - unusedSize;
-}
-
 
 
 /* --- Packet Header functions ------------------------------------- */

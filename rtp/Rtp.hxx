@@ -51,10 +51,6 @@
  *
  */
 
-static const char* const Rtp_hxx_Version =
-    "$Id: Rtp.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
-
-
 
 #include <sys/types.h>
 #include <map>

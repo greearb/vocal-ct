@@ -51,10 +51,6 @@
  *
  */
 
-static const char* const Rtcp_hxx_Version =
-    "$Id: Rtcp.hxx,v 1.1 2004/05/01 04:15:23 greear Exp $";
-
-
 
 #include "RtcpPacket.hxx"
 #include "RtcpTransmitter.hxx"
