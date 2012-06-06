@@ -43,8 +43,14 @@ ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
 # Use whatever is already in our environment.
 #CC		= gcc
 #CXX		= g++
-#RANLIB		= ranlib
-#AR		= ar
+
+ifeq ($(RANLIB),)
+RANLIB		= ranlib
+endif
+
+ifeq ($(AR),)
+AR		= ar
+endif
 
 # This is desired, forces you to fix some things...
 MKSHLIB		= $(CC) $(FPIC) -shared -Wl,-z,defs
