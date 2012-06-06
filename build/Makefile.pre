@@ -1,5 +1,3 @@
-# $Id: Makefile.pre,v 1.2 2006/03/12 07:41:28 greear Exp $
-
 # The license applies to all software incorporated in the "Vovida
 # Open Communication Application Library" except for those portions
 # incorporating third party software specifically identified as being
@@ -85,7 +83,6 @@ OSCLASS = UNIX
 VOCAL_TOOLCHAIN_TYPE		:= gnu
 VOCAL_COMPILE_TYPE 		:= debug
 
-
 ######################################################################
 #		      System Dependent Options
 ######################################################################
@@ -111,6 +108,15 @@ include $(BUILD)/Makefile.opt
 
 # the following line includes options manageable by configure
 include $(BUILD)/Makefile.conf
+
+ISMINGW=0
+ifeq ($(ARCH),i386-mingw32)
+ISMINGW=1
+endif
+ifeq ($(ARCH),i686-w64-mingw32)
+ISMINGW=1
+endif
+
 
 ######################################################################
 # the following are the guts of this makefile.  they are controlled 
@@ -144,7 +150,7 @@ endif
 #endif
 
 CONFIGURE = ./configure $(CONFIGURE_ARGS)
-ifeq ($(ARCH),i386-mingw32)
+ifeq ($(ISMINGW),1)
 CONFIGURE = cross-configure.sh $(CONFIGURE_ARGS)
 endif
 

@@ -1,4 +1,3 @@
-# $Id: Makefile.tools,v 1.8 2006/04/06 21:52:35 greear Exp $
 
 ######################################################################
 #                     Default tool names/locations
@@ -24,7 +23,7 @@
 # (e.g. big-endianness vs. little-endianness).
 
 FPIC="-fPIC"
-ifeq ($(ARCH),i386-mingw32)
+ifeq ($(ISMINGW),1)
 FPIC=
 endif
 
@@ -44,6 +43,8 @@ ifeq ($(VOCAL_TOOLCHAIN_TYPE),gnu)
 # Use whatever is already in our environment.
 #CC		= gcc
 #CXX		= g++
+#RANLIB		= ranlib
+#AR		= ar
 
 # This is desired, forces you to fix some things...
 MKSHLIB		= $(CC) $(FPIC) -shared -Wl,-z,defs
@@ -55,8 +56,6 @@ endif
 
 DEP		= $(CXX) 
 LINKER		= $(CXX) 
-RANLIB		= ranlib
-AR		= ar
 ARFLAGS		= rv
 DFLAGS		= -MM
 DMANGLE		=
@@ -95,7 +94,7 @@ ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
     START_LD_STATIC=
     CLOSE_LD_STATIC=
 else
-ifeq ($(ARCH),i386-mingw32)
+ifeq ($(ISMINGW),1)
     LDLIBS_LAST += -lstdc++
 else
     LDLIBS += -nodefaultlibs

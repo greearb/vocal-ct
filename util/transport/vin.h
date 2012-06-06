@@ -66,7 +66,7 @@
 #endif
 
 #ifdef WIN32
-typedef long ssize_t;
+//typedef long ssize_t;
 typedef int socklen_t;
 #include <sys/types.h>
 #ifndef __MINGW32__

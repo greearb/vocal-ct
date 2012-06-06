@@ -51,11 +51,6 @@
  *
  */
 
-
-/*
-$Id: global.h,v 1.2 2006/03/12 07:41:28 greear Exp $
-*/
-
 // 25/11/03 fpi
 // WorkAround Win32
 #ifdef WIN32
@@ -135,6 +130,7 @@ using namespace __gnu_cxx;
 #define strcasecmp      stricmp
 #define strncasecmp     strnicmp
 
+#if 0
 #define EWOULDBLOCK             WSAEWOULDBLOCK
 #define EINPROGRESS             WSAEINPROGRESS
 #define EALREADY                WSAEALREADY
@@ -163,13 +159,15 @@ using namespace __gnu_cxx;
 #define ETIMEDOUT               WSAETIMEDOUT
 #define ECONNREFUSED            WSAECONNREFUSED
 #define ELOOP                   WSAELOOP
-#define EHOSTDOWN               WSAEHOSTDOWN
 #define EHOSTUNREACH            WSAEHOSTUNREACH
 #define EPROCLIM                WSAEPROCLIM
 #define EUSERS                  WSAEUSERS
 #define EDQUOT                  WSAEDQUOT
 #define ESTALE                  WSAESTALE
 #define EREMOTE                 WSAEREMOTE
+#endif
+
+#define EHOSTDOWN               WSAEHOSTDOWN
 
 #if !defined(MAXHOSTNAMELEN)
 #define MAXHOSTNAMELEN  256

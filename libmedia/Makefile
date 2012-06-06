@@ -39,7 +39,7 @@ endif
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
 #  Add new entries here if your VoiceAge files are found elsewhere.
 MKSHLIB_INCDIRS += ${VOICEAGE_BASE}/source
-ifeq ($(ARCH),i386-mingw32)
+ifeq ($(ISMINGW),1)
 LIBDIRS += ${VOICEAGE_BASE}/Win32/libs
 else
 LIBDIRS += ${VOICEAGE_BASE}/Linux/libs
