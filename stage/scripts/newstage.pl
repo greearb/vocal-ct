@@ -18,7 +18,7 @@
 # this requires a file named filelist in the current directory.  That
 # file contains all of the files to be copied.
 
-require "getopts.pl";
+#use Getopt::Long;
 
 $root = $ARGV[0];
 $bin = $ARGV[1];
