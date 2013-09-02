@@ -49,14 +49,11 @@
  */
 
 
-static const char* const Sptr_cxx_Version =
-    "$Id: Sptr.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 
 #include "global.h"
 #include "Sptr.hxx"
 #ifdef __linux__
-#include <execinfo.h>
+//#include <execinfo.h>
 #endif
 #include <stdio.h>
 

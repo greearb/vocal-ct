@@ -55,6 +55,10 @@
 #include "StatusMsg.hxx"
 #include "SipVia.hxx"
 #include <errno.h>
+#ifndef WIN32
+//android needs this.
+#include "netinet/in.h"
+#endif
 
 
 using namespace Vocal;

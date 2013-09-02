@@ -161,19 +161,19 @@ class SignalSet : public Vocal::IO::Writer
         void	erase(const vector<int> &);
 
 
-	/** Returns true if the given signal is in the set.
-	 */
-        bool	contains(int) const;
+   /** Returns true if the given signal is in the set.
+    */
+   bool	contains(int);
 
 
-	/** Returns true if all the signals in the array are in the set.
-	 */
-        bool	contains(int *, size_t) const;
+   /** Returns true if all the signals in the array are in the set.
+    */
+   bool	contains(int *, size_t);
 
 
-	/** Returne true if all the signals in the vector are in the set.
-	 */
-        bool	contains(const vector<int> &) const;
+   /** Returne true if all the signals in the vector are in the set.
+    */
+   bool	contains(const vector<int> &);
 
 
 	/** Returns the vector of signal set.

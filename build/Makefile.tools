@@ -103,12 +103,21 @@ else
 ifeq ($(ISMINGW),1)
     LDLIBS_LAST += -lstdc++
 else
-    LDLIBS += -nodefaultlibs
+    ifeq ($(ANDROID),1)
+        CXXFLAGS += -DIS_ANDROID
+        CFLAGS += -DIS_ANDROID
+    else
+        LDLIBS += -nodefaultlibs
+    endif
 ifeq ($(CC),gcc -m32)
     # Special hack for cross-compiling to 32-bit on x86-64
     LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm
 else
-    LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm -lgcc_s
+    ifeq ($(ANDROID),1)
+	LDLIBS_LAST += -lstdc++
+    else
+	LDLIBS_LAST += -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh -Wl,-Bdynamic -lc -lm -lgcc_s
+    endif
 endif
 endif
     START_LD_STATIC=$(LD_STATIC)

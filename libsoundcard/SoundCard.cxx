@@ -68,7 +68,9 @@ static const char* const SoundCard_cxx_Version =
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#ifndef IS_ANDROID
 #include <sys/soundcard.h>
+#endif
 #endif
 
 #include "SoundCard.hxx"
@@ -112,6 +114,13 @@ int
 SoundCard::open()
 {
     cpLog(LOG_DEBUG, "Opening audio hardware" );
+
+#ifdef IS_ANDROID
+    // Soundcard.h not found on Android..don't care enough to fix it now.
+    // --Ben
+    cpLog(LOG_DEBUG, "Soundcard not supported on Android.");
+    return -1;
+#else
 
     // open audio device
 #ifndef WIN32
@@ -297,12 +306,13 @@ SoundCard::open()
     myMultiplier = 1;
 
     return 0;
+#endif // is not is android
 }
 
 
 bool SoundCard::writerBuffered () {
     int bufbytes = 0;
-#ifndef __MINGW32__
+#if not (defined(__MINGW32__) || defined(IS_ANDROID))
     ::ioctl(myFD, SNDCTL_DSP_GETODELAY, &bufbytes);
 #endif
     return (bufbytes > 0);
@@ -314,6 +324,10 @@ void SoundCard::write ( const unsigned char* data, int samples ) {
     int p = 0;
     int j = 0;
     int i;
+
+#ifdef IS_ANDROID
+    return;
+#else
 
     // check codec encodings
     switch( myFormat )
@@ -394,6 +408,7 @@ void SoundCard::write ( const unsigned char* data, int samples ) {
     m_aSoundCardWinOut.Write(reinterpret_cast<char*>(dataBuffer), cc);
 #endif
 #endif
+#endif
 
     return;
 }
@@ -407,6 +422,10 @@ SoundCard::read( unsigned char* data,
     int p = 0;
     int q = 0;
     int bigs;
+
+#ifdef IS_ANDROID
+    return 0;
+#else
 
     //check codec encodings
     switch( myFormat )
@@ -511,6 +530,7 @@ SoundCard::read( unsigned char* data,
     //      myFD, cc, dmp.c_str());
 
     return cc;
+#endif
 }
 
 
@@ -520,6 +540,10 @@ SoundCard::close()
     int retval = 0;
 
     cpLog(LOG_DEBUG, "Closing audio hardware" );
+
+#ifdef IS_ANDROID
+    return 0;
+#else
 
 #ifndef WIN32
     if (myFD >= 0) {
@@ -540,6 +564,7 @@ SoundCard::close()
     myFD = -1;
 
     return retval;
+#endif
 }
 
 

@@ -276,10 +276,11 @@ SignalSet::erase(const vector < int > & signum)
 
 
 bool
-SignalSet::contains(int signum) const
+SignalSet::contains(int signum)
 {
     int rc = 0;
     #ifndef WIN32
+    // NOTE:   On Android, sigismember first arg is not const. -- 
     rc = sigismember(&signals, signum);
     assert ( rc > -1 );
     #endif
@@ -288,7 +289,7 @@ SignalSet::contains(int signum) const
 
 
 bool
-SignalSet::contains(int * signum, size_t size) const
+SignalSet::contains(int * signum, size_t size)
 {
     assert( signum );
 
@@ -304,7 +305,7 @@ SignalSet::contains(int * signum, size_t size) const
 
 
 bool
-SignalSet::contains(const vector < int > & signum) const
+SignalSet::contains(const vector < int > & signum)
 {
     size_t size = signum.size();
 
