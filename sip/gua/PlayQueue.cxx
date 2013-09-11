@@ -119,14 +119,10 @@ int PlayQueue::reStart() {
         // sf_open_read figures out the file type...
         memset(&read_info, 0, sizeof(read_info));
 
-#ifdef IS_ANDROID
-        m_iFd = NULL;
-#else
 #ifndef NEW_SNDFILE
         m_iFd = ::sf_open_read(fileName.c_str(), &read_info);
 #else
         m_iFd = ::sf_open(fileName.c_str(), SFM_READ, &read_info);
-#endif
 #endif
 	if ( m_iFd != NULL )
 	{
