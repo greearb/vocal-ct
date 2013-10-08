@@ -111,6 +111,7 @@ int vparseInt(const char* s);
 bool visNumber(const char* s);
 
 string itoa(int i);
+string itoa(unsigned int i);
 string itoa(unsigned long);
 string itoa(uint16 i);
 

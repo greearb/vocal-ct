@@ -521,6 +521,12 @@ string itoa(int i) {
    return buf;
 }
 
+string itoa(unsigned int i) {
+   char buf[30];
+   snprintf(buf, 30, "%u", i);
+   return buf;
+}
+
 string itoa(unsigned long i) {
    char buf[30];
    snprintf(buf, 30, "%lu", i);
