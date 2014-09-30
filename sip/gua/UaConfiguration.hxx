@@ -102,6 +102,7 @@ typedef enum {
     UseLANforgeDeviceTag, // When true, we'll use this device for our media.
     ReadStdinTag, // Defaults to 1 (true), but if set to "0", we won't read stdin.
     G711uPrioTag, // SDP priority for this (default) protocol
+    G711aPrioTag, // SDP priority for this protocol
     SpeexPrioTag, // SDP priority for Speex codec.
     G726_16PrioTag, // SDP priority
     G726_24PrioTag, // SDP priority

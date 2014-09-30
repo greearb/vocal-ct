@@ -52,6 +52,7 @@
 #include "MediaController.hxx"
 #include "SdpHandler.hxx"
 #include "CodecG711U.hxx"
+#include "CodecG711a.hxx"
 #include "CodecG726_16.hxx"
 #include "CodecG726_24.hxx"
 #include "CodecG726_32.hxx"
@@ -133,6 +134,12 @@ MediaController::MediaController(uint16 tos, uint32 priority,
       registerCodec(cAdp);
    }
 
+   Sptr<CodecAdaptor> cAdpa = new CodecG711A();
+   itr = prio_map.find(cAdpa->getType());
+   if (itr != prio_map.end()) {
+      cAdpa->setPriority((*itr).second);
+      registerCodec(cAdpa);
+   }
 
 #ifdef USE_VOICE_AGE
    Sptr<CodecAdaptor> cAdp2 = new CodecG729a();

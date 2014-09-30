@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const NegotiateSdp_cxx_Version =
-    "$Id: MediaTest.cxx,v 1.1 2004/05/01 04:15:16 greear Exp $";
-
 #include "MediaController.hxx"
 #include "Sdp2Session.hxx"
 #include "Verify.hxx"

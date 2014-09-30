@@ -52,9 +52,6 @@
  */
 
 
-static const char* const CodecG711_hxx_Version = 
-    "$Id: CodecG711U.hxx,v 1.3 2005/08/25 00:20:41 greear Exp $";
-
 #include "CodecAdaptor.hxx"
 
 namespace Vocal

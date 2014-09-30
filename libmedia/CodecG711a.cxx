@@ -1,5 +1,3 @@
-#ifndef CodecG726_24_hxx
-#define CodecG726_24_hxx
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -51,73 +49,76 @@
  *
  */
 
+#include <stdlib.h>
+#include <string.h>
 
-#include "CodecAdaptor.hxx"
+#include "global.h"
+#include <cassert>
 
-#include <codec/g726.h>
+#include "CodecG711a.hxx"
+#include "codec/g711.h"
+#include "cpLog.h"
 
+using namespace Vocal::UA;
 
-namespace Vocal
-{
+int CodecG711A::encode(char* data, int num_samples, int per_sample_size,
+                       char* encBuf, int& encodedLength) {
+    cpLog(LOG_DEBUG_STACK,"CodecG711A::encode: %d %d", num_samples, per_sample_size);
+    if (encodedLength < num_samples) {
+       cpLog(LOG_ERR, "Not enough space to put encoded data");
+       return -1; 
+    }
 
-namespace UA
-{
+    // NOTE:  Not sure how this would handle other sample sizes,
+    //  could add support as needed.
+    assert(per_sample_size == 2);
 
-
-/** CodecG726_24
- */
-class CodecG726_24  : public CodecAdaptor {
-public:
-   /**Constructor to create a CodecAdaptor, the priority indicate
-    * the pref when multiple codecs can be used, a 0 priority means
-    * equal preferrence
-    */
-   CodecG726_24(int priority=0);
-
-   CodecG726_24(const CodecG726_24 &);
-
-   /**Decode form codec type to raw data (PCMU), caller should supply the buffer of
-    *size atleast length * 2. Returns 0 if successfull or -1 on failure
-    * @param length is in bytes
-    * @param decBufLen is the space available in decBuf, in units of bytes.
-    * @param decodedSamples  Upon return, specifies number of samples that were decoded.
-    * @param decodedPerSampleSize Upon return, 
-    */
-   virtual int decode(char* data, int length, char* decBuf, int decBufLen,
-                      int &decodedSamples, int& decodedPerSampleSize,
-                      bool is_silence);
-
-   /**Encode from raw data (PCMU) to codec type, caller should supply the buffer of
-    * size atleast > length/2. Returns 0 if successfull  or -1 on failure.
-    * @ num_samples is not necessarily the length of 'data'.  num_samples * per_sample_size
-    *     is the length of 'data' in bytes.
-    * @ param encodedLength should be max size of encBuf, in bytes, upon calling,
-    *     and will be the actuall number of bytes encoded upon return.
-    */
-   virtual int encode(char* data, int num_samples, int per_sample_size,
-                      char* encBuf, int& encodedLength);
-
-   virtual char* getSilenceFill(int& len);
-   
-   /// Virtual destructor
-   virtual ~CodecG726_24() { };
-   
-   ///
-   virtual string className() { return "CodecG726_24"; }
-
-protected:
-        
-   void commonInit();
-
-   /** Suppress copying
-    */
-   const CodecG726_24 & operator=(const CodecG726_24 &);
-
-   struct g726_state_s enc_state;
-   struct g726_state_s dec_state;
-};
-
+    short* srcData = reinterpret_cast<short*>(data);
+    for(int i = 0; i < num_samples; i++)
+    {
+        encBuf[i] = linear2alaw(srcData[i]);
+    }
+    encodedLength = num_samples;
+    return (0);
 }
-}
+ 
+int CodecG711A::decode(char* data, int length, char* decBuf, int decBufLen,
+                       int &decodedSamples, int& decodedPerSampleSize,
+                       bool is_silence) {
+   cpLog(LOG_DEBUG_STACK,"CodecG711A::decode: %d  silence: %d",
+         length, is_silence);
+   if (is_silence) {
+      cpLog(LOG_ERR, "ERROR:  G711A Codec does not support silence decode.\n");
+      return -1;
+   }
+   else {
+      if (decBufLen < length * 2) {
+         cpLog(LOG_ERR, "Not enough space to put decoded data");
+         return -1; 
+      }
+      short * retData = reinterpret_cast<short*>(decBuf);
+      char* srcData = (data);
+      for (int i = 0; i < length; i++) {
+         retData[i] = alaw2linear(srcData[i]);
+      }
+      decodedSamples = length;
+      decodedPerSampleSize = 2;
+   }
+   return (0);
+}//decode
 
-#endif
+
+char* CodecG711A::getSilenceFill(int& len) {
+   static char silence[2048];
+   int ms = atoi(myAttrValueMap["ptime"].c_str());
+   int samples = getClockRate() / (1000 / ms);
+   if (samples > 2048) {
+      cpLog(LOG_ERR, "ERROR:  too many samples, clockRate: %i  ptime: %i\n",
+            getClockRate(), ms);
+      samples = 2048;
+   }
+
+   memset(silence, 0xFF, samples);
+   len = samples;
+   return silence;
+}//getSilenceFill

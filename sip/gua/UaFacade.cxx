@@ -366,6 +366,10 @@ UaFacade::UaFacade(const Data& applName, uint16 tos, uint32 priority,
       if (pr != -1) {
          priority_map[G711U] = pr;
       }
+      pr = atoi(UaConfiguration::instance().getValue(G711aPrioTag).c_str());
+      if (pr != -1) {
+         priority_map[G711A] = pr;
+      }
       pr = atoi(UaConfiguration::instance().getValue(SpeexPrioTag).c_str());
       if (pr != -1) {
          priority_map[SPEEX] = pr;

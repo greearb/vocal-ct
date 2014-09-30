@@ -115,6 +115,7 @@ static const char* UaConfigurationTagString [] =
         "LANforge",
         "ReadStdin",
         "G711uPrio",
+        "G711aPrio",
         "SpeexPrio",
         "G726_16Prio",
         "G726_24Prio",
@@ -186,6 +187,7 @@ UaConfiguration::parseConfig()
     setValue(UseLANforgeDeviceTag, "0");
     setValue(ReadStdinTag, "1");
     setValue(G711uPrioTag, "1");
+    setValue(G711aPrioTag, "0");
     setValue(SpeexPrioTag, "0");
     setValue(G726_16PrioTag, "0");
     setValue(G726_24PrioTag, "0");
@@ -272,6 +274,7 @@ UaConfiguration::show()
     cpLog( LOG_INFO, "          Max RTP Port : %s", getValue(MaxRtpPortTag).c_str());
 
     cpLog( LOG_INFO, "       G711u Priority: %s", getValue(G711uPrioTag).c_str());
+    cpLog( LOG_INFO, "       G711a Priority: %s", getValue(G711aPrioTag).c_str());
     cpLog( LOG_INFO, "       Speex Priority: %s", getValue(SpeexPrioTag).c_str());
     cpLog( LOG_INFO, "       G726_16 Priority: %s", getValue(G726_16PrioTag).c_str());
     cpLog( LOG_INFO, "       G726_24 Priority: %s", getValue(G726_24PrioTag).c_str());

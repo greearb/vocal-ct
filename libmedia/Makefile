@@ -57,6 +57,7 @@ SRC = \
 Adaptor.cxx \
 MediaDevice.cxx \
 CodecG711U.cxx \
+CodecG711a.cxx \
 CodecAdaptor.cxx \
 CodecG726_16.cxx \
 CodecG726_24.cxx \

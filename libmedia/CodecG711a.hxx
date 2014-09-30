@@ -1,5 +1,5 @@
-#ifndef CodecG726_24_hxx
-#define CodecG726_24_hxx
+#ifndef CodecG711A_hxx
+#define CodecG711A_hxx
 
 /* ====================================================================
  * The Vovida Software License, Version 1.0 
@@ -54,29 +54,32 @@
 
 #include "CodecAdaptor.hxx"
 
-#include <codec/g726.h>
-
-
 namespace Vocal
 {
 
 namespace UA
 {
 
-
-/** CodecG726_24
+/** CodecG711U - PCM Alaw codec implementation
  */
-class CodecG726_24  : public CodecAdaptor {
+class CodecG711A  : public CodecAdaptor
+{
 public:
    /**Constructor to create a CodecAdaptor, the priority indicate
     * the pref when multiple codecs can be used, a 0 priority means
     * equal preferrence
     */
-   CodecG726_24(int priority=0);
+   CodecG711A(int priority=0)
+         : CodecAdaptor(G711A, priority) 
+      { 
+         myEncodingName = "PCMA";
+         myClockRate = 8000;
+         myMediaType = AUDIO;
+         myAttrValueMap["ptime"] = "20";
+         myCompressionRatio = 1;
+      };
 
-   CodecG726_24(const CodecG726_24 &);
-
-   /**Decode form codec type to raw data (PCMU), caller should supply the buffer of
+   /**Decode form codec type to raw data (PCMA), caller should supply the buffer of
     *size atleast length * 2. Returns 0 if successfull or -1 on failure
     * @param length is in bytes
     * @param decBufLen is the space available in decBuf, in units of bytes.
@@ -87,7 +90,7 @@ public:
                       int &decodedSamples, int& decodedPerSampleSize,
                       bool is_silence);
 
-   /**Encode from raw data (PCMU) to codec type, caller should supply the buffer of
+   /**Encode from raw data (PCMA) to codec type, caller should supply the buffer of
     * size atleast > length/2. Returns 0 if successfull  or -1 on failure.
     * @ num_samples is not necessarily the length of 'data'.  num_samples * per_sample_size
     *     is the length of 'data' in bytes.
@@ -97,24 +100,24 @@ public:
    virtual int encode(char* data, int num_samples, int per_sample_size,
                       char* encBuf, int& encodedLength);
 
+   /** Should not free the bytes returned, is internal data
+    */
    virtual char* getSilenceFill(int& len);
-   
+
    /// Virtual destructor
-   virtual ~CodecG726_24() { };
-   
+   virtual ~CodecG711A() { };
+
    ///
-   virtual string className() { return "CodecG726_24"; }
+   virtual string className() { return "CodecG711A"; }
 
 protected:
-        
-   void commonInit();
-
    /** Suppress copying
     */
-   const CodecG726_24 & operator=(const CodecG726_24 &);
-
-   struct g726_state_s enc_state;
-   struct g726_state_s dec_state;
+   CodecG711A(const CodecG711A &);
+   
+   /** Suppress copying
+    */
+   const CodecG711A & operator=(const CodecG711A &);
 };
 
 }
