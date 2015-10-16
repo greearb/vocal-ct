@@ -60,6 +60,9 @@
 #include "Def.hxx"
 #include <BugCatcher.hxx>
 #include <misc.hxx>
+#ifdef IS_ANDROID
+#include <sys/select.h>
+#endif
 
 namespace Vocal
 {

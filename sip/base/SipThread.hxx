@@ -51,15 +51,13 @@
  *
  */
 
-
-static const char* const SipThread_hxx_Version = 
-    "$Id: SipThread.hxx,v 1.5 2004/06/17 06:56:51 greear Exp $";
-
-
 #include "Sptr.hxx"
 #include <list>
 #include <BugCatcher.hxx>
 #include <misc.hxx>
+#ifdef IS_ANDROID
+#include <sys/select.h>
+#endif
 
 //#include "SipTransceiver.hxx"
 //#include "SipProxyEvent.hxx"
