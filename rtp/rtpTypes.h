@@ -120,6 +120,7 @@ typedef enum
     rtpPayloadL16_stereo = 10,
     rtpPayloadL16_mono = 11,
     rtpPayloadQCELP = 12,
+    rtpPayloadPCMU_static = 13, // This fixes compile warning in RtpPacket.cxx on very recen gcc.
     rtpPayloadMPA = 14,
     rtpPayloadG728 = 15,
     rtpPayloadDVI4_11KHz = 16,
