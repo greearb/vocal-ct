@@ -22,7 +22,7 @@
 # elsewhere if they apply to ALL compilers for a platform
 # (e.g. big-endianness vs. little-endianness).
 
-FPIC="-fPIC"
+FPIC=-fPIC
 ifeq ($(ISMINGW),1)
 FPIC=
 endif
@@ -100,6 +100,7 @@ ifeq ($(VOCAL_BUILD_SHARED_LIBS), yes)
     START_LD_STATIC=
     CLOSE_LD_STATIC=
 else
+LDLIBS += $(XTRA_LDFLAGS)
 ifeq ($(ISMINGW),1)
     LDLIBS_LAST += -lstdc++
 else
