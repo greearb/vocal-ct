@@ -128,7 +128,6 @@ Pipe::Pipe(
 }	
 
 Pipe::~Pipe()
-throw ( Vocal::SystemException )
 {
     const string    fn("Pipe::~Pipe");
     VLog    	    log(fn);

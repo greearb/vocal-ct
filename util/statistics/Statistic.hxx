@@ -112,13 +112,6 @@ class Statistic : public Vocal::IO::Writer
 
 
     public:
-    
-
-	/** Virtual destructor.
-	 */
-        virtual ~Statistic() throw (Vocal::SystemException) { };
-
-    	
 	/** Record this individual statistic to the associated database.
 	 */
 	void	record();

@@ -112,7 +112,7 @@ namespace Logging
 
     	/** Virtual destructor.
 	 */
-        virtual ~PriorityLog() throw (Vocal::SystemException);
+        virtual ~PriorityLog();
 
 
     	/** Create a clone of this object. See the Prototype pattern from

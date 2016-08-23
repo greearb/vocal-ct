@@ -85,7 +85,6 @@ class UDPSocket : public Vocal::Transport::DatagramSocket {
    
 public:
 
-
    /** Default construct with a optional name.
     */
    UDPSocket(uint16 tos, uint32 priority, const char * name = 0)
@@ -109,13 +108,6 @@ public:
              const char* name = 0)
       throw ( Vocal::SystemException );
     					
-
-   /** Virtual destructor.
-    */
-   virtual ~UDPSocket() throw (Vocal::SystemException) { };
-
-
-
    /** If connected, this will return a pointer to the remote ip address.
     *  Otherwise 0 will be returned.
     */

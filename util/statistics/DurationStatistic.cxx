@@ -125,7 +125,7 @@ DurationStatistic::operator=(const DurationStatistic & src)
 }
 
 
-DurationStatistic::~DurationStatistic() throw (Vocal::SystemException)
+DurationStatistic::~DurationStatistic()
 {
     clear();
 }

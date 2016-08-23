@@ -72,7 +72,7 @@ StatisticsDb::StatisticsDb(const char * name)
 }
 
 
-StatisticsDb::~StatisticsDb() throw (Vocal::SystemException)
+StatisticsDb::~StatisticsDb()
 {
     clear();
 }

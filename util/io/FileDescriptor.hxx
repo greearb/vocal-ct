@@ -102,10 +102,8 @@ class FileDescriptor : public Vocal::IO::Writer
 	
 
 	/** The destructor will close() the file descriptor if it is valid.
-	 *
-	 *  @exception Vocal::SystemException
 	 */
-        virtual ~FileDescriptor() throw (Vocal::SystemException);
+        virtual ~FileDescriptor();
 
 
 	/** Mutator given a new native file descriptor.

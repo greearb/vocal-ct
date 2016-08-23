@@ -142,7 +142,7 @@ public:
       return _connAddrLen;
    }
 
-   virtual ~Connection() throw (Vocal::SystemException);
+   virtual ~Connection();
 
    // Be very careful with this.  You must set closeOnDestruct
    // correctly!

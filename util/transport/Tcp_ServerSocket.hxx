@@ -103,7 +103,7 @@ public:
                    const string& local_dev_to_bind_to,
                    int servPort, bool blocking);
    
-   virtual ~TcpServerSocket() throw (Vocal::SystemException);
+   virtual ~TcpServerSocket();
 
    /**
       Accept an incoming connection, and create a Connection

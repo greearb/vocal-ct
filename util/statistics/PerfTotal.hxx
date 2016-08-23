@@ -90,12 +90,6 @@ class PerfTotal : public Vocal::Statistics::TotalStatistic
 	 */
 	const PerfTotal & operator=(const PerfTotal &);
 
-
-	/** Virtual destructor.
-	 */
-        virtual ~PerfTotal() throw (Vocal::SystemException) { };
-
-    	
     	/** Create a copy of this statistic.
     	 */
 	virtual Statistic * 	copy() const;

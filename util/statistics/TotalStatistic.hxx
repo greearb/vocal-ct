@@ -91,12 +91,6 @@ class TotalStatistic : public Vocal::Statistics::Statistic
 	 */
 	const TotalStatistic & operator=(const TotalStatistic &);
 
-
-	/** Virtual destructor.
-	 */
-        virtual ~TotalStatistic() throw (Vocal::SystemException) {};
-
-    	
 	/** This will combine the two statistics, such that the total
 	 *  will be the sum.
     	 */

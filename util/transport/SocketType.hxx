@@ -97,12 +97,6 @@ class SocketType : public Vocal::IO::Writer
 	 */
 	SocketType(const SocketType &);
 	
-
-    	/** Virtual destructor.
-	 */
-        virtual ~SocketType() throw (Vocal::SystemException);
-
-
     	/** Assignment operator
 	 */
     	SocketType &	    operator=(const SocketType &);

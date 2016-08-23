@@ -92,12 +92,6 @@ class ProtocolFactory : public Singleton<ProtocolFactory>
 	 */
     	ProtocolFactory();
 
-
-    	/** Virtual destructor
-	 */
-        virtual ~ProtocolFactory() throw (Vocal::SystemException) { };
-	
-
         /**
          */
         void    addCreator( Sptr<ProtocolCreator> );

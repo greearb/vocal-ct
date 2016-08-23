@@ -130,7 +130,7 @@ public:
                    const string& local_ip_to_bind_to,
                    bool closeCon, bool blocking);
    
-   virtual ~TcpClientSocket() throw (Vocal::SystemException);
+   virtual ~TcpClientSocket();
 
 
    /**

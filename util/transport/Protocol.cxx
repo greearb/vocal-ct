@@ -82,7 +82,7 @@ Protocol::Protocol(Poll & poll, const char * pName)
 }
 
 
-Protocol::~Protocol() throw (Vocal::SystemException)
+Protocol::~Protocol()
 {
     if ( myPoll )
     {

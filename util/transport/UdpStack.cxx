@@ -1197,7 +1197,7 @@ UdpStack::leaveMulticastGroup( NetworkAddress group,
 }
 
 
-UdpStack::~UdpStack() throw (Vocal::SystemException) {
+UdpStack::~UdpStack() {
    cpLog(LOG_ERR, "Deleting UdpStack: %p  dbg: %s\n", this, _dbg.c_str());
    if (in_log) {
       in_log->close();

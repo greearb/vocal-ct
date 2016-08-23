@@ -75,7 +75,6 @@ class Writer: public RCObject {
 public:
 
    Writer();
-   virtual ~Writer() throw (Vocal::SystemException) { };
 
    /** Overloading this method allows the extending class to
     *  be inserted onto an ostream.

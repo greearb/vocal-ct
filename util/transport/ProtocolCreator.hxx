@@ -89,12 +89,6 @@ class ProtocolCreator : public Vocal::NonCopyable, public RCObject
 	 */
     	ProtocolCreator() {}
 
-
-    	/** Virtual destructor
-	 */
-        virtual ~ProtocolCreator() throw (Vocal::SystemException) {}
-	
-
         /**
          */
         virtual const string &  ianaName() const = 0;

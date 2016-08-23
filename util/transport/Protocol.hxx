@@ -119,7 +119,7 @@ class Poll;
 
     	/** Virtual destructor
 	 */
-        virtual ~Protocol() throw (Vocal::SystemException);
+        virtual ~Protocol();
 	
 
     	/** FileDescriptor accessor.

@@ -118,12 +118,6 @@ protected:
    
    
 public:    					
-   
-   
-   /** Virtual destructor
-    */
-   virtual ~DatagramSocket() throw (Vocal::SystemException);
-   
 
    /** To create a connection oriented circuit.
     *  If connect() is used, send() and receive()

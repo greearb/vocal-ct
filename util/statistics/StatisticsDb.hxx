@@ -105,7 +105,7 @@ class StatisticsDb : public Vocal::IO::Writer
 
 	/** Destroy the statistics database.
 	 */
-        virtual ~StatisticsDb() throw (Vocal::SystemException);
+        virtual ~StatisticsDb();
 
     	
     	/** Return the key given the label. If this is a new label,

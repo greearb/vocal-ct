@@ -143,7 +143,7 @@ class TlsConnection : public Connection {
          */
         TlsConnection(Connection& other, bool really);
 
-        virtual ~TlsConnection() throw (Vocal::SystemException);
+        virtual ~TlsConnection();
 
         /// initialize as a TLS client
         int initTlsClient();

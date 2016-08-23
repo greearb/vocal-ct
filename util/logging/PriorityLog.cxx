@@ -112,7 +112,7 @@ PriorityLog::operator=(const PriorityLog & src)
 }
 
 
-PriorityLog::~PriorityLog() throw (Vocal::SystemException)
+PriorityLog::~PriorityLog()
 {
     delete buffer_;
 }

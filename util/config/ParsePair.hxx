@@ -91,8 +91,6 @@ class ParsePair : Vocal::NonCopyable, public BugCatcher
 
         ParsePair();
         
-        virtual ~ParsePair() throw (Vocal::SystemException) { };
-        
         void                    tagName(const string &);
         
         enum Type

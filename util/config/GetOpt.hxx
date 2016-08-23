@@ -112,7 +112,7 @@ class GetOpt : public Vocal::NonCopyable
         
         /**
          */
-        virtual ~GetOpt() throw (Vocal::SystemException);
+        virtual ~GetOpt();
 
 
         /**

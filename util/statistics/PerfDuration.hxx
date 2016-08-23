@@ -92,12 +92,6 @@ class PerfDuration : public Vocal::Statistics::DurationStatistic
 	 */
 	const PerfDuration & operator=(const PerfDuration &);
 
-
-	/** Virtual destructor.
-	 */
-        virtual ~PerfDuration() throw (Vocal::SystemException) { };
-
-    	
     	/** Create a copy of this statistic.
     	 */
 	virtual Statistic * 	copy() const;

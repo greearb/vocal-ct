@@ -92,9 +92,6 @@ class PerformanceDb : public Vocal::Statistics::StatisticsDb
     	static PerformanceDb &	instance();
 
 
-        virtual ~PerformanceDb() throw (Vocal::SystemException);
-
-
 	/** Finds the combined PerfDuration statistic in the database
          *  that matches the type (db key) of the passed in statistic. 
          *

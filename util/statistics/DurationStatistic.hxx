@@ -98,7 +98,7 @@ class DurationStatistic : public Vocal::Statistics::Statistic
 
 	/** Virtual destructor.
 	 */
-        virtual ~DurationStatistic() throw (Vocal::SystemException);
+        virtual ~DurationStatistic();
 
     	
 	/** This will combine the two statistics, chaining them together.

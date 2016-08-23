@@ -75,7 +75,7 @@ TlsConnection::TlsConnection(Connection& other, bool really)
     assert(!shouldCloseOnDestruct());
 }
 
-TlsConnection::~TlsConnection() throw (Vocal::SystemException) {
+TlsConnection::~TlsConnection() {
 #ifdef VOCAL_HAS_OPENSSL
     if (ssl) {
         SSL_free (ssl);

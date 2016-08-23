@@ -125,7 +125,7 @@ SignalHandler::SignalHandler()
 }
 
 
-SignalHandler::~SignalHandler() throw (Vocal::SystemException)
+SignalHandler::~SignalHandler()
 {
     #if !defined(WIN32) && !defined(__MACH__)
     const string    fn("SignalHandler::~SignalHandler");

@@ -80,7 +80,7 @@ GetOpt::GetOpt()
 }
 
 
-GetOpt::~GetOpt() throw (Vocal::SystemException)
+GetOpt::~GetOpt()
 {
     size_t  size =  myLongOpts.size();
     

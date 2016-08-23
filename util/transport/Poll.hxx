@@ -127,12 +127,6 @@ class Poll : public Vocal::IO::Writer
 	 */
     	Poll();
 
-
-    	/** Virtual destructor
-	 */
-        virtual ~Poll() throw (Vocal::SystemException) { };
-
-
         /** When registering a file descriptor with a poll, the event type 
          *  determines which types of events you are interested in polling 
          *  the descriptor for.

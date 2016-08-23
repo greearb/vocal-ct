@@ -124,7 +124,7 @@ public:
     					
    /** Virtual destructor.
     */
-   virtual ~Socket() throw (Vocal::SystemException);
+   virtual ~Socket();
 
 
    /** Returns the local address to which the socket is bound.

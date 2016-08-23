@@ -88,12 +88,6 @@ CpPriorityLog::CpPriorityLog(const PriorityLog & src)
 {
 }
 
-
-CpPriorityLog::~CpPriorityLog() throw (Vocal::SystemException)
-{
-}
-
-
 PriorityLog *
 CpPriorityLog::clone() const
 {

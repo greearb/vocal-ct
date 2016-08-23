@@ -87,12 +87,6 @@ class SignalAction : public Vocal::IO::Writer, public Vocal::NonCopyable
 	 */
         SignalAction(const SignalSet &, const char * name = 0);
 
-
-	/** Virtual destructor.
-	 */
-        virtual ~SignalAction() throw (Vocal::SystemException) { };
-
-
 	/** Get the set of signals to be responded to.
 	 */
         const SignalSet & signalSet() const;

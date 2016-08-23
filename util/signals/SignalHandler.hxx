@@ -118,7 +118,7 @@ class SignalHandler : public Vocal::NonCopyable
 
 	/** Virtual destructor.
 	 */
-        virtual ~SignalHandler() throw (Vocal::SystemException);
+        virtual ~SignalHandler();
 
 
     	/** Adds an action to be handled for this thread.

@@ -132,7 +132,6 @@ class CommandLine : public RCObject {
 #else
         void print(const int loglevel);
 #endif
-        virtual ~CommandLine() throw (Vocal::SystemException) {};
 
     private:
 

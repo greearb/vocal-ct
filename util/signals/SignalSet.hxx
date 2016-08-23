@@ -106,12 +106,6 @@ class SignalSet : public Vocal::IO::Writer
 	 */
         SignalSet(const SignalSet &);
 
-
-	/** Virtual destructor.
-	 */
-        virtual ~SignalSet() throw (Vocal::SystemException) { };
-
-
 	/** Equality relational operator.
 	 */
         SignalSet & operator=(const SignalSet &);

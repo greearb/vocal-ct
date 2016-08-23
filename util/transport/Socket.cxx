@@ -183,7 +183,7 @@ Socket::Socket(uint16 tos, uint32 priority,
 }
     
 
-Socket::~Socket() throw (Vocal::SystemException) {
+Socket::~Socket() {
    VLog    log("Socket::~Socket");
    
    delete localAddr_;

@@ -112,7 +112,7 @@ Connection::Connection(const Connection& other, bool on_purpose) {
     closeOnDestruct = false;
 }
 
-Connection::~Connection() throw (Vocal::SystemException) {
+Connection::~Connection() {
     if (closeOnDestruct) {
         close();
     }

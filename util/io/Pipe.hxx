@@ -104,12 +104,8 @@ class Pipe : public Vocal::IO::Writer
 	
 
 	/** The destructor will close() the file descriptors if valid.
-	 *
-	 *  @exception Vocal::SystemException
-	 *  	Thrown if the closure of the pipe failed.
 	 */
-	virtual ~Pipe()
-	    throw ( Vocal::SystemException );
+        virtual ~Pipe();
 
 
 	/** Accessor to FileDescriptors.

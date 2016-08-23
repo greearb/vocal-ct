@@ -91,12 +91,6 @@ class Config : public Vocal::IO::Writer
 	 */
     	Config();
 
-
-    	/** Destroys the configuration information.
-    	 */
-        virtual ~Config() throw (Vocal::SystemException) { };
-
-
     	/** Loads the configuration information from the command line.
 	 *  The command line may in turn load information from 
 	 *  a configuration and/or a provisioning server.

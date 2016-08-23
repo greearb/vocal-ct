@@ -94,12 +94,6 @@ class CpPriorityLog : public Vocal::Logging::PriorityLog
 	 */
 	CpPriorityLog(const PriorityLog &);
 
-
-    	/** Virtual destructor.
-	 */
-        virtual ~CpPriorityLog() throw (Vocal::SystemException);
-
-
     	/** Create a CpPriorityLog copy of this object.
 	 */
     	virtual PriorityLog *	    clone() const;
