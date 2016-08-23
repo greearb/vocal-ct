@@ -51,11 +51,7 @@
  *
  */
 
-
-static const char* const NonCopyable_hxx_Version =
-    "$Id: NonCopyable.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
+#include <SystemException.hxx>
 #include "VocalCommon.hxx"
 
 
@@ -67,31 +63,30 @@ namespace Vocal
 
 /** Interface to suppress copying.<br><br>
  */
-class NonCopyable
-{
-    protected:
+class NonCopyable {
+protected:
         
-        /** Protected constructor forces derivation.
-         */
-        NonCopyable() {}
+   /** Protected constructor forces derivation.
+    */
+   NonCopyable() {}
         
 
-        /** Virtual destructor, just in case someone does something 
-         *  silly like trying to destroy a NonCopyable pointer.
-         */
-        virtual ~NonCopyable() {}
+   /** Virtual destructor, just in case someone does something 
+    *  silly like trying to destroy a NonCopyable pointer.
+    */
+   virtual ~NonCopyable() throw (Vocal::SystemException) {}
 
         
-    private:
+private:
     
-        /** Supresses copying. Do not create an implementation.
-         */
-        NonCopyable(const NonCopyable &);
+   /** Supresses copying. Do not create an implementation.
+    */
+   NonCopyable(const NonCopyable &);
 
 
-        /** Supresses copying. Do not create an implementation.
-         */
-        const NonCopyable & operator=(const NonCopyable &);
+   /** Supresses copying. Do not create an implementation.
+    */
+   const NonCopyable & operator=(const NonCopyable &);
 };
 
 

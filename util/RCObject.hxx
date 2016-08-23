@@ -51,6 +51,8 @@
  *
  */
 
+#include <SystemException.hxx>
+
 
 class RCObject {
 private:
@@ -66,7 +68,7 @@ public:
       // Do NOT mess with reference count
       return *this;
    }
-   virtual ~RCObject() { };
+   virtual ~RCObject() throw (Vocal::SystemException) { };
 
    virtual int incrementReferenceCount() { count++; return count; }
    virtual int decrementReferenceCount() { count--; return count; }

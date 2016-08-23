@@ -2183,7 +2183,6 @@ SipMsg::forceParse()
 ostream&
 SipMsg::brief(ostream& strm) const
 {
-    assert(this);
     switch (getType())
     {
         case SIP_UNKNOWN:

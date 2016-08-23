@@ -128,7 +128,7 @@ namespace UA
    /** Interface class, used for callback. */
    class RtpPayloadCache {
    public:
-      virtual ~RtpPayloadCache() { }
+      virtual ~RtpPayloadCache() throw (Vocal::SystemException) { }
       virtual void addRtpPldBuffer(const char* msg, int len, int samples,
                                    VCodecType t) = 0;
    };

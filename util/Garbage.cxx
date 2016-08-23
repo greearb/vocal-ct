@@ -49,10 +49,6 @@
  */
 
 
-static const char* const Garbage_cxx_Version = 
-    "$Id: Garbage.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "Garbage.hxx"
 
@@ -60,6 +56,6 @@ static const char* const Garbage_cxx_Version =
 using Vocal::Garbage;
 
 
-Garbage::~Garbage()
+Garbage::~Garbage() throw (Vocal::SystemException)
 {
 }

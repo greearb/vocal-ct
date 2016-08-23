@@ -52,14 +52,9 @@
  */
 
 
-static const char* const Garbage_hxx_Version = 
-    "$Id: Garbage.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "VocalCommon.hxx"
-
-
 #include <iostream>
+#include <SystemException.hxx>
 
 
 /** Infrastructure common to VOCAL.<br><br>
@@ -78,7 +73,7 @@ class Garbage
 
         /** Public abstract virtual destructor.
          */    
-        virtual ~Garbage() = 0;
+   virtual ~Garbage() throw (Vocal::SystemException) = 0;
 };
 
 

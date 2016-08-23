@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Pipe_hxx_Version = 
-    "$Id: Pipe.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Writer.hxx"
 #include "FileDescriptor.hxx"
 
@@ -64,7 +60,6 @@ static const char* const Pipe_hxx_Version =
  */
 namespace Vocal 
 {
-
 
 class SystemException;
 

@@ -66,7 +66,6 @@ using std::ostream;
 namespace Vocal 
 {
 
-
 /** Infrastructure in VOCAL related to Input/Output.<br><br>
  */
 namespace IO
@@ -75,17 +74,16 @@ namespace IO
 
 /** A interface for writing an object to an ostream.<br><br>
  */
-class Writer: public RCObject
-{
-    public:
+class Writer: public RCObject {
+public:
 
-        Writer();
-        virtual ~Writer();
+   Writer();
+   virtual ~Writer() throw (Vocal::SystemException);
 
-    	/** Overloading this method allows the extending class to
-	 *  be inserted onto an ostream.
-	 */
-        virtual ostream & writeTo(ostream &) const = 0;
+   /** Overloading this method allows the extending class to
+    *  be inserted onto an ostream.
+    */
+   virtual ostream & writeTo(ostream &) const = 0;
 };
 
 
