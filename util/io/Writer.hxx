@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const WriterHeaderVersion =
-    "$Id: Writer.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "global.h"
 #include <iostream>
 #include <RCObject.hxx>
@@ -78,7 +75,7 @@ class Writer: public RCObject {
 public:
 
    Writer();
-   virtual ~Writer() throw (Vocal::SystemException);
+   virtual ~Writer() throw (Vocal::SystemException) { };
 
    /** Overloading this method allows the extending class to
     *  be inserted onto an ostream.

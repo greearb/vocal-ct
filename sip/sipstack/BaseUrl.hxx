@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const BaseUrl_hxx_Version =
-    "$Id: BaseUrl.hxx,v 1.3 2004/05/05 06:37:33 greear Exp $";
-    
 #include "global.h"
 #include "Data.hxx"
 #include "Sptr.hxx"
@@ -81,8 +78,6 @@ class BaseUrl: public BugCatcher
     public:
 	/// Create one with default values
 	BaseUrl();
-	///
-	virtual ~BaseUrl();
 
         virtual bool isSipUrl() const = 0;
 

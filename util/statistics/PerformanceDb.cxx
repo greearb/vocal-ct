@@ -49,10 +49,6 @@
  */
 
 
-static const char* const PerformaceDb_cxx_Version = 
-    "$Id: PerformanceDb.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "PerformanceDb.hxx"
 #include "PerfTotal.hxx"
@@ -82,11 +78,6 @@ PerformanceDb::instance()
     	m_instance = new PerformanceDb;
     }
     return ( *m_instance );
-}
-
-
-PerformanceDb::~PerformanceDb()
-{
 }
 
 

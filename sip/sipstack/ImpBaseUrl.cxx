@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const ImpBaseUrl_cxx_Version =
-    "$Id: ImpBaseUrl.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "global.h"
 #include <cassert>
 #include "symbols.hxx"
@@ -95,12 +92,6 @@ ImpBaseUrl::ImpBaseUrl()
         schemeName(),
         user(),
         host()
-{
-}
-
-
-
-ImpBaseUrl::~ImpBaseUrl()
 {
 }
 

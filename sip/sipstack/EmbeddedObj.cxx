@@ -48,8 +48,6 @@
  *
  */
 
-static const char* const EmbeddedObj_cxx_Version = "$Id: EmbeddedObj.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #pragma warning (disable: 4786)
 
 #include "EmbeddedObj.hxx"
@@ -122,10 +120,6 @@ EmbeddedObj::operator=(const EmbeddedObj& src)
 	_escFData = src._escFData;
     }
     return (*this);
-}
-
-EmbeddedObj::~EmbeddedObj()
-{
 }
 
 void 

@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const Literal_hxx_version =
-    "$Id: Literal.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
 #include "Data.hxx"
 
 class Literal: public Data
@@ -80,10 +77,6 @@ class Literal: public Data
         //Literal( const mstring& mstr);
         /// constructor that converts an int to a Literal
         Literal( const int value);
-
-        /// destructor
-        ~Literal();
-
 
         /** OVERLOADED for caseinsensitive equality operator
 	 ** @param data   Literal to compare to

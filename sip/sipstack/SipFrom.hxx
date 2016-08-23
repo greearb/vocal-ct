@@ -116,9 +116,9 @@ class SipFrom : public SipHeader
                  UrlType uType = SIP_URL);
         ///
         SipFrom(const SipFrom& src);
-
         ///
         explicit SipFrom(const SipTo& to);
+
         ///
         const bool operator<(const SipFrom&) const;
         ///

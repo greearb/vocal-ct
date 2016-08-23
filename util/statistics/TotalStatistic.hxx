@@ -52,10 +52,6 @@
  */
 
 
-static const char* const TotalStatistic_hxx_Version = 
-    "$Id: TotalStatistic.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "Statistic.hxx"
 
 
@@ -98,7 +94,7 @@ class TotalStatistic : public Vocal::Statistics::Statistic
 
 	/** Virtual destructor.
 	 */
-	virtual ~TotalStatistic();
+        virtual ~TotalStatistic() throw (Vocal::SystemException) {};
 
     	
 	/** This will combine the two statistics, such that the total

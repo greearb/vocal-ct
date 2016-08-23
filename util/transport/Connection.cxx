@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const Connection_cxx_version =
-    "$Id: Connection.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
-
 #ifndef __vxworks
 
 #include "global.h"
@@ -115,7 +112,7 @@ Connection::Connection(const Connection& other, bool on_purpose) {
     closeOnDestruct = false;
 }
 
-Connection::~Connection() {
+Connection::~Connection() throw (Vocal::SystemException) {
     if (closeOnDestruct) {
         close();
     }

@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipSubsNotifyEvent_cxx_Version =
-    "$Id: SipSubsNotifyEvent.cxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
-
 #include "global.h"
 #include "SipSubsNotifyEvent.hxx"
 #include "symbols.hxx"
@@ -96,12 +93,6 @@ SipSubsNotifyEvent::SipSubsNotifyEvent( const SipSubsNotifyEvent& src)
 {
     eventType = src.getEventType();
 }
-
-
-SipSubsNotifyEvent::~SipSubsNotifyEvent()
-{
-}
-
 
 bool
 SipSubsNotifyEvent::operator==(const SipSubsNotifyEvent& src) const

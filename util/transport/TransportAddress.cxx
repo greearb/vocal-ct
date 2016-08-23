@@ -49,10 +49,6 @@
  */
 
 
-static const char* const TransportAddress_cxx_Version = 
-    "$Id: TransportAddress.cxx,v 1.3 2006/03/14 18:05:22 greear Exp $";
-
-
 #include "global.h"
 #include "TransportAddress.hxx"
 #include "IPAddress.hxx"
@@ -65,11 +61,6 @@ using Vocal::Transport::AddressFamily;
 
 
 TransportAddress::TransportAddress()
-{
-}
-
-
-TransportAddress::~TransportAddress()
 {
 }
 

@@ -53,9 +53,6 @@
 
 
 
-static const char* const SipContentDataVersion
-= "$Id: SipContentData.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "Data.hxx"
 #include "SipContentType.hxx"
 #include "SipContentLength.hxx"
@@ -78,9 +75,8 @@ class SipContentData: public BugCatcher
 	*/
         virtual Data encodeBody(int& len) = 0;
         ///
-        virtual ~SipContentData();
-        ///
         SipContentData( const SipContentData& rhs );
+
         ///
         SipContentData& operator=( const SipContentData& rhs );
         ///

@@ -52,9 +52,6 @@
  */
 
 #include "global.h"
-static const char* const SipContactVersion =
-    "$Id: SipContact.hxx,v 1.3 2004/10/25 23:21:14 greear Exp $";
-
 #include <iostream>
 
 #include "Data.hxx"

@@ -49,9 +49,6 @@
  */
 
 
-static const char* const SignalSet_cxx_Version =
-    "$Id: SignalSet.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
 
 #include "global.h"
 #include "SignalSet.hxx"
@@ -93,13 +90,6 @@ SignalSet::SignalSet(const SignalSet & src)
         mySignalNumbers(src.mySignalNumbers)
 {
 }
-
-
-
-SignalSet::~SignalSet()
-{
-}
-
 
 
 SignalSet &

@@ -53,9 +53,6 @@
 
 #include "SipCommand.hxx"
 
-static const char* const MessageMsg_hxx_Version
-= "$Id: MessageMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 namespace Vocal
 {
 
@@ -93,8 +90,6 @@ class MessageMsg : public SipCommand
         MessageMsg(const MessageMsg&, enum MessageMsgForward);
         ///return the type of the object
         virtual Method getType() const;
-        ///destructor
-        virtual ~MessageMsg();
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

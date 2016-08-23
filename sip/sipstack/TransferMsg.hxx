@@ -51,10 +51,6 @@
  *
  */
 
-static const char* const TransferMsg_hxx_Version =
-    "$Id: TransferMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
-
 #include "SipCommand.hxx"
 #include "StatusMsg.hxx"
 
@@ -80,8 +76,6 @@ class TransferMsg : public SipCommand
         TransferMsg(const SipCommand&, Sptr <BaseUrl> transferTo );
         ///
         TransferMsg(const TransferMsg&, enum TransferMsgForward);
-
-        virtual ~TransferMsg() { }
 
         ///
         //called by the sipMsg decode.

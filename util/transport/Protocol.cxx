@@ -49,10 +49,6 @@
  */
 
 
-static const char* const Protocol_cxx_Version = 
-    "$Id: Protocol.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
-
-
 #include "global.h"
 #include "Protocol.hxx"
 #include "FileDescriptor.hxx"
@@ -86,7 +82,7 @@ Protocol::Protocol(Poll & poll, const char * pName)
 }
 
 
-Protocol::~Protocol()
+Protocol::~Protocol() throw (Vocal::SystemException)
 {
     if ( myPoll )
     {

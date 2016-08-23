@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const TcpServerSocketHeaderVersion =
-    "$Id: Tcp_ServerSocket.hxx,v 1.7 2006/03/12 07:41:28 greear Exp $";
-
 #ifndef __MINGW32__
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -106,7 +103,7 @@ public:
                    const string& local_dev_to_bind_to,
                    int servPort, bool blocking);
    
-   virtual ~TcpServerSocket();
+   virtual ~TcpServerSocket() throw (Vocal::SystemException);
 
    /**
       Accept an incoming connection, and create a Connection

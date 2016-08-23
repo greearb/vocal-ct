@@ -52,10 +52,6 @@
  */
 
 
-static const char* const DatagramSocket_hxx_Version = 
-    "$Id: DatagramSocket.hxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
-
-
 #include "TransportAddress.hxx"
 #include "Socket.hxx"
 #include "Sptr.hxx"
@@ -126,7 +122,7 @@ public:
    
    /** Virtual destructor
     */
-   virtual ~DatagramSocket();
+   virtual ~DatagramSocket() throw (Vocal::SystemException);
    
 
    /** To create a connection oriented circuit.

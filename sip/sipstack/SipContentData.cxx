@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipContentData_cxx_Version =
-    "$Id: SipContentData.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "SipContentData.hxx"
 
@@ -61,11 +58,6 @@ SipContentData::SipContentData(const string& _local_ip)
       contentLength(),
       contentDisposition(),
       local_ip(_local_ip)
-{
-}
-
-
-SipContentData::~SipContentData()
 {
 }
 

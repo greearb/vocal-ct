@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const AckMsg_cxx_Version =
-    "$Id: AckMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "global.h"
 #include <cstdlib>
 #include <cstdio>
@@ -134,11 +131,6 @@ AckMsg::AckMsg(StatusMsg& statusMsg, const string& local_ip)
 
 cpLog(LOG_DEBUG, "ACK constructed:\n%s", this->encode().logData());
 
-}
-
-
-AckMsg::~AckMsg()
-{
 }
 
 

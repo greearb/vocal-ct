@@ -49,10 +49,6 @@
  */
 
 
-static const char* const TotalStatistic_cxx_Version = 
-    "$Id: TotalStatistic.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include "TotalStatistic.hxx"
 #include <cassert>
@@ -87,11 +83,6 @@ TotalStatistic::operator=(const TotalStatistic & src)
 	m_total = src.m_total;
     }
     return ( *this );
-}
-
-
-TotalStatistic::~TotalStatistic()
-{
 }
 
 

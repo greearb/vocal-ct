@@ -169,7 +169,7 @@ void TcpClientSocket::initalize() {
    _conn = new Connection(_blocking);
 }
 
-TcpClientSocket::~TcpClientSocket() {
+TcpClientSocket::~TcpClientSocket() throw (Vocal::SystemException) {
    close();
 }
 

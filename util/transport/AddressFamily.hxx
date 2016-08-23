@@ -52,10 +52,6 @@
  */
 
 
-static const char* const AddressFamily_hxx_Version = 
-    "$Id: AddressFamily.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
 #include <sys/types.h>
 #endif
@@ -96,10 +92,6 @@ class AddressFamily : public Vocal::IO::Writer
 	 */
     	AddressFamily(const AddressFamily &);
 	
-    	/** Destructor.
-	 */
-	virtual ~AddressFamily();
-
     	/** Assignment operator.
 	 */
     	AddressFamily &     operator=(const AddressFamily &);

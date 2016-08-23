@@ -49,10 +49,6 @@
  */
 
 
-static const char* const PerfDuration_cxx_Version = 
-    "$Id: PerfDuration.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "PerfDuration.hxx"
 #include "PerformanceDb.hxx"
@@ -81,11 +77,6 @@ PerfDuration::operator=(const PerfDuration & src)
 {
     DurationStatistic::operator=(src);
     return ( *this );
-}
-
-
-PerfDuration::~PerfDuration()
-{
 }
 
 

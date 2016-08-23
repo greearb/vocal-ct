@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const NotifyMsg_hxx_Version =
-    "$Id: NotifyMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 #include "SipCommand.hxx"
 #include "SipSubsNotifyEvent.hxx"
 #include "SubscribeMsg.hxx"
@@ -116,8 +113,6 @@ class NotifyMsg : public SipCommand
         const NotifyMsg& operator =(const NotifyMsg&);
         ///comparison operator
         bool operator ==(const NotifyMsg& src);
-        ///destructor
-        virtual ~NotifyMsg();
         ///called to get the type of message.
         virtual Method getType() const;
 

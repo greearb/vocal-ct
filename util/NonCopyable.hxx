@@ -74,9 +74,8 @@ protected:
    /** Virtual destructor, just in case someone does something 
     *  silly like trying to destroy a NonCopyable pointer.
     */
-   virtual ~NonCopyable() throw (Vocal::SystemException) {}
+   virtual ~NonCopyable(){}
 
-        
 private:
     
    /** Supresses copying. Do not create an implementation.

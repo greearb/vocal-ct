@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Poll_hxx_Version = 
-    "$Id: Poll.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
-
-
 #include <map>
 #include <vector>
 #ifdef __APPLE__
@@ -134,7 +130,7 @@ class Poll : public Vocal::IO::Writer
 
     	/** Virtual destructor
 	 */
-    	virtual     	    	    ~Poll();
+        virtual ~Poll() throw (Vocal::SystemException) { };
 
 
         /** When registering a file descriptor with a poll, the event type 

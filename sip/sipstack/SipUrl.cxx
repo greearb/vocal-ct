@@ -158,11 +158,6 @@ SipUrl::SipUrl( const Data& data, const string& _local_ip, bool lr ) throw(SipUr
 }
 
 
-SipUrl::~SipUrl()
-{
-}
-
-
 UrlType
 SipUrl::getType() const
 {

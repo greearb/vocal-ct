@@ -125,9 +125,6 @@ public:
    ///
    SipUrl(const SipUrl& );
     
-   ///
-   virtual ~SipUrl();
-
    // Help up-cast safely.
    virtual bool isSipUrl() const { return true; }
 

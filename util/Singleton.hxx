@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Singleton_hxx_Version = 
-    "$Id: Singleton.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "NonCopyable.hxx"
 #include "GarbageCan.hxx"
 #include "Garbage.hxx"
@@ -82,8 +78,7 @@ class Singleton : public Garbage, public NonCopyable
         /** Protected virtual destructor. This should only be deleted
          *  via Garbage's virtual destructor.
          */
-        virtual ~Singleton();
-
+        virtual ~Singleton() { };
 
     public:
 
@@ -128,12 +123,6 @@ Singleton<Object>::Singleton()
     {
         throw ( "There can be only one.");
     }
-}
-
-
-template <class Object>
-Singleton<Object>::~Singleton()
-{
 }
 
 

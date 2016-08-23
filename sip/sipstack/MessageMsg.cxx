@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const MessageMsg_cxx_Version =
-    "$Id: MessageMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "global.h"
 #include <cstdlib>
 #include <cstdio>
@@ -80,11 +77,6 @@ const char MessageMsg::INFO_SUBJECT[] = "Vovida MESSAGE";
 
 MessageMsg::MessageMsg(const string& local_ip): SipCommand(local_ip, "MessageMsg")
 {}
-
-
-MessageMsg::~MessageMsg()
-{
-}
 
 MessageMsg::MessageMsg(const MessageMsg& src)
         : SipCommand(src)

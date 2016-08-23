@@ -76,11 +76,6 @@ SipSdp::SipSdp(const SdpSession& descriptor, const string& local_ip)
     setContentType(new SipContentType("application", "sdp", local_ip));
 }
 
-SipSdp::~SipSdp()
-{
-}
-
-
 SipSdp&
 SipSdp::operator =(const SipSdp& src)
 {

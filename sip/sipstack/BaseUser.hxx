@@ -74,8 +74,6 @@ class BaseUser: public BugCatcher
 public:
     /// Create one with default values
     BaseUser();
-    ///
-    virtual ~BaseUser();
     //parser functions
     virtual bool decode(const Data& data) = 0;
     ///

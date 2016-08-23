@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipRoute_hxx_Version =
-    "$Id: SipRoute.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "BaseUrl.hxx"
 #include "global.h"
 #include "symbols.hxx"

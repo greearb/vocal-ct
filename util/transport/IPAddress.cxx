@@ -49,10 +49,6 @@
  */
 
 
-static const char* const IPAddress_cxx_Version = 
-    "$Id: IPAddress.cxx,v 1.3 2006/03/14 00:20:07 greear Exp $";
-
-
 #include "global.h"
 #include "IPAddress.hxx"
 #include "TransportCommon.hxx"
@@ -138,11 +134,6 @@ IPAddress::IPAddress(const IPAddress & src)
     setAddressFamily(AF_INET);
 }
 			    
-
-IPAddress::~IPAddress()
-{
-}
-
 
 IPAddress &
 IPAddress::operator=(const IPAddress & src)

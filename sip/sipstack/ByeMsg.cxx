@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const ByeMsg_cxx_Version =
-    "$Id: ByeMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "global.h"
 #include "ByeMsg.hxx"
 #include "SipAuthorization.hxx"
@@ -376,12 +373,6 @@ void ByeMsg::setByeDetails( const SipMsg& sipMessage)
     //add via to the top
     setVia(sipvia, 0);
 }
-
-
-
-ByeMsg::~ByeMsg()
-{}
-
 
 
 Method ByeMsg::getType() const

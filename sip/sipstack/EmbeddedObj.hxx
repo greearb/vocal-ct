@@ -51,8 +51,6 @@
  *
  */
 
-static const char* const EmbeddedObj_hxx_Version = "$Id: EmbeddedObj.hxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include <string>
 #include <vector>
 #include <map>
@@ -91,11 +89,6 @@ namespace Vocal
 	    EmbeddedObj(const EmbeddedObj&);
 
 	    ///
-
-	    ~EmbeddedObj();
-
-	    ///
-
 	    const EmbeddedObj& operator =(const EmbeddedObj& EmbeddedObj);
 
 	    ///

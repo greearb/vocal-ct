@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const TlsConnection_hxx_version =
-    "$Id: TlsConnection.hxx,v 1.4 2004/06/01 07:23:31 greear Exp $";
-
 #include "Connection.hxx"
 
 #ifdef VOCAL_HAS_OPENSSL
@@ -146,7 +143,7 @@ class TlsConnection : public Connection {
          */
         TlsConnection(Connection& other, bool really);
 
-        virtual ~TlsConnection();
+        virtual ~TlsConnection() throw (Vocal::SystemException);
 
         /// initialize as a TLS client
         int initTlsClient();

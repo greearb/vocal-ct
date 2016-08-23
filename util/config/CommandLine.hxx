@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const CommandLineVersion 
-    = "$Id: CommandLine.hxx,v 1.3 2004/08/17 07:30:12 greear Exp $";
-
 #include <unistd.h>
 #include <cstdio>
 
@@ -135,7 +132,8 @@ class CommandLine : public RCObject {
 #else
         void print(const int loglevel);
 #endif
-        virtual ~CommandLine() {};
+        virtual ~CommandLine() throw (Vocal::SystemException) {};
+
     private:
 
         CommandLine();

@@ -52,10 +52,6 @@
  */
 
 
-static const char* const SignalSet_hxx_Version =
-    "$Id: SignalSet.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include <signal.h>
 #include <vector>
@@ -113,7 +109,7 @@ class SignalSet : public Vocal::IO::Writer
 
 	/** Virtual destructor.
 	 */
-        virtual ~SignalSet();
+        virtual ~SignalSet() throw (Vocal::SystemException) { };
 
 
 	/** Equality relational operator.

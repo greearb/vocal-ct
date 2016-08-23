@@ -52,10 +52,6 @@
  */
 
 
-static const char* const DurationStatistic_hxx_Version = 
-    "$Id: DurationStatistic.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Statistic.hxx"
 #include "Duration.hxx"
 
@@ -102,7 +98,7 @@ class DurationStatistic : public Vocal::Statistics::Statistic
 
 	/** Virtual destructor.
 	 */
-	virtual ~DurationStatistic();
+        virtual ~DurationStatistic() throw (Vocal::SystemException);
 
     	
 	/** This will combine the two statistics, chaining them together.

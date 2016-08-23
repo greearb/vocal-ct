@@ -49,10 +49,6 @@
  */
 
 
-static const char* const SignalHandler_cxx_Version = 
-    "$Id: SignalHandler.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
-
 #include "global.h"
 #include "SignalHandler.hxx"
 #include "SignalSet.hxx"
@@ -129,7 +125,7 @@ SignalHandler::SignalHandler()
 }
 
 
-SignalHandler::~SignalHandler()
+SignalHandler::~SignalHandler() throw (Vocal::SystemException)
 {
     #if !defined(WIN32) && !defined(__MACH__)
     const string    fn("SignalHandler::~SignalHandler");

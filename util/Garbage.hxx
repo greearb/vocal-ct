@@ -71,9 +71,9 @@ class Garbage
     public:
 
 
-        /** Public abstract virtual destructor.
-         */    
-   virtual ~Garbage() throw (Vocal::SystemException) = 0;
+   /** Public abstract virtual destructor.
+    */    
+   virtual ~Garbage() = 0;
 };
 
 

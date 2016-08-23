@@ -49,10 +49,6 @@
  */
 
 
-static const char* const ParsePair_cxx_Version =
-    "$Id: ParsePair.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "ParsePair.hxx"
 #include "vstring.hxx"
@@ -79,11 +75,6 @@ using std::istrstream;
 
 ParsePair::ParsePair()
     :   myTagName("data")
-{
-}
-
-
-ParsePair::~ParsePair()
 {
 }
 

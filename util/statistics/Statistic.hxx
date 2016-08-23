@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Statistic_hxx_Version = 
-    "$Id: Statistic.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Writer.hxx"
 #include "StatisticsDb.hxx"
 #include "Data.hxx"
@@ -120,7 +116,7 @@ class Statistic : public Vocal::IO::Writer
 
 	/** Virtual destructor.
 	 */
-	virtual ~Statistic();
+        virtual ~Statistic() throw (Vocal::SystemException) { };
 
     	
 	/** Record this individual statistic to the associated database.

@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const AddressFamily_cxx_Version = 
-    "$Id: AddressFamily.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
-
-
 #include "global.h"
 #include "AddressFamily.hxx"
 
@@ -68,11 +64,6 @@ AddressFamily::AddressFamily(int addressFamily)
 
 AddressFamily::AddressFamily(const AddressFamily & src)
     :	addressFamily_(src.addressFamily_)
-{
-}
-
-
-AddressFamily::~AddressFamily()
 {
 }
 

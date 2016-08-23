@@ -52,10 +52,6 @@
  */
 
 
-static const char* const IPAddress_hxx_Version = 
-    "$Id: IPAddress.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "TransportAddress.hxx"
 #ifndef __MINGW32__
 #include <netinet/in.h>
@@ -132,11 +128,6 @@ class IPAddress : public Vocal::Transport::TransportAddress
 	 */
 	IPAddress(const IPAddress &);
 			    
-
-    	/** Virtual destructor.
-	 */
-	virtual ~IPAddress();
-	
 
 	/** Assignment operator
 	 */

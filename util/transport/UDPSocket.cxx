@@ -49,10 +49,6 @@
  */
 
 
-static const char* const UDPSocket_cxx_Version = 
-    "$Id: UDPSocket.cxx,v 1.3 2005/03/03 19:59:50 greear Exp $";
-
-
 #include "global.h"
 #include "UDPSocket.hxx"
 #include "IPAddress.hxx"
@@ -83,11 +79,6 @@ UDPSocket::UDPSocket(uint16 tos, uint32 priority,
 )
     throw ( Vocal::SystemException )
       :	DatagramSocket(tos, priority, localAddr, remoteAddr, (name ? name : "UDP"))
-{
-}
-
-
-UDPSocket::~UDPSocket()
 {
 }
 

@@ -51,11 +51,6 @@
  *
  */
 
-
-static const char* const TimeValHeaderVersion =
-    "$Id: TimeVal.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Writer.hxx"
 #include <sys/time.h>
 #include <unistd.h>
@@ -107,12 +102,6 @@ class TimeVal : public timeval, public Vocal::IO::Writer
     	/** Copy constructor.
 	 */
         TimeVal(const timeval &);
-
-
-    	/** Virtual desctructor.
-	 */
-        virtual ~TimeVal();
-
 
     	/** Assignment operator.
 	 */

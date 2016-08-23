@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const ImpBaseUrl_hxx_Version =
-    "$Id: ImpBaseUrl.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include <string>
 #include "global.h"
 #include "SipParserMode.hxx"
@@ -119,8 +116,6 @@ class ImpBaseUrl : public BaseUrl
 	///
 	ImpBaseUrl(const ImpBaseUrl& );
     
-	///
-	virtual ~ImpBaseUrl();
 	///
         bool areEqual(Sptr<BaseUrl>) const;
         ///

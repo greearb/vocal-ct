@@ -49,10 +49,6 @@
  */
 
 
-static const char* const PerfTotal_cxx_Version = 
-    "$Id: PerfTotal.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "PerfTotal.hxx"
 #include "PerformanceDb.hxx"
@@ -82,11 +78,6 @@ PerfTotal::operator=(const PerfTotal & src)
     TotalStatistic::operator=(src);
     
     return ( *this );
-}
-
-
-PerfTotal::~PerfTotal()
-{
 }
 
 

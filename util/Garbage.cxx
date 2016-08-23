@@ -54,8 +54,3 @@
 
 
 using Vocal::Garbage;
-
-
-Garbage::~Garbage() throw (Vocal::SystemException)
-{
-}

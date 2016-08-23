@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SubscribeMsg_cxx_Version =
-    "$Id: SubscribeMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "SipCallLeg.hxx"
 #include "SipExpires.hxx"
 #include "SipMsg.hxx"
@@ -190,11 +187,6 @@ SubscribeMsg::SubscribeMsg( const SubscribeMsg& msg, enum SubscribeMsgForward )
     reqLine.setUrl( dest );
     setRequestLine( reqLine );
 }
-
-
-SubscribeMsg::~SubscribeMsg()
-{}
-
 
 SubscribeMsg& SubscribeMsg::operator=(const SubscribeMsg& src)
 {

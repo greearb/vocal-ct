@@ -97,7 +97,7 @@ class CpPriorityLog : public Vocal::Logging::PriorityLog
 
     	/** Virtual destructor.
 	 */
-	virtual ~CpPriorityLog();
+        virtual ~CpPriorityLog() throw (Vocal::SystemException);
 
 
     	/** Create a CpPriorityLog copy of this object.

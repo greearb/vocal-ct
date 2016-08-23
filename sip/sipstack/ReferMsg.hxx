@@ -51,10 +51,6 @@
  *
  */
 
-static const char* const ReferMsg_hxx_Version =
-    "$Id: ReferMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
-
 #include "SipCommand.hxx"
 #include "StatusMsg.hxx"
 
@@ -106,10 +102,6 @@ class ReferMsg : public SipCommand
 
         ///
         virtual Method getType() const;
-
-        ///
-        virtual ~ReferMsg();
-
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

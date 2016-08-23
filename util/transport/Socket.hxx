@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Socket_hxx_Version = 
-    "$Id: Socket.hxx,v 1.2 2005/03/03 19:59:50 greear Exp $";
-
-
 #include "TransportCommon.hxx"
 #include "FileDescriptor.hxx"
 #include "AddressFamily.hxx"
@@ -128,7 +124,7 @@ public:
     					
    /** Virtual destructor.
     */
-   virtual ~Socket();
+   virtual ~Socket() throw (Vocal::SystemException);
 
 
    /** Returns the local address to which the socket is bound.

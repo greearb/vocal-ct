@@ -49,10 +49,6 @@
  */
 
 
-static const char* const SignalAction_cxx_Version =
-    "$Id: SignalAction.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "SignalAction.hxx"
 
@@ -65,11 +61,6 @@ SignalAction::SignalAction(const SignalSet & signalSet, const char * pName)
     :   mySignalSet(signalSet),
         mySignalCaught(false),
         myName(pName ? pName : "SignalAction")
-{
-}
-
-
-SignalAction::~SignalAction()
 {
 }
 

@@ -52,10 +52,6 @@
  */
 
 
-static const char* const SocketType_hxx_Version = 
-    "$Id: SocketType.hxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "Writer.hxx"
 
 #if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__)
@@ -104,7 +100,7 @@ class SocketType : public Vocal::IO::Writer
 
     	/** Virtual destructor.
 	 */
-	virtual ~SocketType();
+        virtual ~SocketType() throw (Vocal::SystemException);
 
 
     	/** Assignment operator

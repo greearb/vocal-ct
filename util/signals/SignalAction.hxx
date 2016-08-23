@@ -52,10 +52,6 @@
  */
 
 
-static const char* const SignalActionHeaderVersion =
-    "$Id: SignalAction.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "SignalSet.hxx"
 #include "Writer.hxx"
 #include "NonCopyable.hxx"
@@ -94,7 +90,7 @@ class SignalAction : public Vocal::IO::Writer, public Vocal::NonCopyable
 
 	/** Virtual destructor.
 	 */
-        virtual ~SignalAction();
+        virtual ~SignalAction() throw (Vocal::SystemException) { };
 
 
 	/** Get the set of signals to be responded to.

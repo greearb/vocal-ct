@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipRawHeader_hxx_Version =
-    "$Id: SipRawHeader.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "SipHeader.hxx"
 #include <set>
 #include "Sptr.hxx"

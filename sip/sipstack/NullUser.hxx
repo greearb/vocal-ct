@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const NullUser_hxx_Version =
-    "$Id: NullUser.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "BaseUser.hxx"
 
 namespace Vocal
@@ -65,8 +62,6 @@ class NullUser : public BaseUser
 public:
     /// Create one with default values
     NullUser();
-    ///
-    virtual ~NullUser();
     //parser functions
     virtual bool decode(const Data& data);
     ///

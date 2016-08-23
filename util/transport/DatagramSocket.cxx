@@ -109,11 +109,6 @@ DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
 }
 
 
-DatagramSocket::~DatagramSocket()
-{
-}
-
-
 void	
 DatagramSocket::connect(const TransportAddress& remoteAddr)
    throw ( Vocal::SystemException ) {

@@ -54,9 +54,6 @@
 
 #include "SipCommand.hxx"
 
-static const char* const OptionsMsgVersion
-= "$Id: OptionsMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 namespace Vocal
 {
 
@@ -73,8 +70,6 @@ class OptionsMsg : public SipCommand
         // or 'hostaddress' if we are not specifically bound.
         OptionsMsg(const string& local_ip);
 
-        ///
-        virtual ~OptionsMsg(){};
         //The listenPort is required to build the INVITE msg, in the Via field.
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.

@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Protocol_hxx_Version = 
-    "$Id: Protocol.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
-
 #include "NonCopyable.hxx"
 #include "Writer.hxx"
 #include "ProtocolException.hxx"
@@ -123,7 +119,7 @@ class Poll;
 
     	/** Virtual destructor
 	 */
-    	virtual ~Protocol();
+        virtual ~Protocol() throw (Vocal::SystemException);
 	
 
     	/** FileDescriptor accessor.

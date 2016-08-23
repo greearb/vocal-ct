@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipProxyAuthorizeVersion =
-    "$Id: SipProxyAuthorization.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "global.h"
 #include "Data.hxx"
 #include <map>

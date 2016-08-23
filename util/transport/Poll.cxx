@@ -106,11 +106,6 @@ Poll::Poll()
 }
 
 
-Poll::~Poll()
-{
-}
-
-
 void	    	    
 Poll::registerFD(
     const FileDescriptor &      fd, 

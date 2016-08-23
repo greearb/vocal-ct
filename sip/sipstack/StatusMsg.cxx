@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const StatusMsg_cxx_Version =
-    "$Id: StatusMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "global.h"
 #include "support.hxx"
 #include "InviteMsg.hxx"
@@ -86,11 +83,6 @@ StatusMsg::StatusMsg(const StatusMsg& src)
         :
         SipMsg(src),
         statusLine(src.statusLine)
-{
-}
-
-
-StatusMsg::~StatusMsg()
 {
 }
 

@@ -49,10 +49,6 @@
  */
 
 
-static const char* const GetOpt_cxx_Version = 
-  "$Id: GetOpt.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
- 
-
 #include "global.h"
 #include "GetOpt.hxx"
 #include "ParsePair.hxx"
@@ -84,7 +80,7 @@ GetOpt::GetOpt()
 }
 
 
-GetOpt::~GetOpt()
+GetOpt::~GetOpt() throw (Vocal::SystemException)
 {
     size_t  size =  myLongOpts.size();
     

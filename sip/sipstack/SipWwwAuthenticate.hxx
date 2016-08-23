@@ -52,12 +52,6 @@
  */
 
 #include "global.h"
-
-static const char* const SipWwwAuthenticateVersion =
-    "$Id: SipWwwAuthenticate.hxx,v 1.3 2006/02/10 17:39:20 greear Exp $";
-
-
-
 #include "Data.hxx"
 #include <map>
 #include "Sptr.hxx"

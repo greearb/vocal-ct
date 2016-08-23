@@ -52,10 +52,6 @@
  */
 
 #include "global.h"
-static const char* const SipRecordRouteVersion =
-    "$Id: SipRecordRoute.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
-
 #include "Data.hxx"
 #include "BaseUrl.hxx"
 #include "SipHeader.hxx"
@@ -108,7 +104,7 @@ class SipRecordRoute : public SipHeader
 
         SipRecordRoute(const Data & data, const string& local_ip,
                        UrlType uType = SIP_URL);
-
+   
         ///
         Sptr <BaseUrl> getUrl() const;
 

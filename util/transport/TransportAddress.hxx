@@ -52,10 +52,6 @@
  */
 
 
-static const char* const TransportAddress_hxx_Version = 
-    "$Id: TransportAddress.hxx,v 1.3 2006/03/14 00:20:07 greear Exp $";
-
-
 #include "TransportCommon.hxx"
 #include "Writer.hxx"
 #include "AddressFamily.hxx"
@@ -97,11 +93,6 @@ class TransportAddress : public Vocal::IO::Writer
 
 
     public:				
-
-
-    	/** Virtual destructor.
-	 */
-    	virtual ~TransportAddress();
 
 
     	/** Factory method to create a transport address given

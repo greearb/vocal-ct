@@ -52,10 +52,6 @@
  */
 
 
-static const char* const GetOpt_hxx_Version = 
-  "$Id: GetOpt.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "NonCopyable.hxx"
 #include "NameValue.hxx"
 
@@ -116,7 +112,7 @@ class GetOpt : public Vocal::NonCopyable
         
         /**
          */
-	virtual ~GetOpt();
+        virtual ~GetOpt() throw (Vocal::SystemException);
 
 
         /**

@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const InfoMsg_cxx_Version =
-    "$Id: InfoMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "cpLog.h"
 #include "Data.hxx"
 #include "symbols.hxx"
@@ -76,10 +73,6 @@ const char InfoMsg::INFO_SUBJECT[] = "VovidaINFO";
 InfoMsg::InfoMsg(const string& local_ip): SipCommand(local_ip, "InfoMsg")
 {}
 
-
-InfoMsg::~InfoMsg()
-{
-}
 
 InfoMsg::InfoMsg(const InfoMsg& src)
         : SipCommand(src)

@@ -81,12 +81,8 @@ class SipSdp : public SipContentData
         ///
         SipSdp( const Data& data, const string& local_ip );
 
-	///
-	virtual ~SipSdp();
-    
         ///
-        Vocal::SDP::SdpSession&
-        getSdpDescriptor() ;
+        Vocal::SDP::SdpSession& getSdpDescriptor() ;
         ///
         void
         setSdpDescriptor(const Vocal::SDP::SdpSession& sdp);

@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const AckMsgVersion = 
-"$Id: AckMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 #include "SipCommand.hxx"
 
 namespace Vocal
@@ -116,9 +113,6 @@ class AckMsg : public SipCommand
 
         ///
         bool operator ==(const AckMsg& src) ;
-
-        ///
-        virtual ~AckMsg();
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

@@ -86,8 +86,6 @@ public:
     /// Create one with default values
     SipTelSubscriberUser();
     ///
-    ~SipTelSubscriberUser();
-    ///
     SipTelSubscriberUser(const Data&) throw(SipTelSubscriberUserParserException&);
     ///
     Sptr<BaseUser> duplicate() const;

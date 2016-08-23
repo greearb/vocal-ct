@@ -68,12 +68,6 @@ SipTelSubscriberUser::SipTelSubscriberUser()
 {
 }
     
-    
-SipTelSubscriberUser::~SipTelSubscriberUser()
-{
-}
-
-    
 SipTelSubscriberUser::SipTelSubscriberUser(const Data& data) 
     throw(SipTelSubscriberUserParserException&)
     :BaseUser(),

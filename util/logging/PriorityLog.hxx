@@ -52,9 +52,6 @@
  */
 
 
-static const char* const PriorityLog_hxx_Version = 
-    "$Id: PriorityLog.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 
 #include "Writer.hxx"
 #include <string>
@@ -115,7 +112,7 @@ namespace Logging
 
     	/** Virtual destructor.
 	 */
-	virtual ~PriorityLog();
+        virtual ~PriorityLog() throw (Vocal::SystemException);
 
 
     	/** Create a clone of this object. See the Prototype pattern from

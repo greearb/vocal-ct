@@ -49,10 +49,6 @@
  */
 
 
-static const char* const Statistic_cxx_Version = 
-    "$Id: Statistic.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "Statistic.hxx"
 #include "Data.hxx"
@@ -109,11 +105,6 @@ Statistic::operator=(const Statistic & src)
 	myKey = src.myKey;
     }
     return ( *this );
-}
-
-
-Statistic::~Statistic()
-{
 }
 
 

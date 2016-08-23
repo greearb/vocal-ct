@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Protocol_Creator_hxx_Version = 
-    "$Id: ProtocolCreator.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
-
 #include "NonCopyable.hxx"
 #include "Sptr.hxx"
 #include "Protocol.hxx"
@@ -96,7 +92,7 @@ class ProtocolCreator : public Vocal::NonCopyable, public RCObject
 
     	/** Virtual destructor
 	 */
-    	virtual ~ProtocolCreator() {}
+        virtual ~ProtocolCreator() throw (Vocal::SystemException) {}
 	
 
         /**

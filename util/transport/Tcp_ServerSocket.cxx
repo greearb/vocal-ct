@@ -153,7 +153,7 @@ int TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to
    return 0;
 }
 
-TcpServerSocket::~TcpServerSocket() {
+TcpServerSocket::~TcpServerSocket() throw (Vocal::SystemException) {
     close();
 }
 

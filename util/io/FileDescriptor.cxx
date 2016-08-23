@@ -77,7 +77,7 @@ FileDescriptor::FileDescriptor(file_descriptor_t fd)
 }
 
 
-FileDescriptor::~FileDescriptor()
+FileDescriptor::~FileDescriptor() throw (Vocal::SystemException)
 {
     if ( fd_ != INVALID )
     {

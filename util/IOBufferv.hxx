@@ -77,7 +77,7 @@ public:
    IOBufferv  (); //default constructor
    IOBufferv  (const IOBufferv& S);
    IOBufferv  (const int m_len);
-   virtual ~IOBufferv ();
+   virtual ~IOBufferv () throw (Vocal::SystemException);
    IOBufferv& operator=(const IOBufferv& src);
 
    //static void setLogFile(LogStream* dafile);// { logfile = dafile; }

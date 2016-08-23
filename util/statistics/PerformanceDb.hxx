@@ -52,10 +52,6 @@
  */
 
 
-static const char* const PerformaceDb_hxx_Version = 
-    "$Id: PerformanceDb.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "StatisticsDb.hxx"
 
 
@@ -96,7 +92,7 @@ class PerformanceDb : public Vocal::Statistics::StatisticsDb
     	static PerformanceDb &	instance();
 
 
-	virtual ~PerformanceDb();
+        virtual ~PerformanceDb() throw (Vocal::SystemException);
 
 
 	/** Finds the combined PerfDuration statistic in the database

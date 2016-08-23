@@ -53,9 +53,6 @@
 
 #include "SipCommand.hxx"
 
-static const char* const CancelMsgVersion
-= "$Id: CancelMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 namespace Vocal
 {
 /**
@@ -99,9 +96,6 @@ class CancelMsg : public SipCommand
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
         CancelMsg(const string& local_ip);
-
-        ///
-        virtual ~CancelMsg();
 
         virtual bool isCancelMsg() const { return true; }
 

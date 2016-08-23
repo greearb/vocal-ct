@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const CancelMsg_cxx_Version =
-    "$Id: CancelMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "CancelMsg.hxx"
 #include "Data.hxx"
 #include "SipCallId.hxx"
@@ -135,11 +132,6 @@ CancelMsg::CancelMsg(const CancelMsg& msg, enum CancelMsgForward)
     SipRequestLine reqLine = getRequestLine();
     reqLine.setUrl( dest );
     setRequestLine( reqLine );
-}
-
-
-CancelMsg::~CancelMsg()
-{
 }
 
 

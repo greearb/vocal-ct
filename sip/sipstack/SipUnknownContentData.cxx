@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipUnknownContentData_cxx_Version =
-    "$Id: SipUnknownContentData.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "SipUnknownContentData.hxx"
 
@@ -69,12 +66,6 @@ SipUnknownContentData::SipUnknownContentData(const Data& data, const string& loc
 {
     setContentType(new SipContentType("application", "unknown", local_ip));
 }
-
-
-SipUnknownContentData::~SipUnknownContentData()
-{
-}
-
 
 SipUnknownContentData::SipUnknownContentData( const SipUnknownContentData& rhs )
     :SipContentData(rhs),

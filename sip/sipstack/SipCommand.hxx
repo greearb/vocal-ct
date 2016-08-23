@@ -406,9 +406,6 @@ public:
    ///
    const SipOspAuthorization& getSipOspAuthorization() const;
 
-   /// 
-   virtual ~SipCommand();
-    
    /** Form cryptographically unique branch, should be combined with
     * results of computeBranch to satisfy draft bis09. 
     */

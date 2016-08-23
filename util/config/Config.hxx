@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Config_hxx_Version = 
-  "$Id: Config.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "IPAddress.hxx"
 #include "GetOpt.hxx"
 #include "NameValue.hxx"
@@ -98,7 +94,7 @@ class Config : public Vocal::IO::Writer
 
     	/** Destroys the configuration information.
     	 */
-    	virtual ~Config();
+        virtual ~Config() throw (Vocal::SystemException) { };
 
 
     	/** Loads the configuration information from the command line.

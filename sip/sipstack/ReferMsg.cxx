@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const ReferMsg_cxx_Version =
-    "$Id: ReferMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "ReferMsg.hxx"
 #include "SipContact.hxx"
 #include "SipProxyAuthenticate.hxx"
@@ -80,12 +77,6 @@ ReferMsg::ReferMsg(const string& local_ip)
     SipCSeq cseq( SIP_REFER, 0, getLocalIp() );
     setCSeq( cseq );
 }
-
-
-ReferMsg::~ReferMsg()
-{
-}
-
 
 ReferMsg::ReferMsg(const ReferMsg& src)
         : SipCommand(src)

@@ -195,11 +195,6 @@ SipCommand::SipCommand(const StatusMsg& status, const string& _local_ip,
 }
 
 
-SipCommand::~SipCommand()
-{
-}
-
-
 SipCommand& 
 SipCommand::operator =(const SipCommand& src)
 {

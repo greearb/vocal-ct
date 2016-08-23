@@ -49,10 +49,6 @@
  */
 
 
-static const char* const StatisticsDb_cxx_Version = 
-    "$Id: StatisticsDb.cxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
-
 #include "global.h"
 #include "StatisticsDb.hxx"
 #include "Statistic.hxx"
@@ -76,7 +72,7 @@ StatisticsDb::StatisticsDb(const char * name)
 }
 
 
-StatisticsDb::~StatisticsDb()
+StatisticsDb::~StatisticsDb() throw (Vocal::SystemException)
 {
     clear();
 }

@@ -49,11 +49,6 @@
  *
  */
 
-
-static const char* const TelUrl_cxx_Version =
-    "$Id: TelUrl.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "global.h"
 #include "TelUrl.hxx"
 #include "symbols.hxx"
@@ -109,10 +104,6 @@ TelUrl::TelUrl()
 {
 }
 
-
-TelUrl::~TelUrl()
-{
-}
 
 Sptr<BaseUrl> TelUrl::duplicate() const
 {

@@ -123,8 +123,6 @@ class InviteMsg : public SipCommand
         bool operator ==(const InviteMsg& src) const;
         ///
         InviteMsg(const InviteMsg&);
-        ///
-        virtual ~InviteMsg(){}
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

@@ -49,10 +49,6 @@
  */
 
 
-static const char* const TimeVal_cxx_Version =
-    "$Id: TimeVal.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include "TimeVal.hxx"
 #include "VTime.hxx"
@@ -89,11 +85,6 @@ TimeVal::TimeVal(const timeval & src)
 {
     copy(src);
     normalize();
-}
-
-
-TimeVal::~TimeVal()
-{
 }
 
 

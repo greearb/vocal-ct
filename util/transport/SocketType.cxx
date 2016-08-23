@@ -49,10 +49,6 @@
  */
 
 
-static const char* const SocketType_cxx_Version = 
-    "$Id: SocketType.cxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
-
-
 #include "global.h"
 #include "SocketType.hxx"
 
@@ -74,11 +70,6 @@ SocketType::SocketType(int type)
 
 SocketType::SocketType(const SocketType & s)
     :	type_(s.type_)
-{
-}
-
-
-SocketType::~SocketType()
 {
 }
 

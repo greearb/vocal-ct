@@ -120,9 +120,6 @@ class TelUrl : public BaseUrl
 	///
 	TelUrl(const TelUrl& );
     
-	///
-	~TelUrl();
-
         // Help up-cast safely.
         virtual bool isSipUrl() const { return false; }
 

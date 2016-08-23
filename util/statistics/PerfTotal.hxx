@@ -52,10 +52,6 @@
  */
 
 
-static const char* const PerfTotal_hxx_Version = 
-    "$Id: PerfTotal.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "TotalStatistic.hxx"
 
 
@@ -97,7 +93,7 @@ class PerfTotal : public Vocal::Statistics::TotalStatistic
 
 	/** Virtual destructor.
 	 */
-	virtual ~PerfTotal();
+        virtual ~PerfTotal() throw (Vocal::SystemException) { };
 
     	
     	/** Create a copy of this statistic.

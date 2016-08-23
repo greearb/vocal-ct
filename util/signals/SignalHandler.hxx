@@ -52,10 +52,6 @@
  */
 
 
-static const char* const SignalHandler_hxx_Version = 
-    "$Id: SignalHandler.hxx,v 1.2 2004/05/04 07:31:16 greear Exp $";
-
-
 #include "NonCopyable.hxx"
 #include "global.h"
 #include "SignalSet.hxx"
@@ -122,7 +118,7 @@ class SignalHandler : public Vocal::NonCopyable
 
 	/** Virtual destructor.
 	 */
-	virtual     ~SignalHandler();
+        virtual ~SignalHandler() throw (Vocal::SystemException);
 
 
     	/** Adds an action to be handled for this thread.

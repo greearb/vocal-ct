@@ -181,7 +181,7 @@ IOBufferv::IOBufferv(const int my_len) {
 } // constructor
 
 
-IOBufferv::~IOBufferv() {
+IOBufferv::~IOBufferv() throw (Vocal::SystemException) {
    string_cnt--;
    total_bytes -= (max_len);
    if (iobuf) {

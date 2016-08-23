@@ -51,13 +51,7 @@
  *
  */
 
-static const char* const SipSubsNotifyEvent_hxx_Version =
-    "$Id: SipSubsNotifyEvent.hxx,v 1.2 2004/06/16 06:51:26 greear Exp $";
-
 #include "global.h"
-
-
-
 #include "Data.hxx"
 #include "VException.hxx"
 #include "SipHeader.hxx"
@@ -106,8 +100,6 @@ class SipSubsNotifyEvent : public SipHeader
              or parse.  */
         SipSubsNotifyEvent( const Data& srcData, const string& local_ip );
         SipSubsNotifyEvent( const SipSubsNotifyEvent& src);
-
-        virtual ~SipSubsNotifyEvent();
 
         ///
         bool operator ==( const SipSubsNotifyEvent& src) const;

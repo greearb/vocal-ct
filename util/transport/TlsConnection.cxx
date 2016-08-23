@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const TlsConnection_cxx_version =
-    "$Id: TlsConnection.cxx,v 1.7 2006/02/24 22:27:52 greear Exp $";
-
 #include "TlsConnection.hxx"
 #ifdef VOCAL_HAS_OPENSSL
  #include <openssl/err.h>
@@ -78,7 +75,7 @@ TlsConnection::TlsConnection(Connection& other, bool really)
     assert(!shouldCloseOnDestruct());
 }
 
-TlsConnection::~TlsConnection() {
+TlsConnection::~TlsConnection() throw (Vocal::SystemException) {
 #ifdef VOCAL_HAS_OPENSSL
     if (ssl) {
         SSL_free (ssl);

@@ -49,10 +49,6 @@
  */
 
 
-static const char* const PriorityLog_cxx_Version = 
-    "$Id: PriorityLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "global.h"
 #include "PriorityLog.hxx"
 #include <time.h>
@@ -116,7 +112,7 @@ PriorityLog::operator=(const PriorityLog & src)
 }
 
 
-PriorityLog::~PriorityLog()
+PriorityLog::~PriorityLog() throw (Vocal::SystemException)
 {
     delete buffer_;
 }

@@ -52,10 +52,6 @@
  */
 
 
-static const char* const Protocol_Factory_hxx_Version = 
-    "$Id: ProtocolFactory.hxx,v 1.1 2004/05/01 04:15:38 greear Exp $";
-
-
 #include "Singleton.hxx"
 #include "Sptr.hxx"
 #include "ProtocolCreator.hxx"
@@ -99,7 +95,7 @@ class ProtocolFactory : public Singleton<ProtocolFactory>
 
     	/** Virtual destructor
 	 */
-    	virtual ~ProtocolFactory();
+        virtual ~ProtocolFactory() throw (Vocal::SystemException) { };
 	
 
         /**

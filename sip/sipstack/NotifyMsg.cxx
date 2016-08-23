@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const NotifyMsg_cxx_Version =
-    "$Id: NotifyMsg.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 #include "NotifyMsg.hxx"
 #include "SipCallLeg.hxx"
 #include "SipMsg.hxx"
@@ -147,12 +144,6 @@ NotifyMsg::NotifyMsg(const NotifyMsg& src)
         : SipCommand(src)
 {
 }
-
-
-NotifyMsg::~NotifyMsg()
-{
-}
-
 
 const NotifyMsg& 
 NotifyMsg::operator=(const NotifyMsg& src)

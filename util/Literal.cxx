@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const Literal_cxx_Version =
-    "$Id: Literal.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Literal.hxx"
 
 Literal::Literal() : Data()
@@ -150,9 +146,6 @@ operator!=(const Data& s, const Literal& data)
     return !isEqualNoCase(data,s);
 }
 
-
-Literal::~Literal()
-{}
 
 /* Local Variables: */
 /* c-file-style:"stroustrup" */

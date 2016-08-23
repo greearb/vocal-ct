@@ -49,10 +49,6 @@
  */
 
 
-static const char* const DurationStatistic_cxx_Version = 
-    "$Id: DurationStatistic.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "DurationStatistic.hxx"
 #include <cassert>
@@ -129,7 +125,7 @@ DurationStatistic::operator=(const DurationStatistic & src)
 }
 
 
-DurationStatistic::~DurationStatistic()
+DurationStatistic::~DurationStatistic() throw (Vocal::SystemException)
 {
     clear();
 }

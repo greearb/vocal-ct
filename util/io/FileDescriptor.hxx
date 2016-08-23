@@ -52,10 +52,6 @@
  */
 
 
-static const char* const FileDescriptor_hxx_Version = 
-"$Id: FileDescriptor.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "Writer.hxx"
 #include "SystemException.hxx"
 #include "SystemStatus.hxx"
@@ -109,7 +105,7 @@ class FileDescriptor : public Vocal::IO::Writer
 	 *
 	 *  @exception Vocal::SystemException
 	 */
-	virtual ~FileDescriptor();
+        virtual ~FileDescriptor() throw (Vocal::SystemException);
 
 
 	/** Mutator given a new native file descriptor.

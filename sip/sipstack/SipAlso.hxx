@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipAlso_hxx_Version =
-    "$Id: SipAlso.hxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
 #include "global.h"
 #include "Data.hxx"
 #include "BaseUrl.hxx"
@@ -114,6 +111,7 @@ class SipAlso : public SipHeader
         SipAlso( const Data& data, const string& local_ip, UrlType uType = SIP_URL );
         ///
         SipAlso(const SipAlso&);
+
         ///
         Data encode() const;
         ///

@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SipUnknownContentData_hxx_version
-    = "$Id: SipUnknownContentData.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "SipContentData.hxx"
 
 namespace Vocal
@@ -72,9 +69,6 @@ class SipUnknownContentData : public SipContentData
 
         ///
         SipUnknownContentData& operator=( const SipUnknownContentData& rhs );
-
-        ///
-        virtual ~SipUnknownContentData();
 
         /** encode the body of the ContentData and return it.  
 	    @param len   returns the length in bytes of the encoded body.

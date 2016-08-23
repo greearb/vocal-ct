@@ -136,9 +136,6 @@ class StatusMsg : public SipMsg
         bool operator ==(const StatusMsg& statusMsg); 
         ///
         void decode(const Data& data);
-        ///
-        virtual ~StatusMsg();
-
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

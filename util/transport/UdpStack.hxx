@@ -109,7 +109,7 @@ public:
       }
    }
 
-   ~ByteBuffer() {
+   ~ByteBuffer() throw (Vocal::SystemException) {
       free(buf);
       if (na) {
          delete na;
@@ -384,7 +384,7 @@ public:
                              NetworkAddress* iface = NULL,
                              int ifaceInexe = 0 );
    ///
-   virtual ~UdpStack ();
+   virtual ~UdpStack() throw (Vocal::SystemException);
    
    /// Get the number of bytes the stack has processed
    int getBytesTransmitted () const;

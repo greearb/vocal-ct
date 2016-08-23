@@ -48,10 +48,6 @@
  *
  */
 
-static const char* const UnknownUrl_cxx_Version =
-    "$Id: UnknownUrl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
-
 #include "global.h"
 #include "Data.hxx"
 #include "cpLog.h"
@@ -77,12 +73,6 @@ UnknownUrl::UnknownUrl(const UnknownUrl& url)
 {
 }
     
-    
-UnknownUrl::~UnknownUrl()
-{
-}
-
-
 const UnknownUrl&
 UnknownUrl::operator=(const UnknownUrl& url)
 {

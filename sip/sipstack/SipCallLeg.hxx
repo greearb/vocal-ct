@@ -69,7 +69,6 @@ public:
    // local_ip cannot be "" here, must be the local IP we are bound to locally
    // or 'hostaddress' if we are not specifically bound.
    SipCallLeg(const string& local_ip);
-   virtual ~SipCallLeg() {}
 
    // local_ip cannot be "" here, must be the local IP we are bound to locally
    // or 'hostaddress' if we are not specifically bound.

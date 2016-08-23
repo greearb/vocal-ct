@@ -52,10 +52,6 @@
  */
 
 
-static const char* const PerfDuration_hxx_Version = 
-    "$Id: PerfDuration.hxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "DurationStatistic.hxx"
 
 
@@ -99,7 +95,7 @@ class PerfDuration : public Vocal::Statistics::DurationStatistic
 
 	/** Virtual destructor.
 	 */
-	virtual ~PerfDuration();
+        virtual ~PerfDuration() throw (Vocal::SystemException) { };
 
     	
     	/** Create a copy of this statistic.

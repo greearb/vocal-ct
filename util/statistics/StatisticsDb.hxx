@@ -52,10 +52,6 @@
  */
 
 
-static const char* const StatisticsDb_hxx_Version = 
-    "$Id: StatisticsDb.hxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
-
-
 #include <map>
 #include <vector>
 
@@ -109,7 +105,7 @@ class StatisticsDb : public Vocal::IO::Writer
 
 	/** Destroy the statistics database.
 	 */
-	virtual ~StatisticsDb();
+        virtual ~StatisticsDb() throw (Vocal::SystemException);
 
     	
     	/** Return the key given the label. If this is a new label,

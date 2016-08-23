@@ -52,10 +52,6 @@
  */
 
 
-static const char* const ParsePair_hxx_Version =
-    "$Id: ParsePair.hxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "VocalCommon.hxx"
 #include "NonCopyable.hxx"
 #include "NameValue.hxx"
@@ -95,7 +91,7 @@ class ParsePair : Vocal::NonCopyable, public BugCatcher
 
         ParsePair();
         
-        virtual ~ParsePair();
+        virtual ~ParsePair() throw (Vocal::SystemException) { };
         
         void                    tagName(const string &);
         

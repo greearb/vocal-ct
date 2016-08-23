@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const ConnectionHeaderVersion =
-    "$Id: Connection.hxx,v 1.12 2006/03/12 07:41:28 greear Exp $";
-
 #include "vin.h"
 #include "global.h"
 #include <string.h>
@@ -145,7 +142,7 @@ public:
       return _connAddrLen;
    }
 
-   virtual ~Connection();
+   virtual ~Connection() throw (Vocal::SystemException);
 
    // Be very careful with this.  You must set closeOnDestruct
    // correctly!

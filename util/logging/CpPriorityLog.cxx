@@ -50,10 +50,6 @@
  */
 
 
-static const char* const CpPriorityLog_cxx_Version = 
-    "$Id: CpPriorityLog.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
-
 #include "global.h"
 #include "CpPriorityLog.hxx"
 #include <cstdarg>
@@ -93,7 +89,7 @@ CpPriorityLog::CpPriorityLog(const PriorityLog & src)
 }
 
 
-CpPriorityLog::~CpPriorityLog()
+CpPriorityLog::~CpPriorityLog() throw (Vocal::SystemException)
 {
 }
 

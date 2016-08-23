@@ -51,9 +51,6 @@
  *
  */
 
-static const char* const SubscribeMsg_hxx_Version =
-    "$Id: SubscribeMsg.hxx,v 1.2 2004/05/05 06:37:33 greear Exp $";
-
 #include "SipCommand.hxx"
 #include "symbols.hxx"
 
@@ -107,8 +104,6 @@ class SubscribeMsg : public SipCommand
         SubscribeMsg& operator =(const SubscribeMsg&);
 	/// 
 	bool operator ==(const SubscribeMsg& src); 
-	///
-        virtual ~SubscribeMsg();
 
         // Help up-cast safely.
         virtual bool isCancelMsg() const { return false; }

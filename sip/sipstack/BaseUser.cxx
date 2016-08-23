@@ -58,11 +58,6 @@ BaseUser::BaseUser()
 }
     
     
-BaseUser::~BaseUser()
-{
-}
-    
-
 bool 
 Vocal::operator<(const Sptr<BaseUser>& left, const Sptr<BaseUser>& right)
 {

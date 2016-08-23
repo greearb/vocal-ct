@@ -119,9 +119,6 @@ class RegisterMsg : public SipCommand {
         RegisterMsg(const string& local_ip);
 
         ///
-        virtual ~RegisterMsg(){};
-
-        ///
         // local_ip cannot be "" here, must be the local IP we are bound to locally
         // or 'hostaddress' if we are not specifically bound.
         RegisterMsg(const Data& data, const string& local_ip);
