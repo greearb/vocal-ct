@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const RtcpTransmitter_cxx_Version =
-    "$Id: RtcpTransmitter.cxx,v 1.6 2006/11/01 02:07:45 greear Exp $";
-
-
 #include "global.h"
 #include <iostream>
 #include <stdlib.h>
@@ -391,6 +387,11 @@ int RtcpTransmitter::addSDES (RtcpPacket* p, int npadSize)
     return addSDES (p, list, npadSize);
 }
 
+void cpy_str(RtcpSDESItem* item, char* src) {
+    int len = strlen(src);
+    memcpy(&(item->startOfText), src, len);
+    item->length = len;
+}
 
 int RtcpTransmitter::addSDES (RtcpPacket* p, RtcpSDESType* SDESlist,
                               int npadSize)
@@ -412,66 +413,53 @@ int RtcpTransmitter::addSDES (RtcpPacket* p, RtcpSDESType* SDESlist,
     // SDES chunk
     RtcpChunk* chunk = reinterpret_cast < RtcpChunk* > (p->freeData());
     usage += p->allocData (sizeof(RtpSrc));
-    /*
-    cout << "sizeof(RtcpChunk) =" << sizeof(RtcpChunk) << endl; // ?? should be 7
-    */
+
+    //cpLog(LOG_DEBUG_STACK, "sizeof(RtcpChunk) = %d\n", sizeof(RtcpChunk)); // ?? should be 7
+
     chunk->ssrc = htonl(tran->ssrc);
 
     // SDES items
     RtcpSDESItem* item = NULL;
-    for (int i = 0; SDESlist[i] != rtcpSdesEnd; i++)
-    {
-        //cpLog (LOG_DEBUG_STACK, "RTCP:  Adding SDES %d", SDESlist[i]);
+    for (int i = 0; SDESlist[i] != rtcpSdesEnd; i++) {
+        //cpLog (LOG_DEBUG_STACK, "RTCP:  Adding SDES[%d] %d", i, SDESlist[i]);
         item = reinterpret_cast < RtcpSDESItem* > (p->freeData());
         usage += p->allocData (sizeof(RtcpSDESItem) - 1);
-
-        int len = 0;
 
         switch (SDESlist[i])
         {
             case rtcpSdesCname:
-               strcpy(&(item->startOfText), getSdesCname());
-               len = strlen(getSdesCname());
-               //cpLog (LOG_DEBUG_STACK, "RTCP:  SDES Item Length: %d", len);
-               //cpLog (LOG_DEBUG_STACK, "RTCP:  SDES Item Value: %s", getSdesCname());
-               break;
+                //cpLog (LOG_DEBUG_STACK, "RTCP:  SDES Item Value: %s", getSdesCname());
+                cpy_str(item, getSdesCname());
+                break;
             case rtcpSdesName:
-               strcpy(&(item->startOfText), getSdesName());
-               len = strlen(getSdesName());
-               break;
+                cpy_str(item, getSdesName());
+                break;
             case rtcpSdesEmail:
-               strcpy(&(item->startOfText), getSdesEmail());
-               len = strlen(getSdesEmail());
-               break;
+                cpy_str(item, getSdesEmail());
+                break;
             case rtcpSdesPhone:
-               strcpy(&(item->startOfText), getSdesPhone());
-               len = strlen(getSdesPhone());
-               break;
+                cpy_str(item, getSdesPhone());
+                break;
             case rtcpSdesLoc:
-               strcpy(&(item->startOfText), getSdesLoc());
-               len = strlen(getSdesLoc());
-               break;
+                cpy_str(item, getSdesLoc());
+                break;
             case rtcpSdesTool:
-               strcpy(&(item->startOfText), getSdesTool());
-               len = strlen(getSdesTool());
-               break;
+                cpy_str(item, getSdesTool());
+                break;
             case rtcpSdesNote:
-               strcpy(&(item->startOfText), getSdesNote());
-               len = strlen(getSdesNote());
-               break;
+                cpy_str(item, getSdesNote());
+                break;
             case rtcpSdesPriv:
-               // future: not implemented
-               assert (0);
-               break;
+                // future: not implemented
+                assert (0);
+                break;
             default:
-               cpLog (LOG_ERR, "RtcpTransmitter:  SDES type unknown");
-               assert (0);
-               break;
+                cpLog (LOG_ERR, "RtcpTransmitter:  SDES type unknown");
+                assert (0);
+                break;
         }
         item->type = SDESlist[i];
 
-        // strlen removes the null that was copied
-        item->length = len;
         usage += p->allocData (item->length);
     }
 
@@ -547,7 +535,7 @@ int RtcpTransmitter::addBYE (RtcpPacket* p, RtpSrc* lst, int count,
         usage += p->allocData (sizeof(RtcpBye) - 1);
 
         byeReason->length = strlen(reason);
-        strncpy (&(byeReason->startOfText), reason, byeReason->length);
+        memcpy(&(byeReason->startOfText), reason, byeReason->length);
         usage += p->allocData (byeReason->length);
         //cpLog (LOG_DEBUG_STACK, "RTCP:  Reason: %s", reason);
     }

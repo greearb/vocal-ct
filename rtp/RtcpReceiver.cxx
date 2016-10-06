@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const RtcpReceiver_cxx_Version =
-    "$Id: RtcpReceiver.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include <iostream>
 #include <stdlib.h>
