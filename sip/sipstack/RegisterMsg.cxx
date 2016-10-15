@@ -166,6 +166,7 @@ void RegisterMsg::setRegisterDetails()
 
     //construct the From header.
     SipFrom sipfrom("", getLocalIp());
+    sipfrom.setTag("candela");
     Data user = theSystem.getUserName();
     sipfrom.setUser(user);
     Data dispName = theSystem.getDisplayName();
