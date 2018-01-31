@@ -856,7 +856,7 @@ Sptr<CachedEncodedRtp> UaFacade::findRtpCache(const string& fname,
                      // VAD pkt
                      cpLog(LOG_DEBUG, "read in VAD pkt, length: %d  codecType: %d\n",
                            b.len, b.ct);
-                     rv->addBuffer(new RtpPldBuffer(NULL, b.len, 0, b.ct));
+                     rv->addBuffer(new RtpPldBuffer("", b.len, 0, b.ct));
                   }
                }
             }
