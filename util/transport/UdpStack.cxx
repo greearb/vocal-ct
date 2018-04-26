@@ -344,6 +344,27 @@ int UdpStack::doServer ( int minPort, int maxPort) {
     // find a port to use
     int portOk = false;
 
+#ifdef __linux__
+    if (localDev.size()) {
+       // Bind to specific device.
+       char dv[15 + 1];
+       memset(dv, 0, sizeof(dv));
+       strncpy(dv, localDev.c_str(), 15);
+       if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
+                      dv, 15 + 1)) {
+          cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+                dv, strerror(errno));
+       }
+       else {
+          cpLog(LOG_DEBUG, "Successfully bound to device: %s\n", dv);
+       }
+    }
+    else {
+       cpLog(LOG_DEBUG, "WARNING:  local device not specified.\n");
+    }
+#endif
+
+
     // struct addrinfo is defined in lwres/netdb.h
     // sockaddr is defined in bits/socket.h
     uint32 lip;
@@ -363,7 +384,7 @@ int UdpStack::doServer ( int minPort, int maxPort) {
        my_ip_addr.sin_family = AF_INET;
        my_ip_addr.sin_addr.s_addr = htonl(lip);
        my_ip_addr.sin_port = htons(localPort);
-       
+
        cpLog(LOG_DEBUG, "Udp bind() fd =%d, port=%d desiredLocalIp: %s, this: %p",
              socketFd, localPort, desiredLocalIp.c_str(), this);
        
@@ -377,26 +398,6 @@ int UdpStack::doServer ( int minPort, int maxPort) {
           // successful binding occured
           cpLog(LOG_WARNING, "NOTE:  bound to ip: %s(0x%x)  port: %d  dbg: %s this: %p",
                 desiredLocalIp.c_str(), lip, localPort, _dbg.c_str(), this);
-
-#ifdef __linux__
-          if (localDev.size()) {
-             // Bind to specific device.
-             char dv[15 + 1];
-             memset(dv, 0, sizeof(dv));
-             strncpy(dv, localDev.c_str(), 15);
-             if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
-                            dv, 15 + 1)) {
-                cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                      dv, strerror(errno));
-             }
-             else {
-                cpLog(LOG_DEBUG, "Successfully bound to device: %s\n", dv);
-             }
-          }
-          else {
-             cpLog(LOG_DEBUG, "WARNING:  local device not specified.\n");
-          }
-#endif
 
           // TODO:  Should probe this, but as long as we always specify the local IP,
           //   then no big deal.
@@ -449,6 +450,18 @@ void UdpStack::connectPorts() {
 
    int result;
 
+#ifdef __linux__
+   if (localDev.size()) {
+      // Bind to specific device.
+      char dv[15 + 1];
+      strncpy(dv, localDev.c_str(), 15);
+      if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
+                     dv, 15 + 1)) {
+         cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
+               dv, strerror(errno));
+      }
+   }
+#endif
    
    struct sockaddr_in sa;
    memset(&sa, 0, sizeof(sa));
@@ -483,20 +496,6 @@ void UdpStack::connectPorts() {
             cpLog(LOG_ERR,  errMsg.str());
          }//if
          else {
-
-#ifdef __linux__
-            if (localDev.size()) {
-               // Bind to specific device.
-               char dv[15 + 1];
-               strncpy(dv, localDev.c_str(), 15);
-               if (setsockopt(socketFd, SOL_SOCKET, SO_BINDTODEVICE,
-                              dv, 15 + 1)) {
-                  cpLog(LOG_ERR, "ERROR:  setsockopt (BINDTODEVICE), dev: %s  error: %s\n",
-                        dv, strerror(errno));
-               }
-            }
-#endif
-
             memset(&sa, 0, sizeof(sa));
             
             sa.sin_family = AF_INET;

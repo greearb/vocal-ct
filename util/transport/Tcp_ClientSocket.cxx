@@ -213,9 +213,6 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
       cpLog(LOG_DEBUG, buf);
    }
       
-   // Set it to be non-blocking, etc.
-   _conn->setState();
-      
 #ifdef __linux__
    // Optionally, bind this to the local interface.
    if (local_dev_to_bind_to.size()) {
@@ -229,6 +226,9 @@ void TcpClientSocket::connect() throw (VNetworkException&) {
    }
 #endif
       
+   // Set it to be non-blocking, etc.
+   _conn->setState();
+
    // Bind to the local IP
    if (local_ip_to_bind_to.size()) {
       uint32 lip;

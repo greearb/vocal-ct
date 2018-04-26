@@ -111,15 +111,6 @@ int TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to
       return -ERRNO;
    }
 
-   int on = 1;
-   if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR, (char*)(&on), sizeof ( on )) ) {
-      // this is an error -- can't set it
-      cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
-   }
-
-   // Set ToS and Priority
-   vsetPrio(_serverConn->_connId, _tos, _skb_priority, "TcpServerSocket::listenOn");
-
 #ifdef __linux__
    if (local_dev_to_bind_to.size()) {
       // Bind to specific device.
@@ -132,7 +123,16 @@ int TcpServerSocket::listenOn(const string& local_ip, const string& local_dev_to
                dv, strerror(errno));
       }
    }
-#endif   
+#endif
+
+   int on = 1;
+   if ( setsockopt ( _serverConn->_connId, SOL_SOCKET, SO_REUSEADDR, (char*)(&on), sizeof ( on )) ) {
+      // this is an error -- can't set it
+      cpLog(LOG_ALERT, "setsockopt failed (REUSEADDR), reason: %s", strerror(errno));
+   }
+
+   // Set ToS and Priority
+   vsetPrio(_serverConn->_connId, _tos, _skb_priority, "TcpServerSocket::listenOn");
 
    if (::bind(_serverConn->_connId, (struct sockaddr*)(&sa), sizeof(sa))) {
       delete []_serverConn->_connAddr;
