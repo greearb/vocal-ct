@@ -121,7 +121,7 @@ class StatusMsg : public SipMsg
         ///
         StatusMsg(SipCommand& command, int statusCode);
         ///
-        StatusMsg(const Data& data, const string& local_ip) throw (SipParserException&);
+        StatusMsg(const Data& data, const string& local_ip);// throw (SipParserException&);
         ///
         StatusMsg(const string& local_ip);
         ///

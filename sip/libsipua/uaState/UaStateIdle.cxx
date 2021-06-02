@@ -59,7 +59,7 @@ using namespace Vocal;
 using namespace UA;
 
 void 
-UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
+UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 {
     cpLog(LOG_DEBUG, "(%s) UaStateIdle::recvRequest", agent.getInstanceName().c_str());
     if(agent.isAServer() && (msg->getType() == SIP_INVITE))
@@ -82,8 +82,7 @@ UaStateIdle::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateEx
 }
 
 int
-UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-   throw (CInvalidStateException&) {
+UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
     cpLog(LOG_DEBUG, "(%s) UaStateIdle::sendRequest", agent.getInstanceName().c_str());
     if(agent.isAClient() && (msg->getType() == SIP_INVITE))
     {
@@ -114,7 +113,7 @@ UaStateIdle::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 
 int
-UaStateIdle::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) throw (CInvalidStateException&)
+UaStateIdle::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 {
     //Do Nothing
    return -1;
@@ -123,7 +122,6 @@ UaStateIdle::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) throw 
 
 void 
 UaStateIdle::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     //DO nothing
 }

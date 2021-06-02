@@ -111,7 +111,7 @@ public:
    /// Create one with default values
    SipParameterList(char delimiter=';');
    ///
-   SipParameterList(const Data& data, char delimiter=';') throw(SipParameterListParserException &) ;
+   SipParameterList(const Data& data, char delimiter=';'); // throw(SipParameterListParserException &) ;
    ///
    SipParameterList(const SipParameterList& src );
    

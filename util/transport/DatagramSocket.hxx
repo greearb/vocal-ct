@@ -94,16 +94,16 @@ protected:
     */
    DatagramSocket(uint16 tos, uint32 priority,
                   const AddressFamily & addressFamily,
-                  const char * name = 0)
-      throw ( Vocal::SystemException );
+                  const char * name = 0);
+   //throw ( Vocal::SystemException );
 
 
    /** Construct given the local transport address and name.
     */
    DatagramSocket(uint16 tos, uint32 priority,
                   const TransportAddress & localAddr,
-                  const char * name = 0)
-      throw ( Vocal::SystemException );
+                  const char * name = 0);
+   //throw ( Vocal::SystemException );
 
 
    /** Construct given the local transport address, the remote address
@@ -113,8 +113,8 @@ protected:
    DatagramSocket(uint16 tos, uint32 priority,
                   const TransportAddress & localAddr,
                   const TransportAddress & remoteAddr,
-                  const char * name = 0)
-      throw ( Vocal::SystemException );
+                  const char * name = 0);
+   //throw ( Vocal::SystemException );
    
    
 public:    					
@@ -123,14 +123,14 @@ public:
     *  If connect() is used, send() and receive()
     *  will interact with the specified remote address.
     */
-   void	connect(const TransportAddress & remoteAddr)
-      throw ( Vocal::SystemException );
+   void	connect(const TransportAddress & remoteAddr);
+   //throw ( Vocal::SystemException );
 
 
    /** To dissolve the connect oriented circuit.
     */
-   void disconnect()
-      throw ( Vocal::SystemException );
+   void disconnect();
+   //throw ( Vocal::SystemException );
 
 
    /** Text version of a connection oriented send. 
@@ -143,36 +143,36 @@ public:
     *  or the socket was set blocking and it was interrupted 
     *  by a signal (status EINTR). 
     */
-   int send(const string &)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int send(const string &);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** See send(const string &).
     */
-   int send(const char *)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int send(const char *);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
    
    /** Binary version of a connection oriented send. 
     *  See send(const string &)
     */
-   int send(const vector<u_int8_t> &)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int send(const vector<u_int8_t> &);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Binary version of a connection oriented send. 
     *  See send(const string &)
     */
-   int send(const u_int8_t *, size_t)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int send(const u_int8_t *, size_t);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 				
    /** Text version of a connectionless send. 
     *  This will transmit the string to the remote address.
     *  See send(const string &) for return semantics.
     */
    int sendTo(const string &, 
-              const TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+              const TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** Text version of a connectionless send. 
@@ -180,24 +180,24 @@ public:
     *  See send(const string &) for return semantics.
     */
    int sendTo(const char *, 
-              const TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+              const TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** Binary version of a connectionless send. 
     *  See sendTo(const string &, const TransportAddress &).
     */
    int sendTo(const vector<u_int8_t> &,
-              const TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+              const TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** Binary version of a connectionless send. 
     *  See sendTo(const string &, const TransportAddress &).
     */
    int sendTo(const u_int8_t *, size_t,
-              const TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+              const TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** Text version of a connection oriented receive. 
@@ -208,29 +208,29 @@ public:
     *  would have blocked (status EAGAIN), or the socket was set 
     *  blocking and it was interrupted by a signal (status EINTR). 
     */
-   int receive(string &)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int receive(string &);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Text version of a connection oriented receive. 
     *  See receiver(string &)
     */
-   int receive(char *, size_t)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int receive(char *, size_t);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Binary version of a connection oriented receive. 
     *  See receive(string &).
     */
-   int receive(vector<u_int8_t> &)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int receive(vector<u_int8_t> &);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Binary version of a connection oriented receive. 
     *  See receive(string &).
     */
-   int receive(u_int8_t *, size_t)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int receive(u_int8_t *, size_t);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
 
    /** Text version of a connectionless receive. 
@@ -238,8 +238,8 @@ public:
     *  See receive(string &) for return semantics.
     */
    int receiveFrom(string &, 
-                   TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+                   TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Text version of a connectionless receive. 
@@ -247,24 +247,24 @@ public:
     *  See receive(string &) for return semantics.
     */
    int receiveFrom(char *, size_t,
-                   TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+                   TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Binary version of a connectionless receive. 
     *  See receiveFrom(string &, Sptr<TransportAddress> &).
     */
    int receiveFrom(vector<u_int8_t> &,
-                   TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+                   TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** Binary version of a connectionless receive. 
     *  See receiveFrom(string &, Sptr<TransportAddress> &).
     */
    int receiveFrom(u_int8_t *, size_t,
-                   TransportAddress & remoteAddress)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+                   TransportAddress & remoteAddress);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    /** If connected, this will return a pointer to the 
@@ -280,11 +280,11 @@ public:
 
 private:
    
-   int sendMessage(void *, int length, const TransportAddress *)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int sendMessage(void *, int length, const TransportAddress *);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
    
-   int recvMessage(void *, int length, TransportAddress *)
-      throw ( Vocal::SystemException, Vocal::SystemStatus );
+   int recvMessage(void *, int length, TransportAddress *);
+   //throw ( Vocal::SystemException, Vocal::SystemStatus );
 
 
    Sptr<TransportAddress> remoteAddr_;

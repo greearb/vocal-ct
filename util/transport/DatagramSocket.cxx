@@ -72,7 +72,7 @@ using Vocal::Logging::VLog;
 DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
                                const AddressFamily& addressFamily,
                                const char* name)
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
       : 	Socket( tos, priority, addressFamily, 
     	    	SocketType(SOCK_DGRAM), 
 		(name ? name : "Datagram")),
@@ -84,7 +84,7 @@ throw ( Vocal::SystemException )
 DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
                                const TransportAddress&   localAddr,
                                const char*   name)
-   throw ( Vocal::SystemException )
+//   throw ( Vocal::SystemException )
       : Socket(tos, priority, localAddr, 
                SocketType(SOCK_DGRAM), 
                (name ? name : "Datagram")),
@@ -98,7 +98,7 @@ DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
                                const TransportAddress& localAddr,
                                const TransportAddress& remoteAddr,
                                const char* name)
-   throw ( Vocal::SystemException )
+//   throw ( Vocal::SystemException )
       : Socket(tos, priority, localAddr, 
                SocketType(SOCK_DGRAM), 
                (name ? name : "Datagram")),
@@ -111,7 +111,8 @@ DatagramSocket::DatagramSocket(uint16 tos, uint32 priority,
 
 void	
 DatagramSocket::connect(const TransportAddress& remoteAddr)
-   throw ( Vocal::SystemException ) {
+   //throw ( Vocal::SystemException )
+{
    const string    fn("DatagramSocket::connect");
    VLog    	    log(fn);
    
@@ -131,7 +132,7 @@ DatagramSocket::connect(const TransportAddress& remoteAddr)
 
 void	
 DatagramSocket::disconnect()
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
 {
     const string    fn("DatagramSocket::disconnect");
     VLog    	    log(fn);
@@ -160,7 +161,7 @@ throw ( Vocal::SystemException )
 
 int 	
 DatagramSocket::send(const string & message)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ || message.size() == 0 )
     {
@@ -175,7 +176,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::send(const char * message)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     size_t  messageLength = ( message ? strlen(message) : 0 );
     
@@ -192,7 +193,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::send(const vector<u_int8_t> & message)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ || message.size() == 0 )
     {
@@ -207,7 +208,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::send(const u_int8_t * message, size_t messageLength)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ || message == 0 || messageLength == 0 )
     {
@@ -225,7 +226,7 @@ DatagramSocket::sendTo(
     const string    	    & 	message, 
     const TransportAddress  &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( message.size() == 0 )
     {
@@ -243,7 +244,7 @@ DatagramSocket::sendTo(
     const char    	    * 	message, 
     const TransportAddress  &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     size_t messageLength = ( message ? strlen(message) : 0 );
     
@@ -263,7 +264,7 @@ DatagramSocket::sendTo(
     const vector<u_int8_t>  & 	message,
     const TransportAddress  &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( message.size() == 0 )
     {
@@ -282,7 +283,7 @@ DatagramSocket::sendTo(
     size_t  	    	    	messageLength,
     const TransportAddress  &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( message == 0 || messageLength == 0 )
     {
@@ -297,7 +298,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::receive(string & message)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ )
     {
@@ -316,7 +317,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::receive(char * message, size_t messageCapacity)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ || message == 0 || messageCapacity == 0 )
     {
@@ -338,7 +339,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::receive(vector<u_int8_t> & message)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ )
     {
@@ -357,7 +358,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 DatagramSocket::receive(u_int8_t * message, size_t messageCapacity)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( !remoteAddr_ || message == 0 || messageCapacity == 0 )
     {
@@ -377,7 +378,7 @@ DatagramSocket::receiveFrom(
     string  	    	    &	message, 
     TransportAddress  	    &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     void * msg = reinterpret_cast<void *>(const_cast<char *>(message.data()));
    
@@ -395,7 +396,7 @@ DatagramSocket::receiveFrom(
     size_t   	    	    	messageCapacity,
     TransportAddress  	    &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( message == 0 || messageCapacity == 0 )
     {
@@ -420,7 +421,7 @@ DatagramSocket::receiveFrom(
     vector<u_int8_t> 	    &	message,
     TransportAddress  	    &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     message.clear();
     
@@ -440,7 +441,7 @@ DatagramSocket::receiveFrom(
     size_t  	    	    	messageCapacity,
     TransportAddress  	    &	remoteAddress
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( message == 0 || messageCapacity == 0 )
     {
@@ -480,7 +481,7 @@ DatagramSocket::sendMessage(
     int     	    	    	messageLength, 
     const TransportAddress  *	addr
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     const string    fn("DatagramSocket::send");
     VLog    	    log(fn);
@@ -541,7 +542,7 @@ DatagramSocket::recvMessage(
     int     	    	    	messageCapacity,
     TransportAddress	    *	addr
 )
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     const string    fn("DatagramSocket::receive");
     VLog    	    log(fn);

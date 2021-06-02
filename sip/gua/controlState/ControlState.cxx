@@ -67,56 +67,56 @@ ControlState::error(const string& errMsg)
 }
 
 void
-ControlState::acceptCall(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::acceptCall(CallAgent& agent)
 {
     error(className()+"::incomingCall");
 }
 
 void
-ControlState::makeCall(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::makeCall(CallAgent& agent)
 {
     error(className()+"::makeCall");
 }
 
 void 
-ControlState::fail(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::fail(CallAgent& agent)
 {
     error(className()+"::fail");
 }
 
 void
-ControlState::inCall(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::inCall(CallAgent& agent)
 {
     error(className() + "::inCall");
 }
 
 void
-ControlState::inHold(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::inHold(CallAgent& agent)
 {
     //error(className() + "::bye");
     cpLog(LOG_DEBUG, "IN HOLD STATE\r\n");
 }
 
 void
-ControlState::bye(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::bye(CallAgent& agent)
 {
     error(className() + "::bye");
 }
 
 void
-ControlState::cancel(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::cancel(CallAgent& agent)
 {
     error(className() + "::cancel");
 }
 
 void
-ControlState::ringing(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::ringing(CallAgent& agent)
 {
     error(className() + "::ringing");
 }
 
 int
-ControlState::end(CallAgent& agent) throw (CInvalidStateException&)
+ControlState::end(CallAgent& agent)
 {
     error(className() + "::end");
     return -1;
@@ -125,14 +125,12 @@ ControlState::end(CallAgent& agent) throw (CInvalidStateException&)
 
 void 
 ControlState::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     error(className() + "::recvReq");
 }
 
 void 
 ControlState::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     error(className() + "::recvStatus");
 }

@@ -63,7 +63,6 @@ using namespace Vocal;
 
 void 
 UasStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UasStateTrying::recvRequest");
     Sptr<BasicAgent> ba = agent.getControllerAgent();
@@ -91,7 +90,6 @@ UasStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UasStateTrying::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
     statusMsg.dynamicCast(msg);

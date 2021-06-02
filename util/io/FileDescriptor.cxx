@@ -112,7 +112,7 @@ FileDescriptor::getFD() const
 
 void  	    	
 FileDescriptor::setBlocking()
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
 {
     const string    fn("FileDescriptor::setBlocking");
     VLog    	    log(fn);
@@ -139,7 +139,7 @@ throw ( Vocal::SystemException )
 
 void  	    	
 FileDescriptor::setNonblocking()
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
 {
     const string    fn("FileDescriptor::setNonblocking");
     VLog    	    log(fn);
@@ -165,7 +165,7 @@ throw ( Vocal::SystemException )
 
 int 	
 FileDescriptor::write(const string & stuff)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( stuff.size() == 0 )
     {
@@ -180,7 +180,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::write(const char * stuff)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     size_t  size = ( stuff ? strlen(stuff) : 0 );
     
@@ -197,7 +197,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::write(const vector<u_int8_t> & stuff)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( stuff.size() == 0 )
     {
@@ -212,7 +212,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::write(const u_int8_t * stuff, size_t size)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( stuff == 0 || size == 0 )
     {
@@ -227,7 +227,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::read(string & stuff)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     void * s = reinterpret_cast<void *>(const_cast<char *>(stuff.data()));
 
@@ -241,7 +241,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::read(char * stuff, size_t capacity)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( stuff == 0 || capacity == 0 )
     {
@@ -263,7 +263,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::read(vector<u_int8_t> & stuff)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     stuff.clear();
     
@@ -279,7 +279,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::read(u_int8_t * stuff, size_t capacity) 
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     if ( stuff == 0 || capacity == 0 )
     {
@@ -296,7 +296,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 void  	    	
 FileDescriptor::close()
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
 {
     const string    fn("FileDescriptor::close");
     VLog    	    log(fn);
@@ -369,7 +369,7 @@ FileDescriptor::writeTo(ostream & out) const
 
 int 	
 FileDescriptor::writeToFD(void * stuff, int size)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     const string    fn("FileDescriptor::writeToFD");
     VLog    	    log(fn);
@@ -414,7 +414,7 @@ throw ( Vocal::SystemException, Vocal::SystemStatus )
 
 int 	
 FileDescriptor::readFromFD(void * stuff, int capacity)
-throw ( Vocal::SystemException, Vocal::SystemStatus )
+//throw ( Vocal::SystemException, Vocal::SystemStatus )
 {
     const string    fn("FileDescriptor::readFromFD");
     VLog    	    log(fn);

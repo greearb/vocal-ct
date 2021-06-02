@@ -75,40 +75,28 @@ public:
    virtual ~ControlState() { };
    
    ///
-   virtual void acceptCall(CallAgent& agent) 
-      throw (CInvalidStateException&);
+   virtual void acceptCall(CallAgent& agent);
    ///
-   virtual void makeCall(CallAgent& agent)
-      throw (CInvalidStateException&);
+   virtual void makeCall(CallAgent& agent);
    ///
-   virtual void fail(CallAgent& agent) 
-      throw (CInvalidStateException&);
+   virtual void fail(CallAgent& agent);
    ///
-   virtual void ringing(CallAgent& agent) 
-      throw (CInvalidStateException&);
+   virtual void ringing(CallAgent& agent);
    ///
-   virtual void inCall(CallAgent& agent)
-      throw (CInvalidStateException&);
+   virtual void inCall(CallAgent& agent);
    ///
-   virtual void inHold(CallAgent& agent)
-      throw (CInvalidStateException&);
+   virtual void inHold(CallAgent& agent);
    ///
-   virtual void bye(CallAgent& agent)  
-      throw (CInvalidStateException&);
+   virtual void bye(CallAgent& agent);
    ///
-   virtual void cancel(CallAgent& agent)  
-      throw (CInvalidStateException&);
+   virtual void cancel(CallAgent& agent);
    
    ///
-   virtual int end(CallAgent& agent)
-      throw (CInvalidStateException&);
-   
+   virtual int end(CallAgent& agent);   
    ///
-   virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg);
    ///
-   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg);
    ///
    virtual bool canBye() { return true; }
 protected:

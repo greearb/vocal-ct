@@ -67,7 +67,7 @@ ImpBaseUrl::ImpBaseUrl(const ImpBaseUrl& src)
 }
 
 
-ImpBaseUrl::ImpBaseUrl( const Data& data , const Data sName) throw(ImpBaseUrlParserException&)
+ImpBaseUrl::ImpBaseUrl( const Data& data , const Data sName)
         :BaseUrl(),
         schemeName(sName),
         user(),

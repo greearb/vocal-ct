@@ -112,7 +112,7 @@ SipUrl::SipUrl(const SipUrl& src)
 }
 
 
-SipUrl::SipUrl( const Data& data, const string& _local_ip, bool lr ) throw(SipUrlParserException&)
+SipUrl::SipUrl( const Data& data, const string& _local_ip, bool lr )
     :BaseUrl(),
      local_ip(_local_ip),
      schemeName("sip"),
@@ -984,7 +984,7 @@ SipUrl::getUrlParam() const
 }
 
 void
-SipUrl::setTtlParam(const Data& newttl) throw(SipUrlParserException&)
+SipUrl::setTtlParam(const Data& newttl)
 {
     Data temp = newttl;
 

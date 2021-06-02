@@ -147,7 +147,7 @@ typedef enum
     rtpPayloadCiscoRtp = 121,
     rtpPayloadL16_8k_mono = 122,
     rtpPayloadDynMax = 127,         /* max int of 7-bit unsigned int */
-    rtpPayloadUndefined = 128    
+    rtpPayloadUndefined = 127    
 } RtpPayloadType;
 
 

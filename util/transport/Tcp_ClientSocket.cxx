@@ -188,7 +188,7 @@ bool TcpClientSocket::isConnected() const {
 }
 
 
-void TcpClientSocket::connect() throw (VNetworkException&) {
+void TcpClientSocket::connect() {
    if (_conn->isConnectInProgress()) {
       // Already working on it.
       return;

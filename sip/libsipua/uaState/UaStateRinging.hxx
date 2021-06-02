@@ -71,17 +71,13 @@ public:
    virtual ~UaStateRinging() { }
    
    ///
-   int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-      throw (CInvalidStateException&);
+   int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
    ///
-   void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   void recvRequest(UaBase& agent, Sptr<SipMsg> msg);
    ///
-   void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   void recvStatus(UaBase& agent, Sptr<SipMsg> msg);
    ///
-   int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-      throw (CInvalidStateException&);
+   int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
 
 };
 

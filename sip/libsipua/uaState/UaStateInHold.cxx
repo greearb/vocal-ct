@@ -64,7 +64,6 @@ using namespace Vocal;
 
 void 
 UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInHold::recvStatus");
     Sptr<StatusMsg> statusMsg;
@@ -101,7 +100,6 @@ UaStateInHold::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInHold::sendStatus");
     Sptr<StatusMsg> statusMsg;
@@ -145,7 +143,6 @@ UaStateInHold::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 void 
 UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInHold::recvRequest");
     Sptr<SipCommand> sipCmd;
@@ -238,7 +235,6 @@ UaStateInHold::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UaStateInHold::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     int rv = 0;
     cpLog(LOG_DEBUG, "UaStateInHold::sendRequest");

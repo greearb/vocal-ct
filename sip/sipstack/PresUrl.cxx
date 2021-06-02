@@ -63,7 +63,7 @@ PresUrl::PresUrl(const PresUrl& src)
 }
 
 
-PresUrl::PresUrl( const Data& data ) throw(ImpBaseUrlParserException&)
+PresUrl::PresUrl( const Data& data )
         :ImpBaseUrl(data, "pres")
 {
 }

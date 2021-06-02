@@ -116,7 +116,7 @@ void SipProxyAuthenticate::decode(const Data& data) {
    try {
       scanSipProxyauthorization(nData);
    }
-   catch (SipProxyAuthenticateParserException e) {
+   catch (SipProxyAuthenticateParserException& e) {
       if (SipParserMode::sipParserMode()) {
          
          throw SipProxyAuthenticateParserException(

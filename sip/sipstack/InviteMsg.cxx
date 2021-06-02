@@ -317,7 +317,7 @@ InviteMsg::setInviteDetails(Sptr <BaseUrl> toUrl, const string& local_ip,
 }
 
 
-InviteMsg::InviteMsg( const Data& data, const string& local_ip ) throw (SipParserException&)
+InviteMsg::InviteMsg( const Data& data, const string& local_ip )
         : SipCommand(local_ip, "InviteMsg")
 {
     try

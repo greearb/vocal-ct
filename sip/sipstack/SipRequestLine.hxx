@@ -167,15 +167,15 @@ class SipRequestLine
             @param data   text to be decoded
             @exception   thrown if there is an error parsing
         */
-        void decode(const Data& data) throw (SipRequestLineParserException&);
+        void decode(const Data& data);// throw (SipRequestLineParserException&);
 
         const string& getLocalIp() const { return local_ip; }
 
     private:
 
         /// scan the SIP request line
-        void scanSipRequestLine(const Data & scandata) 
-            throw (SipRequestLineParserException &);
+        void scanSipRequestLine(const Data & scandata);
+        //throw (SipRequestLineParserException &);
 
         Sptr<BaseUrl> requestUrl;
         UrlType urlType;

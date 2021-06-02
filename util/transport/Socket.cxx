@@ -77,7 +77,7 @@ Socket::Socket(uint16 tos, uint32 priority,
                const AddressFamily& addressFamily,
                const SocketType& socketType, const char* name,
                file_descriptor_t fd)
-throw ( Vocal::SystemException )
+//throw ( Vocal::SystemException )
     :	FileDescriptor(fd),
     	localAddr_(TransportAddress::create(addressFamily())),
     	addressFamily_(addressFamily),
@@ -132,7 +132,7 @@ Socket::Socket(uint16 tos, uint32 priority,
                const TransportAddress& localAddr,
                const SocketType& socketType,
                const char*	name)   	
-   throw ( Vocal::SystemException )
+      //throw ( Vocal::SystemException )
       :	localAddr_(localAddr.clone()),
     	addressFamily_(localAddr.getAddressFamily()),
     	socketType_(socketType),

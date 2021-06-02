@@ -91,8 +91,8 @@ class Pipe : public Vocal::IO::Writer
 	 *  @exception	Vocal::SystemException	
 	 *  	Thrown if a pipe could not be created.
 	 */
-    	Pipe(const file_descriptor_t * descriptors = 0)
-	    throw ( Vocal::SystemException );
+        Pipe(const file_descriptor_t * descriptors = 0);
+        //throw ( Vocal::SystemException );
 
 
 	/** Creates a pipe given a pair of file descriptors.

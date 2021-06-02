@@ -113,7 +113,6 @@ void
 Protocol::onDisconnect(
     ConnectionBrokenException *
 )
-throw ( Vocal::Transport::ProtocolException )
 {
     throw Vocal::Transport::ProtocolException(
     	    	    	    "Protocol::onDisconnect", 
@@ -126,7 +125,6 @@ void
 Protocol::onError(
     SystemException *
 )
-throw ( Vocal::Transport::ProtocolException )
 {
     throw Vocal::Transport::ProtocolException(
     	    	    	    "Protocol::onError", 

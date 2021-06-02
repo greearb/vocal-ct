@@ -144,8 +144,7 @@ class TransportAddress : public Vocal::IO::Writer
 
     	/** Update the address from the socket.
 	 */
-	virtual void	    	updateAddress(const Socket &)
-	    	    	    	    throw ( Vocal::SystemException ) = 0;
+        virtual void	    	updateAddress(const Socket &) = 0; // may throw exception
 
     private:
 

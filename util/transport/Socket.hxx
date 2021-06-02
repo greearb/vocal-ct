@@ -104,8 +104,8 @@ protected:
    Socket(uint16 tos, uint32 priority,
           const AddressFamily& addressFamily,
           const SocketType& sockType, const char* name = 0,
-          IO::file_descriptor_t fd = INVALID)
-      throw ( Vocal::SystemException );
+          IO::file_descriptor_t fd = INVALID);
+   //throw ( Vocal::SystemException );
 
 
    /** Construct given the local transport address, the SocketType
@@ -117,8 +117,8 @@ protected:
    Socket(uint16 tos, uint32 priority,
           const TransportAddress& localAddr,
           const SocketType& sockType,
-          const char* name = 0)
-      throw ( Vocal::SystemException );
+          const char* name = 0);
+   //throw ( Vocal::SystemException );
    
 public:
     					

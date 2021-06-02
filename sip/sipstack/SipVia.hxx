@@ -107,7 +107,7 @@ class SipVia : public SipHeader
 {
     public:
         ///
-        SipVia( const Data& data, const string& local_ip ) throw(SipViaParserException &);
+        SipVia( const Data& data, const string& local_ip );// throw(SipViaParserException &);
         ///
         SipVia( const SipVia& src );
         /// 

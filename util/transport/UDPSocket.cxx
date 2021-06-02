@@ -61,14 +61,12 @@ using Vocal::Transport::AddressFamily;
 
 
 UDPSocket::UDPSocket(uint16 tos, uint32 priority, const char * name)
-    throw ( Vocal::SystemException )
       :	DatagramSocket(tos, priority, AddressFamily(AF_INET), (name ? name : "UDP"))
 {
 }
 
 
 UDPSocket::UDPSocket(uint16 tos, uint32 priority, IPAddress& localAddr, const char* name)
-    throw ( Vocal::SystemException )
       :	DatagramSocket(tos, priority, localAddr, (name ? name : "UDP"))
 {
 }
@@ -77,7 +75,6 @@ UDPSocket::UDPSocket(uint16 tos, uint32 priority, IPAddress& localAddr, const ch
 UDPSocket::UDPSocket(uint16 tos, uint32 priority,
                      IPAddress& localAddr, IPAddress& remoteAddr, const char* name
 )
-    throw ( Vocal::SystemException )
       :	DatagramSocket(tos, priority, localAddr, remoteAddr, (name ? name : "UDP"))
 {
 }

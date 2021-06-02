@@ -369,8 +369,7 @@ IPAddress::getPort() const
 
 
 void	    	    
-IPAddress::updateAddress(const Socket & sock) 
-throw ( Vocal::SystemException )
+IPAddress::updateAddress(const Socket & sock)
 {
     const string    fn = "IPAddress::updateAddress";
     VLog    	    log(fn);

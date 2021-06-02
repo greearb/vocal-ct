@@ -377,6 +377,7 @@ bool TlsConnection::hasTls() {
 Data
 TlsConnection::getErrMsg(int e) {
     char tmp[1024];
+    tmp[0] = 0;
 
 #ifdef VOCAL_HAS_OPENSSL
     ERR_error_string_n(SSL_get_error(ssl, e), tmp, 1024);

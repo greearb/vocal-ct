@@ -75,7 +75,7 @@ TelUrl::TelUrl(const TelUrl& src)
 }
 
 
-TelUrl::TelUrl( const Data& data ) throw(TelUrlParserException&)
+TelUrl::TelUrl( const Data& data )
         :
         BaseUrl(),
         schemeName(),

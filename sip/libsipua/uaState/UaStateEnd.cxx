@@ -62,7 +62,6 @@ using Vocal::StatusMsg;
 
 void 
 UaStateEnd::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
     statusMsg.dynamicCast(msg);
@@ -78,7 +77,6 @@ UaStateEnd::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UaStateEnd::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
    //Nothing to DO
    return -1;

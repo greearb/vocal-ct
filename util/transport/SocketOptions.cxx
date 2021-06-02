@@ -82,7 +82,6 @@ SocketOptions::~SocketOptions()
 
 void	    	
 SocketOptions::keepAlive(bool on)
-throw ( Vocal::SystemException )
 {
     set(SOL_SOCKET, SO_KEEPALIVE, on);
 }
@@ -90,7 +89,6 @@ throw ( Vocal::SystemException )
 
 bool	    	
 SocketOptions::keepAlive() const
-throw ( Vocal::SystemException )
 {
     return ( get(SOL_SOCKET, SO_KEEPALIVE) );
 }
@@ -98,7 +96,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::bsdCompatible(bool on)
-throw ( Vocal::SystemException )
 {
     #if defined(__linux__)
     set(SOL_SOCKET, SO_BSDCOMPAT, on);
@@ -108,7 +105,6 @@ throw ( Vocal::SystemException )
 
 bool	    	
 SocketOptions::bsdCompatible() const
-throw ( Vocal::SystemException )
 {
     #if defined(__linux__)
     return ( get(SOL_SOCKET, SO_BSDCOMPAT) );
@@ -120,7 +116,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::reuseAddress(bool on)
-throw ( Vocal::SystemException )
 {
     set(SOL_SOCKET, SO_REUSEADDR, on);
 }
@@ -128,7 +123,6 @@ throw ( Vocal::SystemException )
 
 bool	    	
 SocketOptions::reuseAddress() const		    
-throw ( Vocal::SystemException )
 {
     return ( get(SOL_SOCKET, SO_REUSEADDR) );
 }
@@ -136,7 +130,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::broadcast(bool on)
-throw ( Vocal::SystemException )
 {
     set(SOL_SOCKET, SO_BROADCAST, on);
 }
@@ -144,7 +137,6 @@ throw ( Vocal::SystemException )
 		
 bool	    	
 SocketOptions::broadcast() const
-throw ( Vocal::SystemException )
 {
     return ( get(SOL_SOCKET, SO_BROADCAST) );
 }
@@ -152,7 +144,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::linger(bool on, int seconds)
-throw ( Vocal::SystemException )
 {
     const string    fn("SocketOptions::linger");
     VLog    	    log(fn);
@@ -187,7 +178,6 @@ throw ( Vocal::SystemException )
 
 bool	    	
 SocketOptions::linger(int & seconds) const
-throw ( Vocal::SystemException )
 {
     const string    fn("SocketOptions::linger");
     VLog    	    log(fn);
@@ -223,7 +213,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::joinMulticastGroup(IPAddress & mcastAddr)
-throw ( Vocal::SystemException )
 {
     const string    fn("SocketOptions::joinMulticastGroup");
     VLog    	    log(fn);
@@ -282,7 +271,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::leaveMulticastGroup(IPAddress & mcastAddr)
-throw ( Vocal::SystemException )
 {
     const string    fn("SocketOptions::leaveMulticastGroup");
     VLog    	    log(fn);
@@ -341,7 +329,6 @@ throw ( Vocal::SystemException )
 
 void	    	
 SocketOptions::set(int level, int optname, bool opt)
-throw ( Vocal::SystemException )
 {
     const string    fn("SocketOptions::set");
     VLog    	    log(fn);
@@ -415,7 +402,6 @@ throw ( Vocal::SystemException )
 
 bool
 SocketOptions::get(int level, int optname) const
-throw( Vocal::SystemException )
 {
     const string    fn("SocketOptions::get");
     VLog    	    log(fn);

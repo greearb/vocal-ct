@@ -61,7 +61,7 @@ ImUrl::ImUrl(const ImUrl& src)
 }
 
 
-ImUrl::ImUrl( const Data& data ) throw(ImpBaseUrlParserException&)
+ImUrl::ImUrl( const Data& data )
         :ImpBaseUrl(data, "im")
 {
 }

@@ -67,7 +67,6 @@ using namespace Vocal;
 
 void 
 UaStateFailure::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
    cpLog(LOG_DEBUG, "UaStateFailure::recvRequest");
    if (msg->getType() == SIP_ACK) {
@@ -89,8 +88,7 @@ UaStateFailure::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 
 
 void 
-UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&) {
+UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg) {
    cpLog(LOG_DEBUG, "UaStateFailure::recvStatus");
    assert(agent.isAClient());
    Sptr<StatusMsg> statusMsg;
@@ -128,14 +126,12 @@ UaStateFailure::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }//recvStatus
 
 
-int UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-   throw (CInvalidStateException&) {
+int UaStateFailure::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
    //DO nothing
    return -1;
 }
 
-int UaStateFailure::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
-   throw (CInvalidStateException&) {
+int UaStateFailure::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
    cpLog(LOG_ERR, "ERROR:  called sendRequest in UaStateFailure, msg: %s",
          msg->toString().c_str());
    return -1;

@@ -112,7 +112,7 @@ class ImpBaseUrl : public BaseUrl
 	/// Create one with default values
 	ImpBaseUrl();
 	///
-	explicit ImpBaseUrl(const Data& data, const Data type) throw(ImpBaseUrlParserException &) ;
+	explicit ImpBaseUrl(const Data& data, const Data type);
 	///
 	ImpBaseUrl(const ImpBaseUrl& );
     

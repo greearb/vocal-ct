@@ -136,7 +136,7 @@ public:
    /**
       connect to the far side.
    */
-   void connect() throw (VNetworkException&);
+   void connect();// throw (VNetworkException&);
    
    /**
       close the connnection.

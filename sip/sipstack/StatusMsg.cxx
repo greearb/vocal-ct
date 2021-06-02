@@ -87,7 +87,7 @@ StatusMsg::StatusMsg(const StatusMsg& src)
 }
 
 
-StatusMsg::StatusMsg(const Data & data, const string& local_ip) throw (SipParserException&)
+StatusMsg::StatusMsg(const Data & data, const string& local_ip)
         :
         SipMsg(local_ip, "StatusMsg"),
         statusLine()

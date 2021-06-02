@@ -121,7 +121,7 @@ void SipSupported::decode(const Data& idata)
 
         scanSipSupported(nData);
     }
-    catch (SipSupportedParserException e)
+    catch (SipSupportedParserException& e)
     {
         if (SipParserMode::sipParserMode())
         {

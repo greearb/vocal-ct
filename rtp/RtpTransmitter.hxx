@@ -206,7 +206,7 @@ private:
    RtpPayloadType format;
 
    /// codecString in case of dynamic payload type
-   char codecString[32];
+   char codecString[33];
 
    /// number of samples per RTP packet on api (typical 160 or 240)
    int sampleSize;

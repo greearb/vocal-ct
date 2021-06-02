@@ -115,7 +115,7 @@ class InviteMsg : public SipCommand
          *  @param local_ip cannot be "" here, must be the local IP we are bound to locally
                    or 'hostaddress' if we are not specifically bound.
         */
-        InviteMsg( const Data& data, const string& local_ip ) throw (SipParserException&);
+        InviteMsg( const Data& data, const string& local_ip );
 
         ///
         InviteMsg& operator =(const InviteMsg&);

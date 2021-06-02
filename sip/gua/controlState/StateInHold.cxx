@@ -59,29 +59,28 @@ using namespace Vocal;
 using namespace UA;
 
 void 
-StateInHold::inCall(CallAgent& agent) throw (CInvalidStateException&)
+StateInHold::inCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInHold::incall");
     changeState(agent, ControlStateFactory::instance().getState(IN_CALL));
 }
 
 void
-StateInHold::bye(CallAgent& agent) throw (CInvalidStateException&)
+StateInHold::bye(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInHold::bye");
     changeState(agent, ControlStateFactory::instance().getState(TEAR_DOWN));
 }
 
 int
-StateInHold::end(CallAgent& agent) throw (CInvalidStateException&)
+StateInHold::end(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInHold::end");
     agent.doBye();
     return 0;
 }
 
-void StateInHold::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-   throw (CInvalidStateException&) {
+void StateInHold::recvStatus(CallAgent& agent, Sptr<SipMsg> msg) {
    Sptr<StatusMsg> statusMsg;
    statusMsg.dynamicCast(msg);
    assert(statusMsg != 0);
@@ -97,8 +96,7 @@ void StateInHold::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
    }
 }
 
-void StateInHold::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-   throw (CInvalidStateException&) {
+void StateInHold::recvReq(CallAgent& agent, Sptr<SipMsg> msg) {
    cpLog(LOG_DEBUG, "StateInHold::recvReq");
    if (msg->getType() == SIP_INVITE){
       agent.reqResume( msg);

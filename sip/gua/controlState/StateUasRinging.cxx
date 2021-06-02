@@ -60,27 +60,27 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 void 
-StateUasRinging::cancel(CallAgent& agent) throw (CInvalidStateException&)
+StateUasRinging::cancel(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUasRinging::cancel");
     changeState(agent, ControlStateFactory::instance().getState(TEAR_DOWN));
 }
 
 void 
-StateUasRinging::inCall(CallAgent& agent) throw (CInvalidStateException&)
+StateUasRinging::inCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUasRinging::inCall");
     changeState(agent, ControlStateFactory::instance().getState(IN_CALL));
 }
 
 void 
-StateUasRinging::acceptCall(CallAgent& agent) throw (CInvalidStateException&)
+StateUasRinging::acceptCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUasRinging::acceptCall");
 }
 
 int
-StateUasRinging::end(CallAgent& agent) throw (CInvalidStateException&)
+StateUasRinging::end(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUasRinging::end");
     //Send 4xx message to the caller
@@ -94,8 +94,7 @@ StateUasRinging::end(CallAgent& agent) throw (CInvalidStateException&)
 }
 
 
-void StateUasRinging::recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-   throw (CInvalidStateException&) {
+void StateUasRinging::recvReq(CallAgent& agent, Sptr<SipMsg> msg) {
    if(msg->getType() == SIP_BYE) { 
       agent.doCancel();
    }

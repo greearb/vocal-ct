@@ -71,14 +71,11 @@ public:
       { }
    
    ///
-   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-      throw (CInvalidStateException&);
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
    ///
-   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg);
    ///
-   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg);
 };
 
 }

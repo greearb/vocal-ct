@@ -70,7 +70,6 @@ SipParameterList::SipParameterList(char delimiter /* default value */)
 
 SipParameterList::SipParameterList(const Data& data, 
                                    char delimiter /* default value */) 
-    throw(SipParameterListParserException &)
     : map <Data, Data>(), myDelimiter(delimiter)
 {
     decode(data, myDelimiter);

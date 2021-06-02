@@ -83,20 +83,16 @@ public:
       { };
 
    ///
-   void cancel(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void cancel(CallAgent& agent);
 
    ///
-   int end(CallAgent& agent) 
-      throw (CInvalidStateException&);
+   int end(CallAgent& agent);
 
    ///
-   void inCall(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void inCall(CallAgent& agent);
 
    ///
-   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg);
 
 };
 

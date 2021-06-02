@@ -63,7 +63,7 @@ class PresUrl : public ImpBaseUrl
 	/// Create one with default values
 	PresUrl();
 	///
-	PresUrl(const Data& data) throw(ImpBaseUrlParserException &) ;
+	PresUrl(const Data& data);
 	///
 	PresUrl(const PresUrl& );
     

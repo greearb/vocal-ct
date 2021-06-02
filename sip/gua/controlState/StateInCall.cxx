@@ -59,21 +59,21 @@ using namespace Vocal;
 using namespace UA;
 
 void 
-StateInCall::inHold(CallAgent& agent) throw (CInvalidStateException&)
+StateInCall::inHold(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInCall::hold");
     changeState(agent, ControlStateFactory::instance().getState(HOLD));
 }
 
 void
-StateInCall::bye(CallAgent& agent) throw (CInvalidStateException&)
+StateInCall::bye(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInCall::bye");
     changeState(agent, ControlStateFactory::instance().getState(TEAR_DOWN));
 }
 
 int
-StateInCall::end(CallAgent& agent) throw (CInvalidStateException&)
+StateInCall::end(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInCall::end");
     agent.doBye();

@@ -66,8 +66,7 @@ using namespace Vocal;
 
 #define LOG_DBG_IC  LOG_DEBUG_STACK
 
-void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-   throw (CInvalidStateException&) {
+void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg) {
    agent.assertNotDeleted();
    cpLog(LOG_DBG_IC, "UaStateInCall::recvRequest");
    Sptr<SipCommand> sipCmd;
@@ -182,8 +181,7 @@ void UaStateInCall::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
    }//switch
 }//recvRequest
 
-int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-   throw (CInvalidStateException&) {
+int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
    int rv = 0; /* 0 == success */
    cpLog(LOG_DEBUG, "UaStateInCall::sendRequest");
    //Send request
@@ -285,7 +283,6 @@ int UaStateInCall::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 void 
 UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInCall::recvStatus");
     Sptr<StatusMsg> statusMsg;
@@ -329,7 +326,6 @@ UaStateInCall::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 int
 UaStateInCall::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateInCall::sendStatus");
     Sptr<StatusMsg> statusMsg;

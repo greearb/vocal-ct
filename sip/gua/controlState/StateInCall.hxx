@@ -76,16 +76,13 @@ public:
    virtual ~StateInCall() { }
 
    ///
-   void inHold(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void inHold(CallAgent& agent);
 
    ///
-   void bye(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void bye(CallAgent& agent);
    
    /// Returns < 0 on failure
-   int end(CallAgent& agent) 
-      throw (CInvalidStateException&);
+   int end(CallAgent& agent);
 };
 
 }

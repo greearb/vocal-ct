@@ -182,8 +182,7 @@ Serialize::validFile() const
         return false;
     }
 
-    if (myFilePtr <= 0)
-    {
+    if (!myFilePtr) {
         cpLog(LOG_DEBUG, "File: %s Not opened or error in opening\n", (strlen(myScriptFileName) ? myScriptFileName : "InvalidFileName") );
         return false;
     }
@@ -214,9 +213,9 @@ Serialize::addWrite(const Data& key, const Data& value)
 
     memset (temp, 0, (valueLen+keyLen+cmdLen+3)); 
     strncat (temp, value.logData(), valueLen);
-    strncat (temp, "\n",1);
-    strncat (temp, "ADD" , cmdLen);
-    strncat (temp, " " , 1);
+    strcat (temp, "\n");
+    strcat (temp, "ADD");
+    strcat (temp, " ");
     strncat (temp, key.logData(), keyLen);
 
     fprintf (myFilePtr, "%s\n", temp);
@@ -239,8 +238,8 @@ Serialize::delWrite(const Data& key)
     char* temp = new char[keyLen+cmdLen+2];
     memset (temp, 0, (keyLen+cmdLen+2)); 
 
-    strncat (temp, "DEL", cmdLen);
-    strncat (temp, " ", 1);
+    strcat(temp, "DEL");
+    strcat(temp, " ");
     strncat (temp, key.logData(), keyLen);
 
     fprintf (myFilePtr, "%s\n",temp);

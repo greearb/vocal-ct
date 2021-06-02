@@ -58,8 +58,7 @@
 using namespace Vocal::UA;
 using Vocal::UA::UacStateTrying;
 
-int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-   throw (CInvalidStateException&) {
+int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
    cpLog(LOG_DEBUG, "UacStateTrying::sendRequest");
    if ((msg->getType() == SIP_CANCEL) ||
       (msg->getType() == SIP_BYE)) {
@@ -94,8 +93,7 @@ int UacStateTrying::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg
 }
 
 void 
-UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&) {
+UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg) {
    Sptr<StatusMsg> statusMsg;
    statusMsg.dynamicCast(msg);
    assert(statusMsg != 0);
@@ -185,7 +183,7 @@ UacStateTrying::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 
 
 void 
-UacStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg) throw (CInvalidStateException&)
+UacStateTrying::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 {
     cpLog(LOG_DEBUG, "(%s) receiving message (%s) give it to controller",
           agent.getInstanceName().c_str(), msg->encode().logData());

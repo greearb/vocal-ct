@@ -59,14 +59,14 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 void 
-StateInit::ringing(CallAgent& agent) throw (CInvalidStateException&)
+StateInit::ringing(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInit::ringing");
     changeState(agent, ControlStateFactory::instance().getState(UAS_RINGING));
 }
 
 void 
-StateInit::makeCall(CallAgent& agent) throw (CInvalidStateException&)
+StateInit::makeCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateInit::makeCall");
     changeState(agent, ControlStateFactory::instance().getState(TRYING));

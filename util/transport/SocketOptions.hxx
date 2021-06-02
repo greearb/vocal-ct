@@ -103,28 +103,28 @@ class SocketOptions
 	 *
 	 *  See socket(7), and getsockopt/setsockopt(2).
 	 */    	    	
-    	void	    	keepAlive(bool on) 
-		    	    throw ( Vocal::SystemException );
+   void	    	keepAlive(bool on);
+   //throw ( Vocal::SystemException );
 
 
     	/** Query state of keepAlive.
 	 */    	    	
-	bool	    	keepAlive() const
-		    	    throw ( Vocal::SystemException );
+   bool	    	keepAlive() const;
+   //throw ( Vocal::SystemException );
 
 
     	/** Enable BSD bug-to-bug compatibility. Linux only.
 	 *
 	 *  See socket(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	bsdCompatible(bool on = true)
-		    	    throw ( Vocal::SystemException );
+   void	    	bsdCompatible(bool on = true);
+   //throw ( Vocal::SystemException );
 
 
     	/** Query state of bsdCompatibility.
 	 */    	    	
-	bool	    	bsdCompatible() const
-		    	    throw ( Vocal::SystemException );
+   bool	    	bsdCompatible() const;
+   //throw ( Vocal::SystemException );
 
 
     	/** Indicates that the rules used in validating addresses supplied  
@@ -132,14 +132,14 @@ class SocketOptions
 	 *
 	 *  See socket(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	reuseAddress(bool on = true)
-		    	    throw ( Vocal::SystemException );
+   void	    	reuseAddress(bool on = true);
+   //throw ( Vocal::SystemException );
 
 
     	/** Query state of reuseAddress.
 	 */    	    	
-	bool	    	reuseAddress() const		    
-		    	    throw ( Vocal::SystemException );
+   bool	    	reuseAddress() const;
+   //throw ( Vocal::SystemException );
 
 
     	/** When enabled, datagram sockets receive packets sent to a broadcast
@@ -148,14 +148,14 @@ class SocketOptions
 	 *
 	 *  See socket(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	broadcast(bool on = true)
-		    	    throw ( Vocal::SystemException );
+   void	    	broadcast(bool on = true);
+   //throw ( Vocal::SystemException );
 
 
     	/** Query state of broadcast.
 	 */    	    	
-	bool	    	broadcast() const
-		    	    throw ( Vocal::SystemException );
+   bool	    	broadcast() const;
+   //throw ( Vocal::SystemException );
 
 
     	/** When enabled, a close(2) or shutdown(2) will not return until all 
@@ -165,43 +165,43 @@ class SocketOptions
 	 *
 	 *  See socket(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	linger(bool on, int seconds)
-		    	    throw ( Vocal::SystemException );
+   void	    	linger(bool on, int seconds);
+   //throw ( Vocal::SystemException );
 
 
     	/** Query state of linger. If enabled, the seconds will return
 	 *  with the linger timeout.
 	 */    	    	
-	bool	    	linger(int & seconds) const
-		    	    throw ( Vocal::SystemException );
+   bool	    	linger(int & seconds) const;
+   //throw ( Vocal::SystemException );
 
 
     	/** Join a multicast group, as given in the IPAddress.
 	 *
 	 *  See ip(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	joinMulticastGroup(IPAddress & mcastAddr)
-		    	    throw ( Vocal::SystemException );
+   void	    	joinMulticastGroup(IPAddress & mcastAddr);
+   //throw ( Vocal::SystemException );
 
 
     	/** Leave a multicast group, as given in the IPAddress.
 	 *
 	 *  See ip(7), and getsockopt/setsockopt(2).
 	 */    	    	
-	void	    	leaveMulticastGroup(IPAddress & mcastAddr)
-		    	    throw ( Vocal::SystemException );
+   void	    	leaveMulticastGroup(IPAddress & mcastAddr);
+   //throw ( Vocal::SystemException );
 
-    private:
+private:
 
-    	void	    	set(int level, int optname, bool)
-		    	    throw ( Vocal::SystemException );
+   void	    	set(int level, int optname, bool);
+   //throw ( Vocal::SystemException );
 
 
-	bool	    	get(int level, int optname) const
-		    	    throw ( Vocal::SystemException );
+   bool	    	get(int level, int optname) const;
+   //throw ( Vocal::SystemException );
 				    
 
-    	Socket&	socket_;
+   Socket&	socket_;
 };
 
 

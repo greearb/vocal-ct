@@ -143,7 +143,7 @@ SipRequestLine::SipRequestLine( const Data& srcData, const string& _local_ip )
 
 
 void
-SipRequestLine::decode(const Data& data) throw (SipRequestLineParserException&)
+SipRequestLine::decode(const Data& data)
 {
     Data nData = data;
 
@@ -165,7 +165,6 @@ SipRequestLine::decode(const Data& data) throw (SipRequestLineParserException&)
 
 void
 SipRequestLine::scanSipRequestLine(const Data &tmpdata) 
-    throw (SipRequestLineParserException&)
 {
     Data reqdata = tmpdata;
     Data reqvalue;
@@ -189,7 +188,7 @@ SipRequestLine::scanSipRequestLine(const Data &tmpdata)
 		    requestUrl->decode(reqsvalue, getLocalIp());
 		}
             }
-            catch (SipUrlParserException e)
+            catch (SipUrlParserException& e)
             {
                 cpLog(LOG_ERR, "Failed to decode URL of Requestline, reqData: %s",
                       reqdata.c_str());

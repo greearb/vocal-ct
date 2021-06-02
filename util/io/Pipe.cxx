@@ -71,10 +71,8 @@ using Vocal::ReturnCode;
 using Vocal::SUCCESS;
 
 
-Pipe::Pipe(
-    const file_descriptor_t 	*   descriptors
-)
-throw ( Vocal::SystemException )
+Pipe::Pipe(const file_descriptor_t 	*   descriptors)
+//throw ( Vocal::SystemException )
     :	readFD_(FileDescriptor::INVALID),
     	writeFD_(FileDescriptor::INVALID)
 {

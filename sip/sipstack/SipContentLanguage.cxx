@@ -125,7 +125,7 @@ void SipContentLanguage::decode(const Data& data)
 
         scanSipContentLanguage(nData);
     }
-    catch (SipContentLanguageParserException e)
+    catch (SipContentLanguageParserException& e)
     {
         if (SipParserMode::sipParserMode())
         {

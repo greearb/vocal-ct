@@ -205,7 +205,7 @@ bool SipVia::operator == (const SipVia& src) const
 
 
 /*** decode data , and store in data members */
-SipVia::SipVia( const Data& data, const string& local_ip) throw(SipViaParserException&)
+SipVia::SipVia( const Data& data, const string& local_ip)
     : SipHeader(local_ip),
     host(),
     port(DEFAULT_SIP_PORT),

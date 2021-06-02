@@ -84,13 +84,11 @@ UaState::info(const string& msg)
 
 void 
 UaState::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     error(className()+"::recvRequest");
 }
 
 int UaState::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     error(className()+"::sendRequest");
     return -1;
@@ -99,14 +97,12 @@ int UaState::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 void 
 UaState::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     error(className()+"::recvStatus");
 }
 
 int
 UaState::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     error(className()+"::sendStatus");
     return -1;

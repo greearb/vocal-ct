@@ -274,7 +274,6 @@ Poll::unregisterProtocol(Protocol & protocol)
 
 int 	    	    
 Poll::poll(int timeout)
-throw ( Vocal::SystemException )
 {
     const string    fn("Poll::poll");
     VLog    	    log(fn);
@@ -363,7 +362,6 @@ Poll::fdActive(const FileDescriptor & filedesc) const
 
 void 	    	    
 Poll::processProtocols(int numberFdsActive)
-throw ( Vocal::Transport::ProtocolException )
 {
     const string    fn("Poll::processProtocols");
     VLog    	    log(fn);
@@ -468,7 +466,6 @@ throw ( Vocal::Transport::ProtocolException )
 
 void	    	    
 Poll::interrupt()
-throw ( Vocal::SystemException )
 {
     const string    fn("Poll::interrupt");
     VLog    	    log(fn);
@@ -700,7 +697,7 @@ Poll::processOutgoing(pollfd & pollFdEntry, Protocol * protocol)
 	{
 	    protocol->onOutgoingAvailable();
 	}
-	catch ( Vocal::SystemStatus )
+	catch ( Vocal::SystemStatus& )
 	{
 	    // The status indicates that we need to poll again.
 	    // Do nothing.

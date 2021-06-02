@@ -153,8 +153,8 @@ class Poll;
 	 *  it is passed along. The default behavior is to do throw
 	 *  a HANGUP_EXCEPTION.
 	 */
-	virtual void	onDisconnect(ConnectionBrokenException * = 0)
-    	    	    	    throw ( Vocal::Transport::ProtocolException );
+   virtual void	onDisconnect(ConnectionBrokenException * = 0);
+   //throw ( Vocal::Transport::ProtocolException );
 
 
     	/** Callback that notifies the user that an error has been detected 
@@ -162,8 +162,8 @@ class Poll;
 	 *  been caught, it is passed along. The default behavior is to 
 	 *  do throw an ERROR_EXCEPTION.
 	 */
-	virtual void	onError(SystemException * = 0)
-    	    	    	    throw ( Vocal::Transport::ProtocolException );
+   virtual void	onError(SystemException * = 0);
+   //throw ( Vocal::Transport::ProtocolException );
 
 
     	/** If the poll receives an unknown exception, it calls this method,

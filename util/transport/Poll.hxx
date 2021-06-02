@@ -197,8 +197,8 @@ class Poll : public Vocal::IO::Writer
     	 *  otherwise the number of active file descriptors is
     	 *  returned.
 	 */
-    	int 	    	    poll(int timeout = -1)
-		    	    	throw ( Vocal::SystemException );
+   int 	    	    poll(int timeout = -1);
+   //throw ( Vocal::SystemException );
 
 
         /** See if the given file descritor is active.
@@ -208,15 +208,15 @@ class Poll : public Vocal::IO::Writer
         
     	/** Process the activity on the given protocols.
 	 */
-	void 	    	    processProtocols(int numberFdsActive)
-    	    	    	    	throw ( Vocal::Transport::ProtocolException );
+   void 	    	    processProtocols(int numberFdsActive);
+   //throw ( Vocal::Transport::ProtocolException );
 
 
     	/** Wake poll(). interrupt() should be called from a thread
     	 *  different from the thread that calls poll().
 	 */		
-	void	    	    interrupt()
-		    	    	throw ( Vocal::SystemException );
+   void	    	    interrupt();
+   //throw ( Vocal::SystemException );
 
 
 	/** Returns the number of outstanding interrupts pending on the 

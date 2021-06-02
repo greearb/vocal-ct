@@ -60,7 +60,7 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 void 
-StateTrying::cancel(CallAgent& agent) throw (CInvalidStateException&)
+StateTrying::cancel(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateTrying::cancel");
     changeState(agent, ControlStateFactory::instance().getState(TEAR_DOWN));
@@ -68,7 +68,7 @@ StateTrying::cancel(CallAgent& agent) throw (CInvalidStateException&)
 
 
 int
-StateTrying::end(CallAgent& agent) throw (CInvalidStateException&)
+StateTrying::end(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateTrying::end");
     int rv;
@@ -81,14 +81,14 @@ StateTrying::end(CallAgent& agent) throw (CInvalidStateException&)
 }
 
 void 
-StateTrying::ringing(CallAgent& agent) throw (CInvalidStateException&)
+StateTrying::ringing(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateTrying::ringing");
     changeState(agent, ControlStateFactory::instance().getState(UAC_RINGING));
 }
 
 void 
-StateTrying::inCall(CallAgent& agent) throw (CInvalidStateException&)
+StateTrying::inCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateTrying::inCall");
     changeState(agent, ControlStateFactory::instance().getState(IN_CALL));
@@ -96,7 +96,6 @@ StateTrying::inCall(CallAgent& agent) throw (CInvalidStateException&)
 
 void 
 StateTrying::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
     statusMsg.dynamicCast(msg);

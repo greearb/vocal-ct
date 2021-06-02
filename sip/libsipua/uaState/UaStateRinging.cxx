@@ -62,8 +62,7 @@
 using namespace Vocal::UA;
 
 void 
-UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&) {
+UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg) {
    Sptr<StatusMsg> statusMsg;
    statusMsg.dynamicCast(msg);
    assert(statusMsg != 0);
@@ -122,8 +121,7 @@ UaStateRinging::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 int
-UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&) {
+UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
    agent.assertNotDeleted();
    Sptr<StatusMsg> statusMsg;
    statusMsg.dynamicCast(msg);
@@ -260,7 +258,6 @@ UaStateRinging::sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 void 
 UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
      if((msg->getType() == SIP_CANCEL) ||
         (msg->getType() == SIP_BYE))
@@ -290,8 +287,7 @@ UaStateRinging::recvRequest(UaBase& agent, Sptr<SipMsg> msg)
 }
 
 
-int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-   throw (CInvalidStateException&) {
+int UaStateRinging::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) {
 
    //Some UAs may send BYE instead of CANCEL in Ringing
    if ((msg->getType() == SIP_CANCEL) ||

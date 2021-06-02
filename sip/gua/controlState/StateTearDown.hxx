@@ -79,8 +79,7 @@ public:
       { }
 
    ///
-   int end(CallAgent& agent)
-      throw (CInvalidStateException&) {
+   int end(CallAgent& agent) {
       cpLog(LOG_DEBUG, "StateTearDown::end");
       changeState(agent, ControlStateFactory::instance().getState(INIT));
       agent.setDeleted();

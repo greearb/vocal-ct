@@ -77,15 +77,12 @@ public:
       { }
    
    ///
-   void ringing(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void ringing(CallAgent& agent);
    
-   void makeCall(CallAgent& agent)
-      throw (CInvalidStateException&);
+   void makeCall(CallAgent& agent);
 
    /// Returns < 0 on failure
-   int end(CallAgent& agent) 
-      throw (CInvalidStateException&) {
+   int end(CallAgent& agent) {
       // Nothing to do, we are there!
       return 0;
    }

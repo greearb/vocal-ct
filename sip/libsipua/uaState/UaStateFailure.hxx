@@ -71,15 +71,11 @@ public:
    virtual ~UaStateFailure() { }
    
    ///Valid only for User Agent server
-   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg);
    ///Valid only for User Agent Client
-   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-      throw (CInvalidStateException&);
-   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-      throw (CInvalidStateException&);
-   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
-      throw (CInvalidStateException&);
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg);
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
 };
 
 }

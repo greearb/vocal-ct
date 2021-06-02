@@ -120,8 +120,8 @@ public:
    ///
    // local_ip cannot be "" here, must be the local IP we are bound to locally
    // or 'hostaddress' if we are not specifically bound.
-   explicit SipUrl(const Data& data, const string& local_ip, bool lr=false)
-      throw (SipUrlParserException &) ;
+   explicit SipUrl(const Data& data, const string& local_ip, bool lr=false);
+   //throw (SipUrlParserException &) ;
    ///
    SipUrl(const SipUrl& );
     
@@ -202,7 +202,7 @@ public:
    const Data& getTtlData() const ;
     
    ///
-   void setTtlParam(const Data& newttl) throw(SipUrlParserException&);
+   void setTtlParam(const Data& newttl);// throw(SipUrlParserException&);
     
    ///
    const Data& getTtlParam() const;

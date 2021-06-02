@@ -219,8 +219,7 @@ class IPAddress : public Vocal::Transport::TransportAddress
 
     	/** Update the address from the socket.
 	 */
-	virtual void	    	updateAddress(const Socket &)
-	    	    	    	    	throw ( Vocal::SystemException );
+	virtual void	    	updateAddress(const Socket &); // may throw exception
 
     	/** Equality relational operator
 	 */

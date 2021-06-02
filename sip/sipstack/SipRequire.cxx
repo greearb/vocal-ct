@@ -120,7 +120,7 @@ SipRequire::decode(const Data& ndata)
 
         scanSipRequire(nData);
     }
-    catch (SipRequireParserException e)
+    catch (SipRequireParserException& e)
     {
         if (SipParserMode::sipParserMode())
         {

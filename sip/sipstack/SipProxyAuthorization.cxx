@@ -133,7 +133,7 @@ SipProxyAuthorization::decode(const Data& data)
     {
         scanSipProxyauthorization(nData);
     }
-    catch (SipProxyAuthorizationParserException e)
+    catch (SipProxyAuthorizationParserException& e)
     {
         if (SipParserMode::sipParserMode())
         {

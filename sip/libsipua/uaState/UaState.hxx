@@ -83,19 +83,15 @@ public:
    virtual ~UaState() { };
    
    ///
-   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg) 
-      throw (CInvalidStateException&);
+   virtual void recvRequest(UaBase& agent, Sptr<SipMsg> msg);
    
    /// Returns < 0 on failure
-   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
-      throw (CInvalidStateException&);
+   virtual int sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
    
    ///
-   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg) 
-      throw (CInvalidStateException&);
+   virtual int sendStatus(UaBase& agent, Sptr<SipMsg> msg, const char* dbg);
    ///
-   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg) 
-      throw (CInvalidStateException&);
+   virtual void recvStatus(UaBase& agent, Sptr<SipMsg> msg);
    
    void addSelfInVia(UaBase& agent, Sptr<SipCommand> cmd);
    

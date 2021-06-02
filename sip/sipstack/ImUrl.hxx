@@ -70,7 +70,7 @@ class ImUrl : public ImpBaseUrl
         virtual bool isSipUrl() const { return false; }
 
 	///
-	explicit ImUrl(const Data& data) throw(ImpBaseUrlParserException &) ;
+	explicit ImUrl(const Data& data);
 	///
 	ImUrl(const ImUrl& );
     

@@ -116,7 +116,7 @@ class TelUrl : public BaseUrl
 	/// Create one with default values
 	TelUrl();
 	///
-	TelUrl(const Data& data) throw(TelUrlParserException &) ;
+	TelUrl(const Data& data);
 	///
 	TelUrl(const TelUrl& );
     

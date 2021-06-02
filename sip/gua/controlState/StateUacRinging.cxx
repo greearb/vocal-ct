@@ -60,14 +60,14 @@ using namespace Vocal;
 using namespace Vocal::UA;
 
 void 
-StateUacRinging::cancel(CallAgent& agent) throw (CInvalidStateException&)
+StateUacRinging::cancel(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUacRinging::cancel");
     changeState(agent, ControlStateFactory::instance().getState(TEAR_DOWN));
 }
 
 void 
-StateUacRinging::inCall(CallAgent& agent) throw (CInvalidStateException&)
+StateUacRinging::inCall(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUacRinging::inCall");
     changeState(agent, ControlStateFactory::instance().getState(IN_CALL));
@@ -76,7 +76,6 @@ StateUacRinging::inCall(CallAgent& agent) throw (CInvalidStateException&)
 
 void 
 StateUacRinging::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
     msg->assertNotDeleted();
@@ -99,7 +98,7 @@ StateUacRinging::recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
 }
 
 int
-StateUacRinging::end(CallAgent& agent) throw (CInvalidStateException&)
+StateUacRinging::end(CallAgent& agent)
 {
     cpLog(LOG_DEBUG, "StateUacRinging::end");
     //Send Cancel

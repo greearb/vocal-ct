@@ -60,7 +60,6 @@ using Vocal::UA::UaStateRedirect;
 
 int
 UaStateRedirect::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
-                 throw (CInvalidStateException&)
 {
     cpLog(LOG_DEBUG, "UaStateRedirect::SendRequest");
     return 0; /** TODO:  Maybe we should send something here, or not
@@ -69,7 +68,6 @@ UaStateRedirect::sendRequest(UaBase& agent, Sptr<SipMsg> msg, const char* dbg)
 
 void 
 UaStateRedirect::recvStatus(UaBase& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&)
 {
     Sptr<StatusMsg> statusMsg;
     statusMsg.dynamicCast(msg);

@@ -81,21 +81,16 @@ class StateInHold : public ControlState
         ~StateInHold() { };
 
         ///
-        void inCall(CallAgent& agent)
-	  throw (CInvalidStateException&);
+        void inCall(CallAgent& agent);
 
         ///
-        void bye(CallAgent& agent)
-            throw (CInvalidStateException&);
+        void bye(CallAgent& agent);
         ///
-        int end(CallAgent& agent) 
-            throw (CInvalidStateException&);
+        int end(CallAgent& agent);
 	///
-	virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+	virtual void recvStatus(CallAgent& agent, Sptr<SipMsg> msg);
 	///
-	virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg)
-                 throw (CInvalidStateException&);
+	virtual void recvReq(CallAgent& agent, Sptr<SipMsg> msg);
 	///
 	bool canBye(){ return false; }
 
