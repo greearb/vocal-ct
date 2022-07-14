@@ -180,7 +180,7 @@ LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/LFCtrlHandlerShare.o \
                $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
 
-LDLIBS_LAST += -lbitfield -lgcont -lgcc -lstdc++
+LDLIBS_LAST += -lbitfield -lgcont -lc -lgcc -lstdc++
 
 
 endif
