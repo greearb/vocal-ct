@@ -180,7 +180,7 @@ LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/LFCtrlHandlerShare.o \
                $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
 
-LDLIBS_LAST += -lbitfield -lgcont -lc -lgcc -lstdc++
+LDLIBS_LAST += -lbitfield -lgcont  -lgcc -lstdc++
 
 
 endif
@@ -188,6 +188,8 @@ endif
 ifeq ($(ISMINGW),1)
 MKSHLIB_LIBS += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
 LDLIBS_LAST += -lws2_32 -lwinmm -lvutil -lregex -liphlpapi
+else
+LDLIBS_LAST += -lc
 endif
 
 ifeq ($(VOCAL_USE_VOICEAGE),yes)
