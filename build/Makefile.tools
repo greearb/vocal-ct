@@ -103,6 +103,9 @@ else
 LDLIBS += $(XTRA_LDFLAGS)
 ifeq ($(ISMINGW),1)
     LDLIBS_LAST += -lstdc++
+    CXXFLAGS += -fstack-protector
+    CFLAGS += -fstack-protector
+    LDLIBS += -fstack-protector
 else
     ifeq ($(ANDROID),1)
         CXXFLAGS += -DIS_ANDROID
