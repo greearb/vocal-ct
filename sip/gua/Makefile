@@ -202,6 +202,8 @@ endif
 LDLIBS_LAST += $(START_LD_STATIC) -lCodecLib -lg729a -lg729utils -lg729_os_depend $(CLOSE_LD_STATIC)
 endif
 
+# mingw needs it again here.
+LDLIBS_LAST += -lssl -lcrypto
 
 #rules for making gui front-end
 
