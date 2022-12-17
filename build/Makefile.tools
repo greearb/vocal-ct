@@ -68,8 +68,8 @@ DMANGLE		=
 INSTALL		= install
 HAS_REPO        = true
 LNDIR		= $(shell pwd)/$(ROOT)/tools/lndir.sh
-CFLAGS		+= -Wall $(FPIC)
-CXXFLAGS	+= -Wall $(FPIC) -Wno-deprecated
+CFLAGS		+= -Wall $(FPIC) -I$(l4LIBS_BASE)/../server/local
+CXXFLAGS	+= -Wall $(FPIC) -Wno-deprecated -I$(l4LIBS_BASE)/../server/local
 DFLAG_INTEGRATED = -MMD
 REPO_FLAG       = -frepo $(FPIC)
 
@@ -79,6 +79,8 @@ LDLIBS_LAST += `fc-config --libs` -Wl,-rpath,/usr/local/lib
 else
 DEBUG_FLAG = -g
 endif
+
+LDLIBS += -L$(l4LIBS_BASE)/../server/local/lib -L$(l4LIBS_BASE)/../server/local/lib64
 
 # Give the runtime linker a clue as to where to find the vocal
 # libraries.

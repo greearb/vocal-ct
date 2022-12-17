@@ -27,7 +27,7 @@ endif
 
 LIBDIRS += $(VOCAL_SNDFILE_LIB_DIR)
 INCDIRS += $(VOCAL_SNDFILE_INC_DIR)
-LDLIBS += $(START_LD_STATIC) -lsndfile $(CLOSE_LD_STATIC)
+LDLIBS += $(START_LD_STATIC) -lsndfile $(CLOSE_LD_STATIC) -lssl -lcrypto
 
 CODE_SUBDIRS =  controlState 
 
