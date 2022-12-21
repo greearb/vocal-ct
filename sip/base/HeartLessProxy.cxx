@@ -49,10 +49,6 @@
  */
 
 
-static const char* const HeartLessProxy_cxx_Version =
-    "$Id: HeartLessProxy.cxx,v 1.5 2005/03/03 19:59:49 greear Exp $";
-
-
 #include "global.h"
 #include "HeartLessProxy.hxx"
 #include "SipTransceiverFilter.hxx"

@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipProxyEvent_cxx_Version =
-    "$Id: SipProxyEvent.cxx,v 1.6 2004/06/20 07:09:38 greear Exp $";
-
 
 #include "global.h"
 #include "SipProxyEvent.hxx"
@@ -73,7 +70,7 @@ SipProxyEvent::~SipProxyEvent()
 }
 
 
-string SipProxyEvent::toString() {
+string SipProxyEvent::toString() const {
    string rv("SipProxyEvent, name: ");
    rv += name();
    return rv;

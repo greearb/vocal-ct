@@ -143,9 +143,6 @@ XERCES_DEPENDS := $(ROOT)/contrib/xerces-c-src1_4_0.$(OS_ARCH)/lib/libxerces-c1_
 
 
 LIBCEXT_INCLUDEDIRS := 
-ifeq ($(OSTYPE),Darwin)
-VOCAL_USE_GETOPT_LONG = 1
-endif
 ifeq ($(OSTYPE),FreeBSD)
 VOCAL_USE_GETOPT_LONG = 1
 endif

@@ -437,7 +437,9 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
         /* The tv_sec field represents the number of seconds passed since
         the Epoch, which is exactly the argument gettimeofday needs. */
         const time_t timeInSeconds = (time_t) tv.tv_sec;
+#if not (defined( __APPLE__ ) || defined(__MINGW32__))
         struct tm localT;
+#endif
         strftime (datebuf,
                   DATEBUF_SIZE,
                   "%Y%m%d-%H%M%S", /* guaranteed to fit in 256 chars,
@@ -452,7 +454,7 @@ vCpLog(int pri, const char* file, int line, const char* fmt, va_list ap)
     char msbuf[5];
     /* Dividing (without remainder) by 1000 rounds the microseconds
     measure to the nearest millisecond. */
-    sprintf(msbuf, ".%3.3ld", (tv.tv_usec / 1000));
+    sprintf(msbuf, ".%3.3ld", (long)((tv.tv_usec / 1000)));
 
     datebufCharsRemaining = DATEBUF_SIZE - strlen (datebuf);
     strncat (datebuf, msbuf, datebufCharsRemaining - 1);

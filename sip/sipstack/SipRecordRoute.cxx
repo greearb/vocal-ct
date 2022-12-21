@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const SipRecordRoute_cxx_Version =
-    "$Id: SipRecordRoute.cxx,v 1.4 2004/11/19 01:54:38 greear Exp $";
-
 #include "global.h"
 #include "SipRecordRoute.hxx"
 #include "SipParserMode.hxx"

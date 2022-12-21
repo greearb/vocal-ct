@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const VEnvVar_cxx_Version =
-    "$Id: VEnvVar.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
 #include "global.h"
 #include "VEnvVar.hxx"
 #include "vocalconfig.h"

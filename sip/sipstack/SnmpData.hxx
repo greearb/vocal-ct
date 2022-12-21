@@ -56,9 +56,6 @@
 #include <iostream>
 #include "Data.hxx"
 
-static const char* const SnmpDataVersion =
-    "$Id: SnmpData.hxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 namespace Vocal
 {
     

@@ -61,7 +61,11 @@
 #include "getopt.h"
 
 #else
+#ifdef __APPLE__
+#include "getopt.h"
+#else
 #include "getopt_long.h"
+#endif
 #endif
 
 #include <cstdio>

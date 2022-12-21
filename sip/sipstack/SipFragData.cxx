@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipTextData_cxx_Version =
-    "$Id: SipFragData.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "SipFragData.hxx"
 #include "cpLog.h"

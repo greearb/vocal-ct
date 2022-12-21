@@ -50,10 +50,6 @@
  */
 
 
-static const char* const Timer_cxx_Version =
-    "$Id: Timer.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "Timer.h"
 

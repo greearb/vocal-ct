@@ -49,10 +49,6 @@
  */
 
 
-static const char* const SipThread_cxx_Version =
-    "$Id: SipThread.cxx,v 1.9 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include "cpLog.h"
 #include "SipThread.hxx"

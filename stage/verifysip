@@ -54,7 +54,7 @@ exit
 # Inc.  For more information on Vovida Networks, Inc., please see
 # <http://www.vovida.org/>.
 
-# $Id: verifysip,v 1.1 2004/05/01 04:15:29 greear Exp $ 
+# $Id: verifysip,v 1.1 2004/05/01 04:15:31 greear Exp $ 
 
 use Socket;
 use IO::Handle;

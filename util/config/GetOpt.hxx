@@ -73,6 +73,7 @@
 #else
   #if defined(__APPLE__)
     #include <unistd.h>
+    #include <getopt.h>
   #else
     #include <getopt.h>
   #endif

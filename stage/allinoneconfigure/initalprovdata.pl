@@ -55,7 +55,7 @@ exit
 # Inc.  For more information on Vovida Networks, Inc., please see
 # <http://www.vovida.org/>.
 
-# $Id: initalprovdata.pl,v 1.1 2004/05/01 04:15:31 greear Exp $
+# $Id: initalprovdata.pl,v 1.1 2004/05/01 04:15:16 greear Exp $
 
 require "getopts.pl";
     

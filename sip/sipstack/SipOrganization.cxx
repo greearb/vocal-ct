@@ -49,11 +49,6 @@
  *
  */
 
-static const char* const SipOrganization_cxx_Version =
-    "$Id: SipOrganization.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
-
-
-
 #include "global.h"
 #include "symbols.hxx"
 #include "SipOrganization.hxx"

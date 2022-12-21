@@ -61,7 +61,7 @@
 
 #if defined(__MACH__)
 #include <signal.h>
-typedef int siginfo_t;
+//typedef int siginfo_t;
 #endif
 
 /** Infrastructure common to VOCAL.

@@ -48,10 +48,6 @@
  *
  */
 
-static const char* const VocalCommon_cxx_Version = 
-    "$Id: VocalCommon.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "VocalCommon.hxx"
 

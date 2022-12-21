@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const NtpTime_cxx_Version =
-    "$Id: NtpTime.cxx,v 1.3 2007/10/18 02:07:45 greear Exp $";
-
-
 #include "global.h"
 #include "NtpTime.hxx"
 

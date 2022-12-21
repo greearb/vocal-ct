@@ -60,7 +60,9 @@ static const char* const TransportCommon_hxx_Version =
 
 
 #if !defined(__linux__)
+#ifndef MSG_NOSIGNAL
 #define     	MSG_NOSIGNAL	0
+#endif
 #endif // !defined(__linux__)
 
 
@@ -83,7 +85,7 @@ typedef void sockbuf_t;
 #endif // defined(VOCAL_USE_SOCKET_BUFFER)
 
 
-#if defined(__APPLE__)
-typedef int socklen_t;
-#endif
+//#if defined(__APPLE__)
+//typedef int socklen_t;
+//#endif
 #endif // !defined(VOCAL_TRANSPORTCOMMON_HXX)

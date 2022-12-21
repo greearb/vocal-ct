@@ -50,10 +50,6 @@
  */
 
 
-static const char* const VException_cxx_Version =
-    "$Id: VException.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "cpLog.h"
 #include "VException.hxx"

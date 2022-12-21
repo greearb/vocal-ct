@@ -6,7 +6,11 @@ CXXFLAGS += -I../../libmedia
 LDLIBS_LAST +=  -lm
 
 MKSHLIB_INCDIRS += -L$(ROOT)/util/obj.$(TARGET_NAME)/
+ifeq ($(OSTYPE),Darwin)
+MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lm -lvutil
+else
 MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lgcc_s -lvutil
+endif
 
 
 include $(BUILD)/Makefile.pre
@@ -180,7 +184,11 @@ LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/LFCtrlHandlerShare.o \
                $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
 
+ifeq ($(OSTYPE),Darwin)
+LDLIBS_LAST += -lbitfield -lgcont
+else
 LDLIBS_LAST += -lbitfield -lgcont  -lgcc -lstdc++
+endif
 
 
 endif

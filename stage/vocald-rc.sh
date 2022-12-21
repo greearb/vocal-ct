@@ -48,7 +48,7 @@
 # Inc.  For more information on Vovida Networks, Inc., please see
 # <http://www.vovida.org/>.
 
-# $Id: vocald-rc.sh,v 1.1 2004/05/01 04:15:29 greear Exp $
+# $Id: vocald-rc.sh,v 1.1 2004/05/01 04:15:41 greear Exp $
 
 # this is a simple redhat-style RC script for VOCAL.  it uses vocalctl
 # to do all of its dirty work, so it should not need to be too smart.

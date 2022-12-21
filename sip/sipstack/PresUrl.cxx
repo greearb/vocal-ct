@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const PresUrl_cxx_Version =
-    "$Id: PresUrl.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include <cassert>
 #include "PresUrl.hxx"

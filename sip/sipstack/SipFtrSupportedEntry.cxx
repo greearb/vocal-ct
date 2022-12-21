@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const SipFtrSupportedEntry_cxx_Version =
-    "$Id: SipFtrSupportedEntry.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include <string>
 #include <iostream>

@@ -50,10 +50,6 @@
  */
 
 
-static const char* const SystemStatus_cxx_Version = 
-    "$Id: SystemStatus.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include "SystemStatus.hxx"
 #include "VLog.hxx"

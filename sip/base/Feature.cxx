@@ -49,10 +49,6 @@
  */
 
 
-static const char* const Feature_cxx_Version =
-    "$Id: Feature.cxx,v 1.1 2004/05/01 04:15:25 greear Exp $";
-
-
 #include "global.h"
 #include "Feature.hxx"
 #include "SipProxyEvent.hxx"

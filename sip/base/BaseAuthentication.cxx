@@ -115,9 +115,8 @@ addAuthorization(const StatusMsg& errorMsg,
 	    noncecount = "00000001";
 	    cnonce = RandomHex::get(5);
             LocalScopeAllocator lo;
-	    unsigned int pos = string(qop.getData(lo)).find("auth");
 	
-	    if  (pos  != string::npos) {
+	    if  (strstr(qop.getData(lo), "auth")) {
 		qop = "auth";
 		//the client can also find if this has a auth-int, and
 		//if it wants to support it, can set qop to auth-int.

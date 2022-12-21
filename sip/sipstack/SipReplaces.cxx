@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipReplaces_cxx_version =
-    "$Id: SipReplaces.cxx,v 1.3 2004/11/19 01:54:38 greear Exp $";
-
 #include "SipParserMode.hxx"
 #include "SipReplaces.hxx"
 #include "symbols.hxx"

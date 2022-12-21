@@ -54,7 +54,7 @@ exit
 # Inc.  For more information on Vovida Networks, Inc., please see
 # <http://www.vovida.org/>.
 
-# $Id: vocalctl,v 1.1 2004/05/01 04:15:29 greear Exp $
+# $Id: vocalctl,v 1.1 2004/05/01 04:15:40 greear Exp $
 
 # control program
 
@@ -69,8 +69,9 @@ local $SIG{PIPE} = 'IGNORE';
 # -d     debug vocald (do not start vocald as daemon)
 # -n     operate non-interactively
 # -D     pass debug option directly, but start vocald as daemon 
+# -p     do not start psql
 
-&Getopts("dnD:t");
+&Getopts("dnD:tp");
 
 if($opt_d) {
     $vocald_debug = " -d -D 1 &";
@@ -185,12 +186,14 @@ sub start_vocald {
     }
     
 
-    $ENV{PGPASSWORD} = "vocal";
-    print "clearing update listener table...\n";
-    open(PSQL, "| psql -U vocal") or die("Could not start psql process...\n");
-    print PSQL "delete from updatereg ;\n";
-    print PSQL "\\q\n";
-    close(PSQL);
+    if(!$opt_p) {
+	$ENV{"PGPASSWORD"} = "vocal";
+	print "clearing update listener table...\n";
+	open(PSQL, "| psql -U vocal") or die("Could not start psql process...\n");
+	print PSQL "delete from updatereg ;\n";
+	print PSQL "\\q\n";
+	close(PSQL);
+    }
 
     print "starting vocald...\n" if !$opt_n;
     if($opt_t) {

@@ -57,8 +57,6 @@
 #include "UaBase.hxx"
 #include <BugCatcher.hxx>
 
-class SipMsg;
-
 namespace Vocal {
 
 namespace UA {

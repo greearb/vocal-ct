@@ -48,10 +48,6 @@
  *
  */
 
-static const char* const RtcpPacket_cxx_Version =
-    "$Id: RtcpPacket.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include <iostream>
 #include <stdlib.h>

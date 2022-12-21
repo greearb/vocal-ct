@@ -106,7 +106,7 @@ public:
    // Run no sooner than this, in Miliseconds.
    uint64 getRunTimer() const { return runTimer; }
 
-   virtual string toString();
+   virtual string toString() const;
 
 protected:
 

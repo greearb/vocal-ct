@@ -49,10 +49,6 @@
  *
  */
 
-static const char* const SipOspAuthorization_cxx_Version =
-    "$Id: SipOspAuthorization.cxx,v 1.2 2004/06/16 06:51:25 greear Exp $";
-
-
 #include "global.h"
 #include "SipOspAuthorization.hxx"
 #include "SipParserMode.hxx"

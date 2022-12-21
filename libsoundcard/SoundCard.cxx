@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SoundCard_cxx_Version =
-    "$Id: SoundCard.cxx,v 1.4 2006/03/12 07:41:28 greear Exp $";
-
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -68,7 +65,7 @@ static const char* const SoundCard_cxx_Version =
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#ifndef IS_ANDROID
+#if not (defined(IS_ANDROID) || defined(__APPLE__))
 #include <sys/soundcard.h>
 #endif
 #endif
@@ -162,7 +159,7 @@ SoundCard::open()
 #endif
 #endif
 
-#ifndef WIN32
+#if not (defined(IS_ANDROID) || defined(__APPLE__))
 
     // reset the thing
     if( ioctl( myFD, SNDCTL_DSP_RESET, 0 ) == -1 ) 
@@ -312,7 +309,7 @@ SoundCard::open()
 
 bool SoundCard::writerBuffered () {
     int bufbytes = 0;
-#if not (defined(__MINGW32__) || defined(IS_ANDROID))
+#if not (defined(__MINGW32__) || defined(IS_ANDROID) || defined(__APPLE__))
     ::ioctl(myFD, SNDCTL_DSP_GETODELAY, &bufbytes);
 #endif
     return (bufbytes > 0);
@@ -421,7 +418,9 @@ SoundCard::read( unsigned char* data,
     int cc = -1;
     int p = 0;
     int q = 0;
+#ifndef __APPLE__
     int bigs;
+#endif
 
 #ifdef IS_ANDROID
     return 0;
@@ -430,7 +429,7 @@ SoundCard::read( unsigned char* data,
     //check codec encodings
     switch( myFormat )
     {
-#ifndef WIN32
+#if not (defined(IS_ANDROID) || defined(__APPLE__))
     case SoundCardUlaw:
         // no conversion needed
         cc = 0;
@@ -460,7 +459,7 @@ SoundCard::read( unsigned char* data,
 #endif
     case SoundCardSigned16LE:
         // convert sound sample from Liner16 to ULAW
-#ifndef WIN32
+#if not (defined(IS_ANDROID) || defined(__APPLE__))
         ::ioctl(myFD, SNDCTL_DSP_GETISPACE, &info);
 
         bigs = samples * 2 * myNumChannels;
@@ -488,7 +487,7 @@ SoundCard::read( unsigned char* data,
 	cc = myReadBuffer.get(rawAudio, samples * 2 * myNumChannels);
 
 #else
-#ifndef __MINGW32__
+#if not ((__MINGW32__) || defined(__APPLE__))
         cc = m_aSoundCardWinIn.Read( (char*)rawAudio, samples * 2 );
 #endif
 #endif
@@ -545,7 +544,8 @@ SoundCard::close()
     return 0;
 #else
 
-#ifndef WIN32
+#ifndef __APPLE__
+#if not (defined(WIN32))
     if (myFD >= 0) {
         if ( ioctl( myFD, SNDCTL_DSP_RESET, 0 ) == -1 ) {
             cpLog(LOG_ERR, "ERROR: trying to reset SND-Device, fd: %d  error: %s\n",
@@ -558,6 +558,7 @@ SoundCard::close()
 #ifndef __MINGW32__
     m_aSoundCardWinOut.Close();
     m_aSoundCardWinIn.Close();
+#endif
 #endif
 #endif
 

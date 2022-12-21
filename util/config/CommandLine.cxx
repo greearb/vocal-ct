@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const CommandLine_cxx_Version =
-    "$Id: CommandLine.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
-
 #include "global.h"
 #include <iostream>
 #include "CommandLine.hxx"
@@ -70,7 +67,11 @@ static const char* const CommandLine_cxx_Version =
 #include <getopt.h>
 
 #else
+#if defined(__APPLE__)
+#include <getopt.h>
+#else
 #include "../../contrib/libcext_bsd/getopt_long.h"
+#endif
 #endif
 
 #include "vocal_version.h"

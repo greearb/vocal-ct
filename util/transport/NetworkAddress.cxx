@@ -50,13 +50,12 @@
 
 
 #include <string>
-#if defined(__FreeBSD__) || defined (__APPLE__)
+#if defined(__FreeBSD__)
 #include <sys/types.h>
 #include <netdb_r.h>
 #endif
 #if defined (__APPLE__)
 #include <sys/types.h>
-#include "netdb_r.h"
 #endif
 #include "errno.h"
 #include <errno.h>

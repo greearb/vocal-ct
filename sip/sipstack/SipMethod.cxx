@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SipMethod_cxx_Version =
-    "$Id: SipMethod.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 #include "global.h"
 #include "SipMethod.hxx"
 #include <cassert>

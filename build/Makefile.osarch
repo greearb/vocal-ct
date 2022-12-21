@@ -110,8 +110,13 @@ endif
 
 ifeq ($(OSTYPE),Darwin)
 
-    USE_LIBGETOPT = 1
-    USE_R_WRAPPER = 1
+    #USE_LIBGETOPT = 1
+    #USE_R_WRAPPER = 1
+
+    # port install libsndfile openssl
+    CFLAGS += -I/opt/local/include -I/opt/local/libexec/openssl3/include
+    CXXFLAGS += -I/opt/local/include -I/opt/local/libexec/openssl3/include
+    LDFLAGS += -L/opt/local/lib
 
     ifeq ($(VOCAL_USE_SYSTEM_LIBS),true)
         VOCAL_USE_SYSTEM_IMAP := true
@@ -305,7 +310,10 @@ DEFINES += BSD43_COMPATIBLE
 CXXFLAGS += 
 CFLAGS   += 
 LDFLAGS  += -L/usr/local/lib/gcc-lib/sh-wrs-vxworks/2.95.1/m2
+
+ifneq ($(OSTYPE),Darwin)
 LDLIBS_LAST   +=  -lstdc++ -lgcc
+endif
 
 OSCLASS = VXWORKS
 

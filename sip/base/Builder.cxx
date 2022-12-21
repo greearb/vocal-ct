@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const Builder_cxx_Version =
-    "$Id: Builder.cxx,v 1.2 2004/05/04 07:31:14 greear Exp $";
-
 
 #include "global.h"
 #include "Builder.hxx"

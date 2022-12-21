@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const UnknownExtensionMsg_cxx_Version =
-    "$Id: UnknownExtensionMsg.cxx,v 1.2 2004/05/04 07:31:15 greear Exp $";
-
 #include "global.h"
 #include <cstdlib>
 #include <cstdio>

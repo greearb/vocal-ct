@@ -111,10 +111,6 @@ typedef int socklen_t;
 #include <isc/eventlib.h>
 #endif
 
-#ifdef __APPLE__
-typedef int socklen_t;
-#endif
-
 #include "UdpStack.hxx"
 #include "cpLog.h"
 #include "vsock.hxx"
@@ -158,8 +154,6 @@ typedef unsigned int  uintptr_t;
 #include "W32McastCfg.hxx"
 #endif
 
-
-static const char separator[7] = "\n****\n";
 
 UdpStack::UdpStack ( const char* debug_msg, uint16 tos, uint32 priority,
                      bool isBlocking, /* Are we a blocking or non-blocking socket? */
@@ -825,8 +819,8 @@ UdpStack::receiveTimeout ( char* buffer,
 
 #ifndef WIN32
    if (madeNonBlocking) {
-      if (setModeBlocking(true) < 0);
-      return -1;
+      if (setModeBlocking(true) < 0)
+         return -1;
    }
 #else
    non_blocking = 0;
@@ -1135,13 +1129,6 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
                      IP_ADD_MEMBERSHIP,
                      (char*) & mreqn,
                      sizeof(struct ip_mreqn));
-   if(ret < 0) {
-      cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
-            VSTRERROR);
-   }
-   else {
-      cpLog(LOG_INFO, "Joined multi-cast group");
-   }
 #else
    struct ip_mreq mreq;
    mreq.imr_multiaddr.s_addr = (group.getIp4Address());
@@ -1156,6 +1143,14 @@ UdpStack::joinMulticastGroup ( NetworkAddress group,
                      (char*) & mreq,
                      sizeof(struct ip_mreq));
 #endif
+
+   if (ret < 0) {
+      cpLog(LOG_ERR, "Failed to join multicast group on interface %s, reason:%s", iface->getIpName().c_str(),
+            VSTRERROR);
+   }
+   else {
+      cpLog(LOG_INFO, "Joined multi-cast group");
+   }
 //#endif // !WIN32
 }
 

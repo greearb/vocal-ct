@@ -75,7 +75,7 @@ typedef int socklen_t;
 #endif
 #endif // WIN32
 
-#ifdef __APPLE__
-typedef int socklen_t;
-#endif
+//#ifdef __APPLE__
+//typedef int socklen_t;
+//#endif
 #endif

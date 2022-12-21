@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const Random_cxx_Version =
-    "$Id: Random.cxx,v 1.2 2006/03/12 07:41:28 greear Exp $";
-
 
 #include "global.h"
 #include "Random.hxx"

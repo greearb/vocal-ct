@@ -48,10 +48,6 @@
  *
  */
 
-static const char* const DeviceEvent_cxx_Version =
-    "$Id: DeviceEvent.cxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
-
-
 #include "global.h"
 #include "DeviceEvent.hxx"
 

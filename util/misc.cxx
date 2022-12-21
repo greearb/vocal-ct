@@ -338,7 +338,7 @@ int vsetPrio(int sk, uint16 tos, uint32 val, const char* dbg) {
 
 /* Returns actual priority that was set, or < 0 on error */
 int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
-#ifndef __WIN32__
+#if not (defined(__WIN32__) || defined(__APPLE__))
    cpLog(LOG_DEBUG_STACK, "Setting socket priority, dbg: %s  sk: %i to value: %lu\n",
          dbg, sk, (unsigned long)(val));
    if (setsockopt(sk, SOL_SOCKET, SO_PRIORITY,
@@ -369,7 +369,7 @@ int vsetPriorityHelper_priv(int sk, uint32 val, const char* dbg) {
 }//vsetPriorityHelper
 
 int vsetTosHelper_priv(int sk, uint16 val) {
-#ifndef __WIN32__
+#if not (defined(__WIN32__) || defined(__APPLE__))
    if (setsockopt(sk, SOL_IP, IP_TOS, (char*)&val, sizeof(val)) < 0) {
       return -1;
    }//if

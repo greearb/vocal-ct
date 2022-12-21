@@ -49,10 +49,6 @@
  */
 
 
-static const char* const TimerEvent_cxx_Version =
-    "$Id: TimerEvent.cxx,v 1.3 2004/06/03 07:28:15 greear Exp $";
-
-
 #include "global.h"
 #include "TimerEvent.hxx"
 #include "CallContainer.hxx"

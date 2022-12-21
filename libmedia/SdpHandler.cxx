@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const SdpHandler_cxx_Version =
-    "$Id: SdpHandler.cxx,v 1.2 2006/11/09 00:11:43 greear Exp $";
-
 #include "SdpHandler.hxx"
 #include "Sdp2Session.hxx"
 #include "Sdp2Connection.hxx"

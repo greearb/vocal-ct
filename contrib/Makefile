@@ -43,9 +43,9 @@ ifeq ($(OSTYPE),FreeBSD)
 CODE_DEPENDS += libcext_bsd libcext_lgpl
 endif
 
-ifeq ($(OSTYPE),Darwin)
-CODE_DEPENDS += libcext_bsd libcext_lgpl
-endif
+#ifeq ($(OSTYPE),Darwin)
+#CODE_DEPENDS += libcext_bsd libcext_lgpl
+#endif
 
 ifeq ($(OSTYPE),SunOS)
 CODE_DEPENDS += libcext_bsd

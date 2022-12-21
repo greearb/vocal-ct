@@ -49,10 +49,6 @@
  */
 
 
-static const char* const Base64_cxx_Version = 
-    "$Id: Base64.cxx,v 1.1 2004/05/01 04:15:33 greear Exp $";
-
-
 #include "global.h"
 #include <string.h>
 #include "Base64.hxx"
@@ -102,9 +98,7 @@ int Base64::encode(unsigned char* outputBuf, unsigned int* outputLen,
     unsigned char c1, c2, c3;
     unsigned char *pOutputBuf = outputBuf;
 
-    unsigned int count = 0, charsPerLine = 0;
-
-
+    unsigned int count = 0;
 
     // Need to initialize c1,c2,c3 to 0 to ensure correct operation
     // in case of a message one byte long
@@ -144,9 +138,6 @@ int Base64::encode(unsigned char* outputBuf, unsigned int* outputLen,
                 *pOutputBuf++ = basis_64[(c3 & 0x3F)];
             }
         }
-
-        charsPerLine += 4;
-
     } //end while
 
     *pOutputBuf++ = '\0';

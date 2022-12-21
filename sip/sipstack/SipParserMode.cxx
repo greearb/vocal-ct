@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const SipParserMode_cxx_Version =
-    "$Id: SipParserMode.cxx,v 1.2 2004/11/05 07:25:06 greear Exp $";
-
 #include "global.h"
 #include "SipParserMode.hxx"
 

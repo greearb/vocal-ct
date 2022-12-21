@@ -48,9 +48,6 @@
  *
  */
 
-static const char* const Operator_cxx_Version =
-    "$Id: Operator.cxx,v 1.3 2004/10/22 22:24:43 greear Exp $";
-
 #include "global.h"
 #include "Operator.hxx"
 #include "SipVia.hxx"

@@ -54,7 +54,7 @@ exit
 # Inc.  For more information on Vovida Networks, Inc., please see
 # <http://www.vovida.org/>.
 
-# $Id: vocald,v 1.1 2004/05/01 04:15:29 greear Exp $
+# $Id: vocald,v 1.1 2004/05/01 04:15:41 greear Exp $
 
 # Daemon to start VOCAL processes
 
@@ -365,11 +365,9 @@ while(1) {
 
     my $did_something = 0;
 
-    if(($nfound = select($rin, undef, $ein, 5.0)) > 0) {
-	&debug("got something");
+    if (($nfound = select($rin, undef, $ein, 5.0)) > 0) {
 	@bits = split(//, unpack("b*", $rin));
-
-	&debug(@bits);
+	&debug("got something, nfound: $nfound, bits: " . @bits);
 
 	if($bits[fileno(SERVER)]) {
 	    &log("accepting from controller");
@@ -870,9 +868,8 @@ sub start {
     #    $cmd =~ s/\%uavm/ua $heartbeat -m -f $config{CONFFILE_BASE}\/uavm_${passed_port}.cfg -v $config{LOGLEVEL}/;
 
     $cmd =~ s/\%uavm_admin/gua -M $iface -f $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -l $config{LOGLEVEL}/;
-    $cmd =~ s/\%uavm_new/gua -m $iface -f  $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -l $config{LOGLEVEL}/;
-    $cmd =~ s/\%uavm/ua -m $iface -f  $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -v$config{LOGLEVEL}/;
-    
+    $cmd =~ s/\%uavm_new/gua -m $iface -f $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -l $config{LOGLEVEL}/;
+    $cmd =~ s/\%uavm/ua -m $iface -f $config{CONFFILE_BASE}\/uavm_$passed_port.cfg -v $config{LOGLEVEL}/;
     $cmd =~ s/\%jtapiSip/$sip $logfile $config{PSERVER} $config{PSERVERBACKUP} $passed_port $passed_port2/;
     $cmd =~ s/\%h323/-o $config{LOGFILE_BASE}\/siph323csgw -l $config{LOGLEVEL} $iface  -p $passed_port -a $passed_port2/;
     
@@ -1159,7 +1156,7 @@ sub run {
 
 
 	# we use the safe version to avoid shell fun
-	my @cmd = split(/ /, $cmd);
+	my @cmd = split(" ", $cmd);
 	exec(@cmd);
 	&abort("failed to execute $cmd");
 	

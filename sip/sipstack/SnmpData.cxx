@@ -49,9 +49,6 @@
  *
  */
 
-static const char* const SnmpData_cxx_Version =
-    "$Id: SnmpData.cxx,v 1.1 2004/05/01 04:15:26 greear Exp $";
-
 
 #include "global.h"
 #include <iostream>
@@ -59,7 +56,7 @@ static const char* const SnmpData_cxx_Version =
 
 using namespace Vocal;
 
-snmpData::snmpData(Data data, bool write = false, bool change = false)
+snmpData::snmpData(Data data, bool write, bool change)
 {
     value = data;
     writable = write;
@@ -67,7 +64,7 @@ snmpData::snmpData(Data data, bool write = false, bool change = false)
 }
 
 
-snmpData::snmpData( bool write = false, bool change = false)
+snmpData::snmpData( bool write, bool change)
 {
     value = "";
     writable = write;

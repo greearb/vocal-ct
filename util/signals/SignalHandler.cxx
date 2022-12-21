@@ -101,7 +101,7 @@ SignalHandler::init()
 void
 SignalHandler::uninit()
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::uninit");
     VLog    	    log(fn);
     
@@ -109,25 +109,25 @@ SignalHandler::uninit()
 
     delete sig_map;
     sig_map = NULL;
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 SignalHandler::SignalHandler()
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::SignalHandler");
     VLog    	    log(fn);
     
     VVERBOSE(log) << fn << VVERBOSE_END(log);
 
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 SignalHandler::~SignalHandler()
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::~SignalHandler");
     VLog    	    log(fn);
     
@@ -137,14 +137,14 @@ SignalHandler::~SignalHandler()
        delete sig_map;
        sig_map = NULL;
     }
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::add(SignalAction & action)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::add");
     VLog    	    log(fn);
     
@@ -207,14 +207,14 @@ SignalHandler::add(SignalAction & action)
 	    	    << ", reference count = " << myActionRefCountMap[signum]
 		    << VDEBUG_END(log);
     }
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::remove(SignalAction & action)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::remove");
     VLog    	    log(fn);
     
@@ -285,7 +285,7 @@ SignalHandler::remove(SignalAction & action)
 	//
     	sig_map->erase(signum);
     }
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
@@ -293,7 +293,7 @@ SignalHandler::remove(SignalAction & action)
 void	    	    	    
 SignalHandler::setBlocked(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::setBlocked");
     VLog    	    log(fn);
 
@@ -302,14 +302,14 @@ SignalHandler::setBlocked(const SignalSet & signalSet)
 
     int rc = pthread_sigmask(SIG_SETMASK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::block(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::block");
     VLog    	    log(fn);
 
@@ -318,14 +318,14 @@ SignalHandler::block(const SignalSet & signalSet)
 
     int rc = pthread_sigmask(SIG_BLOCK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::unblock(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::unblock");
     VLog    	    log(fn);
 
@@ -334,7 +334,7 @@ SignalHandler::unblock(const SignalSet & signalSet)
 
     int rc = pthread_sigmask(SIG_UNBLOCK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 #endif
 
@@ -342,7 +342,7 @@ SignalHandler::unblock(const SignalSet & signalSet)
 void	    	    	    
 SignalHandler::setGlobalBlocked(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::setGlobalBlocked");
     VLog    	    log(fn);
 
@@ -351,14 +351,14 @@ SignalHandler::setGlobalBlocked(const SignalSet & signalSet)
 
     int rc = sigprocmask(SIG_SETMASK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::globalBlock(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::globalBlock");
     VLog    	    log(fn);
 
@@ -367,14 +367,14 @@ SignalHandler::globalBlock(const SignalSet & signalSet)
 
     int rc = sigprocmask(SIG_BLOCK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    	    
 SignalHandler::globalUnblock(const SignalSet & signalSet)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     const string    fn("SignalHandler::globalUnblock");
     VLog    	    log(fn);
 
@@ -383,14 +383,14 @@ SignalHandler::globalUnblock(const SignalSet & signalSet)
     
     int rc = sigprocmask(SIG_UNBLOCK, &signalSet.signals, 0);
     assert( rc == 0 );
-    #endif // !defined(WIN32)
+#endif // !defined(WIN32)
 }
 
 
 void	    	    
 SignalHandler::signalHandler(int sig, siginfo_t * siginfo, void *)
 {
-    #if !defined(WIN32) && !defined(__MACH__)
+#if !defined(WIN32)
     assert( siginfo != 0 );
     assert(sig_map);
 
@@ -421,5 +421,5 @@ SignalHandler::signalHandler(int sig, siginfo_t * siginfo, void *)
     {
     	assert( 0 );
     }
-    #endif // !defined(WIN32) 
+#endif // !defined(WIN32) 
 }

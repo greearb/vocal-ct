@@ -49,10 +49,6 @@
  */
 
 
-static const char* const MACAddress_cxx_Version = 
-    "$Id: MACAddress.cxx,v 1.3 2006/03/12 07:41:28 greear Exp $";
-
-
 #include "global.h"
 #include "MACAddress.hxx"
 #include "Socket.hxx"
