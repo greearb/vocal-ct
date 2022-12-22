@@ -179,6 +179,12 @@ typedef int                 pid_t;
 typedef unsigned long int   in_addr_t;
 typedef long                off_t;
 
+#ifndef POLLIN
+/* Fix for f36 mingw builds
+ *
+ * The following pre-processor defs and pollfd struct are
+ * already defined by include'ing winsock2.h above
+ */
 struct pollfd
 {
     int fd;
@@ -192,6 +198,8 @@ struct pollfd
 #define POLLERR		0x008
 #define POLLHUP		0x010
 #define POLLNVAL	0x020
+
+#endif // ifndef POLLIN
 
 #define getcwd          _getcwd
 

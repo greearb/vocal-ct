@@ -159,7 +159,7 @@ SoundCard::open()
 #endif
 #endif
 
-#if not (defined(IS_ANDROID) || defined(__APPLE__))
+#if not (defined(WIN32) || defined(IS_ANDROID) || defined(__APPLE__))
 
     // reset the thing
     if( ioctl( myFD, SNDCTL_DSP_RESET, 0 ) == -1 ) 
@@ -429,7 +429,7 @@ SoundCard::read( unsigned char* data,
     //check codec encodings
     switch( myFormat )
     {
-#if not (defined(IS_ANDROID) || defined(__APPLE__))
+#if not (defined(WIN32) || defined(IS_ANDROID) || defined(__APPLE__))
     case SoundCardUlaw:
         // no conversion needed
         cc = 0;
@@ -459,7 +459,7 @@ SoundCard::read( unsigned char* data,
 #endif
     case SoundCardSigned16LE:
         // convert sound sample from Liner16 to ULAW
-#if not (defined(IS_ANDROID) || defined(__APPLE__))
+#if not (defined(WIN32) || defined(IS_ANDROID) || defined(__APPLE__))
         ::ioctl(myFD, SNDCTL_DSP_GETISPACE, &info);
 
         bigs = samples * 2 * myNumChannels;
@@ -487,7 +487,7 @@ SoundCard::read( unsigned char* data,
 	cc = myReadBuffer.get(rawAudio, samples * 2 * myNumChannels);
 
 #else
-#if not ((__MINGW32__) || defined(__APPLE__))
+#if not (defined(__MINGW32__) || defined(__APPLE__))
         cc = m_aSoundCardWinIn.Read( (char*)rawAudio, samples * 2 );
 #endif
 #endif
