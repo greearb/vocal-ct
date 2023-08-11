@@ -107,7 +107,7 @@ Socket::Socket(uint16 tos, uint32 priority,
     
        // Bind the socket.
        //
-       if (bind(fd_, localAddr_->getAddress(), 
+       if (::bind(fd_, localAddr_->getAddress(),
                 localAddr_->getAddressLength()) < SUCCESS) {
           close(); 
           throw Vocal::SystemException(fn + " on bind(): " + strerror(errno), 
@@ -161,7 +161,7 @@ Socket::Socket(uint16 tos, uint32 priority,
     
     // Bind the socket.
     //
-    if (bind(fd_, localAddr_->getAddress(), localAddr_->getAddressLength()) < SUCCESS) {
+    if (::bind(fd_, localAddr_->getAddress(), localAddr_->getAddressLength()) < SUCCESS) {
        close();
        VWARN(log)  << fn << ": Could not bind to address: " << *localAddr_
                    << VWARN_END(log);
