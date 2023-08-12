@@ -383,7 +383,7 @@ int UdpStack::doServer ( int minPort, int maxPort) {
              socketFd, localPort, desiredLocalIp.c_str(), this);
        
        
-       if (bind(socketFd, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
+       if (::bind(socketFd, (struct sockaddr*)(&my_ip_addr), sizeof(my_ip_addr)) != 0) {
           // failed, so keep trying
           cpLog(LOG_ERR, "WARNING:  failed to bind to ip: %s(0x%x)  port: %d, error: %s  dbg: %s  this: %p\n",
                 desiredLocalIp.c_str(), lip, localPort, VSTRERROR, _dbg.c_str(), this);
@@ -497,7 +497,7 @@ void UdpStack::connectPorts() {
             sa.sin_addr.s_addr = htonl(lip);
             
             // Got the IP, now bind locally.
-            if (bind(socketFd, (struct sockaddr*)(&sa), sizeof(sa)) < 0) {
+            if (::bind(socketFd, (struct sockaddr*)(&sa), sizeof(sa)) < 0) {
                strstream errMsg;
                errMsg << "UdpStack<" << getLclName() << " " << getRmtName()
                       << ">::UdpStack could not bind during connect, ip: "
