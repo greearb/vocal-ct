@@ -192,9 +192,12 @@ speex_targB: speex.$(TARGET_NAME);
 	rm -f $@
 	ln -s -f $(shell pwd)/speex.$(TARGET_NAME)/build/lib/libsndfile.so.1 $@
 
+#SPEEX_VER=1.0.3
+SPEEX_VER=1.2.1
+
 speex.$(TARGET_NAME):
-	mkdir -p ../speex/speex-1.0.3/build
-	$(LNDIR) ../speex/speex-1.0.3 speex.$(TARGET_NAME)
+	mkdir -p ../speex/speex-$(SPEEX_VER)/build
+	$(LNDIR) ../speex/speex-$(SPEEX_VER) speex.$(TARGET_NAME)
 	(cd speex.$(TARGET_NAME) ; CC="$(CC)" $(CONFIGURE) --prefix=`pwd`/build)
 
 
@@ -273,12 +276,12 @@ clean:
 	-rm -rf yarrow.$(OS_ARCH)
 	-rm -rf newsndfile.$(OS_ARCH)
 	-rm -rf speex.*
-	-rm -f speex/speex-1.0.3/config.cache
+	-rm -f speex/speex-$(SPEEX_VER)/config.cache
 	-rm -rf imap.$(OS_ARCH)
 	-if [ -d yarrow ]; then cd yarrow ; $(MAKE) clean; fi
 	-if [ -d quicknet ]; then cd quicknet; $(MAKE) clean; fi
-	-if [ -d speex/speex-1.0.3 ]; then cd speex/speex-1.0.3; $(MAKE) clean; fi
-	-rm -fr speex/speex-1.0.3/build
+	-if [ -d speex/speex-$(SPEEX_VER) ]; then cd speex/speex-$(SPEEX_VER); $(MAKE) clean; fi
+	-rm -fr speex/speex-$(SPEEX_VER)/build
 	-if [ -d andreasen ]; then cd andreasen ; $(MAKE) clean; fi
 
 
