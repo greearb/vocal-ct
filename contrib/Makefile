@@ -192,9 +192,6 @@ speex_targB: speex.$(TARGET_NAME);
 	rm -f $@
 	ln -s -f $(shell pwd)/speex.$(TARGET_NAME)/build/lib/libsndfile.so.1 $@
 
-#SPEEX_VER=1.0.3
-SPEEX_VER=1.2.1
-
 speex.$(TARGET_NAME):
 	mkdir -p ../speex/speex-$(SPEEX_VER)/build
 	$(LNDIR) ../speex/speex-$(SPEEX_VER) speex.$(TARGET_NAME)

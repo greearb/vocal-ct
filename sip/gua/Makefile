@@ -24,7 +24,11 @@ INCDIRS += $(ROOT)/sip/libsipua $(ROOT)/sip/gua/controlState \
            $(ROOT)/sip/libsipua/uaState $(ROOT)/sip/gua 
 
 ifeq ($(VOCAL_USE_SPEEX),yes)
+ifeq ($(SPEEX_VER),1.0.3)
+INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
+else
 INCDIRS += -DUSE_SPEEX $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include/speex
+endif
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += $(START_LD_STATIC) -lspeex $(CLOSE_LD_STATIC)
 endif

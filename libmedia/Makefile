@@ -24,7 +24,11 @@ MKSHLIB_LIBS += $(MKSHLIB_INCDIRS) -lstdc++ -lm -lvutil -lrtp -lm -lsdp2
 ifeq ($(VOCAL_USE_SPEEX),yes)
 MKSHLIB_INCDIRS += -L$(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 MKSHLIB_LIBS += -lspeex
+ifeq ($(SPEEX_VER),1.0.3)
+INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include
+else
 INCDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/include/speex
+endif
 LIBDIRS += $(ROOT)/contrib/speex.$(TARGET_NAME)/build/lib
 LDLIBS_LAST += -lspeex
 endif
