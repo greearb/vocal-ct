@@ -1,4 +1,3 @@
-# $Id: Makefile,v 1.6 2006/03/12 07:41:28 greear Exp $
 
 BUILD = ../build
 
@@ -19,9 +18,9 @@ INCDIRS += codec
 
 TARGET_LIBRARY = librtp
 
-TESTPROGRAMS = \
-        codec/encode.c \
-        codec/decode.c
+#TESTPROGRAMS = \
+#        codec/encode.c \
+#        codec/decode.c
 
 CODE_SUBDIRS = codec
 
