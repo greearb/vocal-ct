@@ -195,7 +195,7 @@ speex_targB: speex.$(TARGET_NAME);
 speex.$(TARGET_NAME):
 	mkdir -p ../speex/speex-$(SPEEX_VER)/build
 	$(LNDIR) ../speex/speex-$(SPEEX_VER) speex.$(TARGET_NAME)
-	(cd speex.$(TARGET_NAME) ; CC="$(CC)" $(CONFIGURE) --prefix=`pwd`/build)
+	(cd speex.$(TARGET_NAME) ; aclocal && autoreconf && CC="$(CC)" $(CONFIGURE) --prefix=`pwd`/build)
 
 
 
