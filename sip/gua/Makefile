@@ -186,7 +186,7 @@ LDLIBS_LAST += $(LFDIR)/server/misc.o $(LFDIR)/server/CtrlHandler.o \
                $(LFDIR)/server/gui_msgs.o $(LFDIR)/server/eid.o \
                $(LFDIR)/lib/string2/string2.o $(LFDIR)/lib/string2/IOBuffer.o \
                $(LFDIR)/server/LFCtrlHandlerShare.o \
-               $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o -lz
+               $(LFDIR)/server/BuildInfo.o $(LFDIR)/server/iohandler.o $(LFDIR)/server/TrafficCompression.o iohandler.o  -lz
 
 ifeq ($(OSTYPE),Darwin)
 LDLIBS_LAST += -lbitfield -lgcont
