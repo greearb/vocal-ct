@@ -110,11 +110,17 @@ include $(BUILD)/Makefile.opt
 include $(BUILD)/Makefile.conf
 
 ISMINGW=0
+ISMINGW64=0
 ifeq ($(ARCH),i386-mingw32)
 ISMINGW=1
 endif
 ifeq ($(ARCH),i686-w64-mingw32)
 ISMINGW=1
+ISMINGW64=1
+endif
+ifeq ($(ARCH),x86_64-w64-mingw32)
+ISMINGW=1
+ISMINGW64=1
 endif
 
 

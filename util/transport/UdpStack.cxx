@@ -144,8 +144,9 @@ struct cmsghdr
 };
 
 #define MSG_CTRUNC 0x20
+#ifndef WIN64
 typedef unsigned int  uintptr_t;
-
+#endif
 #endif
 
 // This is a file that contains multicast definitions for window support

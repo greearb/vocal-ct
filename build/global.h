@@ -175,7 +175,9 @@ using namespace __gnu_cxx;
 
 typedef int	            sigset_t;
 typedef int                 siginfo_t;
+#ifndef __MINGW64__
 typedef int                 pid_t;
+#endif
 typedef unsigned long int   in_addr_t;
 typedef long                off_t;
 
